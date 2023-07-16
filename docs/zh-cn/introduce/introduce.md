@@ -12,17 +12,6 @@
 
 <br/>
 
-<br/>
-
-<h5 align="center">
+<h5>
   <a style="color: #e25a1b;cursor: pointer"  onclick="window.open('https://zhiqingyun-demo.isxcode.com')">点击进入演示环境</a>
 </h5>
-
-<br/>
-
-<h4 align="center">
-<img align="center" class="link-wechat" src="https://img.isxcode.com/picgo/20230414172307.png" width="300">
-</h4>
-
-<h6 align="center">扫码进入至轻云官方群</h6>
-
