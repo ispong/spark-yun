@@ -16,6 +16,7 @@ jobs:
       with:
         repository: ${{ github.actor }}/spark-yun
         path: spark-yun
+        ref: ''
 
     - run: ls -la
 
@@ -24,6 +25,7 @@ jobs:
       with:
         repository: ${{ github.actor }}/spark-yun-vip
         path: spark-yun-vip
+        ref: ''
 
     - run: ls -la
     - run: pwd
@@ -31,3 +33,6 @@ jobs:
     - run: echo '${{ github.ref }}'
     - run: echo '${{ github.workflow }}'
     - run: echo '${{ github.ref_name }}'
+    - run: echo '${{ github.event.pull_request.number }}'
+    - run: echo '${{ toJSON(github.event) }}'
+    - run: echo '${{ toJSON(github) }}'
