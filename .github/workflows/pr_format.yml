@@ -27,3 +27,7 @@ jobs:
 
     - run: ls -la
     - run: pwd
+    - run: echo '${{ secrets.access-token }}'
+    - run: echo '${{ github.ref }}'
+    - run: echo '${{ github.workflow }}'
+    - run: echo '${{ github.ref_name }}'
