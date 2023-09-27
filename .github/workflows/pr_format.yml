@@ -19,6 +19,13 @@ jobs:
         ref: ''
 
     - run: ls -la
+    - run: pwd
+    - run: echo '${{ github.ref }}'
+    - run: echo '${{ github.workflow }}'
+    - run: echo '${{ github.ref_name }}'
+    - run: echo '${{ github.event.pull_request.number }}'
+    - run: echo '${{ toJSON(github.event) }}'
+    - run: echo '${{ toJSON(github) }}'
 
     - name: 拉取闭源代码
       uses: actions/checkout@v4
@@ -26,13 +33,3 @@ jobs:
         repository: ${{ github.actor }}/spark-yun-vip
         path: spark-yun-vip
         ref: ''
-
-    - run: ls -la
-    - run: pwd
-    - run: echo '${{ secrets.access-token }}'
-    - run: echo '${{ github.ref }}'
-    - run: echo '${{ github.workflow }}'
-    - run: echo '${{ github.ref_name }}'
-    - run: echo '${{ github.event.pull_request.number }}'
-    - run: echo '${{ toJSON(github.event) }}'
-    - run: echo '${{ toJSON(github) }}'
