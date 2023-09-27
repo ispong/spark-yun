@@ -1,0 +1,29 @@
+name: 代码pr检测
+run-name: ${{ github.actor }} 请求 ${{ github.event.issue.number }} 合并检测
+on:
+  pull_request:
+    branches:
+      - '**-#**'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: 拉取开源代码
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.actor }}/spark-yun
+        path: spark-yun
+
+    - run: ls -la
+
+    - name: 拉取闭源代码
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.actor }}/spark-yun-vip
+        path: spark-yun-vip
+
+    - run: ls -la
+    - run: pwd
