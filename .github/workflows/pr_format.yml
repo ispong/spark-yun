@@ -13,20 +13,15 @@ jobs:
 
     steps:
 
-      - uses: actions/create-github-app-token@v1
-        id: app-token
+      - name: my-app-install token
+        id: my-app
+        uses: getsentry/action-github-app-token@v2
         with:
-          owner: ${{ github.actor }}
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v4
+      - name: Checkout private repo
+        uses: actions/checkout@v2
         with:
           repository: ispong/spark-yun-vip
-          token: ${{ steps.app-token.outputs.token }}
-          ref: ${{ github.head_ref }}
-          persist-credentials: false
-
-      - uses: creyD/prettier_action@v4.3
-        with:
-          github_token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.my-app.outputs.token }}
