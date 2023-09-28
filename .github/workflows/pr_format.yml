@@ -35,3 +35,6 @@ jobs:
           gh repo clone https://github.com/${{ github.actor }}/spark-yun-vip
           cd spark-yun-vip
           git checkout ${{ github.head_ref }}
+
+      - name: 查看文件是否全了
+        run: cd ${{ github.workspace }} && ls -la
