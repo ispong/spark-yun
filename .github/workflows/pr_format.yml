@@ -24,7 +24,7 @@ jobs:
         repository: ${{ github.actor }}/spark-yun-vip
         path: spark-yun-vip
         ref: ${{ github.head_ref }}
-        token: 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
+        token: ${{ secrets.GH_PAT }}
 
     - run: ls -la
     - run: pwd
