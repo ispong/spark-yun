@@ -31,10 +31,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
-          cd spark-yun
-          gh repo clone https://github.com/${{ github.actor }}/spark-yun-vip
-          cd spark-yun-vip
-          git checkout ${{ github.head_ref }}
+          gh repo clone https://github.com/ispong/spark-yun-vip
 
       - name: 查看文件是否全了
-        run: cd ${{ github.workspace }} && ls -la
+        run: cd ${{ github.workspace }} && ls -la && pwd
