@@ -11,16 +11,12 @@ jobs:
 
     steps:
 
-    - name: 拉取开源代码
-      uses: actions/checkout@v4
+    - name: 获取授权token
+      id: generate_token
+      uses: actions/create-github-app-token@v1
       with:
-        repository: ${{ github.actor }}/spark-yun
-        path: spark-yun
-        ref: ${{ github.head_ref }}
-        token: ${{ github.token }}
-
-    - run: ls -la
-    - run: pwd
+        app_id: ${{ secrets.APP_ID }}
+        private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
     - name: 拉取闭源代码
       uses: actions/checkout@v4
@@ -28,7 +24,7 @@ jobs:
         repository: ${{ github.actor }}/spark-yun-vip
         path: spark-yun-vip
         ref: ${{ github.head_ref }}
-        token: ${{ github.token }}
+        token: ${{ steps.generate_token.outputs.token }}
 
     - run: ls -la
     - run: pwd
