@@ -18,7 +18,11 @@ jobs:
         app_id: ${{ secrets.APP_ID }}
         private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
-    - run: echo '${{ steps.generate_token.outputs }}'
+    - name: 配置token环境变量
+      env:
+        GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+      run: |
+        gh api octocat
 
     - name: 拉取闭源代码
       uses: actions/checkout@v4
@@ -26,7 +30,6 @@ jobs:
         repository: ${{ github.actor }}/spark-yun-vip
         path: spark-yun-vip
         ref: ${{ github.head_ref }}
-        token: ${{ steps.generate_token.outputs.token }}
 
     - run: ls -la
     - run: pwd
