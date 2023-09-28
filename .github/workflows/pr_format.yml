@@ -20,7 +20,11 @@ jobs:
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - run: gh api octocat
+      - name: 拉取闭源代码
+        env:
+          GITHUB_TOKEN: ${{ steps.my-app.outputs.token }}
+        run: |
+          gh api octocat
 
       - name: Checkout private repo
         uses: actions/checkout@v4
