@@ -11,8 +11,6 @@ jobs:
 
     steps:
 
-    - run: gh api octocat
-
     - name: 获取授权token
       id: generate_token
       uses: actions/create-github-app-token@v1
