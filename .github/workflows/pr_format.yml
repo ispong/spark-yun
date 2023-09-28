@@ -31,4 +31,4 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           repository: ispong/spark-yun-vip
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ steps.my-app.outputs.token }}
