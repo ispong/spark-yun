@@ -13,23 +13,25 @@ jobs:
 
     steps:
 
-      - name: 获取提交人的token
+      - name: 拉取开源代码
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.actor }}/spark-yun
+          path: spark-yun
+          ref: ${{ github.head_ref }}
+
+      - name: 获取isxcode组织token
         id: generate_token
         uses: actions/create-github-app-token@v1
         with:
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - name: 测试token是否生效
+      - name: 拉取闭源代码
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
-          gh api octocat
-
-      - name: 拉取闭源代码
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.actor }}/spark-yun-vip
-          path: spark-yun-vip
-          ref: ${{ github.head_ref }}
-          token: ${{ steps.generate_token.outputs.token }}
+          cd spark-yun
+          gh repo clone https://github.com/${{ github.actor }}/spark-yun-vip
+          cd spark-yun-vip
+          git checkout ${{ github.head_ref }}
