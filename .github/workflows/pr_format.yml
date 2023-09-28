@@ -31,6 +31,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
+          gh api octocat
           gh repo clone https://github.com/ispong/spark-yun-vip
 
       - name: 查看文件是否全了
