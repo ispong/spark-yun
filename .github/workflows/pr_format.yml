@@ -13,26 +13,18 @@ jobs:
 
     steps:
 
-      - name: 拉取开源代码
-        uses: actions/checkout@v4
+      - uses: actions/create-github-app-token@v1
+        id: app-token
         with:
-          repository: ${{ github.actor }}/spark-yun
-          path: spark-yun
+          app_id: ${{ vars.APP_ID }}
+          private_key: ${{ secrets.PRIVATE_KEY }}
+
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ steps.app-token.outputs.token }}
           ref: ${{ github.head_ref }}
+          persist-credentials: false
 
-      - name: 获取isxcode组织token
-        id: generate_token
-        uses: actions/create-github-app-token@v1
+      - uses: creyD/prettier_action@v4.3
         with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.APP_PRIVATE_KEY }}
-
-      - name: 拉取闭源代码
-        env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-        run: |
-          gh api octocat
-          gh repo clone https://github.com/ispong/spark-yun-vip
-
-      - name: 查看文件是否全了
-        run: cd ${{ github.workspace }} && ls -la && pwd
+          github_token: ${{ steps.app-token.outputs.token }}
