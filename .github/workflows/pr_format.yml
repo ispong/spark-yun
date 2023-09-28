@@ -18,6 +18,8 @@ jobs:
         app_id: ${{ secrets.APP_ID }}
         private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
+    - run: echo '${{ steps.generate_token }}'
+
     - name: 拉取闭源代码
       uses: actions/checkout@v4
       with:
