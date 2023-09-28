@@ -1,5 +1,5 @@
-name: 代码pr检测
-run-name: ${{ github.actor }} 请求 ${{ github.event.issue.number }} 合并检测
+name: pr代码检测
+run-name: 【代码检测】${{ github.actor }} - ${{ github.workflow }}
 on:
   pull_request:
     branches:
@@ -16,20 +16,19 @@ jobs:
       with:
         repository: ${{ github.actor }}/spark-yun
         path: spark-yun
-        ref: ''
+        ref: ${{ github.head_ref }}
+        token: ${{ github.token }}
 
     - run: ls -la
     - run: pwd
-    - run: echo '${{ github.ref }}'
-    - run: echo '${{ github.workflow }}'
-    - run: echo '${{ github.ref_name }}'
-    - run: echo '${{ github.event.pull_request.number }}'
-    - run: echo '${{ toJSON(github.event) }}'
-    - run: echo '${{ toJSON(github) }}'
 
     - name: 拉取闭源代码
       uses: actions/checkout@v4
       with:
         repository: ${{ github.actor }}/spark-yun-vip
         path: spark-yun-vip
-        ref: ''
+        ref: ${{ github.head_ref }}
+        token: ${{ github.token }}
+
+    - run: ls -la
+    - run: pwd
