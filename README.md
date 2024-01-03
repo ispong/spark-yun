@@ -8,9 +8,9 @@
   至轻云
 </h1>
 
-<h2 align="center">
+<h3 align="center">
   基于Spark打造超轻量级大数据平台
-</h2>
+</h3>
 
 <div align="center">
 
