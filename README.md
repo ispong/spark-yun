@@ -1,7 +1,3 @@
-<div align="center">
-   <img width="250" alt="image" src="https://github.com/ispong/spark-yun/assets/34756621/a7c5d08c-b0e6-45bb-9cd7-8ff692e257dd">
-</div>
-
 <h2 align="center">
   至轻云 - 基于Spark打造超轻量级大数据平台
 </h2>
