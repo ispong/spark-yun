@@ -38,7 +38,7 @@
 - 体验账号：user001
 - 用户密码：welcome1
 
-### 启动
+### 部署
 
 ```bash
 docker run -p 8080:8080 -d isxcode/zhiqingyun
