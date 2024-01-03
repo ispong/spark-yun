@@ -1,40 +1,44 @@
+<div align="center">
+  <img width="600" alt="image" src="https://github.com/ispong/spark-yun/assets/34756621/8e3827ac-a24f-49d0-b27a-e6a900ae13c3">
+</div>
+
+---
+
+<h1 align="center">
+  至轻云
+</h1>
+
 <h2 align="center">
-  至轻云 - 基于Spark打造超轻量级大数据平台
+  基于Spark打造超轻量级大数据平台
 </h2>
 
-<div align="center" class="badge">
+<div align="center">
 
 ![Docker Pulls](https://img.shields.io/docker/pulls/isxcode/zhiqingyun)
 ![GitHub release (with filter)](https://img.shields.io/github/v/release/isxcode/spark-yun)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fisxcode%2Fspark-yun.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fisxcode%2Fspark-yun?ref=badge_small)
-![GitHub License](https://img.shields.io/github/license/isxcode/spark-yun)
 ![GitHub Repo stars](https://img.shields.io/github/stars/isxcode/spark-yun)
 ![GitHub forks](https://img.shields.io/github/forks/isxcode/spark-yun)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fisxcode%2Fspark-yun.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fisxcode%2Fspark-yun?ref=badge_small)
+![GitHub License](https://img.shields.io/github/license/isxcode/spark-yun)
 
 </div>
 
---- 
+### 特色
 
-<div align="center">
-  <img width="700" alt="image" src="https://github.com/ispong/spark-yun/assets/34756621/8e3827ac-a24f-49d0-b27a-e6a900ae13c3">
-</div>
-
-### 产品特色
-
-- **代码开源**：代码开源，满足用户二次自定义开发
-- **高可用**：支持集群模式，提高用户冗灾能力
-- **多租户**：一套系统，多部门同时使用
+- **代码开源**：允许用户自定义二次开发
+- **高可用**：支持高可用集群部署，提高用户环境抗灾能力
+- **多租户**：一套系统，租户数据隔离，多部门共同使用
 - **云原生**：支持docker快速部署，只需一行命令即可使用
-- **私有化部署**：用户可内网部署，提高用户网络安全
-- **spark原生**：纯原生spark，支持spark的所有原生用法
+- **私有化部署**：用户可内网部署，提高用户数据安全性
+- **spark纯原生**：支持spark官网的所有原生用法和规则
 
-### 在线体验
+### 体验
 
 - 演示地址：https://zhiqingyun-demo.isxcode.com
 - 体验账号：user001
 - 用户密码：welcome1
 
-### 一键启动
+### 启动
 
 ```bash
 docker run -p 8080:8080 -d isxcode/zhiqingyun
@@ -44,7 +48,7 @@ docker run -p 8080:8080 -d isxcode/zhiqingyun
 - 默认管理员账号：admin
 - 默认管理员密码：admin123
 
-### 相关文档
+### 文档
 
 - [快速入门](https://zhiqingyun.isxcode.com)
 - [使用文档](https://zhiqingyun.isxcode.com)
