@@ -57,8 +57,8 @@ docker run -p 8080:8080 -d isxcode/zhiqingyun
 
 ### 关于我们
 
-- 邮箱：hello@isxcode.com
-- 电话：400-8848-170
-- 微信公众号：
+邮箱：hello@isxcode.com
+电话：400-8848-170
+微信公众号：
 
 <img width="230" alt="image" src="https://github.com/ispong/spark-yun/assets/34756621/ae6323bf-3455-434f-a919-949af1eca11f">
