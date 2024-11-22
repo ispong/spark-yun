@@ -106,6 +106,10 @@ public class YarnAgentService implements AgentService {
                     : JSON.toJSONString(submitWorkReq.getPluginReq()).getBytes()));
         }
 
+        // 如果是计算容器，需要额外加上配置
+        sparkLauncher.setConf("spark.yarn.appMasterEnv.SPARK_USER", "dehoop");
+        sparkLauncher.setConf("spark.yarn.appMasterEnv.HADOOP_USER_NAME", "dehoop");
+
         // 调整spark.yarn.submit.waitAppCompletion，减少资源消耗
         sparkLauncher.setConf("spark.yarn.submit.waitAppCompletion", "false");
         submitWorkReq.getSparkSubmit().getConf().forEach(sparkLauncher::setConf);
