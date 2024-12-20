@@ -4,7 +4,8 @@
   background-color: #f5f5f5;
   border-radius: 5px;
 
-  &-thumb, &-track {
+  &-thumb,
+  &-track {
     background-color: #c1c1c1;
     border-radius: 5px;
   }
@@ -13,11 +14,19 @@
     background-color: #f5f5f5;
   }
 
-  &-corner, &:hover {
+  &-corner,
+  &:hover {
     background-color: #f5f5f5;
   }
 
   &:hover {
     cursor: pointer;
+  }
+  @font-face {
+    font-family: "阿里妈妈数黑体 Bold";
+    font-weight: 700;
+    src: url("~/assets/fonts/AlimamaShuHeiTi-Bold.woff2") format("woff2"),
+      url("~/assets/fonts/AlimamaShuHeiTi-Bold.woff") format("woff");
+    font-display: swap;
   }
 }

@@ -5,12 +5,12 @@
       class="menu-folder"
       @click.stop="handleFolderClick(link)"
     >
-      <div class="menu-folder-title">
+      <div class="menu-folder-title" :class="computeClass(link)">
         <span class="menu-folder-title-icon">
           <SvgIcon name="home"></SvgIcon>
         </span>
         <SkEllipsis class="menu-folder-title-text" truncated>
-          {{ link.title}}
+          {{ link.title }}
         </SkEllipsis>
         <div class="menu-folder-title-is-collapsed">
           <SvgIcon
@@ -34,6 +34,7 @@
       class="menu-item"
       :class="{
         'menu-item-active': link._path === router.currentRoute.value.path,
+        ...computeClass(link),
       }"
       @click.stop="handleMenuItemClick(link)"
     >
@@ -49,13 +50,14 @@
 
 <script lang="ts" setup>
 import { useRouter } from "vue-router";
-import { defineProps, defineEmits, PropType, watch } from "vue";
+import { defineProps, defineEmits, type PropType, watch } from "vue";
 interface MenuItem {
   title: string;
   _path: string;
   _id?: string;
   _draft?: boolean;
   isCollapsed?: boolean;
+  level?: number;
   children?: MenuItem[];
   [key: string]: any;
 }
@@ -77,15 +79,11 @@ function handleMenuItemClick(link: MenuItem) {
 
 const router = useRouter();
 
-watch(
-  () => router.currentRoute.value.path,
-  (path) => {
-    const link = treeData.find((item) => item._path === path);
-    if (link) {
-      link.isCollapsed = false;
-    }
-  }
-);
+function computeClass(link: MenuItem) {
+  return {
+    [`menu-item-level-${link.level}`]: true,
+  };
+}
 </script>
 
 <style lang="scss" scoped>
@@ -111,7 +109,7 @@ watch(
       }
     }
     .menu-folder-content {
-      padding-left: 20px;
+      // padding-left: 20px;
     }
   }
   .menu-item {
@@ -140,6 +138,21 @@ watch(
   .menu-item-active {
     border-left: var(--sk-color-home-primary) 2px solid;
     color: var(--sk-color-home-primary) !important;
+  }
+  .menu-item-level-1 {
+    padding-left: 0px !important;
+  }
+  .menu-item-level-2 {
+    padding-left: 20px !important;
+  }
+  .menu-item-level-3 {
+    padding-left: 40px !important;
+  }
+  .menu-item-level-4 {
+    padding-left: 60px !important;
+  }
+  .menu-item-level-5 {
+    padding-left: 80px !important;
   }
 }
 </style>
