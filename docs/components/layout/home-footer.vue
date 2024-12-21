@@ -45,7 +45,7 @@
         <div class="column">
           <div class="title">{{ $t("contact_us") }}</div>
           <div class="link">{{ $t("phone") }}</div>
-          <div class="link">{{ $t("email") }}</div>
+          <div class="link">{{ $t("email") }}hello@isxcode.com</div>
           <div class="link">{{ $t("address") }}</div>
         </div>
       </div>
@@ -56,7 +56,7 @@
     <div class="content">
       <div class="link">{{ $t("company_name") }}</div>
       <div class="link">{{ $t("phone") }}</div>
-      <div class="link">{{ $t("email") }}</div>
+      <div class="link">{{ $t("email") }}hello@isxcode.com</div>
       <div class="link">{{ $t("address") }}</div>
     </div>
   </div>
