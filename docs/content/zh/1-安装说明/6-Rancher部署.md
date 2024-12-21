@@ -387,8 +387,8 @@ kubectl get svc -n cattle-system
 kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{ "\n" }}'
 ```
 
-访问地址: https://47.92.128.32:31908 
-密码: pt2g584d6hrrc9cw7k9vd8bbrrwz5rpmd75tdrg8cwsh6kjk8cg4pv
+> 访问地址: https://47.92.128.32:31908   
+> 密码: pt2g584d6hrrc9cw7k9vd8bbrrwz5rpmd75tdrg8cwsh6kjk8cg4pv
 
 #### 相关调试命令
 
