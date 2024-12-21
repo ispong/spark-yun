@@ -21,6 +21,7 @@
   "multi_platform_deployment": "多平台部署，从不娇生惯养",
   "multi_platform_description": "支持多种资源调度平台，如Kubernetes、Yarn、CDH、Apache Hadoop、Spark Standalone、Spark Cluster等。",
   "data_view": "数据大屏，展示大数据",
+  "opensource_value": "开源助力企业运用大数据能力",
   "data_view_description": "强大的数据处理和可视化技术，将复杂数据转化为直观图表，支持实时监控和分析，助力企业决策，灵活适应行业内需求。",
   "free_trial": "免费试用",
   "zhi_yao_shu_ju": "至爻数据",

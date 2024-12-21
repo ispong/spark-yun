@@ -12,9 +12,9 @@
           <div class="command">
             <p id="command-shell">docker run -p 8080:8080 isxcode/zhiqingyun</p>
             <SvgIcon
-              class="copy-icon"
-              name="copy"
-              @click="handleCommandCopyClick"
+                class="copy-icon"
+                name="copy"
+                @click="handleCommandCopyClick"
             ></SvgIcon>
           </div>
           <div class="btn-div">
@@ -51,40 +51,40 @@
         </div>
         <div class="tech-img-div">
           <img
-            class="tech-img"
-            @click="handleK8sClick"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-k8s.png"
-            alt=""
+              class="tech-img"
+              @click="handleK8sClick"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-k8s.png"
+              alt=""
           />
           <img
-            class="tech-img"
-            @click="handleHadoopClick"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-hadoop.png"
-            alt=""
+              class="tech-img"
+              @click="handleHadoopClick"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-hadoop.png"
+              alt=""
           />
           <img
-            class="tech-img"
-            @click="handleSparkClick"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-spark.png"
-            alt=""
+              class="tech-img"
+              @click="handleSparkClick"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-spark.png"
+              alt=""
           />
           <img
-            class="tech-img"
-            @click="handleHiveClick"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-hive.png"
-            alt=""
+              class="tech-img"
+              @click="handleHiveClick"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-hive.png"
+              alt=""
           />
           <img
-            class="tech-img"
-            @click="handleDorisClick"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-doris.png"
-            alt=""
+              class="tech-img"
+              @click="handleDorisClick"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-doris.png"
+              alt=""
           />
           <img
-            class="tech-img"
-            @click="handleClickhouseClick"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-clickhouse.png"
-            alt=""
+              class="tech-img"
+              @click="handleClickhouseClick"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/tech-img/t-clickhouse.png"
+              alt=""
           />
         </div>
       </div>
@@ -110,8 +110,8 @@
       <div class="content">
         <div class="right-phone">
           <img
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-2.jpg"
-            alt=""
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-2.jpg"
+              alt=""
           />
         </div>
         <div class="left">
@@ -123,8 +123,8 @@
         </div>
         <div class="right">
           <img
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-2.jpg"
-            alt=""
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-2.jpg"
+              alt=""
           />
         </div>
       </div>
@@ -139,7 +139,9 @@
         </div>
         <div class="right">
           <div class="line-1">实时计算，让数据更高效</div>
-          <div class="line-2">支持实时计算和数据库实时同步功能，利用Kafka和Debezium高效处理数据流，确保数据的快速传输和更新。</div>
+          <div class="line-2">
+            支持实时计算和数据库实时同步功能，利用Kafka和Debezium高效处理数据流，确保数据的快速传输和更新。
+          </div>
           <div class="line-3" @click="handleQuickClick">立即体验</div>
         </div>
       </div>
@@ -150,53 +152,53 @@
         <div class="line-2">{{ $t("data_drives_value_description") }}</div>
         <div class="business-img">
           <img
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-1.png"
-            alt=""
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-1.png"
+              alt=""
           />
           <img
-            class="bus-img"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-2.png"
-            alt=""
+              class="bus-img"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-2.png"
+              alt=""
           />
           <img
-            class="bus-img"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-3.png"
-            alt=""
+              class="bus-img"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-3.png"
+              alt=""
           />
           <img
-            class="bus-img"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-4.png"
-            alt=""
+              class="bus-img"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-4.png"
+              alt=""
           />
           <img
-            class="bus-img"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-5.png"
-            alt=""
+              class="bus-img"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-5.png"
+              alt=""
           />
           <img
-            class="bus-img"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-6.png"
-            alt=""
+              class="bus-img"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-6.png"
+              alt=""
           />
           <img
-            class="bus-img"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-7.png"
-            alt=""
+              class="bus-img"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-7.png"
+              alt=""
           />
           <img
-            class="bus-img"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-8.png"
-            alt=""
+              class="bus-img"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-8.png"
+              alt=""
           />
           <img
-            class="bus-img"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-9.png"
-            alt=""
+              class="bus-img"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-9.png"
+              alt=""
           />
           <img
-            class="bus-img"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-10.png"
-            alt=""
+              class="bus-img"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/business-img/b-10.png"
+              alt=""
           />
         </div>
       </div>
@@ -205,9 +207,9 @@
       <div class="content">
         <div class="right-phone">
           <img
-            class="feat-img"
-            src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-4.jpg"
-            alt=""
+              class="feat-img"
+              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-4.jpg"
+              alt=""
           />
         </div>
         <div class="left">
@@ -218,17 +220,20 @@
           </div>
         </div>
         <div class="right">
-          <img id="zoom" class="feat-img" src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-4.jpg" alt="">
+          <img id="zoom" class="feat-img"
+               src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-4.jpg" alt="">
         </div>
       </div>
     </div>
     <div class="module-feat-left">
       <div class="content">
         <div class="left">
-          <img id="zoom" class="feat-img" src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-5.jpg" alt="">
+          <img id="zoom" class="feat-img"
+               src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-5.jpg" alt="">
         </div>
-         <div class="left-phone">
-          <img class="feat-img" src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-5.jpg" alt="">
+        <div class="left-phone">
+          <img class="feat-img" src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-5.jpg"
+               alt="">
         </div>
         <div class="right">
           <div class="line-1">{{ $t("data_view") }}</div>
@@ -241,30 +246,30 @@
     </div>
     <div class="module-end">
       <div class="content">
-        <div class="line-1">{{ $t("data_drives_value") }}</div>
+        <div class="line-1">{{ $t("opensource_value") }}</div>
         <div class="end-btn" @click="handleQuickClick">
           {{ $t("free_trial") }}
         </div>
       </div>
     </div>
   </div>
-  <LayoutHomeFooter />
+  <LayoutHomeFooter/>
 </template>
 
 <script lang="ts" setup>
-import { ElMessage } from "element-plus";
+import {ElMessage} from "element-plus";
 import Artplayer from "artplayer";
-import { defineProps } from "vue";
-import { useI18n } from "vue-i18n";
+import {defineProps} from "vue";
+import {useI18n} from "vue-i18n";
 import mediumZoom from "medium-zoom";
 
 onMounted(async () => {
-    await nextTick()
-    mediumZoom(document.querySelectorAll('#zoom'),{
-       margin: 100,
-       scrollOffset: 1,
-       background: '#fffaf8',
-    })
+  await nextTick()
+  mediumZoom(document.querySelectorAll('#zoom'), {
+    margin: 100,
+    scrollOffset: 1,
+    background: '#fffaf8',
+  })
 })
 
 const $t = useI18n().t;
@@ -282,7 +287,7 @@ useSeoMeta({
 });
 
 const isMobile = useMediaQuery("(max-width: 767px)");
-const { locale } = useI18n();
+const {locale} = useI18n();
 
 const props = defineProps({
   showVideo: {
@@ -301,7 +306,7 @@ onMounted(() => {
   const art = new Artplayer({
     container: '.artplayer-app',
     url: 'https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/product.mp4',
-    poster:'https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/product.jpg',
+    poster: 'https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/product.jpg',
     fullscreen: true,
     fullscreenWeb: true,
     pip: true,
@@ -380,6 +385,7 @@ $primary-width: 1200px;
 $module-intro-img-width: 600px;
 
 .main {
+  font-family: "阿里巴巴普惠体 2.0 45 Light", sans-serif;
   .module-intro {
     width: 100%;
     height: $module-intro-height;
@@ -918,7 +924,7 @@ $module-intro-img-width: 600px;
         display: none;
       }
 
-      .left-phone{
+      .left-phone {
         display: block;
         width: 300px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
