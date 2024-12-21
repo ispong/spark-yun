@@ -98,8 +98,8 @@
           <img src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-1.jpg" alt="">
         </div>
         <div class="right">
-          <div class="line-1">{{ $t("multi_platform_deployment") }}</div>
-          <div class="line-2">{{ $t("multi_platform_description") }}</div>
+          <div class="line-1">{{ $t("coding_capability") }}</div>
+          <div class="line-2">{{ $t("job_types_supported") }}</div>
           <div class="line-3" @click="handleQuickClick">
             {{ $t("experience_now") }}
           </div>
@@ -115,8 +115,8 @@
           />
         </div>
         <div class="left">
-          <div class="line-1">{{ $t("driver_upload") }}</div>
-          <div class="line-2">{{ $t("data_sources_support") }}</div>
+          <div class="line-1">{{ $t("job_orchestration") }}</div>
+          <div class="line-2">{{ $t("job_support") }}</div>
           <div class="line-3" @click="handleQuickClick">
             {{ $t("experience_now") }}
           </div>
@@ -211,8 +211,8 @@
           />
         </div>
         <div class="left">
-          <div class="line-1">{{ $t("job_orchestration") }}</div>
-          <div class="line-2">{{ $t("job_support") }}</div>
+          <div class="line-1">{{ $t("multi_platform_deployment") }}</div>
+          <div class="line-2">{{ $t("multi_platform_description") }}</div>
           <div class="line-3" @click="handleQuickClick">
             {{ $t("experience_now") }}
           </div>
@@ -231,8 +231,8 @@
           <img class="feat-img" src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-5.jpg" alt="">
         </div>
         <div class="right">
-          <div class="line-1">{{ $t("coding_capability") }}</div>
-          <div class="line-2">{{ $t("job_types_supported") }}</div>
+          <div class="line-1">{{ $t("data_view") }}</div>
+          <div class="line-2">{{ $t("data_view_description") }}</div>
           <div class="line-3" @click="handleQuickClick">
             {{ $t("experience_now") }}
           </div>

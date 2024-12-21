@@ -17,7 +17,7 @@
           <div class="title">{{ $t("product") }}</div>
           <div class="link" @click="clickZhiqingyun">{{ $t("zhiqingyun") }}</div>
           <div class="link" @click="clickZhiliuyun">{{ $t("zhiliuyun") }}</div>
-          <div class="link" @click="clickZhihuiyun">>{{ $t("zhihuiyun") }}</div>
+          <div class="link" @click="clickZhihuiyun">{{ $t("zhihuiyun") }}</div>
           <div class="link" @click="clickZhishiyun">{{ $t("zhishiyun") }}</div>
           <div class="link" @click="clickZhishuyun">{{ $t("zhishuyun") }}</div>
         </div>
@@ -29,53 +29,52 @@
           <div class="link" @click="clickDiscord">{{ $t("discord") }}</div>
         </div>
         <div class="column">
-          <div class="title">{{ $t("resources") }}>
-            <div class="link" @click="clickDocs">{{ $t("docs") }}</div>
-            <div class="link" @click="clickBlogs">{{ $t("blogs") }}</div>
-            <div class="link" @click="clickDockerHub">{{ $t("docker_hub") }}</div>
-            <div class="link" @click="downloadPackage">{{ $t("download_package") }}</div>
-            <div class="link" @click="downloadLicense"> {{ $t("download_license") }}</div>
-          </div>
-          <div class="column">
-            <div class="title">{{ $t("about_us") }}</div>
-            <div class="link" @click="aboutUs">{{ $t("company_intro") }}</div>
-            <div class="link" @click="joinUs">{{ $t("join_us") }}</div>
-            <div class="link" @click="clickGithubProject"> {{ $t("development_progress") }}</div>
-          </div>
-          <div class="column">
-            <div class="title">{{ $t("contact_us") }}</div>
-            <div class="link">{{ $t("phone") }}</div>
-            <div class="link">{{ $t("email") }}</div>
-            <div class="link">{{ $t("address") }}</div>
-          </div>
+          <div class="title">{{ $t("resources") }}</div>
+          <div class="link" @click="clickDocs">{{ $t("docs") }}</div>
+          <div class="link" @click="clickBlogs">{{ $t("blogs") }}</div>
+          <div class="link" @click="clickDockerHub">{{ $t("docker_hub") }}</div>
+          <div class="link" @click="downloadPackage">{{ $t("download_package") }}</div>
+          <div class="link" @click="downloadLicense"> {{ $t("download_license") }}</div>
+        </div>
+        <div class="column">
+          <div class="title">{{ $t("about_us") }}</div>
+          <div class="link" @click="aboutUs">{{ $t("company_intro") }}</div>
+          <div class="link" @click="joinUs">{{ $t("join_us") }}</div>
+          <div class="link" @click="clickGithubProject"> {{ $t("development_progress") }}</div>
+        </div>
+        <div class="column">
+          <div class="title">{{ $t("contact_us") }}</div>
+          <div class="link">{{ $t("phone") }}</div>
+          <div class="link">{{ $t("email") }}</div>
+          <div class="link">{{ $t("address") }}</div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="org-info">
-      <div class="content">
-        <div class="link">{{ $t("company_name") }}</div>
-        <div class="link">{{ $t("phone") }}</div>
-        <div class="link">{{ $t("email") }}</div>
-        <div class="link">{{ $t("address") }}</div>
+  <div class="org-info">
+    <div class="content">
+      <div class="link">{{ $t("company_name") }}</div>
+      <div class="link">{{ $t("phone") }}</div>
+      <div class="link">{{ $t("email") }}</div>
+      <div class="link">{{ $t("address") }}</div>
+    </div>
+  </div>
+
+  <div class="footer-copyright">
+    <div class="content">
+      <div class="equal-columns">
+        <div>{{ $t("copyright") }}</div>
+        <div class="icp-click" @click="clickIcp">{{ $t("icp") }}</div>
+        <div class="copyright-div">{{ $t("reserved_rights") }}</div>
       </div>
     </div>
+  </div>
 
-    <div class="footer-copyright">
-      <div class="content">
-        <div class="equal-columns">
-          <div>{{ $t("copyright") }}</div>
-          <div class="icp-click" @click="clickIcp">{{ $t("icp") }}</div>
-          <div class="copyright-div">{{ $t("reserved_rights") }}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="fixed-footer" @click="callPhoneNumber">
-      <div class="content">
-        <SvgIcon class="phone-svg" name="phone"></SvgIcon>
-        <p class="phone-text"><a>{{ $t("phone_inquiry") }}</a></p>
-      </div>
+  <div class="fixed-footer" @click="callPhoneNumber">
+    <div class="content">
+      <SvgIcon class="phone-svg" name="phone"></SvgIcon>
+      <p class="phone-text"><a>{{ $t("phone_inquiry") }}</a></p>
     </div>
   </div>
 </template>
