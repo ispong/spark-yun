@@ -2,6 +2,9 @@ import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
 import path from "path";
 
 export default defineNuxtConfig({
+  build: {
+    transpile: ['mdast-util-from-markdown', 'micromark']
+  },
   devtools: { enabled: false },
   modules: [
     "@nuxt/content",
