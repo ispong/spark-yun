@@ -322,10 +322,15 @@ import {ElMessage} from "element-plus";
 const switchLocalePath = useSwitchLocalePath();
 const {locale} = useI18n();
 
+// function clickZhiqingyun() {
+//   const router = useRouter();
+//   const newLocale = locale.value === "en" ? "zh" : "en";
+//   router.push({path: switchLocalePath(newLocale)});
+// }
+
 function clickZhiqingyun() {
   const router = useRouter();
-  const newLocale = locale.value === "en" ? "zh" : "en";
-  router.push({path: switchLocalePath(newLocale)});
+  router.push("/");
 }
 
 function clickZhiliuyun() {

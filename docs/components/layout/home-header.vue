@@ -121,7 +121,7 @@ const { locale, locales } = useI18n();
 function handleLogoClick() {
   const router = useRouter();
   const newLocale = locale.value;
-  router.push(`/${newLocale}/`);
+  router.push(`/`);
 }
 
 interface MenuData {

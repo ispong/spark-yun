@@ -109,10 +109,7 @@
     <div class="module-feat-right">
       <div class="content">
         <div class="right-phone">
-          <img
-              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-2.jpg"
-              alt=""
-          />
+          <img src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-2.jpg" alt="">
         </div>
         <div class="left">
           <div class="line-1">{{ $t("job_orchestration") }}</div>
@@ -122,10 +119,7 @@
           </div>
         </div>
         <div class="right">
-          <img
-              src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-2.jpg"
-              alt=""
-          />
+          <img id="zoom" src="https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/product-img/p-2.jpg" alt="">
         </div>
       </div>
     </div>
