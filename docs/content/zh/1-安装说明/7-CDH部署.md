@@ -207,7 +207,7 @@ mkdir -p /data/httpd/cdh6_parcel/cm6/
 cp /tmp/cdh/cdh6.2.0/cloudera-repos-6.2.0/* /var/www/html/cdh6_parcel/cm6/
 ```
 
-parcel镜像地址: http://isxcode:30108/cdh6_parcel (CDH and other software) <div/>
+parcel镜像地址: http://isxcode:30108/cdh6_parcel (CDH and other software) 
 cm6镜像地址: http://isxcode:30108/cdh6_parcel/cm6 (Cloudera Manager Agent)
 
 #### 创建本地镜像仓库
@@ -276,8 +276,8 @@ systemctl restart cloudera-scm-server
 
 > 默认端口号: 7180
 
-访问地址: http://47.99.126.247:30107 <div/>
-默认账号: admin <div/>
+访问地址: http://47.99.126.247:30107 
+默认账号: admin 
 默认密码: admin
 
 #### 安装大数据组件集群
@@ -290,7 +290,7 @@ systemctl restart cloudera-scm-server
 
 ![20240730150015](https://img.isxcode.com/picgo/20240730150015.png)
 
-> Cloudera Manager Agent: http://isxcode:30108/cdh6_parcel/cm6  <div/>
+> Cloudera Manager Agent: http://isxcode:30108/cdh6_parcel/cm6  
 > CDH and other software: http://isxcode:30108/cdh6_parcel
 
 ![20240730150250](https://img.isxcode.com/picgo/20240730150250.png)
@@ -353,16 +353,16 @@ EOF
 source /etc/profile
 ```
 
-Hive链接信息: <div/>
-url: jdbc:hive2://47.92.37.247:10000/ispong_db <div/>
-hive.metastore.uris: thrift://isxcode:9083 <div/>
+Hive链接信息: 
+url: jdbc:hive2://47.92.37.247:10000/ispong_db 
+hive.metastore.uris: thrift://isxcode:9083 
 username: cdh 
 
 yarn-web: http://47.92.37.247:8088/cluster
 
 #### 优化配置
 
-根据提示优化配置 <div/>
+根据提示优化配置 
 修改hive的连接数
 > hive.server2.thrift.max.worker.threads: 2000
 
@@ -372,11 +372,11 @@ show variables like '%max_connections%';
 ```
 
 yarn的资源配置
-> yarn.nodemanager.resource.cpu-vcores: 8 <br/>
-> yarn.nodemanager.resource.memory-mb: 16GB <br/>
-> yarn.scheduler.minimum-allocation-vcores: 1 <br/>
-> yarn.scheduler.minimum-allocation-mb: 2GB <br/>
-> yarn.scheduler.maximum-allocation-vcores: 4 <br/>
+> yarn.nodemanager.resource.cpu-vcores: 8 
+> yarn.nodemanager.resource.memory-mb: 16GB 
+> yarn.scheduler.minimum-allocation-vcores: 1 
+> yarn.scheduler.minimum-allocation-mb: 2GB 
+> yarn.scheduler.maximum-allocation-vcores: 4 
 > yarn.scheduler.maximum-allocation-mb: 4GB 
 
 赋予用户操作权限
@@ -394,5 +394,5 @@ hdfs dfs -chown cdh:supergroup /user/cdh
 
 #### 相关文档
 
-▪ [hadoop docs](https://hadoop.apache.org/docs/stable/index.html) <br/>
-▪ [ali rpm 下载中心](https://mirrors.aliyun.com/centos/7/os/x86_64/Packages/)
+- [hadoop docs](https://hadoop.apache.org/docs/stable/index.html) 
+- [ali rpm 下载中心](https://mirrors.aliyun.com/centos/7/os/x86_64/Packages/)
