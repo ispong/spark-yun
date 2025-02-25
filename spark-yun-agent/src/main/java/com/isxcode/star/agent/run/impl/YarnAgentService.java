@@ -10,6 +10,7 @@ import com.isxcode.star.backend.api.base.exceptions.IsxAppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.QueueInfo;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.exceptions.YarnException;
@@ -369,9 +370,9 @@ public class YarnAgentService implements AgentService {
         }
 
         Configuration conf = new Configuration();
-        conf.addResource(hadoopHome + "/etc/hadoop/core-site.xml");
-        conf.addResource(hadoopHome + "/etc/hadoop/hdfs-site.xml");
-        conf.addResource(hadoopHome + "/etc/hadoop/yarn-site.xml");
+        conf.addResource(new Path(hadoopHome + "/etc/hadoop/core-site.xml"));
+        conf.addResource(new Path(hadoopHome + "/etc/hadoop/hdfs-site.xml"));
+        conf.addResource(new Path(hadoopHome + "/etc/hadoop/yarn-site.xml"));
 
         YarnClient yarnClient = YarnClient.createYarnClient();
         yarnClient.init(conf);
@@ -381,7 +382,7 @@ public class YarnAgentService implements AgentService {
             List<QueueInfo> queueInfoList = yarnClient.getAllQueues();
 
             for (QueueInfo queueInfo : queueInfoList) {
-                printQueueInfo(queueInfo, "");
+                printQueueDetails(queueInfo, "");
             }
         } catch (YarnException | IOException e) {
             log.error(e.getMessage(), e);
@@ -405,37 +406,10 @@ public class YarnAgentService implements AgentService {
         System.out.println("队列全名: " + queueFullName);
 
         // 打印队列基本信息
-        System.out.println("Queue State: " + queueInfo.getQueueState());
-        System.out.println("Used Capacity: " + formatResourceWithPercentage(queueInfo.getResourcesUsed(), queueInfo.getUsedCapacity()));
-        System.out.println("Configured Capacity: " + formatResource(queueInfo.getQueueResourceQuotas().getConfiguredMinResource()));
-        System.out.println("Configured Max Capacity: " + formatResource(queueInfo.getQueueResourceQuotas().getConfiguredMaxResource()));
-        System.out.println("Effective Capacity: " + formatResourceWithPercentage(queueInfo.getQueueResourceQuotas().getEffectiveMinResource(), queueInfo.getCapacity()));
-        System.out.println("Effective Max Capacity: " + formatResourceWithPercentage(queueInfo.getQueueResourceQuotas().getEffectiveMaxResource(), queueInfo.getMaximumCapacity()));
-        System.out.println("Absolute Used Capacity: " + queueInfo.getAbsoluteUsedCapacity() + "%");
-        System.out.println("Absolute Configured Capacity: " + queueInfo.getAbsoluteCapacity() + "%");
-        System.out.println("Absolute Configured Max Capacity: " + queueInfo.getAbsoluteMaxCapacity() + "%");
-        System.out.println("Used Resources: " + formatResource(queueInfo.getResourcesUsed()));
-
-        // 打印应用程序相关配置
-        System.out.println("Configured Max Application Master Limit: " + queueInfo.getAMResourceLimit());
-        System.out.println("Max Application Master Resources: " + formatResource(queueInfo.getQueueResourceQuotas().getConfiguredAMResourceLimit()));
-        System.out.println("Used Application Master Resources: " + formatResource(queueInfo.getAMResourcesUsed()));
-        System.out.println("Max Application Master Resources Per User: " + formatResource(queueInfo.getQueueResourceQuotas().getConfiguredAMResourceLimit()));
-        System.out.println("Num Schedulable Applications: " + queueInfo.getNumSchedulableApplications());
-        System.out.println("Num Non-Schedulable Applications: " + queueInfo.getNumNonSchedulableApplications());
-        System.out.println("Num Containers: " + queueInfo.getNumContainers());
-        System.out.println("Max Applications: " + queueInfo.getMaxApplications());
-        System.out.println("Max Applications Per User: " + queueInfo.getMaxApplicationsPerUser());
-        System.out.println("Configured Minimum User Limit Percent: " + queueInfo.getUserLimit() + "%");
-        System.out.println("Configured User Limit Factor: " + queueInfo.getUserLimitFactor());
-
-        // 打印队列其他配置
-        System.out.println("Accessible Node Labels: " + queueInfo.getAccessibleNodeLabels());
-        System.out.println("Ordering Policy: " + queueInfo.getOrderingPolicyInfo());
-        System.out.println("Preemption: " + (queueInfo.getPreemptionDisabled() ? "disabled" : "enabled"));
-        System.out.println("Intra-queue Preemption: " + (queueInfo.getIntraQueuePreemptionDisabled() ? "disabled" : "enabled"));
-        System.out.println("Default Node Label Expression: " + queueInfo.getDefaultNodeLabelExpression());
-        System.out.println("Default Application Priority: " + queueInfo.getDefaultApplicationPriority());
+        System.out.println("队列状态" + queueInfo.getQueueState());
+        System.out.println("最大可占用资源占比: " + queueInfo.getMaximumCapacity());
+        System.out.println("当前已使用资源占比: " + queueInfo.getCurrentCapacity());
+        System.out.println("当前应用个数: " + queueInfo.getApplications().size());
 
         // 递归打印子队列信息
         List<QueueInfo> childQueues = queueInfo.getChildQueues();
