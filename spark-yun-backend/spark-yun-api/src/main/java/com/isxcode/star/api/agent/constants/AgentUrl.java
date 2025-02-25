@@ -28,4 +28,6 @@ public interface AgentUrl {
     String EXECUTE_CONTAINER_SQL_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/executeContainerSql";
 
     String DEPLOY_CONTAINER_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/deployContainer";
+
+    String GET_QUEUE_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/getQueue";
 }

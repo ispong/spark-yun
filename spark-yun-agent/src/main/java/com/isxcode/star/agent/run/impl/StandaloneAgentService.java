@@ -364,4 +364,9 @@ public class StandaloneAgentService implements AgentService {
             throw new IsxAppException("中止失败");
         }
     }
+
+    @Override
+    public void getQueue() throws Exception {
+
+    }
 }

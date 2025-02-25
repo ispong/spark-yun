@@ -49,4 +49,9 @@ public interface AgentService {
      * 中止spark作业
      */
     void stopWork(String appId, String sparkHomePath, String agentHomePath) throws Exception;
+
+    /**
+     * 获取队列信息.
+     */
+    void getQueue() throws Exception;
 }

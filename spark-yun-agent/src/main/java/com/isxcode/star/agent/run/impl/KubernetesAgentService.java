@@ -489,4 +489,9 @@ public class KubernetesAgentService implements AgentService {
             throw new IsxAppException(e.getMessage());
         }
     }
+
+    @Override
+    public void getQueue() throws Exception {
+
+    }
 }

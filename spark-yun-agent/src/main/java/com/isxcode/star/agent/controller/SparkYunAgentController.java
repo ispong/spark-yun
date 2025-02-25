@@ -103,4 +103,12 @@ public class SparkYunAgentController {
 
         return sparkYunAgentBizService.deployContainer(submitWorkReq);
     }
+
+    @Operation(summary = "获取yarn队列接口")
+    @PostMapping(AgentUrl.GET_QUEUE_URL)
+    @SuccessResponse("获取成功")
+    public DeployContainerRes getQueue() {
+
+        return sparkYunAgentBizService.getYarnQueue();
+    }
 }

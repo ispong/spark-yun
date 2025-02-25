@@ -3,11 +3,17 @@ package com.isxcode.star.agent.service;
 import com.alibaba.fastjson.JSON;
 import com.isxcode.star.agent.run.AgentFactory;
 import com.isxcode.star.agent.run.AgentService;
+import com.isxcode.star.api.agent.constants.AgentType;
 import com.isxcode.star.api.agent.req.*;
 import com.isxcode.star.api.agent.res.*;
 import com.isxcode.star.backend.api.base.exceptions.IsxAppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.api.records.QueueInfo;
+import org.apache.hadoop.yarn.api.records.QueueUserACLInfo;
+import org.apache.hadoop.yarn.client.api.YarnClient;
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.spark.launcher.SparkLauncher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -201,4 +207,21 @@ public class SparkYunAgentBizService {
             throw new IsxAppException(e.getMessage());
         }
     }
+
+    public DeployContainerRes getYarnQueue() {
+
+        AgentService agentService = agentFactory.getAgentService(AgentType.YARN);
+        try {
+            agentService.getQueue();
+        } catch (IsxAppException e) {
+            log.error(e.getMsg(), e);
+            throw new IsxAppException(e.getMsg());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new IsxAppException(e.getMessage());
+        }
+        return null;
+    }
+
+
 }

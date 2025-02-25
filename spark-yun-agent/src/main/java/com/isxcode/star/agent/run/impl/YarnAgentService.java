@@ -9,6 +9,10 @@ import com.isxcode.star.api.work.constants.WorkType;
 import com.isxcode.star.backend.api.base.exceptions.IsxAppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.api.records.QueueInfo;
+import org.apache.hadoop.yarn.client.api.YarnClient;
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.spark.launcher.SparkLauncher;
 import org.springframework.stereotype.Service;
@@ -17,6 +21,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -353,5 +358,115 @@ public class YarnAgentService implements AgentService {
             log.error(e.getMessage(), e);
             throw new IsxAppException(e.getMessage());
         }
+    }
+
+    @Override
+    public void getQueue() throws Exception {
+
+        String hadoopHome = System.getenv("HADOOP_HOME");
+        if (hadoopHome == null) {
+            throw new IsxAppException("HADOOP_HOME not set");
+        }
+
+        Configuration conf = new Configuration();
+        conf.addResource(hadoopHome + "/etc/hadoop/core-site.xml");
+        conf.addResource(hadoopHome + "/etc/hadoop/hdfs-site.xml");
+        conf.addResource(hadoopHome + "/etc/hadoop/yarn-site.xml");
+
+        YarnClient yarnClient = YarnClient.createYarnClient();
+        yarnClient.init(conf);
+        yarnClient.start();
+
+        try {
+            List<QueueInfo> queueInfoList = yarnClient.getAllQueues();
+
+            for (QueueInfo queueInfo : queueInfoList) {
+                printQueueInfo(queueInfo, "");
+            }
+        } catch (YarnException | IOException e) {
+            log.error(e.getMessage(), e);
+            throw new IsxAppException(e.getMessage());
+        } finally {
+            yarnClient.stop();
+        }
+    }
+
+    /**
+     * 打印队列的详细信息
+     *
+     * @param queueInfo  队列信息
+     * @param parentName 父队列名称，用于递归队列嵌套
+     */
+    private static void printQueueDetails(QueueInfo queueInfo, String parentName) {
+        // 拼接队列全名
+        String queueFullName = parentName.isEmpty() ? queueInfo.getQueueName() : parentName + "." + queueInfo.getQueueName();
+
+        System.out.println("-----------------------------------");
+        System.out.println("队列全名: " + queueFullName);
+
+        // 打印队列基本信息
+        System.out.println("Queue State: " + queueInfo.getQueueState());
+        System.out.println("Used Capacity: " + formatResourceWithPercentage(queueInfo.getResourcesUsed(), queueInfo.getUsedCapacity()));
+        System.out.println("Configured Capacity: " + formatResource(queueInfo.getQueueResourceQuotas().getConfiguredMinResource()));
+        System.out.println("Configured Max Capacity: " + formatResource(queueInfo.getQueueResourceQuotas().getConfiguredMaxResource()));
+        System.out.println("Effective Capacity: " + formatResourceWithPercentage(queueInfo.getQueueResourceQuotas().getEffectiveMinResource(), queueInfo.getCapacity()));
+        System.out.println("Effective Max Capacity: " + formatResourceWithPercentage(queueInfo.getQueueResourceQuotas().getEffectiveMaxResource(), queueInfo.getMaximumCapacity()));
+        System.out.println("Absolute Used Capacity: " + queueInfo.getAbsoluteUsedCapacity() + "%");
+        System.out.println("Absolute Configured Capacity: " + queueInfo.getAbsoluteCapacity() + "%");
+        System.out.println("Absolute Configured Max Capacity: " + queueInfo.getAbsoluteMaxCapacity() + "%");
+        System.out.println("Used Resources: " + formatResource(queueInfo.getResourcesUsed()));
+
+        // 打印应用程序相关配置
+        System.out.println("Configured Max Application Master Limit: " + queueInfo.getAMResourceLimit());
+        System.out.println("Max Application Master Resources: " + formatResource(queueInfo.getQueueResourceQuotas().getConfiguredAMResourceLimit()));
+        System.out.println("Used Application Master Resources: " + formatResource(queueInfo.getAMResourcesUsed()));
+        System.out.println("Max Application Master Resources Per User: " + formatResource(queueInfo.getQueueResourceQuotas().getConfiguredAMResourceLimit()));
+        System.out.println("Num Schedulable Applications: " + queueInfo.getNumSchedulableApplications());
+        System.out.println("Num Non-Schedulable Applications: " + queueInfo.getNumNonSchedulableApplications());
+        System.out.println("Num Containers: " + queueInfo.getNumContainers());
+        System.out.println("Max Applications: " + queueInfo.getMaxApplications());
+        System.out.println("Max Applications Per User: " + queueInfo.getMaxApplicationsPerUser());
+        System.out.println("Configured Minimum User Limit Percent: " + queueInfo.getUserLimit() + "%");
+        System.out.println("Configured User Limit Factor: " + queueInfo.getUserLimitFactor());
+
+        // 打印队列其他配置
+        System.out.println("Accessible Node Labels: " + queueInfo.getAccessibleNodeLabels());
+        System.out.println("Ordering Policy: " + queueInfo.getOrderingPolicyInfo());
+        System.out.println("Preemption: " + (queueInfo.getPreemptionDisabled() ? "disabled" : "enabled"));
+        System.out.println("Intra-queue Preemption: " + (queueInfo.getIntraQueuePreemptionDisabled() ? "disabled" : "enabled"));
+        System.out.println("Default Node Label Expression: " + queueInfo.getDefaultNodeLabelExpression());
+        System.out.println("Default Application Priority: " + queueInfo.getDefaultApplicationPriority());
+
+        // 递归打印子队列信息
+        List<QueueInfo> childQueues = queueInfo.getChildQueues();
+        if (childQueues != null && !childQueues.isEmpty()) {
+            for (QueueInfo childQueue : childQueues) {
+                printQueueDetails(childQueue, queueFullName);
+            }
+        }
+    }
+
+    /**
+     * 格式化资源信息
+     *
+     * @param resource 资源对象
+     * @return 格式化后的字符串
+     */
+    private static String formatResource(org.apache.hadoop.yarn.api.records.Resource resource) {
+        if (resource == null) {
+            return "unlimited";
+        }
+        return "<memory:" + resource.getMemorySize() + ", vCores:" + resource.getVirtualCores() + ">";
+    }
+
+    /**
+     * 格式化资源信息并附带百分比
+     *
+     * @param resource   资源对象
+     * @param percentage 百分比
+     * @return 格式化后的字符串
+     */
+    private static String formatResourceWithPercentage(org.apache.hadoop.yarn.api.records.Resource resource, double percentage) {
+        return formatResource(resource) + " (" + percentage + "%)";
     }
 }
