@@ -395,12 +395,13 @@ public class YarnAgentService implements AgentService {
     /**
      * 打印队列的详细信息
      *
-     * @param queueInfo  队列信息
+     * @param queueInfo 队列信息
      * @param parentName 父队列名称，用于递归队列嵌套
      */
     private static void printQueueDetails(QueueInfo queueInfo, String parentName) {
         // 拼接队列全名
-        String queueFullName = parentName.isEmpty() ? queueInfo.getQueueName() : parentName + "." + queueInfo.getQueueName();
+        String queueFullName =
+            parentName.isEmpty() ? queueInfo.getQueueName() : parentName + "." + queueInfo.getQueueName();
 
         System.out.println("-----------------------------------");
         System.out.println("队列全名: " + queueFullName);
@@ -436,11 +437,12 @@ public class YarnAgentService implements AgentService {
     /**
      * 格式化资源信息并附带百分比
      *
-     * @param resource   资源对象
+     * @param resource 资源对象
      * @param percentage 百分比
      * @return 格式化后的字符串
      */
-    private static String formatResourceWithPercentage(org.apache.hadoop.yarn.api.records.Resource resource, double percentage) {
+    private static String formatResourceWithPercentage(org.apache.hadoop.yarn.api.records.Resource resource,
+        double percentage) {
         return formatResource(resource) + " (" + percentage + "%)";
     }
 }
