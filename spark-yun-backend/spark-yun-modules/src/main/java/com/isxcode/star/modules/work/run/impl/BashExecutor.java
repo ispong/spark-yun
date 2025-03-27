@@ -76,58 +76,56 @@ public class BashExecutor extends WorkExecutor {
         // 获取日志构造器
         StringBuilder logBuilder = workRunContext.getLogBuilder();
 
-        // 判断执行脚本是否为空
+        // 开始检测作业配置是否合法
         logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("检测脚本内容 \n");
+        // 检查执行脚本是否为空
         if (Strings.isEmpty(workRunContext.getScript())) {
             throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测脚本失败 : BASH内容为空不能执行  \n");
         }
 
-        // 解析上游参数
+        // 翻译上游参数
         String jsonPathSql = parseJsonPath(workRunContext.getScript(), workInstance);
-
         // 翻译脚本中的系统变量
         String parseValueSql = sqlValueService.parseSqlValue(jsonPathSql);
-
         // 翻译脚本中的系统函数
         String script = sqlFunctionService.parseSqlFunction(parseValueSql);
+
+        // 打印作业脚本内容
         logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("Bash脚本: \n").append(script)
             .append("\n");
         workInstance = updateInstance(workInstance, logBuilder);
 
-        // 禁用rm指令
+        // 检查禁用rm指令
         if (Pattern.compile("\\brm\\b", Pattern.CASE_INSENSITIVE).matcher(script).find()) {
             throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测语句失败 : BASH内容包含rm指令不能执行  \n");
         }
-
         // 检测计算集群是否存在
         logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("开始检测集群 \n");
         if (Strings.isEmpty(workRunContext.getClusterConfig().getClusterId())) {
             throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 计算引擎未配置 \n");
         }
-
         // 检查计算集群是否存在
         Optional<ClusterEntity> calculateEngineEntityOptional =
             clusterRepository.findById(workRunContext.getClusterConfig().getClusterId());
         if (!calculateEngineEntityOptional.isPresent()) {
             throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 计算引擎不存在  \n");
         }
-
         // 检查计算集群节点是否配置
         if (Strings.isEmpty(workRunContext.getClusterConfig().getClusterNodeId())) {
             throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 指定运行节点未配置 \n");
         }
-
-        // 检测集群中是否有合法节点
+        // 检查集群中是否有合法节点
         Optional<ClusterNodeEntity> nodeRepositoryOptional =
             clusterNodeRepository.findById(workRunContext.getClusterConfig().getClusterNodeId());
         if (!nodeRepositoryOptional.isPresent()) {
             throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 指定运行节点不存在  \n");
         }
 
-        // 脚本检查通过
+        // 作业检查通过
         logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("开始执行作业 \n");
         workInstance = updateInstance(workInstance, logBuilder);
 
+        // 开始提交作业
         // 将脚本推送到指定集群节点中
         ClusterNodeEntity clusterNode = nodeRepositoryOptional.get();
         ScpFileEngineNodeDto scpFileEngineNodeDto =
@@ -154,8 +152,9 @@ public class BashExecutor extends WorkExecutor {
             log.debug(e.getMessage(), e);
             throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "提交作业异常 : " + e.getMessage() + "\n");
         }
+        // 提交作业完成
 
-        // 提交作业成功后，开始循环判断状态
+        // 获取作业状态
         String getPidStatusCommand = "ps -p " + workInstance.getWorkPid();
         String oldStatus = "";
         while (true) {
