@@ -130,7 +130,7 @@ public class WorkflowUtils {
         return nodeMapping;
     }
 
-    public static WorkRunContext genWorkRunContext(String instanceId, WorkEntity work, WorkConfigEntity workConfig) {
+    public static WorkRunContext genWorkRunContext(String instanceId, String eventId, WorkEntity work, WorkConfigEntity workConfig) {
 
         return WorkRunContext.builder().datasourceId(workConfig.getDatasourceId()).script(workConfig.getScript())
             .instanceId(instanceId).tenantId(TENANT_ID.get())
@@ -142,7 +142,8 @@ public class WorkflowUtils {
             .funcConfig(JSON.parseArray(workConfig.getFuncConfig(), String.class))
             .libConfig(JSON.parseArray(workConfig.getLibConfig(), String.class)).workId(work.getId())
             .apiWorkConfig(JSON.parseObject(workConfig.getApiWorkConfig(), ApiWorkConfig.class))
-            .containerId(workConfig.getContainerId()).workName(work.getName()).userId(USER_ID.get()).build();
+            .containerId(workConfig.getContainerId()).workName(work.getName())
+            .eventId(eventId).userId(USER_ID.get()).build();
     }
 
     public static WorkRunContext genWorkRunContext(String instanceId, VipWorkVersionEntity workVersion,

@@ -20,9 +20,11 @@ import com.isxcode.star.api.work.res.*;
 import com.isxcode.star.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.star.modules.work.entity.WorkConfigEntity;
 import com.isxcode.star.modules.work.entity.WorkEntity;
+import com.isxcode.star.modules.work.entity.WorkEventEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
 import com.isxcode.star.modules.work.mapper.WorkMapper;
 import com.isxcode.star.modules.work.repository.WorkConfigRepository;
+import com.isxcode.star.modules.work.repository.WorkEventRepository;
 import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
 import com.isxcode.star.modules.work.repository.WorkRepository;
 import com.isxcode.star.modules.work.run.WorkExecutor;
@@ -76,6 +78,8 @@ public class WorkBizService {
     private final WorkConfigService workConfigService;
 
     private final WorkflowInstanceRepository workflowInstanceRepository;
+
+    private final WorkEventRepository workEventRepository;
 
     public GetWorkRes addWork(AddWorkReq addWorkReq) {
 
@@ -245,15 +249,6 @@ public class WorkBizService {
         workRepository.delete(work);
     }
 
-    @Transactional
-    public WorkInstanceEntity genWorkInstance(String workId) {
-
-        WorkInstanceEntity workInstanceEntity = new WorkInstanceEntity();
-        workInstanceEntity.setWorkId(workId);
-        workInstanceEntity.setInstanceType(InstanceType.MANUAL);
-        return workInstanceRepository.saveAndFlush(workInstanceEntity);
-    }
-
     /**
      * 提交作业.
      */
@@ -262,16 +257,24 @@ public class WorkBizService {
         // 获取作业信息
         WorkEntity work = workService.getWorkEntity(runWorkReq.getWorkId());
 
-        // 初始化作业实例
-        WorkInstanceEntity workInstance = genWorkInstance(work.getId());
-
         // 获取作业配置
         WorkConfigEntity workConfig = workConfigBizService.getWorkConfigEntity(work.getConfigId());
 
-        // 初始化作业运行上下文
-        WorkRunContext workRunContext = genWorkRunContext(workInstance.getId(), work, workConfig);
+        // 初始化作业实例
+        WorkInstanceEntity workInstance = new WorkInstanceEntity();
+        workInstance.setWorkId(work.getId());
+        workInstance.setInstanceType(InstanceType.MANUAL);
+        workInstance = workInstanceRepository.saveAndFlush(workInstance);
 
-        // 异步运行作业
+        // 初始化作业事件
+        WorkEventEntity workEvent = new WorkEventEntity();
+        workEvent.setExecProcess(1);
+        workEvent = workEventRepository.saveAndFlush(workEvent);
+
+        // 封装WorkRunContext上下文
+        WorkRunContext workRunContext = genWorkRunContext(workInstance.getId(), workEvent.getId(), work, workConfig);
+
+        // 提交给定时器，每3秒执行一次
         WorkExecutor workExecutor = workExecutorFactory.create(work.getWorkType());
         workExecutor.asyncExecute(workRunContext);
 
@@ -653,9 +656,11 @@ public class WorkBizService {
         List<List<String>> data;
         if (WorkType.QUERY_SPARK_SQL.equals(workEntity.getWorkType())) {
             data = JSON.parseObject(JSON.toJSONString(JSON.parseObject(workInstanceEntity.getResultData()).get("data")),
-                new TypeReference<List<List<String>>>() {});
+                new TypeReference<List<List<String>>>() {
+                });
         } else {
-            data = JSON.parseObject(workInstanceEntity.getResultData(), new TypeReference<List<List<String>>>() {});
+            data = JSON.parseObject(workInstanceEntity.getResultData(), new TypeReference<List<List<String>>>() {
+            });
         }
 
         try {

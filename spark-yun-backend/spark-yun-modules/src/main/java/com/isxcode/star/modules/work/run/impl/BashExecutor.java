@@ -13,7 +13,9 @@ import com.isxcode.star.modules.cluster.entity.ClusterNodeEntity;
 import com.isxcode.star.modules.cluster.mapper.ClusterNodeMapper;
 import com.isxcode.star.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.star.modules.cluster.repository.ClusterRepository;
+import com.isxcode.star.modules.work.entity.WorkEventEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
+import com.isxcode.star.modules.work.repository.WorkEventRepository;
 import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
 import com.isxcode.star.modules.work.run.WorkExecutor;
 import com.isxcode.star.modules.work.run.WorkRunContext;
@@ -49,18 +51,23 @@ public class BashExecutor extends WorkExecutor {
 
     private final SqlFunctionService sqlFunctionService;
 
-    public BashExecutor(WorkInstanceRepository workInstanceRepository,
-        WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
-        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
-        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService) {
+    private final WorkEventRepository workEventRepository;
 
-        super(workInstanceRepository, workflowInstanceRepository, alarmService, sqlFunctionService);
+    private final WorkInstanceRepository workInstanceRepository;
+
+    public BashExecutor(WorkInstanceRepository workInstanceRepository,
+                        WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
+                        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
+                        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService, WorkEventRepository workEventRepository, WorkInstanceRepository workInstanceRepository) {
+
+        super(workInstanceRepository, workflowInstanceRepository, alarmService, sqlFunctionService, workEventRepository);
         this.clusterNodeRepository = clusterNodeRepository;
         this.clusterNodeMapper = clusterNodeMapper;
         this.aesUtils = aesUtils;
         this.clusterRepository = clusterRepository;
         this.sqlValueService = sqlValueService;
         this.sqlFunctionService = sqlFunctionService;
+        this.workEventRepository = workEventRepository;
     }
 
     @Override
@@ -74,56 +81,64 @@ public class BashExecutor extends WorkExecutor {
         WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
 
         // 获取日志构造器
-        StringBuilder logBuilder = workRunContext.getLogBuilder();
-
-        // 开始检测作业配置是否合法
+        WorkEventEntity eventEntity = workEventRepository.findById(workRunContext.getEventId()).get();
+        StringBuilder logBuilder = new StringBuilder(workInstance.getSubmitLog());
         logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("检测脚本内容 \n");
+
         // 检查执行脚本是否为空
-        if (Strings.isEmpty(workRunContext.getScript())) {
-            throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测脚本失败 : BASH内容为空不能执行  \n");
-        }
+        if (eventEntity.getExecProcess() < 4) {
+            if (Strings.isEmpty(workRunContext.getScript())) {
+                throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测脚本失败 : BASH内容为空不能执行  \n");
+            }
 
-        // 翻译上游参数
-        String jsonPathSql = parseJsonPath(workRunContext.getScript(), workInstance);
-        // 翻译脚本中的系统变量
-        String parseValueSql = sqlValueService.parseSqlValue(jsonPathSql);
-        // 翻译脚本中的系统函数
-        String script = sqlFunctionService.parseSqlFunction(parseValueSql);
+            // 翻译上游参数
+            String jsonPathSql = parseJsonPath(workRunContext.getScript(), workInstance);
+            // 翻译脚本中的系统变量
+            String parseValueSql = sqlValueService.parseSqlValue(jsonPathSql);
+            // 翻译脚本中的系统函数
+            String script = sqlFunctionService.parseSqlFunction(parseValueSql);
 
-        // 打印作业脚本内容
-        logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("Bash脚本: \n").append(script)
-            .append("\n");
-        workInstance = updateInstance(workInstance, logBuilder);
+            // 打印作业脚本内容
+            logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("Bash脚本: \n").append(script)
+                .append("\n");
+            workInstance = updateInstance(workInstance, logBuilder);
 
-        // 检查禁用rm指令
-        if (Pattern.compile("\\brm\\b", Pattern.CASE_INSENSITIVE).matcher(script).find()) {
-            throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测语句失败 : BASH内容包含rm指令不能执行  \n");
-        }
-        // 检测计算集群是否存在
-        logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("开始检测集群 \n");
-        if (Strings.isEmpty(workRunContext.getClusterConfig().getClusterId())) {
-            throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 计算引擎未配置 \n");
-        }
-        // 检查计算集群是否存在
-        Optional<ClusterEntity> calculateEngineEntityOptional =
-            clusterRepository.findById(workRunContext.getClusterConfig().getClusterId());
-        if (!calculateEngineEntityOptional.isPresent()) {
-            throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 计算引擎不存在  \n");
-        }
-        // 检查计算集群节点是否配置
-        if (Strings.isEmpty(workRunContext.getClusterConfig().getClusterNodeId())) {
-            throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 指定运行节点未配置 \n");
-        }
-        // 检查集群中是否有合法节点
-        Optional<ClusterNodeEntity> nodeRepositoryOptional =
-            clusterNodeRepository.findById(workRunContext.getClusterConfig().getClusterNodeId());
-        if (!nodeRepositoryOptional.isPresent()) {
-            throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 指定运行节点不存在  \n");
-        }
+            // 检查禁用rm指令
+            if (Pattern.compile("\\brm\\b", Pattern.CASE_INSENSITIVE).matcher(script).find()) {
+                throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测语句失败 : BASH内容包含rm指令不能执行  \n");
+            }
+            // 检测计算集群是否存在
+            logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("开始检测集群 \n");
+            if (Strings.isEmpty(workRunContext.getClusterConfig().getClusterId())) {
+                throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 计算引擎未配置 \n");
+            }
 
-        // 作业检查通过
-        logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("开始执行作业 \n");
-        workInstance = updateInstance(workInstance, logBuilder);
+            // 检查计算集群是否存在
+            Optional<ClusterEntity> calculateEngineEntityOptional =
+                clusterRepository.findById(workRunContext.getClusterConfig().getClusterId());
+            if (!calculateEngineEntityOptional.isPresent()) {
+                throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 计算引擎不存在  \n");
+            }
+            // 检查计算集群节点是否配置
+            if (Strings.isEmpty(workRunContext.getClusterConfig().getClusterNodeId())) {
+                throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 指定运行节点未配置 \n");
+            }
+            // 检查集群中是否有合法节点
+            Optional<ClusterNodeEntity> nodeRepositoryOptional =
+                clusterNodeRepository.findById(workRunContext.getClusterConfig().getClusterNodeId());
+            if (!nodeRepositoryOptional.isPresent()) {
+                throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 指定运行节点不存在  \n");
+            }
+
+            // 作业检查通过
+            logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("开始执行作业 \n");
+            workInstance = updateInstance(workInstance, logBuilder);
+
+            // 更新事件
+            eventEntity.setExecProcess(4);
+            eventEntity.setExecWorkReq(script);
+            workEventRepository.saveAndFlush(eventEntity);
+        }
 
         // 开始提交作业
         // 将脚本推送到指定集群节点中

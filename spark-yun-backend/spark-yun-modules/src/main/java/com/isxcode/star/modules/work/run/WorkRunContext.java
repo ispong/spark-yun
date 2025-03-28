@@ -81,11 +81,6 @@ public class WorkRunContext {
     private String versionId;
 
     /**
-     * 日志构造器.
-     */
-    private StringBuilder logBuilder;
-
-    /**
      * 用户自定义jar的配置
      */
     private JarJobConfig jarJobConfig;
@@ -104,5 +99,10 @@ public class WorkRunContext {
      * 容器id.
      */
     private String containerId;
+
+    /**
+     * 事件id.
+     */
+    private String eventId;
 
 }

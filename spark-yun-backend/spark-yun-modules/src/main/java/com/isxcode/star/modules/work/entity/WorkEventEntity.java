@@ -30,21 +30,15 @@ public class WorkEventEntity {
     @GenericGenerator(name = "sy-id-generator", strategy = "com.isxcode.star.config.GeneratedValueConfig")
     private String id;
 
-    private String workInstanceId;
+    private Integer execProcess;
 
-    private String workflowId;
+    private String execWorkReq;
 
-    private String runStatus;
+    private String getStatusReq;
 
-    private String workStatus;
+    private String getLogReq;
 
-    private String logStatus;
-
-    private String dataStatus;
-
-    private String pushStatus;
-
-    private String statusReq;
+    private String getDataReq;
 
     @CreatedDate
     private LocalDateTime createDateTime;
