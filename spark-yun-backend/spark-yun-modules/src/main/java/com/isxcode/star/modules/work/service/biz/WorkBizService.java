@@ -22,6 +22,7 @@ import com.isxcode.star.modules.work.entity.WorkConfigEntity;
 import com.isxcode.star.modules.work.entity.WorkEntity;
 import com.isxcode.star.modules.work.entity.WorkEventEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
+import com.isxcode.star.modules.work.event.WorkRunFactory;
 import com.isxcode.star.modules.work.mapper.WorkMapper;
 import com.isxcode.star.modules.work.repository.WorkConfigRepository;
 import com.isxcode.star.modules.work.repository.WorkEventRepository;
@@ -80,6 +81,8 @@ public class WorkBizService {
     private final WorkflowInstanceRepository workflowInstanceRepository;
 
     private final WorkEventRepository workEventRepository;
+
+    private final WorkRunFactory workRunFactory;
 
     public GetWorkRes addWork(AddWorkReq addWorkReq) {
 
@@ -252,7 +255,7 @@ public class WorkBizService {
     /**
      * 提交作业.
      */
-    public RunWorkRes runWork(RunWorkReq runWorkReq) {
+    public RunWorkRes runWork(RunWorkReq runWorkReq) throws InterruptedException {
 
         // 获取作业信息
         WorkEntity work = workService.getWorkEntity(runWorkReq.getWorkId());
@@ -268,15 +271,14 @@ public class WorkBizService {
 
         // 初始化作业事件
         WorkEventEntity workEvent = new WorkEventEntity();
-        workEvent.setExecProcess(1);
+        workEvent.setExecProcess(0);
         workEvent = workEventRepository.saveAndFlush(workEvent);
 
         // 封装WorkRunContext上下文
         WorkRunContext workRunContext = genWorkRunContext(workInstance.getId(), workEvent.getId(), work, workConfig);
 
         // 提交给定时器，每3秒执行一次
-        WorkExecutor workExecutor = workExecutorFactory.create(work.getWorkType());
-        workExecutor.asyncExecute(workRunContext);
+        workRunFactory.execute(workRunContext);
 
         // 返回作业的实例id
         return RunWorkRes.builder().instanceId(workInstance.getId()).build();

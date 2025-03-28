@@ -562,7 +562,7 @@ public class WorkflowBizService {
             // 同步执行作业
             WorkExecutor workExecutor = workExecutorFactory.create(work.getWorkType());
             WorkRunContext workRunContext =
-                WorkflowUtils.genWorkRunContext(runCurrentNodeReq.getWorkInstanceId(), work, workConfig);
+                WorkflowUtils.genWorkRunContext(runCurrentNodeReq.getWorkInstanceId(), null, work, workConfig);
             workExecutor.syncExecute(workRunContext);
 
             return "OVER";

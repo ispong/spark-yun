@@ -3,8 +3,6 @@ package com.isxcode.star.modules.work.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -14,12 +12,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-import static com.isxcode.star.common.config.CommonConfig.TENANT_ID;
 
 @Data
 @Entity
-@SQLDelete(sql = "UPDATE SY_WORK_EVENT SET deleted = 1 WHERE id = ? and version_number = ?")
-@Where(clause = "deleted = 0 ${TENANT_FILTER} ")
 @Table(name = "SY_WORK_EVENT")
 @JsonIgnoreProperties({"hibernateLazyInitializer"})
 @EntityListeners(AuditingEntityListener.class)
@@ -32,13 +27,7 @@ public class WorkEventEntity {
 
     private Integer execProcess;
 
-    private String execWorkReq;
-
-    private String getStatusReq;
-
-    private String getLogReq;
-
-    private String getDataReq;
+    private String eventBody;
 
     @CreatedDate
     private LocalDateTime createDateTime;
@@ -51,17 +40,4 @@ public class WorkEventEntity {
 
     @LastModifiedBy
     private String lastModifiedBy;
-
-    @Version
-    private Long versionNumber;
-
-    @Transient
-    private Integer deleted;
-
-    private String tenantId;
-
-    @PrePersist
-    public void prePersist() {
-        this.tenantId = TENANT_ID.get();
-    }
 }

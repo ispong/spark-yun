@@ -154,7 +154,7 @@ public class WorkflowRunEventListener {
                 // 通过workId封装workRunContext
                 WorkEntity work = workRepository.findById(event.getWorkId()).get();
                 WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
-                workRunContext = WorkflowUtils.genWorkRunContext(workInstance.getId(), work, workConfig);
+                workRunContext = WorkflowUtils.genWorkRunContext(workInstance.getId(), null, work, workConfig);
             } else {
                 // 通过versionId封装workRunContext
                 VipWorkVersionEntity workVersion = vipWorkVersionRepository.findById(event.getVersionId()).get();

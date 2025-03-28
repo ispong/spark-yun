@@ -1,9 +1,11 @@
 package com.isxcode.star.modules.work.run.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.isxcode.star.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.api.work.constants.WorkLog;
 import com.isxcode.star.api.work.constants.WorkType;
+import com.isxcode.star.api.work.dto.WorkEventBody;
 import com.isxcode.star.backend.api.base.exceptions.WorkRunException;
 import com.isxcode.star.common.utils.aes.AesUtils;
 import com.isxcode.star.common.utils.ssh.SshUtils;
@@ -26,6 +28,7 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.quartz.Scheduler;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -53,16 +56,15 @@ public class BashExecutor extends WorkExecutor {
 
     private final WorkEventRepository workEventRepository;
 
-    private final WorkInstanceRepository workInstanceRepository;
 
     public BashExecutor(WorkInstanceRepository workInstanceRepository,
         WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
         ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
         SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
-        WorkEventRepository workEventRepository, WorkInstanceRepository workInstanceRepository) {
+        WorkEventRepository workEventRepository, Scheduler scheduler) {
 
-        super(workInstanceRepository, workflowInstanceRepository, alarmService, sqlFunctionService,
-            workEventRepository);
+        super(workInstanceRepository, workflowInstanceRepository, alarmService, sqlFunctionService, workEventRepository,
+            scheduler);
         this.clusterNodeRepository = clusterNodeRepository;
         this.clusterNodeMapper = clusterNodeMapper;
         this.aesUtils = aesUtils;
@@ -82,13 +84,18 @@ public class BashExecutor extends WorkExecutor {
         // 将线程存到Map
         WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
 
-        // 获取日志构造器
-        WorkEventEntity eventEntity = workEventRepository.findById(workRunContext.getEventId()).get();
+        // 获取日志和事件
+        WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
+        WorkEventBody workEventBody = JSON.parseObject(workEvent.getEventBody(), WorkEventBody.class);
+        if (workEventBody == null) {
+            workEventBody = new WorkEventBody();
+        }
         StringBuilder logBuilder = new StringBuilder(workInstance.getSubmitLog());
-        logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("检测脚本内容 \n");
 
-        // 检查执行脚本是否为空
-        if (eventEntity.getExecProcess() < 4) {
+        // 检查执行脚本是否为空，保存并保存脚本
+        if (processNeverRun(workEvent, 3)) {
+
+            logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("检测脚本内容 \n");
             if (Strings.isEmpty(workRunContext.getScript())) {
                 throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测脚本失败 : BASH内容为空不能执行  \n");
             }
@@ -109,6 +116,16 @@ public class BashExecutor extends WorkExecutor {
             if (Pattern.compile("\\brm\\b", Pattern.CASE_INSENSITIVE).matcher(script).find()) {
                 throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测语句失败 : BASH内容包含rm指令不能执行  \n");
             }
+
+            // 保存脚本
+            workEventBody.setScript(script);
+            workEvent.setEventBody(JSON.toJSONString(workEventBody));
+            workEventRepository.saveAndFlush(workEvent);
+        }
+
+        // 检查集群是否合法，保存节点信息
+        if (processNeverRun(workEvent, 4)) {
+
             // 检测计算集群是否存在
             logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("开始检测集群 \n");
             if (Strings.isEmpty(workRunContext.getClusterConfig().getClusterId())) {
@@ -136,50 +153,61 @@ public class BashExecutor extends WorkExecutor {
             logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("开始执行作业 \n");
             workInstance = updateInstance(workInstance, logBuilder);
 
-            // 更新事件
-            eventEntity.setExecProcess(4);
-            eventEntity.setExecWorkReq(script);
-            workEventRepository.saveAndFlush(eventEntity);
+            // 翻译成scp的对象
+            ClusterNodeEntity clusterNode = nodeRepositoryOptional.get();
+            ScpFileEngineNodeDto scpNodeInfo = clusterNodeMapper.engineNodeEntityToScpFileEngineNodeDto(clusterNode);
+            scpNodeInfo.setPasswd(aesUtils.decrypt(scpNodeInfo.getPasswd()));
+
+            // 保存节点信息
+            workEventBody.setScpNodeInfo(scpNodeInfo);
+            workEventBody.setAgentHomePath(clusterNode.getAgentHomePath());
+            workEvent.setEventBody(JSON.toJSONString(workEventBody));
+            workEventRepository.saveAndFlush(workEvent);
         }
 
-        // 开始提交作业
-        // 将脚本推送到指定集群节点中
-        ClusterNodeEntity clusterNode = nodeRepositoryOptional.get();
-        ScpFileEngineNodeDto scpFileEngineNodeDto =
-            clusterNodeMapper.engineNodeEntityToScpFileEngineNodeDto(clusterNode);
-        scpFileEngineNodeDto.setPasswd(aesUtils.decrypt(scpFileEngineNodeDto.getPasswd()));
-        try {
-            // 上传脚本
-            scpText(scpFileEngineNodeDto, script + "\necho 'zhiqingyun_success'",
-                clusterNode.getAgentHomePath() + "/zhiqingyun-agent/works/" + workInstance.getId() + ".sh");
+        // 提交作业，保存查询作业的pid
+        if (processNeverRun(workEvent, 5)) {
 
-            // 执行命令获取pid
-            String executeBashWorkCommand = "source /etc/profile && nohup sh " + clusterNode.getAgentHomePath()
-                + "/zhiqingyun-agent/works/" + workInstance.getId() + ".sh >> " + clusterNode.getAgentHomePath()
-                + "/zhiqingyun-agent/works/" + workInstance.getId() + ".log 2>&1 & echo $!";
-            String pid = executeCommand(scpFileEngineNodeDto, executeBashWorkCommand, false).replace("\n", "");
+            try {
+                // 上传脚本
+                scpText(workEventBody.getScpNodeInfo(), workEventBody.getScript() + "\necho 'zhiqingyun_success'",
+                    workEventBody.getAgentHomePath() + "/zhiqingyun-agent/works/" + workInstance.getId() + ".sh");
 
-            // 保存pid
-            workInstance.setWorkPid(pid);
-            logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("BASH作业提交成功，pid:【").append(pid)
-                .append("】\n");
-            workInstance = updateInstance(workInstance, logBuilder);
-        } catch (JSchException | SftpException | InterruptedException | IOException e) {
+                // 执行命令获取pid
+                String executeBashWorkCommand = "source /etc/profile && nohup sh " + workEventBody.getAgentHomePath()
+                    + "/zhiqingyun-agent/works/" + workInstance.getId() + ".sh >> " + workEventBody.getAgentHomePath()
+                    + "/zhiqingyun-agent/works/" + workInstance.getId() + ".log 2>&1 & echo $!";
+                String pid =
+                    executeCommand(workEventBody.getScpNodeInfo(), executeBashWorkCommand, false).replace("\n", "");
 
-            log.debug(e.getMessage(), e);
-            throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "提交作业异常 : " + e.getMessage() + "\n");
+                // 保存pid
+                workInstance.setWorkPid(pid);
+                logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("BASH作业提交成功，pid:【")
+                    .append(pid).append("】\n");
+                workInstance = updateInstance(workInstance, logBuilder);
+
+                // 保存pid信息
+                workEventBody.setPid(pid);
+                workEventBody.setCurrentStatus("");
+                workEvent.setEventBody(JSON.toJSONString(workEventBody));
+                workEventRepository.saveAndFlush(workEvent);
+            } catch (JSchException | SftpException | InterruptedException | IOException e) {
+
+                log.debug(e.getMessage(), e);
+                throw new WorkRunException(
+                    LocalDateTime.now() + WorkLog.ERROR_INFO + "提交作业异常 : " + e.getMessage() + "\n");
+            }
         }
-        // 提交作业完成
 
         // 获取作业状态
-        String getPidStatusCommand = "ps -p " + workInstance.getWorkPid();
-        String oldStatus = "";
-        while (true) {
+        if (processNeverRun(workEvent, 6)) {
+
+            String getPidStatusCommand = "ps -p " + workEventBody.getPid();
 
             String pidStatus;
             try {
-                String pidCommandResult = executeCommand(scpFileEngineNodeDto, getPidStatusCommand, false);
-                if (pidCommandResult.contains(workInstance.getWorkPid())) {
+                String pidCommandResult = executeCommand(workEventBody.getScpNodeInfo(), getPidStatusCommand, false);
+                if (pidCommandResult.contains(workEventBody.getPid())) {
                     pidStatus = InstanceStatus.RUNNING;
                 } else {
                     pidStatus = InstanceStatus.FINISHED;
@@ -189,61 +217,61 @@ public class BashExecutor extends WorkExecutor {
                     LocalDateTime.now() + WorkLog.ERROR_INFO + "获取pid状态异常 : " + e.getMessage() + "\n");
             }
 
-            // 状态发生变化，则添加日志状态
-            if (!oldStatus.equals(pidStatus)) {
+            // 当前状态变化保存
+            if (!workEventBody.getCurrentStatus().equals(pidStatus)) {
                 logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("运行状态:").append(pidStatus)
                     .append("\n");
+                workEventBody.setCurrentStatus(pidStatus);
+                workEvent.setEventBody(JSON.toJSONString(workEventBody));
+                workEventRepository.saveAndFlush(workEvent);
             }
-            oldStatus = pidStatus;
             workInstance = updateInstance(workInstance, logBuilder);
 
-            // 判断是否继续执行
+            // 如果还是运行
             if (InstanceStatus.RUNNING.equals(pidStatus)) {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    throw new WorkRunException(
-                        LocalDateTime.now() + WorkLog.ERROR_INFO + "睡眠线程异常 : " + e.getMessage() + "\n");
-                }
-            } else {
-                // 运行结束
+                return;
+            }
+        }
 
-                // 获取日志
-                String getLogCommand = "cat " + clusterNode.getAgentHomePath() + "/zhiqingyun-agent/works/"
-                    + workInstance.getId() + ".log";
-                String logCommand = "";
-                try {
-                    logCommand = executeCommand(scpFileEngineNodeDto, getLogCommand, false);
-                } catch (JSchException | InterruptedException | IOException e) {
-                    throw new WorkRunException(
-                        LocalDateTime.now() + WorkLog.ERROR_INFO + "获取日志异常 : " + e.getMessage() + "\n");
-                }
+        // 运行结束，获取作业日志和数据
+        if (processNeverRun(workEvent, 7)) {
 
-                // 保存运行日志
-                String backStr = logCommand.replace("zhiqingyun_success", "");
-                workInstance.setYarnLog(backStr);
-                workInstance.setResultData(backStr.substring(0, backStr.length() - 2));
-                logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("保存日志成功 \n");
-                updateInstance(workInstance, logBuilder);
-
-                // 删除脚本和日志
-                try {
-                    String clearWorkRunFile = "rm -f " + clusterNode.getAgentHomePath() + "/zhiqingyun-agent/works/"
-                        + workInstance.getId() + ".log && " + "rm -f " + clusterNode.getAgentHomePath()
-                        + "/zhiqingyun-agent/works/" + workInstance.getId() + ".sh";
-                    SshUtils.executeCommand(scpFileEngineNodeDto, clearWorkRunFile, false);
-                } catch (JSchException | InterruptedException | IOException e) {
-                    log.error("删除运行脚本失败");
-                }
-
-                // 判断脚本运行成功还是失败
-                if (!logCommand.contains("zhiqingyun_success")) {
-                    throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "任务运行异常" + "\n");
-                }
-
-                break;
+            // 获取日志
+            String getLogCommand =
+                "cat " + workEventBody.getAgentHomePath() + "/zhiqingyun-agent/works/" + workInstance.getId() + ".log";
+            String logCommand = "";
+            try {
+                logCommand = executeCommand(workEventBody.getScpNodeInfo(), getLogCommand, false);
+            } catch (JSchException | InterruptedException | IOException e) {
+                throw new WorkRunException(
+                    LocalDateTime.now() + WorkLog.ERROR_INFO + "获取日志异常 : " + e.getMessage() + "\n");
             }
 
+            // 保存运行日志
+            String backStr = logCommand.replace("zhiqingyun_success", "");
+            workInstance.setYarnLog(backStr);
+            workInstance.setResultData(backStr.substring(0, backStr.length() - 2));
+            logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("保存日志成功 \n");
+            updateInstance(workInstance, logBuilder);
+
+            // 删除脚本和日志
+            try {
+                String clearWorkRunFile = "rm -f " + workEventBody.getAgentHomePath() + "/zhiqingyun-agent/works/"
+                    + workInstance.getId() + ".log && " + "rm -f " + workEventBody.getAgentHomePath()
+                    + "/zhiqingyun-agent/works/" + workInstance.getId() + ".sh";
+                SshUtils.executeCommand(workEventBody.getScpNodeInfo(), clearWorkRunFile, false);
+            } catch (JSchException | InterruptedException | IOException e) {
+                log.error("删除运行脚本失败");
+            }
+
+            // 判断脚本运行成功还是失败
+            if (!logCommand.contains("zhiqingyun_success")) {
+                throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "任务运行异常" + "\n");
+            }
+
+            // 修改最后的事件状态
+            workEvent.setExecProcess(999);
+            workEventRepository.saveAndFlush(workEvent);
         }
     }
 

@@ -23,7 +23,11 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.TriggerKey;
 import org.springframework.scheduling.annotation.Async;
+
 
 @Slf4j
 @RequiredArgsConstructor
@@ -40,6 +44,8 @@ public abstract class WorkExecutor {
     private final SqlFunctionService sqlFunctionService;
 
     private final WorkEventRepository workEventRepository;
+
+    private final Scheduler scheduler;
 
     public abstract String getWorkType();
 
@@ -63,37 +69,57 @@ public abstract class WorkExecutor {
         syncExecute(workRunContext);
     }
 
+    /**
+     * 当前进程没有运行过
+     */
+    public boolean processNeverRun(WorkEventEntity workEvent, Integer nowIndex) {
+
+        // 上一步状态保存
+        if (workEvent.getExecProcess() + 1 == nowIndex) {
+            workEvent.setExecProcess(nowIndex);
+            workEventRepository.saveAndFlush(workEvent);
+        }
+
+        // 返回是否执行过
+        return workEvent.getExecProcess() < nowIndex + 1;
+    }
+
+    /**
+     * 当前进程没有运行过
+     */
+    public boolean processOver(String workEventId) {
+
+        return workEventRepository.existsByIdAndExecProcess(workEventId, 999);
+    }
+
     public void syncExecute(WorkRunContext workRunContext) {
 
         // 获取任务事件
         WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
         WorkInstanceEntity workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
 
-        if (workEvent.getExecProcess() < 2) {
-
-            // 更新作业实例状态
+        // 修改实例状态
+        if (processNeverRun(workEvent, 1)) {
             workInstance.setSubmitLog(LocalDateTime.now() + WorkLog.SUCCESS_INFO + "开始提交作业 \n");
             workInstance.setStatus(InstanceStatus.RUNNING);
             workInstance.setExecStartDateTime(new Date());
             workInstance = workInstanceRepository.saveAndFlush(workInstance);
+        }
 
-            // 任务开始运行，异步发送消息
+        // 任务开始运行事件，异步发送消息
+        if (processNeverRun(workEvent, 2)) {
             if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
                 alarmService.sendWorkMessage(workInstance, AlarmEventType.START_RUN);
             }
-
-            // 保存事件状态
-            workEvent.setExecProcess(2);
-            workEventRepository.saveAndFlush(workEvent);
         }
 
         try {
 
-            // 开始执行作业
+            // 开始执行作业，每次都要执行
             execute(workRunContext, workInstance);
 
-            workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
-            if (workEvent.getExecProcess() == 999) {
+            // 判断任务是否执行完
+            if (processOver(workEvent.getId())) {
 
                 // 更新作业实例成功状态
                 workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
@@ -119,9 +145,6 @@ public abstract class WorkExecutor {
                 if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
                     alarmService.sendWorkMessage(workInstance, AlarmEventType.RUN_SUCCESS);
                 }
-
-                // 执行完请求线程
-                WORK_THREAD.remove(workInstance.getId());
             }
         } catch (WorkRunException e) {
 
@@ -144,7 +167,7 @@ public abstract class WorkExecutor {
                 workInstance.getSubmitLog() + e.getMsg() + LocalDateTime.now() + WorkLog.ERROR_INFO + "执行失败 \n");
             workInstanceRepository.save(workInstance);
 
-            // 修改工作流日志
+            // 保存工作流日志
             if (!Strings.isEmpty(workInstance.getWorkflowInstanceId())) {
                 WorkflowInstanceEntity workflowInstance =
                     workflowInstanceRepository.findById(workInstance.getWorkflowInstanceId()).get();
@@ -158,20 +181,33 @@ public abstract class WorkExecutor {
             if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
                 alarmService.sendWorkMessage(workInstance, AlarmEventType.RUN_FAIL);
             }
+
+            // 异常执行结束
+            workEvent.setExecProcess(999);
+            workEventRepository.saveAndFlush(workEvent);
         }
 
         // 运行结束
-        workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
-        if (workEvent.getExecProcess() == 999) {
+        if (processOver(workEvent.getId())) {
 
             // 任务运行结束，异步发送消息
             if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
                 alarmService.sendWorkMessage(workInstance, AlarmEventType.RUN_END);
             }
 
-            // 执行完请求线程
-            WORK_THREAD.remove(workInstance.getId());
+            // 删除事件
+            workEventRepository.deleteById(workEvent.getId());
+
+            // 删除定时器
+            try {
+                scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workInstance.getId()));
+            } catch (SchedulerException e) {
+                log.error(e.getMessage());
+            }
         }
+
+        // 执行完请求线程
+        WORK_THREAD.remove(workInstance.getId());
     }
 
     public void syncAbort(WorkInstanceEntity workInstance) {
