@@ -147,7 +147,7 @@ public class WorkflowUtils {
             .build();
     }
 
-    public static WorkRunContext genWorkRunContext(String instanceId, VipWorkVersionEntity workVersion,
+    public static WorkRunContext genWorkRunContext(String instanceId, String eventId, VipWorkVersionEntity workVersion,
         WorkflowRunEvent event) {
         return WorkRunContext.builder().datasourceId(workVersion.getDatasourceId()).script(workVersion.getScript())
             .instanceId(instanceId).tenantId(TENANT_ID.get()).userId(USER_ID.get())
@@ -160,7 +160,7 @@ public class WorkflowUtils {
             .libConfig(JSON.parseArray(workVersion.getLibConfig(), String.class))
             .containerId(workVersion.getContainerId()).workType(workVersion.getWorkType())
             .apiWorkConfig(JSON.parseObject(workVersion.getApiWorkConfig(), ApiWorkConfig.class))
-            .workName(event.getWorkName()).workId(workVersion.getId()).build();
+            .workName(event.getWorkName()).eventId(eventId).workId(workVersion.getId()).build();
     }
 
     public static WorkRunContext genWorkRunContext(VipWorkVersionEntity workVersion) {

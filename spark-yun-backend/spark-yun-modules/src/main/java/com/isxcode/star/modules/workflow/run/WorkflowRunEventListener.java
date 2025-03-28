@@ -9,15 +9,9 @@ import com.isxcode.star.api.instance.constants.InstanceType;
 import com.isxcode.star.api.work.constants.WorkLog;
 import com.isxcode.star.common.locker.Locker;
 import com.isxcode.star.modules.alarm.service.AlarmService;
-import com.isxcode.star.modules.work.entity.VipWorkVersionEntity;
-import com.isxcode.star.modules.work.entity.WorkConfigEntity;
-import com.isxcode.star.modules.work.entity.WorkEntity;
-import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
-import com.isxcode.star.modules.work.repository.VipWorkVersionRepository;
-import com.isxcode.star.modules.work.repository.WorkConfigRepository;
-import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
-import com.isxcode.star.modules.work.repository.WorkRepository;
-import com.isxcode.star.modules.work.run.WorkExecutor;
+import com.isxcode.star.modules.work.entity.*;
+import com.isxcode.star.modules.work.event.WorkRunFactory;
+import com.isxcode.star.modules.work.repository.*;
 import com.isxcode.star.modules.work.run.WorkExecutorFactory;
 import com.isxcode.star.modules.work.run.WorkRunContext;
 import com.isxcode.star.modules.workflow.entity.WorkflowInstanceEntity;
@@ -57,6 +51,10 @@ public class WorkflowRunEventListener {
     private final VipWorkVersionRepository vipWorkVersionRepository;
 
     private final AlarmService alarmService;
+
+    private final WorkRunFactory workRunFactory;
+
+    private final WorkEventRepository workEventRepository;
 
     @EventListener
     @Async("springEventThreadPool")
@@ -148,22 +146,36 @@ public class WorkflowRunEventListener {
                 workflowInstanceRepository.saveAndFlush(workflowInstance);
             }
 
+            // 初始化作业事件
+            WorkEventEntity workEvent = new WorkEventEntity();
+            workEvent.setExecProcess(0);
+            workEvent = workEventRepository.saveAndFlush(workEvent);
+
             // 封装workRunContext
             WorkRunContext workRunContext;
             if (Strings.isEmpty(event.getVersionId())) {
                 // 通过workId封装workRunContext
                 WorkEntity work = workRepository.findById(event.getWorkId()).get();
                 WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
-                workRunContext = WorkflowUtils.genWorkRunContext(workInstance.getId(), null, work, workConfig);
+                workRunContext =
+                    WorkflowUtils.genWorkRunContext(workInstance.getId(), workEvent.getId(), work, workConfig);
             } else {
                 // 通过versionId封装workRunContext
                 VipWorkVersionEntity workVersion = vipWorkVersionRepository.findById(event.getVersionId()).get();
-                workRunContext = WorkflowUtils.genWorkRunContext(workInstance.getId(), workVersion, event);
+                workRunContext =
+                    WorkflowUtils.genWorkRunContext(workInstance.getId(), workEvent.getId(), workVersion, event);
             }
 
             // 同步执行作业
-            WorkExecutor workExecutor = workExecutorFactory.create(workRunContext.getWorkType());
-            workExecutor.syncExecute(workRunContext);
+            workRunFactory.execute(workRunContext);
+
+            while (workEventRepository.existsById(workEvent.getId())) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
 
         // 判断工作流是否执行完毕，检查结束节点是否都运行完
