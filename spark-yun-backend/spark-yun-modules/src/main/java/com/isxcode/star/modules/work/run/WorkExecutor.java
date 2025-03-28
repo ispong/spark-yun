@@ -99,14 +99,18 @@ public abstract class WorkExecutor {
                 workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
                 workInstance.setStatus(InstanceStatus.SUCCESS);
                 workInstance.setExecEndDateTime(new Date());
-                workInstance.setDuration((System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
-                workInstance.setSubmitLog(workInstance.getSubmitLog() + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "执行成功 \n");
+                workInstance
+                    .setDuration((System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
+                workInstance
+                    .setSubmitLog(workInstance.getSubmitLog() + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "执行成功 \n");
                 workInstanceRepository.save(workInstance);
 
                 // 保存工作流日志
                 if (!Strings.isEmpty(workInstance.getWorkflowInstanceId())) {
-                    WorkflowInstanceEntity workflowInstance = workflowInstanceRepository.findById(workInstance.getWorkflowInstanceId()).get();
-                    String runLog = workflowInstanceRepository.getWorkflowLog(workflowInstance.getId()) + "\n" + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "作业: 【" + workRunContext.getWorkName() + "】运行成功";
+                    WorkflowInstanceEntity workflowInstance =
+                        workflowInstanceRepository.findById(workInstance.getWorkflowInstanceId()).get();
+                    String runLog = workflowInstanceRepository.getWorkflowLog(workflowInstance.getId()) + "\n"
+                        + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "作业: 【" + workRunContext.getWorkName() + "】运行成功";
                     workflowInstance.setRunLog(runLog);
                     workflowInstanceRepository.setWorkflowLog(workflowInstance.getId(), runLog);
                 }
@@ -134,14 +138,18 @@ public abstract class WorkExecutor {
             // 更新作业实例失败状态
             workInstance.setStatus(InstanceStatus.FAIL);
             workInstance.setExecEndDateTime(new Date());
-            workInstance.setDuration((System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
-            workInstance.setSubmitLog(workInstance.getSubmitLog() + e.getMsg() + LocalDateTime.now() + WorkLog.ERROR_INFO + "执行失败 \n");
+            workInstance
+                .setDuration((System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
+            workInstance.setSubmitLog(
+                workInstance.getSubmitLog() + e.getMsg() + LocalDateTime.now() + WorkLog.ERROR_INFO + "执行失败 \n");
             workInstanceRepository.save(workInstance);
 
             // 修改工作流日志
             if (!Strings.isEmpty(workInstance.getWorkflowInstanceId())) {
-                WorkflowInstanceEntity workflowInstance = workflowInstanceRepository.findById(workInstance.getWorkflowInstanceId()).get();
-                String runLog = workflowInstanceRepository.getWorkflowLog(workflowInstance.getId()) + "\n" + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "作业: 【" + workRunContext.getWorkName() + "】运行失败";
+                WorkflowInstanceEntity workflowInstance =
+                    workflowInstanceRepository.findById(workInstance.getWorkflowInstanceId()).get();
+                String runLog = workflowInstanceRepository.getWorkflowLog(workflowInstance.getId()) + "\n"
+                    + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "作业: 【" + workRunContext.getWorkName() + "】运行失败";
                 workflowInstance.setRunLog(runLog);
                 workflowInstanceRepository.setWorkflowLog(workflowInstance.getId(), runLog);
             }

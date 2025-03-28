@@ -656,11 +656,9 @@ public class WorkBizService {
         List<List<String>> data;
         if (WorkType.QUERY_SPARK_SQL.equals(workEntity.getWorkType())) {
             data = JSON.parseObject(JSON.toJSONString(JSON.parseObject(workInstanceEntity.getResultData()).get("data")),
-                new TypeReference<List<List<String>>>() {
-                });
+                new TypeReference<List<List<String>>>() {});
         } else {
-            data = JSON.parseObject(workInstanceEntity.getResultData(), new TypeReference<List<List<String>>>() {
-            });
+            data = JSON.parseObject(workInstanceEntity.getResultData(), new TypeReference<List<List<String>>>() {});
         }
 
         try {

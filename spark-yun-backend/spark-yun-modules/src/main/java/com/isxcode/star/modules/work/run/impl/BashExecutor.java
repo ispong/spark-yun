@@ -56,11 +56,13 @@ public class BashExecutor extends WorkExecutor {
     private final WorkInstanceRepository workInstanceRepository;
 
     public BashExecutor(WorkInstanceRepository workInstanceRepository,
-                        WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
-                        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
-                        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService, WorkEventRepository workEventRepository, WorkInstanceRepository workInstanceRepository) {
+        WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
+        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
+        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
+        WorkEventRepository workEventRepository, WorkInstanceRepository workInstanceRepository) {
 
-        super(workInstanceRepository, workflowInstanceRepository, alarmService, sqlFunctionService, workEventRepository);
+        super(workInstanceRepository, workflowInstanceRepository, alarmService, sqlFunctionService,
+            workEventRepository);
         this.clusterNodeRepository = clusterNodeRepository;
         this.clusterNodeMapper = clusterNodeMapper;
         this.aesUtils = aesUtils;
