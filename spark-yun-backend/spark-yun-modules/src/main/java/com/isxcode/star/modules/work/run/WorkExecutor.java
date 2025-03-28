@@ -9,8 +9,7 @@ import com.isxcode.star.api.instance.constants.InstanceType;
 import com.isxcode.star.api.work.constants.WorkLog;
 import com.isxcode.star.backend.api.base.exceptions.WorkRunException;
 import com.isxcode.star.modules.alarm.service.AlarmService;
-import com.isxcode.star.modules.work.entity.WorkEventEntity;
-import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
+import com.isxcode.star.modules.work.entity.*;
 import com.isxcode.star.modules.work.repository.WorkEventRepository;
 import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
 import com.isxcode.star.modules.work.sql.SqlFunctionService;
@@ -20,6 +19,7 @@ import com.isxcode.star.modules.workflow.repository.WorkflowInstanceRepository;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import com.isxcode.star.modules.workflow.run.WorkflowRunEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
@@ -28,7 +28,9 @@ import org.quartz.SchedulerException;
 import org.quartz.TriggerKey;
 import org.springframework.scheduling.annotation.Async;
 
-
+/**
+ * 作业执行器.
+ */
 @Slf4j
 @RequiredArgsConstructor
 public abstract class WorkExecutor {
@@ -53,46 +55,117 @@ public abstract class WorkExecutor {
 
     protected abstract void abort(WorkInstanceEntity workInstance);
 
-    public WorkInstanceEntity updateInstance(WorkInstanceEntity workInstance, StringBuilder logBuilder) {
-
-        workInstance.setSubmitLog(logBuilder.toString());
-        return workInstanceRepository.saveAndFlush(workInstance);
-    }
-
-    @Async("sparkYunWorkThreadPool")
-    public void asyncExecute(WorkRunContext workRunContext) {
-
-        // 初始化异步线程中的上下文
-        USER_ID.set(workRunContext.getUserId());
-        TENANT_ID.set(workRunContext.getTenantId());
-
-        syncExecute(workRunContext);
-    }
-
     /**
-     * 当前进程没有运行过
+     * 执行作业，核心逻辑
      */
-    public boolean processNeverRun(WorkEventEntity workEvent, Integer nowIndex) {
+    public void runWork(WorkRunContext workRunContext) {
 
-        // 上一步状态保存
-        if (workEvent.getExecProcess() + 1 == nowIndex) {
-            workEvent.setExecProcess(nowIndex);
-            workEventRepository.saveAndFlush(workEvent);
+        if ("作业流id".equals("")) {
+
+            // 修改状态前都要加锁，给工作流实例加锁
+            Integer lockId = locker.lock(event.getFlowInstanceId());
+
+            // 查询作业实例
+            WorkInstanceEntity workInstance =
+                workInstanceRepository.findByWorkIdAndWorkflowInstanceId(event.getWorkId(), event.getFlowInstanceId());
+
+            // 已中止的任务，不可以再跑
+            if (InstanceStatus.ABORT.equals(workInstance.getStatus())) {
+                return;
+            }
+
+            // 跑过了或者正在跑，不可以再跑
+            if (!InstanceStatus.PENDING.equals(workInstance.getStatus())
+                && !InstanceStatus.BREAK.equals(workInstance.getStatus())) {
+                return;
+            }
+
+            // 在调度中，如果自身定时器没有被触发，不可以跑
+            // 先接受定时器触发，才能接受spring的event事件触发
+            if (!Strings.isEmpty(event.getVersionId()) && !workInstance.getQuartzHasRun()) {
+                return;
+            }
+
+            // 判断父级是否可以执行
+            List<String> parentNodes = WorkUtils.getParentNodes(event.getNodeMapping(), event.getWorkId());
+            List<WorkInstanceEntity> parentInstances =
+                workInstanceRepository.findAllByWorkIdAndWorkflowInstanceId(parentNodes, event.getFlowInstanceId());
+            boolean parentIsError = parentInstances.stream().anyMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()));
+            boolean parentIsBreak = parentInstances.stream().anyMatch(e -> InstanceStatus.BREAK.equals(e.getStatus()));
+            boolean parentIsRunning = parentInstances.stream().anyMatch(
+                e -> InstanceStatus.RUNNING.equals(e.getStatus()) || InstanceStatus.PENDING.equals(e.getStatus()));
+
+            // 如果父级在运行中，直接中断
+            if (parentIsRunning) {
+                return;
+            }
+
+            // 根据父级的不同状态，执行不同的逻辑
+            if (parentIsError) {
+                // 如果父级有错，则状态直接变更为失败
+                workInstance.setStatus(InstanceStatus.FAIL);
+                workInstance.setSubmitLog("父级执行失败");
+                if (workInstance.getExecStartDateTime() != null) {
+                    workInstance.setExecEndDateTime(new Date());
+                    workInstance.setDuration(
+                        (System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
+                }
+            } else if (parentIsBreak || InstanceStatus.BREAK.equals(workInstance.getStatus())) {
+                workInstance.setStatus(InstanceStatus.BREAK);
+                workInstance.setExecEndDateTime(new Date());
+                workInstance
+                    .setDuration((System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
+            } else {
+                workInstance.setStatus(InstanceStatus.RUNNING);
+            }
+            workInstanceRepository.saveAndFlush(workInstance);
+        } finally{
+            // 解锁
+            locker.unlock(lockId);
         }
 
-        // 返回是否执行过
-        return workEvent.getExecProcess() < nowIndex + 1;
-    }
 
-    /**
-     * 当前进程没有运行过
-     */
-    public boolean processOver(String workEventId) {
+        // 再次查询作业实例，如果状态为运行中，则可以开始运行作业
+        WorkInstanceEntity workInstance =
+            workInstanceRepository.findByWorkIdAndWorkflowInstanceId(event.getWorkId(), event.getFlowInstanceId());
+        if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
 
-        return workEventRepository.existsByIdAndExecProcess(workEventId, 999);
-    }
+            // 作业开始执行，添加作业流实例日志
+            synchronized (event.getFlowInstanceId()) {
+                WorkflowInstanceEntity workflowInstance =
+                    workflowInstanceRepository.findById(event.getFlowInstanceId()).get();
 
-    public void syncExecute(WorkRunContext workRunContext) {
+                // 保存到缓存中
+                String runLog = workflowInstanceRepository.getWorkflowLog(event.getFlowInstanceId()) + "\n"
+                    + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "作业: 【" + event.getWorkName() + "】开始执行";
+                workflowInstanceRepository.setWorkflowLog(event.getFlowInstanceId(), runLog);
+
+                // 更新工作流实例日志
+                workflowInstance.setRunLog(runLog);
+                workflowInstanceRepository.saveAndFlush(workflowInstance);
+            }
+
+            // 初始化作业事件
+            WorkEventEntity workEvent = new WorkEventEntity();
+            workEvent.setExecProcess(0);
+            workEvent = workEventRepository.saveAndFlush(workEvent);
+
+            // 封装workRunContext
+            WorkRunContext workRunContext;
+            if (Strings.isEmpty(event.getVersionId())) {
+                // 通过workId封装workRunContext
+                WorkEntity work = workRepository.findById(event.getWorkId()).get();
+                WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
+                workRunContext =
+                    WorkUtils.genWorkRunContext(workInstance.getId(), workEvent.getId(), work, workConfig);
+            } else {
+                // 通过versionId封装workRunContext
+                VipWorkVersionEntity workVersion = vipWorkVersionRepository.findById(event.getVersionId()).get();
+                workRunContext =
+                    WorkUtils.genWorkRunContext(workInstance.getId(), workEvent.getId(), workVersion, event);
+            }
+
+        }
 
         // 获取任务事件
         WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
@@ -208,6 +281,78 @@ public abstract class WorkExecutor {
 
         // 执行完请求线程
         WORK_THREAD.remove(workInstance.getId());
+
+        if ("如果是作业流") {
+            // 判断工作流是否执行完毕，检查结束节点是否都运行完
+            lockId = locker.lock(event.getFlowInstanceId());
+
+            // 如果工作流被中止，则不需要执行下面的逻辑
+            WorkflowInstanceEntity lastWorkflowInstance =
+                workflowInstanceRepository.findById(event.getFlowInstanceId()).get();
+            if (InstanceStatus.ABORTING.equals(lastWorkflowInstance.getStatus())) {
+                return;
+            }
+
+            try {
+                // 获取结束节点实例
+                List<String> endNodes = WorkUtils.getEndNodes(event.getNodeMapping(), event.getNodeList());
+                List<WorkInstanceEntity> endNodeInstance =
+                    workInstanceRepository.findAllByWorkIdAndWorkflowInstanceId(endNodes, event.getFlowInstanceId());
+                boolean flowIsOver = endNodeInstance.stream()
+                    .allMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()) || InstanceStatus.SUCCESS.equals(e.getStatus())
+                        || InstanceStatus.ABORT.equals(e.getStatus()) || InstanceStatus.BREAK.equals(e.getStatus()));
+
+                // 判断工作流是否执行完
+                if (flowIsOver) {
+                    boolean flowIsError = endNodeInstance.stream().anyMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()));
+                    WorkflowInstanceEntity workflowInstance =
+                        workflowInstanceRepository.findById(event.getFlowInstanceId()).get();
+                    workflowInstance.setStatus(flowIsError ? InstanceStatus.FAIL : InstanceStatus.SUCCESS);
+                    workflowInstance.setRunLog(
+                        workflowInstanceRepository.getWorkflowLog(event.getFlowInstanceId()) + "\n" + LocalDateTime.now()
+                            + (flowIsError ? WorkLog.ERROR_INFO : WorkLog.SUCCESS_INFO) + (flowIsError ? "运行失败" : "运行成功"));
+                    workflowInstance.setDuration(
+                        (System.currentTimeMillis() - workflowInstance.getExecStartDateTime().getTime()) / 1000);
+                    workflowInstance.setExecEndDateTime(new Date());
+
+                    // 基线告警
+                    if (flowIsError) {
+                        // 执行失败，基线告警
+                        if (InstanceType.AUTO.equals(workflowInstance.getInstanceType())) {
+                            alarmService.sendWorkflowMessage(workflowInstance, AlarmEventType.RUN_FAIL);
+                        }
+                    } else {
+                        // 执行成功，基线告警
+                        if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
+                            alarmService.sendWorkflowMessage(workflowInstance, AlarmEventType.RUN_SUCCESS);
+                        }
+                    }
+                    // 执行结束，基线告警
+                    if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
+                        alarmService.sendWorkflowMessage(workflowInstance, AlarmEventType.RUN_END);
+                    }
+
+                    workflowInstanceRepository.saveAndFlush(workflowInstance);
+
+                    // 清除缓存中的作业流日志
+                    workflowInstanceRepository.deleteWorkflowLog(event.getFlowInstanceId());
+                    return;
+                }
+            } finally {
+                locker.unlock(lockId);
+            }
+
+            // 工作流没有执行完，解析推送子节点
+            List<String> sonNodes = WorkUtils.getSonNodes(event.getNodeMapping(), event.getWorkId());
+            List<WorkEntity> sonNodeWorks = workRepository.findAllByWorkIds(sonNodes);
+            sonNodeWorks.forEach(work -> {
+                WorkflowRunEvent metaEvent = new WorkflowRunEvent(work.getId(), work.getName(), event);
+                WorkInstanceEntity sonWorkInstance =
+                    workInstanceRepository.findByWorkIdAndWorkflowInstanceId(work.getId(), event.getFlowInstanceId());
+                metaEvent.setVersionId(sonWorkInstance.getVersionId());
+                eventPublisher.publishEvent(metaEvent);
+            });
+        }
     }
 
     public void syncAbort(WorkInstanceEntity workInstance) {
@@ -215,27 +360,4 @@ public abstract class WorkExecutor {
         this.abort(workInstance);
     }
 
-    /**
-     * 翻译上游的jsonPath.
-     */
-    public String parseJsonPath(String value, WorkInstanceEntity workInstance) {
-
-        if (workInstance.getWorkflowInstanceId() == null) {
-            return value.replace("get_json_value", "get_json_default_value")
-                .replace("get_regex_value", "get_regex_default_value")
-                .replace("get_table_value", "get_table_default_value");
-        }
-
-        List<WorkInstanceEntity> allWorkflowInstance =
-            workInstanceRepository.findAllByWorkflowInstanceId(workInstance.getWorkflowInstanceId());
-
-        for (WorkInstanceEntity e : allWorkflowInstance) {
-            if (InstanceStatus.SUCCESS.equals(e.getStatus()) && e.getResultData() != null) {
-                value = value.replace("${qing." + e.getWorkId() + ".result_data}",
-                    Base64.getEncoder().encodeToString(e.getResultData().getBytes()));
-            }
-        }
-
-        return sqlFunctionService.parseSqlFunction(value);
-    }
 }

@@ -9,7 +9,7 @@ import com.isxcode.star.modules.work.repository.WorkRepository;
 import com.isxcode.star.modules.workflow.entity.WorkflowConfigEntity;
 import com.isxcode.star.modules.workflow.entity.WorkflowEntity;
 import com.isxcode.star.modules.workflow.repository.WorkflowConfigRepository;
-import com.isxcode.star.modules.workflow.run.WorkflowUtils;
+import com.isxcode.star.modules.work.run.WorkUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,7 +50,7 @@ public class WorkflowConfigBizService {
         WorkflowEntity workflow = workflowService.getWorkflow(wfcConfigWorkflowReq.getWorkflowId());
 
         // 从webConfig中解析出所有节点
-        List<String> nodeList = WorkflowUtils.parseNodeList(flowWebConfig);
+        List<String> nodeList = WorkUtils.parseNodeList(flowWebConfig);
 
         // 保存时检测作业是否存在，有bug，后面改
         List<WorkEntity> works = workRepository.findAllByWorkIds(nodeList);
@@ -59,16 +59,16 @@ public class WorkflowConfigBizService {
         }
 
         // 从webConfig中解析出所有节点映射
-        List<List<String>> nodeMapping = WorkflowUtils.parseNodeMapping(flowWebConfig);
+        List<List<String>> nodeMapping = WorkUtils.parseNodeMapping(flowWebConfig);
 
         // 检查节点是否闭环
-        WorkflowUtils.checkFlow(nodeList, nodeMapping);
+        WorkUtils.checkFlow(nodeList, nodeMapping);
 
         // 解析开始节点
-        List<String> startNodes = WorkflowUtils.getStartNodes(nodeMapping, nodeList);
+        List<String> startNodes = WorkUtils.getStartNodes(nodeMapping, nodeList);
 
         // 解析结束节点
-        List<String> endNodes = WorkflowUtils.getEndNodes(nodeMapping, nodeList);
+        List<String> endNodes = WorkUtils.getEndNodes(nodeMapping, nodeList);
 
         // 获取工作流配置
         WorkflowConfigEntity workflowConfig = getWorkflowConfig(workflow.getConfigId());

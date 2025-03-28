@@ -1,4 +1,4 @@
-package com.isxcode.star.modules.workflow.run;
+package com.isxcode.star.modules.work.run;
 
 import static com.isxcode.star.common.config.CommonConfig.TENANT_ID;
 import static com.isxcode.star.common.config.CommonConfig.USER_ID;
@@ -6,21 +6,22 @@ import static com.isxcode.star.common.config.CommonConfig.USER_ID;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.TypeReference;
+import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.api.work.dto.*;
 import com.isxcode.star.api.workflow.dto.NodeInfo;
 import com.isxcode.star.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.star.common.utils.jgrapht.JgraphtUtils;
-import com.isxcode.star.modules.work.entity.VipWorkVersionEntity;
-import com.isxcode.star.modules.work.entity.WorkConfigEntity;
-import com.isxcode.star.modules.work.entity.WorkEntity;
-import com.isxcode.star.modules.work.run.WorkRunContext;
+import com.isxcode.star.modules.work.entity.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 
-public class WorkflowUtils {
+/**
+ * 作业运行相关工具类.
+ */
+public class WorkUtils {
 
     /**
      * 将数据库字段flowStr转成List<List<String>>结构.
@@ -192,5 +193,58 @@ public class WorkflowUtils {
                 recursionAfterNode(result, webConfig, e.get(1));
             }
         });
+    }
+
+    public WorkInstanceEntity updateInstance(WorkInstanceEntity workInstance, StringBuilder logBuilder) {
+
+        workInstance.setSubmitLog(logBuilder.toString());
+        return workInstanceRepository.saveAndFlush(workInstance);
+    }
+
+    /**
+     * 当前进程没有运行过
+     */
+    public boolean processNeverRun(WorkEventEntity workEvent, Integer nowIndex) {
+
+        // 上一步状态保存
+        if (workEvent.getExecProcess() + 1 == nowIndex) {
+            workEvent.setExecProcess(nowIndex);
+            workEventRepository.saveAndFlush(workEvent);
+        }
+
+        // 返回是否执行过
+        return workEvent.getExecProcess() < nowIndex + 1;
+    }
+
+    /**
+     * 当前进程没有运行过
+     */
+    public boolean processOver(String workEventId) {
+
+        return workEventRepository.existsByIdAndExecProcess(workEventId, 999);
+    }
+
+      /**
+     * 翻译上游的jsonPath.
+     */
+    public String parseJsonPath(String value, WorkInstanceEntity workInstance) {
+
+        if (workInstance.getWorkflowInstanceId() == null) {
+            return value.replace("get_json_value", "get_json_default_value")
+                .replace("get_regex_value", "get_regex_default_value")
+                .replace("get_table_value", "get_table_default_value");
+        }
+
+        List<WorkInstanceEntity> allWorkflowInstance =
+            workInstanceRepository.findAllByWorkflowInstanceId(workInstance.getWorkflowInstanceId());
+
+        for (WorkInstanceEntity e : allWorkflowInstance) {
+            if (InstanceStatus.SUCCESS.equals(e.getStatus()) && e.getResultData() != null) {
+                value = value.replace("${qing." + e.getWorkId() + ".result_data}",
+                    Base64.getEncoder().encodeToString(e.getResultData().getBytes()));
+            }
+        }
+
+        return sqlFunctionService.parseSqlFunction(value);
     }
 }

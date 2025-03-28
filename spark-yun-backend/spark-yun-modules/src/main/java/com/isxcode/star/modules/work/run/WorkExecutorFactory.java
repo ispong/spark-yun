@@ -6,7 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-
+/**
+ * 初始化作业执行器.
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Component

@@ -54,7 +54,7 @@ import com.isxcode.star.modules.workflow.repository.WorkflowInstanceRepository;
 import com.isxcode.star.modules.workflow.repository.WorkflowRepository;
 import com.isxcode.star.modules.workflow.repository.WorkflowVersionRepository;
 import com.isxcode.star.modules.workflow.run.WorkflowRunEvent;
-import com.isxcode.star.modules.workflow.run.WorkflowUtils;
+import com.isxcode.star.modules.work.run.WorkUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -562,7 +562,7 @@ public class WorkflowBizService {
             // 同步执行作业
             WorkExecutor workExecutor = workExecutorFactory.create(work.getWorkType());
             WorkRunContext workRunContext =
-                WorkflowUtils.genWorkRunContext(runCurrentNodeReq.getWorkInstanceId(), null, work, workConfig);
+                WorkUtils.genWorkRunContext(runCurrentNodeReq.getWorkInstanceId(), null, work, workConfig);
             workExecutor.syncExecute(workRunContext);
 
             return "OVER";
@@ -716,7 +716,7 @@ public class WorkflowBizService {
             JSON.parseObject(workflowConfig.getNodeMapping(), new TypeReference<List<List<String>>>() {});
 
         WorkEntity work = workRepository.findById(workInstance.getWorkId()).get();
-        List<String> afterWorkIds = WorkflowUtils.parseAfterNodes(nodeMapping, work.getId());
+        List<String> afterWorkIds = WorkUtils.parseAfterNodes(nodeMapping, work.getId());
 
         // 将下游所有节点实例，全部状态改为PENDING
         List<WorkInstanceEntity> afterWorkInstances = workInstanceRepository

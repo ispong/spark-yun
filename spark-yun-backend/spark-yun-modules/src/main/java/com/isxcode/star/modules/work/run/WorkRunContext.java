@@ -1,14 +1,28 @@
 package com.isxcode.star.modules.work.run;
 
+import com.isxcode.star.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.star.api.work.dto.*;
 import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 作业运行上下文.
+ */
 @Data
 @Builder
 public class WorkRunContext {
+
+    private String script;
+
+    private ScpFileEngineNodeDto scpNodeInfo;
+
+    private String agentHomePath;
+
+    private String currentStatus;
+
+    private String pid;
 
     /**
      * 作业实例id.

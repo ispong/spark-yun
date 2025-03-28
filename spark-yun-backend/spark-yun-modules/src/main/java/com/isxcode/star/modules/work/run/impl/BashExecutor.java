@@ -5,7 +5,7 @@ import com.isxcode.star.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.api.work.constants.WorkLog;
 import com.isxcode.star.api.work.constants.WorkType;
-import com.isxcode.star.api.work.dto.WorkEventBody;
+import com.isxcode.star.modules.work.run.WorkEventContext;
 import com.isxcode.star.backend.api.base.exceptions.WorkRunException;
 import com.isxcode.star.common.utils.aes.AesUtils;
 import com.isxcode.star.common.utils.ssh.SshUtils;
@@ -86,9 +86,9 @@ public class BashExecutor extends WorkExecutor {
 
         // 获取日志和事件
         WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
-        WorkEventBody workEventBody = JSON.parseObject(workEvent.getEventBody(), WorkEventBody.class);
+        WorkEventContext workEventBody = JSON.parseObject(workEvent.getEventBody(), WorkEventContext.class);
         if (workEventBody == null) {
-            workEventBody = new WorkEventBody();
+            workEventBody = new WorkEventContext();
         }
         StringBuilder logBuilder = new StringBuilder(workInstance.getSubmitLog());
 

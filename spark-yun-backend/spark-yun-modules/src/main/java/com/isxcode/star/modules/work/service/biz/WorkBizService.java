@@ -22,7 +22,7 @@ import com.isxcode.star.modules.work.entity.WorkConfigEntity;
 import com.isxcode.star.modules.work.entity.WorkEntity;
 import com.isxcode.star.modules.work.entity.WorkEventEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
-import com.isxcode.star.modules.work.event.WorkRunFactory;
+import com.isxcode.star.modules.work.run.WorkRunJobFactory;
 import com.isxcode.star.modules.work.mapper.WorkMapper;
 import com.isxcode.star.modules.work.repository.WorkConfigRepository;
 import com.isxcode.star.modules.work.repository.WorkEventRepository;
@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.isxcode.star.common.config.CommonConfig.*;
-import static com.isxcode.star.modules.workflow.run.WorkflowUtils.genWorkRunContext;
+import static com.isxcode.star.modules.work.run.WorkUtils.genWorkRunContext;
 
 @Service
 @RequiredArgsConstructor
@@ -82,7 +82,7 @@ public class WorkBizService {
 
     private final WorkEventRepository workEventRepository;
 
-    private final WorkRunFactory workRunFactory;
+    private final WorkRunJobFactory workRunFactory;
 
     public GetWorkRes addWork(AddWorkReq addWorkReq) {
 
@@ -255,7 +255,7 @@ public class WorkBizService {
     /**
      * 提交作业.
      */
-    public RunWorkRes runWork(RunWorkReq runWorkReq) throws InterruptedException {
+    public RunWorkRes runWork(RunWorkReq runWorkReq)  {
 
         // 获取作业信息
         WorkEntity work = workService.getWorkEntity(runWorkReq.getWorkId());
