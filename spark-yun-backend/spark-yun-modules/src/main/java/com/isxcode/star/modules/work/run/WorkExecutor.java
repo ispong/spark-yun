@@ -1,18 +1,16 @@
 package com.isxcode.star.modules.work.run;
 
-import static com.isxcode.star.common.config.CommonConfig.TENANT_ID;
-import static com.isxcode.star.common.config.CommonConfig.USER_ID;
 
 import com.isxcode.star.api.alarm.constants.AlarmEventType;
 import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.api.instance.constants.InstanceType;
 import com.isxcode.star.api.work.constants.WorkLog;
 import com.isxcode.star.backend.api.base.exceptions.WorkRunException;
+import com.isxcode.star.common.locker.Locker;
 import com.isxcode.star.modules.alarm.service.AlarmService;
 import com.isxcode.star.modules.work.entity.*;
 import com.isxcode.star.modules.work.repository.WorkEventRepository;
 import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
-import com.isxcode.star.modules.work.sql.SqlFunctionService;
 import com.isxcode.star.modules.workflow.entity.WorkflowInstanceEntity;
 import com.isxcode.star.modules.workflow.repository.WorkflowInstanceRepository;
 
@@ -26,7 +24,6 @@ import org.apache.logging.log4j.util.Strings;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.TriggerKey;
-import org.springframework.scheduling.annotation.Async;
 
 /**
  * 作业执行器.
@@ -43,11 +40,11 @@ public abstract class WorkExecutor {
 
     private final AlarmService alarmService;
 
-    private final SqlFunctionService sqlFunctionService;
-
     private final WorkEventRepository workEventRepository;
 
     private final Scheduler scheduler;
+
+    private final Locker locker;
 
     public abstract String getWorkType();
 
@@ -60,14 +57,15 @@ public abstract class WorkExecutor {
      */
     public void runWork(WorkRunContext workRunContext) {
 
-        if ("作业流id".equals("")) {
+        // 判断是作业运行，还是作业流运行
+        if (!Strings.isEmpty(workRunContext.getFlowInstanceId())) {
 
-            // 修改状态前都要加锁，给工作流实例加锁
-            Integer lockId = locker.lock(event.getFlowInstanceId());
+            // 修改作业状态为RUNNING，但修改前都要加锁，给工作流实例加锁
+            Integer lockId = locker.lock(workRunContext.getFlowInstanceId());
 
             // 查询作业实例
-            WorkInstanceEntity workInstance =
-                workInstanceRepository.findByWorkIdAndWorkflowInstanceId(event.getWorkId(), event.getFlowInstanceId());
+            WorkInstanceEntity workInstance = workInstanceRepository
+                .findByWorkIdAndWorkflowInstanceId(workRunContext.getWorkId(), workRunContext.getFlowInstanceId());
 
             // 已中止的任务，不可以再跑
             if (InstanceStatus.ABORT.equals(workInstance.getStatus())) {
@@ -80,16 +78,16 @@ public abstract class WorkExecutor {
                 return;
             }
 
-            // 在调度中，如果自身定时器没有被触发，不可以跑
-            // 先接受定时器触发，才能接受spring的event事件触发
-            if (!Strings.isEmpty(event.getVersionId()) && !workInstance.getQuartzHasRun()) {
+            // 在调度中，如果自身定时器没有被触发，不可以跑，先接受定时器触发，才能接受spring的event事件触发
+            if (!Strings.isEmpty(workRunContext.getVersionId()) && !workInstance.getQuartzHasRun()) {
                 return;
             }
 
-            // 判断父级是否可以执行
-            List<String> parentNodes = WorkUtils.getParentNodes(event.getNodeMapping(), event.getWorkId());
-            List<WorkInstanceEntity> parentInstances =
-                workInstanceRepository.findAllByWorkIdAndWorkflowInstanceId(parentNodes, event.getFlowInstanceId());
+            // 获取父级别的作业状态
+            List<String> parentNodes =
+                WorkUtils.getParentNodes(workRunContext.getNodeMapping(), workRunContext.getWorkId());
+            List<WorkInstanceEntity> parentInstances = workInstanceRepository
+                .findAllByWorkIdAndWorkflowInstanceId(parentNodes, workRunContext.getFlowInstanceId());
             boolean parentIsError = parentInstances.stream().anyMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()));
             boolean parentIsBreak = parentInstances.stream().anyMatch(e -> InstanceStatus.BREAK.equals(e.getStatus()));
             boolean parentIsRunning = parentInstances.stream().anyMatch(
@@ -100,7 +98,6 @@ public abstract class WorkExecutor {
                 return;
             }
 
-            // 根据父级的不同状态，执行不同的逻辑
             if (parentIsError) {
                 // 如果父级有错，则状态直接变更为失败
                 workInstance.setStatus(InstanceStatus.FAIL);
@@ -111,64 +108,56 @@ public abstract class WorkExecutor {
                         (System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
                 }
             } else if (parentIsBreak || InstanceStatus.BREAK.equals(workInstance.getStatus())) {
+                // 如果父级有中断，则状态直接变更为中断
                 workInstance.setStatus(InstanceStatus.BREAK);
                 workInstance.setExecEndDateTime(new Date());
                 workInstance
                     .setDuration((System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
             } else {
+                // 作业状态改为运行中
                 workInstance.setStatus(InstanceStatus.RUNNING);
             }
+
+            // 保存作业状态并解锁
             workInstanceRepository.saveAndFlush(workInstance);
-        } finally{
-            // 解锁
             locker.unlock(lockId);
-        }
 
+            // 再次查询作业实例，如果状态为运行中，则可以开始运行作业
+            workInstance = workInstanceRepository.findByWorkIdAndWorkflowInstanceId(workRunContext.getWorkId(),
+                workRunContext.getFlowInstanceId());
+            if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
 
-        // 再次查询作业实例，如果状态为运行中，则可以开始运行作业
-        WorkInstanceEntity workInstance =
-            workInstanceRepository.findByWorkIdAndWorkflowInstanceId(event.getWorkId(), event.getFlowInstanceId());
-        if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
-
-            // 作业开始执行，添加作业流实例日志
-            synchronized (event.getFlowInstanceId()) {
+                // 作业开始执行，添加作业流实例日志，加锁防止同时写入
+                Integer lockId = locker.lock("flow_log_" + workRunContext.getFlowInstanceId());
                 WorkflowInstanceEntity workflowInstance =
-                    workflowInstanceRepository.findById(event.getFlowInstanceId()).get();
-
-                // 保存到缓存中
-                String runLog = workflowInstanceRepository.getWorkflowLog(event.getFlowInstanceId()) + "\n"
-                    + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "作业: 【" + event.getWorkName() + "】开始执行";
-                workflowInstanceRepository.setWorkflowLog(event.getFlowInstanceId(), runLog);
-
-                // 更新工作流实例日志
+                    workflowInstanceRepository.findById(workRunContext.getFlowInstanceId()).get();
+                String runLog = workflowInstanceRepository.getWorkflowLog(workRunContext.getFlowInstanceId()) + "\n"
+                    + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "作业: 【" + workRunContext.getWorkName() + "】开始执行";
+                workflowInstanceRepository.setWorkflowLog(workRunContext.getFlowInstanceId(), runLog);
                 workflowInstance.setRunLog(runLog);
                 workflowInstanceRepository.saveAndFlush(workflowInstance);
+                locker.unlock(lockId);
+
+                // 封装workRunContext
+                if (Strings.isEmpty(workRunContext.getVersionId())) {
+                    // 通过workId封装workRunContext
+                    WorkEntity work = workRepository.findById(event.getWorkId()).get();
+                    WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
+                    workRunContext =
+                        WorkUtils.genWorkRunContext(workInstance.getId(), workEvent.getId(), work, workConfig);
+                } else {
+                    // 通过versionId封装workRunContext
+                    VipWorkVersionEntity workVersion = vipWorkVersionRepository.findById(event.getVersionId()).get();
+                    workRunContext =
+                        WorkUtils.genWorkRunContext(workInstance.getId(), workEvent.getId(), workVersion, event);
+                }
             }
-
-            // 初始化作业事件
-            WorkEventEntity workEvent = new WorkEventEntity();
-            workEvent.setExecProcess(0);
-            workEvent = workEventRepository.saveAndFlush(workEvent);
-
-            // 封装workRunContext
-            WorkRunContext workRunContext;
-            if (Strings.isEmpty(event.getVersionId())) {
-                // 通过workId封装workRunContext
-                WorkEntity work = workRepository.findById(event.getWorkId()).get();
-                WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
-                workRunContext =
-                    WorkUtils.genWorkRunContext(workInstance.getId(), workEvent.getId(), work, workConfig);
-            } else {
-                // 通过versionId封装workRunContext
-                VipWorkVersionEntity workVersion = vipWorkVersionRepository.findById(event.getVersionId()).get();
-                workRunContext =
-                    WorkUtils.genWorkRunContext(workInstance.getId(), workEvent.getId(), workVersion, event);
-            }
-
         }
 
-        // 获取任务事件
-        WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
+        // 初始化作业事件
+        WorkEventEntity workEvent = new WorkEventEntity();
+        workEvent.setExecProcess(0);
+        workEvent = workEventRepository.saveAndFlush(workEvent);
         WorkInstanceEntity workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
 
         // 修改实例状态
@@ -299,18 +288,20 @@ public abstract class WorkExecutor {
                 List<WorkInstanceEntity> endNodeInstance =
                     workInstanceRepository.findAllByWorkIdAndWorkflowInstanceId(endNodes, event.getFlowInstanceId());
                 boolean flowIsOver = endNodeInstance.stream()
-                    .allMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()) || InstanceStatus.SUCCESS.equals(e.getStatus())
-                        || InstanceStatus.ABORT.equals(e.getStatus()) || InstanceStatus.BREAK.equals(e.getStatus()));
+                    .allMatch(e -> InstanceStatus.FAIL.equals(e.getStatus())
+                        || InstanceStatus.SUCCESS.equals(e.getStatus()) || InstanceStatus.ABORT.equals(e.getStatus())
+                        || InstanceStatus.BREAK.equals(e.getStatus()));
 
                 // 判断工作流是否执行完
                 if (flowIsOver) {
-                    boolean flowIsError = endNodeInstance.stream().anyMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()));
+                    boolean flowIsError =
+                        endNodeInstance.stream().anyMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()));
                     WorkflowInstanceEntity workflowInstance =
                         workflowInstanceRepository.findById(event.getFlowInstanceId()).get();
                     workflowInstance.setStatus(flowIsError ? InstanceStatus.FAIL : InstanceStatus.SUCCESS);
-                    workflowInstance.setRunLog(
-                        workflowInstanceRepository.getWorkflowLog(event.getFlowInstanceId()) + "\n" + LocalDateTime.now()
-                            + (flowIsError ? WorkLog.ERROR_INFO : WorkLog.SUCCESS_INFO) + (flowIsError ? "运行失败" : "运行成功"));
+                    workflowInstance.setRunLog(workflowInstanceRepository.getWorkflowLog(event.getFlowInstanceId())
+                        + "\n" + LocalDateTime.now() + (flowIsError ? WorkLog.ERROR_INFO : WorkLog.SUCCESS_INFO)
+                        + (flowIsError ? "运行失败" : "运行成功"));
                     workflowInstance.setDuration(
                         (System.currentTimeMillis() - workflowInstance.getExecStartDateTime().getTime()) / 1000);
                     workflowInstance.setExecEndDateTime(new Date());

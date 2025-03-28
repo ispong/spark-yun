@@ -255,7 +255,7 @@ public class WorkBizService {
     /**
      * 提交作业.
      */
-    public RunWorkRes runWork(RunWorkReq runWorkReq)  {
+    public RunWorkRes runWork(RunWorkReq runWorkReq) {
 
         // 获取作业信息
         WorkEntity work = workService.getWorkEntity(runWorkReq.getWorkId());

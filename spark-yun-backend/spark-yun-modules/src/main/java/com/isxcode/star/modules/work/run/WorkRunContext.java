@@ -14,6 +14,14 @@ import java.util.List;
 @Builder
 public class WorkRunContext {
 
+    private List<List<String>> nodeMapping;
+
+    private String flowInstanceId;
+
+    private String workId;
+
+    private String versionId;
+
     private String script;
 
     private ScpFileEngineNodeDto scpNodeInfo;

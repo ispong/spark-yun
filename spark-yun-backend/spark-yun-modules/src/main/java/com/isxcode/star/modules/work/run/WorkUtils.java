@@ -224,7 +224,7 @@ public class WorkUtils {
         return workEventRepository.existsByIdAndExecProcess(workEventId, 999);
     }
 
-      /**
+    /**
      * 翻译上游的jsonPath.
      */
     public String parseJsonPath(String value, WorkInstanceEntity workInstance) {
