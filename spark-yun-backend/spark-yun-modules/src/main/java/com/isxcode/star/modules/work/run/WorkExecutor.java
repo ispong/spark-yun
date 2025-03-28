@@ -152,26 +152,26 @@ public abstract class WorkExecutor {
                         WorkUtils.genWorkRunContext(workInstance.getId(), workEvent.getId(), workVersion, event);
                 }
             }
-        }
+        } else {
+            // 初始化作业事件
+            WorkEventEntity workEvent = new WorkEventEntity();
+            workEvent.setExecProcess(0);
+            workEvent = workEventRepository.saveAndFlush(workEvent);
+            WorkInstanceEntity workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
 
-        // 初始化作业事件
-        WorkEventEntity workEvent = new WorkEventEntity();
-        workEvent.setExecProcess(0);
-        workEvent = workEventRepository.saveAndFlush(workEvent);
-        WorkInstanceEntity workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
+            // 修改实例状态
+            if (processNeverRun(workEvent, 1)) {
+                workInstance.setSubmitLog(LocalDateTime.now() + WorkLog.SUCCESS_INFO + "开始提交作业 \n");
+                workInstance.setStatus(InstanceStatus.RUNNING);
+                workInstance.setExecStartDateTime(new Date());
+                workInstance = workInstanceRepository.saveAndFlush(workInstance);
+            }
 
-        // 修改实例状态
-        if (processNeverRun(workEvent, 1)) {
-            workInstance.setSubmitLog(LocalDateTime.now() + WorkLog.SUCCESS_INFO + "开始提交作业 \n");
-            workInstance.setStatus(InstanceStatus.RUNNING);
-            workInstance.setExecStartDateTime(new Date());
-            workInstance = workInstanceRepository.saveAndFlush(workInstance);
-        }
-
-        // 任务开始运行事件，异步发送消息
-        if (processNeverRun(workEvent, 2)) {
-            if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
-                alarmService.sendWorkMessage(workInstance, AlarmEventType.START_RUN);
+            // 任务开始运行事件，异步发送消息
+            if (processNeverRun(workEvent, 2)) {
+                if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
+                    alarmService.sendWorkMessage(workInstance, AlarmEventType.START_RUN);
+                }
             }
         }
 
@@ -271,7 +271,7 @@ public abstract class WorkExecutor {
         // 执行完请求线程
         WORK_THREAD.remove(workInstance.getId());
 
-        if ("如果是作业流") {
+        if ("如果是作业流，创建后面的推送事件") {
             // 判断工作流是否执行完毕，检查结束节点是否都运行完
             lockId = locker.lock(event.getFlowInstanceId());
 
