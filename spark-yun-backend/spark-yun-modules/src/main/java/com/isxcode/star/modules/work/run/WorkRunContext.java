@@ -124,4 +124,6 @@ public class WorkRunContext {
      */
     private String eventId;
 
+    private String log;
+
 }

@@ -25,9 +25,7 @@ public class WorkEventEntity {
     @GenericGenerator(name = "sy-id-generator", strategy = "com.isxcode.star.config.GeneratedValueConfig")
     private String id;
 
-    private Integer execProcess;
-
-    private String eventType;
+    private Integer eventProcess;
 
     private String eventContext;
 

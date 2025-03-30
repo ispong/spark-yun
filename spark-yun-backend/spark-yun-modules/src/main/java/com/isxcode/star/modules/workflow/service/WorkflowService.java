@@ -5,18 +5,21 @@ import com.alibaba.fastjson.TypeReference;
 import com.isxcode.star.api.instance.constants.FlowInstanceStatus;
 import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.api.instance.constants.InstanceType;
-import com.isxcode.star.api.work.constants.WorkLog;
+import com.isxcode.star.api.work.constants.EventType;
 import com.isxcode.star.api.workflow.dto.WorkflowToken;
 import com.isxcode.star.api.workflow.req.GetInvokeUrlReq;
 import com.isxcode.star.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.star.backend.api.base.properties.IsxAppProperties;
 import com.isxcode.star.common.utils.jwt.JwtUtils;
+import com.isxcode.star.modules.work.entity.WorkConfigEntity;
 import com.isxcode.star.modules.work.entity.WorkEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
+import com.isxcode.star.modules.work.repository.WorkConfigRepository;
 import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
 import com.isxcode.star.modules.work.repository.WorkRepository;
 import com.isxcode.star.modules.work.run.WorkRunContext;
 import com.isxcode.star.modules.work.run.WorkRunJobFactory;
+import com.isxcode.star.modules.work.run.WorkUtils;
 import com.isxcode.star.modules.workflow.entity.WorkflowConfigEntity;
 import com.isxcode.star.modules.workflow.entity.WorkflowEntity;
 import com.isxcode.star.modules.workflow.entity.WorkflowInstanceEntity;
@@ -30,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -59,6 +61,7 @@ public class WorkflowService {
 
     private final WorkflowVersionRepository workflowVersionRepository;
     private final WorkRunJobFactory workRunJobFactory;
+    private final WorkConfigRepository workConfigRepository;
 
     public WorkInstanceEntity getWorkInstance(String workInstanceId) {
 
@@ -114,24 +117,19 @@ public class WorkflowService {
             throw new IsxAppException("节点为空，请保存后运行");
         }
 
-        // 初始化作业流日志
-        String runLog = LocalDateTime.now() + WorkLog.SUCCESS_INFO + "开始执行";
-
         // 初始化作业流状态
         WorkflowInstanceEntity workflowInstance = WorkflowInstanceEntity.builder().flowId(workflowId)
             .webConfig(workflowConfig.getWebConfig()).status(FlowInstanceStatus.RUNNING)
-            .instanceType(InstanceType.MANUAL).execStartDateTime(new Date()).runLog(runLog).build();
+            .instanceType(InstanceType.MANUAL).execStartDateTime(new Date()).build();
         workflowInstance = workflowInstanceRepository.saveAndFlush(workflowInstance);
-
-        workflowInstanceRepository.setWorkflowLog(workflowInstance.getId(), runLog);
 
         // 初始化所有节点的作业实例
         List<String> nodeList = JSON.parseArray(workflowConfig.getNodeList(), String.class);
         List<WorkInstanceEntity> workInstances = new ArrayList<>();
         for (String workId : nodeList) {
-            WorkInstanceEntity metaInstance =
-                WorkInstanceEntity.builder().workId(workId).instanceType(InstanceType.MANUAL)
-                    .status(InstanceStatus.PENDING).workflowInstanceId(workflowInstance.getId()).build();
+            WorkInstanceEntity metaInstance = WorkInstanceEntity.builder().workId(workId)
+                .instanceType(InstanceType.MANUAL).execStartDateTime(new Date()).status(InstanceStatus.PENDING)
+                .workflowInstanceId(workflowInstance.getId()).build();
             workInstances.add(metaInstance);
         }
         workInstanceRepository.saveAllAndFlush(workInstances);
@@ -146,11 +144,24 @@ public class WorkflowService {
         List<WorkEntity> startNodeWorks = workRepository.findAllByWorkIds(startNodes);
         for (WorkEntity work : startNodeWorks) {
 
+            // 拿作业的配置
+            WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
+
+            // 查询作业的实例
+            WorkInstanceEntity workInstance =
+                workInstanceRepository.findByWorkIdAndWorkflowInstanceId(work.getId(), workflowInstance.getId());
+
             // 在执行器前，封装WorkRunContext
-            WorkRunContext metaEvent = WorkRunContext.builder().workId(work.getId()).workName(work.getName())
-                .dagEndList(endNodes).dagStartList(startNodes).flowInstanceId(workflowInstance.getId())
-                .nodeMapping(nodeMapping).nodeList(nodeList).tenantId(TENANT_ID.get()).userId(USER_ID.get()).build();
-            workRunJobFactory.execute(metaEvent);
+            WorkRunContext workRunContext =
+                WorkUtils.genWorkRunContext(workInstance.getId(), EventType.WORKFLOW, work, workConfig);
+            workRunContext.setDagEndList(endNodes);
+            workRunContext.setDagStartList(endNodes);
+            workRunContext.setFlowInstanceId(workflowInstance.getId());
+            workRunContext.setNodeMapping(nodeMapping);
+            workRunContext.setNodeList(nodeList);
+
+            // 提交定时器
+            workRunJobFactory.execute(workRunContext);
         }
 
         return workflowInstance.getId();
@@ -178,7 +189,7 @@ public class WorkflowService {
         for (WorkEntity metaWork : allWorks) {
             WorkInstanceEntity metaInstance = WorkInstanceEntity.builder().workId(metaWork.getId())
                 .versionId(metaWork.getVersionId()).instanceType(InstanceType.INVOKE).status(InstanceStatus.PENDING)
-                .quartzHasRun(true).workflowInstanceId(workflowInstance.getId()).build();
+                .execStartDateTime(new Date()).quartzHasRun(true).workflowInstanceId(workflowInstance.getId()).build();
             workInstances.add(metaInstance);
         }
 

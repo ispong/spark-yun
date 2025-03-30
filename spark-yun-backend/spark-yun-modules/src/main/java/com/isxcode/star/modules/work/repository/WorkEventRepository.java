@@ -11,5 +11,5 @@ import org.springframework.stereotype.Repository;
 @CacheConfig(cacheNames = {ModuleCode.WORK})
 public interface WorkEventRepository extends JpaRepository<WorkEventEntity, String> {
 
-    boolean existsByIdAndExecProcess(String id, Integer execProcess);
+    boolean existsByIdAndEventProcess(String id, Integer eventProcess);
 }

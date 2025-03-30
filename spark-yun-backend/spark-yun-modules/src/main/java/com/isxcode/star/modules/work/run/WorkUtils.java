@@ -130,7 +130,7 @@ public class WorkUtils {
         return nodeMapping;
     }
 
-    public static WorkRunContext genWorkRunContext(String instanceId, String eventId, WorkEntity work,
+    public static WorkRunContext genWorkRunContext(String instanceId, String eventType, WorkEntity work,
         WorkConfigEntity workConfig) {
 
         return WorkRunContext.builder().datasourceId(workConfig.getDatasourceId()).script(workConfig.getScript())
@@ -143,12 +143,12 @@ public class WorkUtils {
             .funcConfig(JSON.parseArray(workConfig.getFuncConfig(), String.class))
             .libConfig(JSON.parseArray(workConfig.getLibConfig(), String.class)).workId(work.getId())
             .apiWorkConfig(JSON.parseObject(workConfig.getApiWorkConfig(), ApiWorkConfig.class))
-            .containerId(workConfig.getContainerId()).workName(work.getName()).eventId(eventId).userId(USER_ID.get())
-            .build();
+            .containerId(workConfig.getContainerId()).eventType(eventType).workName(work.getName())
+            .userId(USER_ID.get()).build();
     }
 
-    public static WorkRunContext genWorkRunContext(String instanceId, String eventId, VipWorkVersionEntity workVersion,
-        WorkRunContext workRunContext) {
+    public static WorkRunContext genWorkRunContext(String instanceId, String eventType,
+        VipWorkVersionEntity workVersion, WorkRunContext workRunContext) {
         return WorkRunContext.builder().datasourceId(workVersion.getDatasourceId()).script(workVersion.getScript())
             .instanceId(instanceId).tenantId(TENANT_ID.get()).userId(USER_ID.get())
             .syncWorkConfig(JSON.parseObject(workVersion.getSyncWorkConfig(), SyncWorkConfig.class))
@@ -160,7 +160,7 @@ public class WorkUtils {
             .libConfig(JSON.parseArray(workVersion.getLibConfig(), String.class))
             .containerId(workVersion.getContainerId()).workType(workVersion.getWorkType())
             .apiWorkConfig(JSON.parseObject(workVersion.getApiWorkConfig(), ApiWorkConfig.class))
-            .workName(workRunContext.getWorkName()).eventId(eventId).workId(workVersion.getId()).build();
+            .workName(workRunContext.getWorkName()).eventType(eventType).workId(workVersion.getId()).build();
     }
 
     public static WorkRunContext genWorkRunContext(VipWorkVersionEntity workVersion) {

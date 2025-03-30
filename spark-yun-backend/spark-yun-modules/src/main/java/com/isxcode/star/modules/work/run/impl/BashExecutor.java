@@ -17,11 +17,13 @@ import com.isxcode.star.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.star.modules.cluster.repository.ClusterRepository;
 import com.isxcode.star.modules.work.entity.WorkEventEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
+import com.isxcode.star.modules.work.repository.WorkConfigRepository;
 import com.isxcode.star.modules.work.repository.WorkEventRepository;
 import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
 import com.isxcode.star.modules.work.repository.WorkRepository;
 import com.isxcode.star.modules.work.run.WorkExecutor;
 import com.isxcode.star.modules.work.run.WorkRunContext;
+import com.isxcode.star.modules.work.run.WorkRunJobFactory;
 import com.isxcode.star.modules.work.sql.SqlFunctionService;
 import com.isxcode.star.modules.work.sql.SqlValueService;
 import com.isxcode.star.modules.workflow.repository.WorkflowInstanceRepository;
@@ -61,10 +63,11 @@ public class BashExecutor extends WorkExecutor {
         WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
         ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
         SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
-        WorkEventRepository workEventRepository, Scheduler scheduler, Locker locker, WorkRepository workRepository) {
+        WorkEventRepository workEventRepository, Scheduler scheduler, Locker locker, WorkRepository workRepository,
+        WorkRunJobFactory workRunJobFactory, WorkConfigRepository workConfigRepository) {
 
         super(alarmService, scheduler, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
-            workEventRepository);
+            workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository);
         this.clusterNodeRepository = clusterNodeRepository;
         this.clusterNodeMapper = clusterNodeMapper;
         this.aesUtils = aesUtils;
@@ -90,7 +93,8 @@ public class BashExecutor extends WorkExecutor {
         if (workEventBody == null) {
             workEventBody = new WorkRunContext();
         }
-        StringBuilder logBuilder = new StringBuilder(workInstance.getSubmitLog());
+        StringBuilder logBuilder =
+            new StringBuilder(workInstance.getSubmitLog() == null ? "" : workInstance.getSubmitLog());
 
         // 检查执行脚本是否为空，保存并保存脚本
         if (processNeverRun(workEvent, 3)) {
@@ -101,10 +105,9 @@ public class BashExecutor extends WorkExecutor {
             }
 
             // 翻译上游参数
-            // String jsonPathSql = parseJsonPath(workRunContext.getScript(), workInstance);
+            String jsonPathSql = parseJsonPath(workRunContext.getScript(), workInstance);
             // 翻译脚本中的系统变量
-            String parseValueSql = sqlValueService.parseSqlValue(null);
-
+            String parseValueSql = sqlValueService.parseSqlValue(jsonPathSql);
             // 翻译脚本中的系统函数
             String script = sqlFunctionService.parseSqlFunction(parseValueSql);
 
@@ -255,6 +258,15 @@ public class BashExecutor extends WorkExecutor {
             logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("保存日志成功 \n");
             updateInstance(workInstance, logBuilder);
 
+            // 保存节点信息
+            workEventBody.setLog(logCommand);
+            workEvent.setEventContext(JSON.toJSONString(workEventBody));
+            workEventRepository.saveAndFlush(workEvent);
+        }
+
+        // 删除日志文件
+        if (processNeverRun(workEvent, 8)) {
+
             // 删除脚本和日志
             try {
                 String clearWorkRunFile = "rm -f " + workEventBody.getAgentHomePath() + "/zhiqingyun-agent/works/"
@@ -266,12 +278,12 @@ public class BashExecutor extends WorkExecutor {
             }
 
             // 判断脚本运行成功还是失败
-            if (!logCommand.contains("zhiqingyun_success")) {
+            if (!workEventBody.getLog().contains("zhiqingyun_success")) {
                 throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "任务运行异常" + "\n");
             }
 
             // 修改最后的事件状态
-            workEvent.setExecProcess(999);
+            workEvent.setEventProcess(999);
             workEventRepository.saveAndFlush(workEvent);
         }
     }

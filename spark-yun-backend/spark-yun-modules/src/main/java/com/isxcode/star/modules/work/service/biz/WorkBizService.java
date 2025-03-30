@@ -11,6 +11,7 @@ import com.isxcode.star.api.instance.req.*;
 import com.isxcode.star.api.instance.res.GetWorkInstanceValuePathRes;
 import com.isxcode.star.api.instance.res.GetWorkflowInstanceRes;
 import com.isxcode.star.api.instance.res.QueryInstanceRes;
+import com.isxcode.star.api.work.constants.EventType;
 import com.isxcode.star.api.work.constants.WorkLog;
 import com.isxcode.star.api.work.constants.WorkStatus;
 import com.isxcode.star.api.work.constants.WorkType;
@@ -20,7 +21,6 @@ import com.isxcode.star.api.work.res.*;
 import com.isxcode.star.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.star.modules.work.entity.WorkConfigEntity;
 import com.isxcode.star.modules.work.entity.WorkEntity;
-import com.isxcode.star.modules.work.entity.WorkEventEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
 import com.isxcode.star.modules.work.run.WorkRunJobFactory;
 import com.isxcode.star.modules.work.mapper.WorkMapper;
@@ -269,15 +269,10 @@ public class WorkBizService {
         workInstance.setInstanceType(InstanceType.MANUAL);
         workInstance = workInstanceRepository.saveAndFlush(workInstance);
 
-        // 初始化作业事件
-        WorkEventEntity workEvent = new WorkEventEntity();
-        workEvent.setExecProcess(0);
-        workEvent = workEventRepository.saveAndFlush(workEvent);
-
         // 封装WorkRunContext上下文
-        WorkRunContext workRunContext = genWorkRunContext(workInstance.getId(), workEvent.getId(), work, workConfig);
+        WorkRunContext workRunContext = genWorkRunContext(workInstance.getId(), EventType.WORK, work, workConfig);
 
-        // 提交给定时器，每3秒执行一次
+        // 提交给作业定时器定时器
         workRunFactory.execute(workRunContext);
 
         // 返回作业的实例id
