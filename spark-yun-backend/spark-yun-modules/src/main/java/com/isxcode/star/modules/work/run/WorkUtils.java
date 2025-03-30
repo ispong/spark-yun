@@ -130,6 +130,9 @@ public class WorkUtils {
         return nodeMapping;
     }
 
+    /**
+     * 封装genWorkRunContext
+     */
     public static WorkRunContext genWorkRunContext(String instanceId, String eventType, WorkEntity work,
         WorkConfigEntity workConfig) {
 

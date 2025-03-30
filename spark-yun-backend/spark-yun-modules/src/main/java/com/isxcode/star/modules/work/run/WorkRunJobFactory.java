@@ -23,27 +23,28 @@ public class WorkRunJobFactory {
 
     public void execute(WorkRunContext workRunContext) {
 
-        // 初始化event事件
+        // 初始化作业事件
         WorkEventEntity workEvent = new WorkEventEntity();
         workEvent.setEventProcess(0);
         workEvent.setEventContext(JSON.toJSONString(workRunContext));
         workEvent = workEventRepository.saveAndFlush(workEvent);
-        workRunContext.setEventId(workEvent.getId());
 
-        // 封装定时器上下文
+        // 封装调度器上下文
         JobDataMap jobDataMap = new JobDataMap();
+        workRunContext.setEventId(workEvent.getId());
         jobDataMap.put("workRunContext", JSON.toJSONString(workRunContext));
 
-        // 提交作业触发器，每3秒执行一次
+        // 初始化调度器，每3秒执行一次
         JobDetail jobDetail = JobBuilder.newJob(WorkRunJob.class).setJobData(jobDataMap).build();
         Trigger trigger = TriggerBuilder.newTrigger()
             .withSchedule(
                 CronScheduleBuilder.cronSchedule("0/3 * * * * ? ").withMisfireHandlingInstructionFireAndProceed())
-            .withIdentity("event_" + workRunContext.getInstanceId()).build();
+            .withIdentity("event_" + workRunContext.getEventId()).build();
 
-        // 开始执行触发器
+        // 创建并触发调度器
         try {
             scheduler.scheduleJob(jobDetail, trigger);
+            scheduler.getListenerManager().addJobListener(new QuartzJobErrorListener());
             scheduler.start();
         } catch (SchedulerException e) {
             log.error(e.getMessage(), e);

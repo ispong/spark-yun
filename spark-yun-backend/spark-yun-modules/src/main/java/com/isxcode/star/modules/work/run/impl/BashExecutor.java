@@ -1,6 +1,7 @@
 package com.isxcode.star.modules.work.run.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.isxcode.star.api.cluster.constants.ClusterStatus;
 import com.isxcode.star.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.api.work.constants.WorkLog;
@@ -86,11 +87,7 @@ public class BashExecutor extends WorkExecutor {
         WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
 
         // 获取日志和事件
-        Optional<WorkEventEntity> workEventEntityOptional = workEventRepository.findById(workRunContext.getEventId());
-        if (!workEventEntityOptional.isPresent()) {
-            return;
-        }
-        WorkEventEntity workEvent = workEventEntityOptional.get();
+        WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
 
         WorkRunContext workEventBody = JSON.parseObject(workEvent.getEventContext(), WorkRunContext.class);
         if (workEventBody == null) {
@@ -142,8 +139,9 @@ public class BashExecutor extends WorkExecutor {
             // 检查计算集群是否存在
             Optional<ClusterEntity> calculateEngineEntityOptional =
                 clusterRepository.findById(workRunContext.getClusterConfig().getClusterId());
-            if (!calculateEngineEntityOptional.isPresent()) {
-                throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 计算引擎不存在  \n");
+            if (!calculateEngineEntityOptional.isPresent()
+                || ClusterStatus.NO_ACTIVE.equals(calculateEngineEntityOptional.get().getStatus())) {
+                throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "检测集群失败 : 计算引擎不可用 \n");
             }
             // 检查计算集群节点是否配置
             if (Strings.isEmpty(workRunContext.getClusterConfig().getClusterNodeId())) {
