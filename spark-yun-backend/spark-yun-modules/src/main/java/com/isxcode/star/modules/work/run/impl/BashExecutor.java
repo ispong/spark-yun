@@ -5,8 +5,8 @@ import com.isxcode.star.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.api.work.constants.WorkLog;
 import com.isxcode.star.api.work.constants.WorkType;
-import com.isxcode.star.modules.work.run.WorkEventContext;
 import com.isxcode.star.backend.api.base.exceptions.WorkRunException;
+import com.isxcode.star.common.locker.Locker;
 import com.isxcode.star.common.utils.aes.AesUtils;
 import com.isxcode.star.common.utils.ssh.SshUtils;
 import com.isxcode.star.modules.alarm.service.AlarmService;
@@ -19,6 +19,7 @@ import com.isxcode.star.modules.work.entity.WorkEventEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
 import com.isxcode.star.modules.work.repository.WorkEventRepository;
 import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
+import com.isxcode.star.modules.work.repository.WorkRepository;
 import com.isxcode.star.modules.work.run.WorkExecutor;
 import com.isxcode.star.modules.work.run.WorkRunContext;
 import com.isxcode.star.modules.work.sql.SqlFunctionService;
@@ -56,15 +57,14 @@ public class BashExecutor extends WorkExecutor {
 
     private final WorkEventRepository workEventRepository;
 
-
     public BashExecutor(WorkInstanceRepository workInstanceRepository,
         WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
         ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
         SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
-        WorkEventRepository workEventRepository, Scheduler scheduler) {
+        WorkEventRepository workEventRepository, Scheduler scheduler, Locker locker, WorkRepository workRepository) {
 
-        super(workInstanceRepository, workflowInstanceRepository, alarmService, sqlFunctionService, workEventRepository,
-            scheduler);
+        super(alarmService, scheduler, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
+            workEventRepository);
         this.clusterNodeRepository = clusterNodeRepository;
         this.clusterNodeMapper = clusterNodeMapper;
         this.aesUtils = aesUtils;
@@ -86,9 +86,9 @@ public class BashExecutor extends WorkExecutor {
 
         // 获取日志和事件
         WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
-        WorkEventContext workEventBody = JSON.parseObject(workEvent.getEventBody(), WorkEventContext.class);
+        WorkRunContext workEventBody = JSON.parseObject(workEvent.getEventContext(), WorkRunContext.class);
         if (workEventBody == null) {
-            workEventBody = new WorkEventContext();
+            workEventBody = new WorkRunContext();
         }
         StringBuilder logBuilder = new StringBuilder(workInstance.getSubmitLog());
 
@@ -101,9 +101,10 @@ public class BashExecutor extends WorkExecutor {
             }
 
             // 翻译上游参数
-            String jsonPathSql = parseJsonPath(workRunContext.getScript(), workInstance);
+            // String jsonPathSql = parseJsonPath(workRunContext.getScript(), workInstance);
             // 翻译脚本中的系统变量
-            String parseValueSql = sqlValueService.parseSqlValue(jsonPathSql);
+            String parseValueSql = sqlValueService.parseSqlValue(null);
+
             // 翻译脚本中的系统函数
             String script = sqlFunctionService.parseSqlFunction(parseValueSql);
 
@@ -119,7 +120,7 @@ public class BashExecutor extends WorkExecutor {
 
             // 保存脚本
             workEventBody.setScript(script);
-            workEvent.setEventBody(JSON.toJSONString(workEventBody));
+            workEvent.setEventContext(JSON.toJSONString(workEventBody));
             workEventRepository.saveAndFlush(workEvent);
         }
 
@@ -161,7 +162,7 @@ public class BashExecutor extends WorkExecutor {
             // 保存节点信息
             workEventBody.setScpNodeInfo(scpNodeInfo);
             workEventBody.setAgentHomePath(clusterNode.getAgentHomePath());
-            workEvent.setEventBody(JSON.toJSONString(workEventBody));
+            workEvent.setEventContext(JSON.toJSONString(workEventBody));
             workEventRepository.saveAndFlush(workEvent);
         }
 
@@ -189,7 +190,7 @@ public class BashExecutor extends WorkExecutor {
                 // 保存pid信息
                 workEventBody.setPid(pid);
                 workEventBody.setCurrentStatus("");
-                workEvent.setEventBody(JSON.toJSONString(workEventBody));
+                workEvent.setEventContext(JSON.toJSONString(workEventBody));
                 workEventRepository.saveAndFlush(workEvent);
             } catch (JSchException | SftpException | InterruptedException | IOException e) {
 
@@ -222,7 +223,7 @@ public class BashExecutor extends WorkExecutor {
                 logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("运行状态:").append(pidStatus)
                     .append("\n");
                 workEventBody.setCurrentStatus(pidStatus);
-                workEvent.setEventBody(JSON.toJSONString(workEventBody));
+                workEvent.setEventContext(JSON.toJSONString(workEventBody));
                 workEventRepository.saveAndFlush(workEvent);
             }
             workInstance = updateInstance(workInstance, logBuilder);

@@ -2,8 +2,10 @@ package com.isxcode.star.modules.work.run;
 
 import com.isxcode.star.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.star.api.work.dto.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -12,9 +14,19 @@ import java.util.List;
  */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class WorkRunContext {
 
+    private String eventType;
+
     private List<List<String>> nodeMapping;
+
+    private List<String> nodeList;
+
+    private List<String> dagEndList;
+
+    private List<String> dagStartList;
 
     private String flowInstanceId;
 
@@ -68,11 +80,6 @@ public class WorkRunContext {
     private SyncRule syncRule;
 
     /**
-     * 脚本.
-     */
-    private String script;
-
-    /**
      * 租户id.
      */
     private String tenantId;
@@ -83,11 +90,6 @@ public class WorkRunContext {
     private String userId;
 
     /**
-     * 作业id.
-     */
-    private String workId;
-
-    /**
      * 作业名称.
      */
     private String workName;
@@ -96,11 +98,6 @@ public class WorkRunContext {
      * 作业类型.
      */
     private String workType;
-
-    /**
-     * 版本id.
-     */
-    private String versionId;
 
     /**
      * 用户自定义jar的配置

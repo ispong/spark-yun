@@ -27,7 +27,9 @@ public class WorkEventEntity {
 
     private Integer execProcess;
 
-    private String eventBody;
+    private String eventType;
+
+    private String eventContext;
 
     @CreatedDate
     private LocalDateTime createDateTime;

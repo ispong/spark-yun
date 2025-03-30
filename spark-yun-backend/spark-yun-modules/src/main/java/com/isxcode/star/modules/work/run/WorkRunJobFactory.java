@@ -19,10 +19,13 @@ public class WorkRunJobFactory {
 
     public void execute(WorkRunContext workRunContext) {
 
+        // 封装workEvent
+
+
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("WorkRunContext", JSON.toJSONString(workRunContext));
 
-        // 提交作业
+        // 提交作业触发器
         JobDetail jobDetail = JobBuilder.newJob(WorkRunJob.class).setJobData(jobDataMap).build();
         Trigger trigger = TriggerBuilder.newTrigger().withSchedule(CronScheduleBuilder.cronSchedule("0/3 * * * * ? "))
             .withIdentity("event_" + workRunContext.getInstanceId()).build();

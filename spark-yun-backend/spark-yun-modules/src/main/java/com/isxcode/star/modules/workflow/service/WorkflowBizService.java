@@ -44,17 +44,13 @@ import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
 import com.isxcode.star.modules.work.repository.WorkConfigRepository;
 import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
 import com.isxcode.star.modules.work.repository.WorkRepository;
-import com.isxcode.star.modules.work.run.WorkExecutor;
-import com.isxcode.star.modules.work.run.WorkExecutorFactory;
-import com.isxcode.star.modules.work.run.WorkRunContext;
+import com.isxcode.star.modules.work.run.*;
 import com.isxcode.star.modules.workflow.entity.*;
 import com.isxcode.star.modules.workflow.mapper.WorkflowMapper;
 import com.isxcode.star.modules.workflow.repository.WorkflowConfigRepository;
 import com.isxcode.star.modules.workflow.repository.WorkflowInstanceRepository;
 import com.isxcode.star.modules.workflow.repository.WorkflowRepository;
 import com.isxcode.star.modules.workflow.repository.WorkflowVersionRepository;
-import com.isxcode.star.modules.workflow.run.WorkflowRunEvent;
-import com.isxcode.star.modules.work.run.WorkUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -71,7 +67,6 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
@@ -88,8 +83,6 @@ public class WorkflowBizService {
     private final WorkflowMapper workflowMapper;
 
     private final WorkflowConfigRepository workflowConfigRepository;
-
-    private final ApplicationEventPublisher eventPublisher;
 
     private final WorkflowInstanceRepository workflowInstanceRepository;
 
@@ -118,6 +111,7 @@ public class WorkflowBizService {
     private final UserService userService;
 
     private final WorkflowVersionRepository workflowVersionRepository;
+    private final WorkRunJobFactory workRunJobFactory;
 
     public void addWorkflow(AddWorkflowReq wofAddWorkflowReq) {
 
@@ -563,7 +557,7 @@ public class WorkflowBizService {
             WorkExecutor workExecutor = workExecutorFactory.create(work.getWorkType());
             WorkRunContext workRunContext =
                 WorkUtils.genWorkRunContext(runCurrentNodeReq.getWorkInstanceId(), null, work, workConfig);
-            workExecutor.syncExecute(workRunContext);
+            workExecutor.runWork(workRunContext);
 
             return "OVER";
         }).whenComplete((exception, result) -> {
@@ -686,14 +680,14 @@ public class WorkflowBizService {
             List<String> startNodes = JSON.parseArray(workflowVersion.getDagStartList(), String.class);
             List<WorkEntity> startNodeWorks = workRepository.findAllByWorkIds(startNodes);
             for (WorkEntity work : startNodeWorks) {
-                WorkflowRunEvent metaEvent = WorkflowRunEvent.builder().workId(work.getId()).workName(work.getName())
+                WorkRunContext metaEvent = WorkRunContext.builder().workId(work.getId()).workName(work.getName())
                     .dagEndList(JSON.parseArray(workflowVersion.getDagEndList(), String.class)).dagStartList(startNodes)
                     .flowInstanceId(workflowInstance.getId())
                     .nodeMapping(
                         JSON.parseObject(workflowVersion.getNodeMapping(), new TypeReference<List<List<String>>>() {}))
                     .nodeList(JSON.parseArray(workflowVersion.getNodeList(), String.class)).tenantId(TENANT_ID.get())
                     .userId(USER_ID.get()).build();
-                eventPublisher.publishEvent(metaEvent);
+                workRunJobFactory.execute(metaEvent);
             }
         });
     }
@@ -733,13 +727,13 @@ public class WorkflowBizService {
         locker.clearLock(workflowInstance.getId());
 
         // 推送一次
-        WorkflowRunEvent metaEvent = WorkflowRunEvent.builder().workId(work.getId()).workName(work.getName())
+        WorkRunContext metaEvent = WorkRunContext.builder().workId(work.getId()).workName(work.getName())
             .dagEndList(JSON.parseArray(workflowConfig.getDagEndList(), String.class))
             .dagStartList(JSON.parseArray(workflowConfig.getDagStartList(), String.class))
             .flowInstanceId(workflowInstance.getId()).nodeMapping(nodeMapping)
             .nodeList(JSON.parseArray(workflowConfig.getNodeList(), String.class)).tenantId(TENANT_ID.get())
             .userId(USER_ID.get()).build();
-        eventPublisher.publishEvent(metaEvent);
+        workRunJobFactory.execute(metaEvent);
     }
 
     public GetWorkflowDefaultClusterRes getWorkflowDefaultCluster(

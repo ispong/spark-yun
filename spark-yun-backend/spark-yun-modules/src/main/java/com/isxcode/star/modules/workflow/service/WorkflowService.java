@@ -15,6 +15,8 @@ import com.isxcode.star.modules.work.entity.WorkEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
 import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
 import com.isxcode.star.modules.work.repository.WorkRepository;
+import com.isxcode.star.modules.work.run.WorkRunContext;
+import com.isxcode.star.modules.work.run.WorkRunJobFactory;
 import com.isxcode.star.modules.workflow.entity.WorkflowConfigEntity;
 import com.isxcode.star.modules.workflow.entity.WorkflowEntity;
 import com.isxcode.star.modules.workflow.entity.WorkflowInstanceEntity;
@@ -23,11 +25,9 @@ import com.isxcode.star.modules.workflow.repository.WorkflowConfigRepository;
 import com.isxcode.star.modules.workflow.repository.WorkflowInstanceRepository;
 import com.isxcode.star.modules.workflow.repository.WorkflowRepository;
 import com.isxcode.star.modules.workflow.repository.WorkflowVersionRepository;
-import com.isxcode.star.modules.workflow.run.WorkflowRunEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -53,13 +53,12 @@ public class WorkflowService {
 
     private final WorkflowConfigRepository workflowConfigRepository;
 
-    private final ApplicationEventPublisher eventPublisher;
-
     private final IsxAppProperties isxAppProperties;
 
     private final ServerProperties serverProperties;
 
     private final WorkflowVersionRepository workflowVersionRepository;
+    private final WorkRunJobFactory workRunJobFactory;
 
     public WorkInstanceEntity getWorkInstance(String workInstanceId) {
 
@@ -118,7 +117,7 @@ public class WorkflowService {
         // 初始化作业流日志
         String runLog = LocalDateTime.now() + WorkLog.SUCCESS_INFO + "开始执行";
 
-        // 创建工作流实例
+        // 初始化作业流状态
         WorkflowInstanceEntity workflowInstance = WorkflowInstanceEntity.builder().flowId(workflowId)
             .webConfig(workflowConfig.getWebConfig()).status(FlowInstanceStatus.RUNNING)
             .instanceType(InstanceType.MANUAL).execStartDateTime(new Date()).runLog(runLog).build();
@@ -143,14 +142,15 @@ public class WorkflowService {
         List<List<String>> nodeMapping =
             JSON.parseObject(workflowConfig.getNodeMapping(), new TypeReference<List<List<String>>>() {});
 
-        // 封装event推送时间，开始执行任务
-        // 异步触发工作流
+        // 封装定时器调度
         List<WorkEntity> startNodeWorks = workRepository.findAllByWorkIds(startNodes);
         for (WorkEntity work : startNodeWorks) {
-            WorkflowRunEvent metaEvent = WorkflowRunEvent.builder().workId(work.getId()).workName(work.getName())
+
+            // 在执行器前，封装WorkRunContext
+            WorkRunContext metaEvent = WorkRunContext.builder().workId(work.getId()).workName(work.getName())
                 .dagEndList(endNodes).dagStartList(startNodes).flowInstanceId(workflowInstance.getId())
                 .nodeMapping(nodeMapping).nodeList(nodeList).tenantId(TENANT_ID.get()).userId(USER_ID.get()).build();
-            eventPublisher.publishEvent(metaEvent);
+            workRunJobFactory.execute(metaEvent);
         }
 
         return workflowInstance.getId();
@@ -194,11 +194,11 @@ public class WorkflowService {
         // 异步触发工作流
         List<WorkEntity> startNodeWorks = workRepository.findAllByWorkIds(startNodes);
         for (WorkEntity work : startNodeWorks) {
-            WorkflowRunEvent metaEvent = WorkflowRunEvent.builder().workId(work.getId()).workName(work.getName())
+            WorkRunContext metaEvent = WorkRunContext.builder().workId(work.getId()).workName(work.getName())
                 .dagEndList(endNodes).dagStartList(startNodes).flowInstanceId(workflowInstance.getId())
                 .versionId(work.getVersionId()).nodeMapping(nodeMapping).nodeList(nodeList).tenantId(TENANT_ID.get())
                 .userId(USER_ID.get()).build();
-            eventPublisher.publishEvent(metaEvent);
+            workRunJobFactory.execute(metaEvent);
         }
 
         return workflowInstance.getId();
