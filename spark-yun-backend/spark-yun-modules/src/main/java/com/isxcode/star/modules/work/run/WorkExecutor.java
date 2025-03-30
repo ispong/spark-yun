@@ -55,7 +55,7 @@ public abstract class WorkExecutor {
 
     public abstract String getWorkType();
 
-    protected abstract void execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance);
+    protected abstract String execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance);
 
     protected abstract void abort(WorkInstanceEntity workInstance);
 
@@ -73,15 +73,6 @@ public abstract class WorkExecutor {
         // 返回是否执行过
         return workEvent.getEventProcess() < nowIndex + 1;
     }
-
-    /**
-     * 当前进程没有运行过
-     */
-    public boolean processOver(String workEventId) {
-
-        return workEventRepository.existsByIdAndEventProcess(workEventId, 999);
-    }
-
 
     /**
      * 翻译上游的jsonPath.
@@ -225,13 +216,14 @@ public abstract class WorkExecutor {
         }
 
         // 开始运行作业
+        String executeStatus;
         try {
 
             // 开始执行作业，每次都要执行
-            execute(workRunContext, workInstance);
+            executeStatus = execute(workRunContext, workInstance);
 
             // 判断任务是否执行完
-            if (processOver(workEvent.getId())) {
+            if (InstanceStatus.SUCCESS.equals(executeStatus)) {
 
                 // 没有报错，默认作业已经运行成功，获取最新作业实例
                 workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
@@ -277,13 +269,11 @@ public abstract class WorkExecutor {
                 alarmService.sendWorkMessage(workInstance, AlarmEventType.RUN_FAIL);
             }
 
-            // 设置当前作业运行结束
-            workEvent.setEventProcess(999);
-            workEventRepository.saveAndFlush(workEvent);
+            executeStatus = InstanceStatus.FAIL;
         }
 
         // 当前作业是否运行结束
-        if (processOver(workEvent.getId())) {
+        if (InstanceStatus.FAIL.equals(executeStatus) || InstanceStatus.SUCCESS.equals(executeStatus)) {
 
             // 基线管理，任务运行结束发送消息
             if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {

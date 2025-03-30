@@ -42,6 +42,7 @@ public class WorkRunJob implements Job {
             } catch (SchedulerException ex) {
                 log.error(ex.getMessage(), ex);
             }
+            return;
         }
 
         // 触发作业运行

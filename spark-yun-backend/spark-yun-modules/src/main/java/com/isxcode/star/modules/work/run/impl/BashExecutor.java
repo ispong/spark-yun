@@ -81,7 +81,7 @@ public class BashExecutor extends WorkExecutor {
         return WorkType.BASH;
     }
 
-    public void execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance) {
+    public String execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance) {
 
         // 将线程存到Map
         WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
@@ -234,7 +234,7 @@ public class BashExecutor extends WorkExecutor {
 
             // 如果还是运行
             if (InstanceStatus.RUNNING.equals(pidStatus)) {
-                return;
+                return InstanceStatus.RUNNING;
             }
         }
 
@@ -244,7 +244,7 @@ public class BashExecutor extends WorkExecutor {
             // 获取日志
             String getLogCommand =
                 "cat " + workEventBody.getAgentHomePath() + "/zhiqingyun-agent/works/" + workInstance.getId() + ".log";
-            String logCommand = "";
+            String logCommand;
             try {
                 logCommand = executeCommand(workEventBody.getScpNodeInfo(), getLogCommand, false);
             } catch (JSchException | InterruptedException | IOException e) {
@@ -287,6 +287,8 @@ public class BashExecutor extends WorkExecutor {
             workEvent.setEventProcess(999);
             workEventRepository.saveAndFlush(workEvent);
         }
+
+        return InstanceStatus.SUCCESS;
     }
 
     @Override
