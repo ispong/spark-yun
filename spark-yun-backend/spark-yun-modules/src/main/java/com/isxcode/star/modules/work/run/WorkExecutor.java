@@ -133,7 +133,12 @@ public abstract class WorkExecutor {
     public void runWork(WorkRunContext workRunContext) {
 
         // 获取最新的作业事件
-        WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
+        Optional<WorkEventEntity> workEventEntityOptional = workEventRepository.findById(workRunContext.getEventId());
+        if (!workEventEntityOptional.isPresent()) {
+            deleteEventAndQuartz(workRunContext.getEventId(), workRunContext.getInstanceId());
+            return;
+        }
+        WorkEventEntity workEvent = workEventEntityOptional.get();
 
         // 修改作业流中作业的运行中状态
         if (processNeverRun(workEvent, 1)) {

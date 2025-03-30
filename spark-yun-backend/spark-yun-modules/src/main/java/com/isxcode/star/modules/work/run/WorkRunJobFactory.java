@@ -36,7 +36,9 @@ public class WorkRunJobFactory {
 
         // 提交作业触发器，每3秒执行一次
         JobDetail jobDetail = JobBuilder.newJob(WorkRunJob.class).setJobData(jobDataMap).build();
-        Trigger trigger = TriggerBuilder.newTrigger().withSchedule(CronScheduleBuilder.cronSchedule("0/3 * * * * ? "))
+        Trigger trigger = TriggerBuilder.newTrigger()
+            .withSchedule(
+                CronScheduleBuilder.cronSchedule("0/3 * * * * ? ").withMisfireHandlingInstructionFireAndProceed())
             .withIdentity("event_" + workRunContext.getInstanceId()).build();
 
         // 开始执行触发器
