@@ -12,4 +12,9 @@ import org.springframework.stereotype.Repository;
 public interface WorkEventRepository extends JpaRepository<WorkEventEntity, String> {
 
     boolean existsByIdAndEventProcess(String id, Integer eventProcess);
+
+    default void deleteByIdAndFlush(String id) {
+        deleteById(id);
+        flush();
+    }
 }

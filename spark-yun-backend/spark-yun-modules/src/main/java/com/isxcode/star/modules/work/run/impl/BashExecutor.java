@@ -17,10 +17,7 @@ import com.isxcode.star.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.star.modules.cluster.repository.ClusterRepository;
 import com.isxcode.star.modules.work.entity.WorkEventEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
-import com.isxcode.star.modules.work.repository.WorkConfigRepository;
-import com.isxcode.star.modules.work.repository.WorkEventRepository;
-import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
-import com.isxcode.star.modules.work.repository.WorkRepository;
+import com.isxcode.star.modules.work.repository.*;
 import com.isxcode.star.modules.work.run.WorkExecutor;
 import com.isxcode.star.modules.work.run.WorkRunContext;
 import com.isxcode.star.modules.work.run.WorkRunJobFactory;
@@ -64,10 +61,11 @@ public class BashExecutor extends WorkExecutor {
         ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
         SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
         WorkEventRepository workEventRepository, Scheduler scheduler, Locker locker, WorkRepository workRepository,
-        WorkRunJobFactory workRunJobFactory, WorkConfigRepository workConfigRepository) {
+        WorkRunJobFactory workRunJobFactory, WorkConfigRepository workConfigRepository,
+        VipWorkVersionRepository vipWorkVersionRepository) {
 
         super(alarmService, scheduler, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
-            workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository);
+            workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository, vipWorkVersionRepository);
         this.clusterNodeRepository = clusterNodeRepository;
         this.clusterNodeMapper = clusterNodeMapper;
         this.aesUtils = aesUtils;
@@ -88,7 +86,12 @@ public class BashExecutor extends WorkExecutor {
         WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
 
         // 获取日志和事件
-        WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
+        Optional<WorkEventEntity> workEventEntityOptional = workEventRepository.findById(workRunContext.getEventId());
+        if (!workEventEntityOptional.isPresent()) {
+            return;
+        }
+        WorkEventEntity workEvent = workEventEntityOptional.get();
+
         WorkRunContext workEventBody = JSON.parseObject(workEvent.getEventContext(), WorkRunContext.class);
         if (workEventBody == null) {
             workEventBody = new WorkRunContext();

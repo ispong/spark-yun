@@ -51,6 +51,8 @@ public abstract class WorkExecutor {
 
     private final WorkConfigRepository workConfigRepository;
 
+    private final VipWorkVersionRepository vipWorkVersionRepository;
+
     public abstract String getWorkType();
 
     protected abstract void execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance);
@@ -117,7 +119,7 @@ public abstract class WorkExecutor {
     public void deleteEventAndQuartz(String eventId, String workInstanceId) {
 
         // 删除事件
-        workEventRepository.deleteById(eventId);
+        workEventRepository.deleteByIdAndFlush(eventId);
 
         // 删除定时器
         try {
@@ -182,28 +184,24 @@ public abstract class WorkExecutor {
                     return;
                 }
 
-                // 如果父级有错，则状态直接变更为失败
                 if (parentIsError) {
+                    // 如果父级有错，则状态直接变更为失败
                     workInstance.setStatus(InstanceStatus.FAIL);
                     workInstance.setSubmitLog("父级执行失败");
-                    if (workInstance.getExecStartDateTime() != null) {
-                        workInstance.setExecEndDateTime(new Date());
-                        workInstance.setDuration(
-                            (System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
-                    }
-                }
-
-                // 如果父级有中断，则状态直接变更为中断
-                if (parentIsBreak || InstanceStatus.BREAK.equals(workInstance.getStatus())) {
+                    workInstance.setDuration(0L);
+                } else if (parentIsBreak || InstanceStatus.BREAK.equals(workInstance.getStatus())) {
+                    // 如果父级有中断，则状态直接变更为中断
                     workInstance.setStatus(InstanceStatus.BREAK);
                     workInstance.setExecEndDateTime(new Date());
                     workInstance.setDuration(
                         (System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
+                } else {
+                    // 要立马变成RUNNING状态，防止别的并发修改状态
+                    workInstance.setStatus(InstanceStatus.RUNNING);
+                    workInstance.setExecStartDateTime(new Date());
                 }
 
-                // 要立马变成RUNNING状态，防止别的并发修改状态
                 // 保存作业状态并解锁
-                workInstance.setStatus(InstanceStatus.RUNNING);
                 workInstanceRepository.saveAndFlush(workInstance);
                 locker.unlock(lockId);
             } else {
@@ -292,7 +290,7 @@ public abstract class WorkExecutor {
             }
 
             // 删除事件
-            workEventRepository.deleteById(workEvent.getId());
+            workEventRepository.deleteByIdAndFlush(workEvent.getId());
 
             // 删除定时器
             try {
@@ -369,22 +367,29 @@ public abstract class WorkExecutor {
                 List<WorkEntity> sonNodeWorks = workRepository.findAllByWorkIds(sonNodes);
                 sonNodeWorks.forEach(work -> {
 
-                    // 拿作业的配置
-                    WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
-
                     // 查询作业的实例
                     WorkInstanceEntity sonWorkInstance = workInstanceRepository
                         .findByWorkIdAndWorkflowInstanceId(work.getId(), workRunContext.getFlowInstanceId());
 
                     // 在执行器前，封装WorkRunContext
-                    WorkRunContext sonWorkRunContext =
-                        WorkUtils.genWorkRunContext(sonWorkInstance.getId(), EventType.WORKFLOW, work, workConfig);
+                    WorkRunContext sonWorkRunContext;
+                    if (Strings.isEmpty(sonWorkInstance.getVersionId())) {
+                        // 拿作业的配置
+                        WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
+                        sonWorkRunContext =
+                            WorkUtils.genWorkRunContext(sonWorkInstance.getId(), EventType.WORKFLOW, work, workConfig);
+                    } else {
+                        // 获取作业版本配置
+                        VipWorkVersionEntity workVersion = vipWorkVersionRepository.findById(work.getVersionId()).get();
+                        sonWorkRunContext =
+                            WorkUtils.genWorkRunContext(sonWorkInstance.getId(), EventType.WORKFLOW, work, workVersion);
+                        sonWorkRunContext.setVersionId(sonWorkInstance.getVersionId());
+                    }
                     sonWorkRunContext.setDagEndList(workRunContext.getDagEndList());
                     sonWorkRunContext.setDagStartList(workRunContext.getDagStartList());
                     sonWorkRunContext.setFlowInstanceId(workRunContext.getFlowInstanceId());
                     sonWorkRunContext.setNodeMapping(workRunContext.getNodeMapping());
                     sonWorkRunContext.setNodeList(workRunContext.getNodeList());
-                    sonWorkRunContext.setVersionId(sonWorkInstance.getVersionId());
 
                     // 调用定时器触发
                     workRunJobFactory.execute(sonWorkRunContext);

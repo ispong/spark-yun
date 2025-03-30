@@ -127,9 +127,9 @@ public class WorkflowService {
         List<String> nodeList = JSON.parseArray(workflowConfig.getNodeList(), String.class);
         List<WorkInstanceEntity> workInstances = new ArrayList<>();
         for (String workId : nodeList) {
-            WorkInstanceEntity metaInstance = WorkInstanceEntity.builder().workId(workId)
-                .instanceType(InstanceType.MANUAL).execStartDateTime(new Date()).status(InstanceStatus.PENDING)
-                .workflowInstanceId(workflowInstance.getId()).build();
+            WorkInstanceEntity metaInstance =
+                WorkInstanceEntity.builder().workId(workId).instanceType(InstanceType.MANUAL)
+                    .status(InstanceStatus.PENDING).workflowInstanceId(workflowInstance.getId()).build();
             workInstances.add(metaInstance);
         }
         workInstanceRepository.saveAllAndFlush(workInstances);
