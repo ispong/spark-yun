@@ -58,12 +58,12 @@ public class BashExecutor extends WorkExecutor {
     private final WorkEventRepository workEventRepository;
 
     public BashExecutor(WorkInstanceRepository workInstanceRepository,
-        WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
-        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
-        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
-        WorkEventRepository workEventRepository, Scheduler scheduler, Locker locker, WorkRepository workRepository,
-        WorkRunJobFactory workRunJobFactory, WorkConfigRepository workConfigRepository,
-        VipWorkVersionRepository vipWorkVersionRepository) {
+                        WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
+                        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
+                        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
+                        WorkEventRepository workEventRepository, Scheduler scheduler, Locker locker, WorkRepository workRepository,
+                        WorkRunJobFactory workRunJobFactory, WorkConfigRepository workConfigRepository,
+                        VipWorkVersionRepository vipWorkVersionRepository) {
 
         super(alarmService, scheduler, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
             workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository, vipWorkVersionRepository);
@@ -82,9 +82,6 @@ public class BashExecutor extends WorkExecutor {
     }
 
     public String execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance) {
-
-        // 将线程存到Map
-        WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
 
         // 获取日志和事件
         WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
@@ -172,6 +169,9 @@ public class BashExecutor extends WorkExecutor {
 
         // 提交作业，保存查询作业的pid
         if (processNeverRun(workEvent, 5)) {
+
+            // 将线程存到Map
+            WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
 
             try {
                 // 上传脚本
@@ -290,7 +290,20 @@ public class BashExecutor extends WorkExecutor {
     @Override
     protected void abort(WorkInstanceEntity workInstance) {
 
+        // 如果没有提交成功，杀死进程
         Thread thread = WORK_THREAD.get(workInstance.getId());
-        thread.interrupt();
+        if (thread != null) {
+            WORK_THREAD.remove(workInstance.getId());
+            thread.interrupt();
+        }
+
+        // 如果提交成功，杀死pid，并清理脚本文件
+        if (Strings.isEmpty(workInstance.getWorkId())) {
+            if (workInstance.getVersionId() == null) {
+
+            } else {
+
+            }
+        }
     }
 }

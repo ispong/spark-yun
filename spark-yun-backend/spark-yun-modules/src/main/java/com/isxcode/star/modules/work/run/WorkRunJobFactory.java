@@ -44,6 +44,7 @@ public class WorkRunJobFactory {
         // 创建并触发调度器
         try {
             scheduler.scheduleJob(jobDetail, trigger);
+            scheduler.getListenerManager().addJobListener(new QuartzJobErrorListener());
             scheduler.start();
         } catch (SchedulerException e) {
             log.error(e.getMessage(), e);

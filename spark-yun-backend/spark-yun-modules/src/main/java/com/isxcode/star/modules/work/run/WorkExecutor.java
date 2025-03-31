@@ -199,6 +199,11 @@ public abstract class WorkExecutor {
                 locker.unlock(lock.getValue());
             } else {
 
+                // 已中止的任务，解锁，不可以再运行
+                if (InstanceStatus.ABORT.equals(workInstance.getStatus())) {
+                    return InstanceStatus.ABORT;
+                }
+
                 // 单个作业实例状态改成运行中
                 workInstance.setSubmitLog(LocalDateTime.now() + WorkLog.SUCCESS_INFO + "开始提交作业 \n");
                 workInstance.setStatus(InstanceStatus.RUNNING);
@@ -230,6 +235,11 @@ public abstract class WorkExecutor {
 
                 // 获取最新作业实例，拿最新的日志，修改实例状态为成功
                 workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
+                // 已中止的任务，解锁，不可以再运行
+                if (InstanceStatus.ABORT.equals(workInstance.getStatus())) {
+                    return InstanceStatus.ABORT;
+                }
+                // 运行中的修改为成功
                 if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
                     workInstance.setStatus(InstanceStatus.SUCCESS);
                     workInstance.setExecEndDateTime(new Date());
@@ -253,6 +263,13 @@ public abstract class WorkExecutor {
 
             // 获取最新作业实例，拿最新的日志，修改实例状态为失败
             workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
+
+            // 已中止的任务，解锁，不可以再运行
+            if (InstanceStatus.ABORT.equals(workInstance.getStatus())) {
+                return InstanceStatus.ABORT;
+            }
+
+            // 作业实例修改为失败
             workInstance.setStatus(InstanceStatus.FAIL);
             workInstance.setExecEndDateTime(new Date());
             workInstance

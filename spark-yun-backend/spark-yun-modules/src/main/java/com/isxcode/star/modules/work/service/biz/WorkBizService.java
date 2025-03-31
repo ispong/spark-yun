@@ -335,52 +335,39 @@ public class WorkBizService {
     public void stopJob(StopJobReq stopJobReq) {
 
         // 通过实例 获取workId
-        Optional<WorkInstanceEntity> workInstanceEntityOptional =
-            workInstanceRepository.findById(stopJobReq.getInstanceId());
+        Optional<WorkInstanceEntity> workInstanceEntityOptional = workInstanceRepository.findById(stopJobReq.getInstanceId());
         if (!workInstanceEntityOptional.isPresent()) {
             throw new IsxAppException("实例不存在");
         }
-        WorkInstanceEntity workInstanceEntity = workInstanceEntityOptional.get();
+        WorkInstanceEntity latestWorkInstance = workInstanceEntityOptional.get();
 
-        if (InstanceStatus.SUCCESS.equals(workInstanceEntity.getStatus())) {
+        if (InstanceStatus.SUCCESS.equals(latestWorkInstance.getStatus())) {
             throw new IsxAppException("已经成功，无法中止");
         }
 
-        if (InstanceStatus.ABORT.equals(workInstanceEntity.getStatus())) {
+        if (InstanceStatus.ABORT.equals(latestWorkInstance.getStatus())) {
             throw new IsxAppException("已中止");
         }
 
-        WorkEntity workEntity = workRepository.findById(workInstanceEntity.getWorkId()).get();
+        // 获取作业
+        WorkEntity workEntity = workRepository.findById(latestWorkInstance.getWorkId()).get();
         WorkExecutor workExecutor = workExecutorFactory.create(workEntity.getWorkType());
-
-        if (InstanceType.MANUAL.equals(workInstanceEntity.getInstanceType())) {
-
-            try {
-                workExecutor.syncAbort(workInstanceEntity);
-                WorkInstanceEntity latestWorkInstance =
-                    workInstanceRepository.findById(stopJobReq.getInstanceId()).get();
-                String submitLog =
-                    latestWorkInstance.getSubmitLog() + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "已中止  \n";
-                latestWorkInstance.setSubmitLog(submitLog);
-                latestWorkInstance.setStatus(InstanceStatus.ABORT);
-                latestWorkInstance.setExecEndDateTime(new Date());
-                latestWorkInstance.setDuration(
-                    (System.currentTimeMillis() - latestWorkInstance.getExecStartDateTime().getTime()) / 1000);
-                workInstanceRepository.save(latestWorkInstance);
-            } catch (Exception e) {
-                log.debug(e.getMessage(), e);
-                WorkInstanceEntity latestWorkInstance =
-                    workInstanceRepository.findById(stopJobReq.getInstanceId()).get();
-                String submitLog =
-                    latestWorkInstance.getSubmitLog() + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "中止失败 \n";
-                latestWorkInstance.setSubmitLog(submitLog);
-                latestWorkInstance.setStatus(InstanceStatus.FAIL);
-                latestWorkInstance.setExecEndDateTime(new Date());
-                latestWorkInstance.setDuration(
-                    (System.currentTimeMillis() - latestWorkInstance.getExecStartDateTime().getTime()) / 1000);
-                workInstanceRepository.save(latestWorkInstance);
-            }
+        try {
+            workExecutor.syncAbort(latestWorkInstance);
+            latestWorkInstance.setStatus(InstanceStatus.ABORT);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            latestWorkInstance.setStatus(InstanceStatus.FAIL);
+            workInstanceRepository.saveAndFlush(latestWorkInstance);
         }
+        String submitLog = latestWorkInstance.getSubmitLog() + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "已中止  \n";
+        latestWorkInstance.setSubmitLog(submitLog);
+        latestWorkInstance.setExecEndDateTime(new Date());
+        if (latestWorkInstance.getExecStartDateTime() == null) {
+            latestWorkInstance.setExecStartDateTime(new Date());
+        }
+        latestWorkInstance.setDuration((System.currentTimeMillis() - latestWorkInstance.getExecStartDateTime().getTime()) / 1000);
+        workInstanceRepository.saveAndFlush(latestWorkInstance);
     }
 
     public GetWorkLogRes getWorkLog(GetYarnLogReq getYarnLogReq) {
@@ -653,9 +640,11 @@ public class WorkBizService {
         List<List<String>> data;
         if (WorkType.QUERY_SPARK_SQL.equals(workEntity.getWorkType())) {
             data = JSON.parseObject(JSON.toJSONString(JSON.parseObject(workInstanceEntity.getResultData()).get("data")),
-                new TypeReference<List<List<String>>>() {});
+                new TypeReference<List<List<String>>>() {
+                });
         } else {
-            data = JSON.parseObject(workInstanceEntity.getResultData(), new TypeReference<List<List<String>>>() {});
+            data = JSON.parseObject(workInstanceEntity.getResultData(), new TypeReference<List<List<String>>>() {
+            });
         }
 
         try {
