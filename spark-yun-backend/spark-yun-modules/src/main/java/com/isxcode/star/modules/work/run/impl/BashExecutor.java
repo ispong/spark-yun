@@ -58,12 +58,12 @@ public class BashExecutor extends WorkExecutor {
     private final WorkEventRepository workEventRepository;
 
     public BashExecutor(WorkInstanceRepository workInstanceRepository,
-                        WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
-                        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
-                        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
-                        WorkEventRepository workEventRepository, Scheduler scheduler, Locker locker, WorkRepository workRepository,
-                        WorkRunJobFactory workRunJobFactory, WorkConfigRepository workConfigRepository,
-                        VipWorkVersionRepository vipWorkVersionRepository) {
+        WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
+        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
+        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
+        WorkEventRepository workEventRepository, Scheduler scheduler, Locker locker, WorkRepository workRepository,
+        WorkRunJobFactory workRunJobFactory, WorkConfigRepository workConfigRepository,
+        VipWorkVersionRepository vipWorkVersionRepository) {
 
         super(alarmService, scheduler, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
             workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository, vipWorkVersionRepository);

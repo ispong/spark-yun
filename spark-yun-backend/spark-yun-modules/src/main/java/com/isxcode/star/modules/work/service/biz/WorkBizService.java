@@ -335,7 +335,8 @@ public class WorkBizService {
     public void stopJob(StopJobReq stopJobReq) {
 
         // 通过实例 获取workId
-        Optional<WorkInstanceEntity> workInstanceEntityOptional = workInstanceRepository.findById(stopJobReq.getInstanceId());
+        Optional<WorkInstanceEntity> workInstanceEntityOptional =
+            workInstanceRepository.findById(stopJobReq.getInstanceId());
         if (!workInstanceEntityOptional.isPresent()) {
             throw new IsxAppException("实例不存在");
         }
@@ -366,7 +367,8 @@ public class WorkBizService {
         if (latestWorkInstance.getExecStartDateTime() == null) {
             latestWorkInstance.setExecStartDateTime(new Date());
         }
-        latestWorkInstance.setDuration((System.currentTimeMillis() - latestWorkInstance.getExecStartDateTime().getTime()) / 1000);
+        latestWorkInstance
+            .setDuration((System.currentTimeMillis() - latestWorkInstance.getExecStartDateTime().getTime()) / 1000);
         workInstanceRepository.saveAndFlush(latestWorkInstance);
     }
 
@@ -640,11 +642,9 @@ public class WorkBizService {
         List<List<String>> data;
         if (WorkType.QUERY_SPARK_SQL.equals(workEntity.getWorkType())) {
             data = JSON.parseObject(JSON.toJSONString(JSON.parseObject(workInstanceEntity.getResultData()).get("data")),
-                new TypeReference<List<List<String>>>() {
-                });
+                new TypeReference<List<List<String>>>() {});
         } else {
-            data = JSON.parseObject(workInstanceEntity.getResultData(), new TypeReference<List<List<String>>>() {
-            });
+            data = JSON.parseObject(workInstanceEntity.getResultData(), new TypeReference<List<List<String>>>() {});
         }
 
         try {
