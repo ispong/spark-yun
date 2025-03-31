@@ -106,10 +106,10 @@ public class WorkflowService {
      */
     public String runWorkflow(String workflowId) {
 
-        // 获取工作流配置id
+        // 获取工作流
         WorkflowEntity workflow = getWorkflow(workflowId);
 
-        // 获取作业配置
+        // 获取作业流配置
         WorkflowConfigEntity workflowConfig = workflowConfigRepository.findById(workflow.getConfigId()).get();
 
         if (workflowConfig.getNodeList() == null
