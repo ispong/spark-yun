@@ -7,10 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 
 import static com.isxcode.star.common.config.CommonConfig.TENANT_ID;
 import static com.isxcode.star.common.config.CommonConfig.USER_ID;
