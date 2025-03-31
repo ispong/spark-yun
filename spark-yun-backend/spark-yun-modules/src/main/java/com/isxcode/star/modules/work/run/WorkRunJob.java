@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.modules.work.repository.WorkEventRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -28,6 +29,7 @@ public class WorkRunJob implements Job {
 
     private final WorkEventRepository workEventRepository;
 
+    @SneakyThrows
     @Override
     public void execute(JobExecutionContext context) {
 
@@ -42,35 +44,20 @@ public class WorkRunJob implements Job {
         // 触发作业运行
         try {
 
-            log.info("【{}】{}触发一次", workRunContext.getWorkName(), LocalDateTime.now());
             WorkExecutor workExecutor = workExecutorFactory.create(workRunContext.getWorkType());
             String runStatus = workExecutor.runWork(workRunContext);
-            log.info("【{}】{}执行状态{}", workRunContext.getWorkName(), LocalDateTime.now(), runStatus);
 
-            // 判断事件执行状态
+            // 中止和已完成，调度器和事件都要删除
             if (InstanceStatus.ABORT.equals(runStatus) || InstanceStatus.FINISHED.equals(runStatus)) {
-                // 中止和已完成，调度器和事件都要删除
-                try {
-                    workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
-                } catch (EmptyResultDataAccessException ignored) {
-
-                }
-                // 删除调度器
-                try {
-                    scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
-                } catch (SchedulerException e) {
-                    log.error(e.getMessage());
-                }
+                workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
+                scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            try {
-                // 如果运行作业异常未捕获，删除事件和调度器
-                workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
-                scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
-            } catch (SchedulerException ex) {
-                log.error(ex.getMessage(), ex);
-            }
+
+            // 如果运行作业异常未捕获，删除事件和调度器，防止无限调度
+            workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
+            scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
         }
     }
 }
