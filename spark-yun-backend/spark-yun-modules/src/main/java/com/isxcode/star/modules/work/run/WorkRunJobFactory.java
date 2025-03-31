@@ -34,6 +34,8 @@ public class WorkRunJobFactory {
         workRunContext.setEventId(workEvent.getId());
         jobDataMap.put("workRunContext", JSON.toJSONString(workRunContext));
 
+        log.info("【{}】触发定时器", workRunContext.getWorkName());
+
         // 初始化调度器，每3秒执行一次
         JobDetail jobDetail = JobBuilder.newJob(WorkRunJob.class).setJobData(jobDataMap).build();
         Trigger trigger = TriggerBuilder.newTrigger()
@@ -44,7 +46,6 @@ public class WorkRunJobFactory {
         // 创建并触发调度器
         try {
             scheduler.scheduleJob(jobDetail, trigger);
-            scheduler.getListenerManager().addJobListener(new QuartzJobErrorListener());
             scheduler.start();
         } catch (SchedulerException e) {
             log.error(e.getMessage(), e);

@@ -282,10 +282,6 @@ public class BashExecutor extends WorkExecutor {
             if (!workEventBody.getLog().contains("zhiqingyun_success")) {
                 throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "任务运行异常" + "\n");
             }
-
-            // 修改最后的事件状态
-            workEvent.setEventProcess(999);
-            workEventRepository.saveAndFlush(workEvent);
         }
 
         return InstanceStatus.SUCCESS;
