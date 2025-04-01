@@ -1,7 +1,6 @@
 package com.isxcode.star.modules.work.run;
 
 
-import cn.hutool.core.lang.Pair;
 import com.isxcode.star.api.alarm.constants.AlarmEventType;
 import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.api.instance.constants.InstanceType;
@@ -56,7 +55,7 @@ public abstract class WorkExecutor {
 
     protected abstract String execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance);
 
-    protected abstract void abort(WorkInstanceEntity workInstance);
+    protected abstract void abort(WorkInstanceEntity workInstance) throws Exception;
 
     /**
      * 判断当前进程是否运行过
@@ -118,41 +117,39 @@ public abstract class WorkExecutor {
             if (EventType.WORKFLOW.equals(workRunContext.getEventType())) {
 
                 // 修改状态前先加锁，给工作流实例加锁
-                Pair<Boolean, Integer> lock = locker.getLock(workRunContext.getFlowInstanceId());
-                if (!lock.getKey()) {
-                    // 如果被抢锁，直接跳过，下个调度再执行
-                    locker.unlock(lock.getValue());
+                if (locker.isLocked(workRunContext.getFlowInstanceId())) {
                     return InstanceStatus.RUNNING;
                 }
+                Integer lockId = locker.lockOnly(workRunContext.getFlowInstanceId());
 
                 // 运行中的作业，直接跳过，下个调度再执行
                 if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
-                    locker.unlock(lock.getValue());
+                    locker.unlock(lockId);
                     return InstanceStatus.RUNNING;
                 }
 
                 // 已中止的任务，解锁，不可以再运行
                 if (InstanceStatus.ABORT.equals(workInstance.getStatus())) {
-                    locker.unlock(lock.getValue());
+                    locker.unlock(lockId);
                     return InstanceStatus.ABORT;
                 }
 
                 // 中断的任务，解锁，不可以再运行
                 if (InstanceStatus.BREAK.equals(workInstance.getStatus())) {
-                    locker.unlock(lock.getValue());
+                    locker.unlock(lockId);
                     return InstanceStatus.ABORT;
                 }
 
                 // 成功或者失败，解锁，不可以再运行
                 if (InstanceStatus.SUCCESS.equals(workInstance.getStatus())
                     || InstanceStatus.FAIL.equals(workInstance.getStatus())) {
-                    locker.unlock(lock.getValue());
+                    locker.unlock(lockId);
                     return InstanceStatus.ABORT;
                 }
 
                 // 在调度中的作业，如果自身定时器没有被触发，不可以再运行
                 if (!Strings.isEmpty(workRunContext.getVersionId()) && !workInstance.getQuartzHasRun()) {
-                    locker.unlock(lock.getValue());
+                    locker.unlock(lockId);
                     return InstanceStatus.ABORT;
                 }
 
@@ -170,7 +167,7 @@ public abstract class WorkExecutor {
 
                 // 如果父级在运行中，不可以再运行
                 if (parentIsRunning) {
-                    locker.unlock(lock.getValue());
+                    locker.unlock(lockId);
                     return InstanceStatus.ABORT;
                 }
 
@@ -196,7 +193,7 @@ public abstract class WorkExecutor {
 
                 // 保存作业实例状态，解锁
                 workInstanceRepository.saveAndFlush(workInstance);
-                locker.unlock(lock.getValue());
+                locker.unlock(lockId);
             } else {
 
                 // 已中止的任务，解锁，不可以再运行
@@ -224,6 +221,11 @@ public abstract class WorkExecutor {
 
             // 开始执行作业，每次都要执行
             String executeStatus = execute(workRunContext, workInstance);
+
+            // 已中止的任务，不可以再运行
+            if (InstanceStatus.ABORT.equals(workInstance.getStatus())) {
+                return InstanceStatus.ABORT;
+            }
 
             // 如果是运行中，直接跳过，下个调度再执行
             if (InstanceStatus.RUNNING.equals(executeStatus)) {
@@ -302,12 +304,11 @@ public abstract class WorkExecutor {
             if (EventType.WORKFLOW.equals(workRunContext.getEventType())) {
 
                 // 加锁，修改作业流状态，并推送子任务
-                Pair<Boolean, Integer> lock = locker.getLock(workRunContext.getFlowInstanceId());
-                if (!lock.getKey()) {
-                    // 如果被抢锁，直接跳过，下个调度再执行
-                    locker.unlock(lock.getValue());
+                // 如果被抢锁，直接跳过，下个调度再执行
+                if (locker.isLocked(workRunContext.getInstanceId())) {
                     return InstanceStatus.RUNNING;
                 }
+                Integer lockId = locker.lock(workRunContext.getFlowInstanceId());
 
                 // 获取最新的作业流实例
                 WorkflowInstanceEntity lastWorkflowInstance =
@@ -315,7 +316,7 @@ public abstract class WorkExecutor {
 
                 // 中止中的作业流，不可以再运行
                 if (InstanceStatus.ABORTING.equals(lastWorkflowInstance.getStatus())) {
-                    locker.unlock(lock.getValue());
+                    locker.unlock(lockId);
                     return InstanceStatus.ABORT;
                 }
 
@@ -401,7 +402,7 @@ public abstract class WorkExecutor {
                 }
 
                 // 修改完作业流状态，解锁
-                locker.unlock(lock.getValue());
+                locker.unlock(lockId);
             }
 
             // 当前作业运行完毕
@@ -412,7 +413,7 @@ public abstract class WorkExecutor {
         return InstanceStatus.RUNNING;
     }
 
-    public void syncAbort(WorkInstanceEntity workInstance) {
+    public void syncAbort(WorkInstanceEntity workInstance) throws Exception {
 
         this.abort(workInstance);
     }

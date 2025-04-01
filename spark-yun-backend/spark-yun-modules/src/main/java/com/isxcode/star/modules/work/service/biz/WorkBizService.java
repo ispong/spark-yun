@@ -19,13 +19,13 @@ import com.isxcode.star.api.work.dto.*;
 import com.isxcode.star.api.work.req.*;
 import com.isxcode.star.api.work.res.*;
 import com.isxcode.star.backend.api.base.exceptions.IsxAppException;
+import com.isxcode.star.common.locker.Locker;
 import com.isxcode.star.modules.work.entity.WorkConfigEntity;
 import com.isxcode.star.modules.work.entity.WorkEntity;
 import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
 import com.isxcode.star.modules.work.run.WorkRunJobFactory;
 import com.isxcode.star.modules.work.mapper.WorkMapper;
 import com.isxcode.star.modules.work.repository.WorkConfigRepository;
-import com.isxcode.star.modules.work.repository.WorkEventRepository;
 import com.isxcode.star.modules.work.repository.WorkInstanceRepository;
 import com.isxcode.star.modules.work.repository.WorkRepository;
 import com.isxcode.star.modules.work.run.WorkExecutor;
@@ -80,7 +80,7 @@ public class WorkBizService {
 
     private final WorkflowInstanceRepository workflowInstanceRepository;
 
-    private final WorkEventRepository workEventRepository;
+    private final Locker locker;
 
     private final WorkRunJobFactory workRunFactory;
 
@@ -334,6 +334,10 @@ public class WorkBizService {
     @Transactional
     public void stopJob(StopJobReq stopJobReq) {
 
+        if (locker.isLocked(stopJobReq.getInstanceId())) {
+            throw new IsxAppException("任务在提交中，请稍后重试");
+        }
+
         // 通过实例 获取workId
         Optional<WorkInstanceEntity> workInstanceEntityOptional =
             workInstanceRepository.findById(stopJobReq.getInstanceId());
@@ -361,7 +365,8 @@ public class WorkBizService {
             latestWorkInstance.setStatus(InstanceStatus.FAIL);
             workInstanceRepository.saveAndFlush(latestWorkInstance);
         }
-        String submitLog = latestWorkInstance.getSubmitLog() + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "已中止  \n";
+        String submitLog = (latestWorkInstance.getSubmitLog() == null ? "" : latestWorkInstance.getSubmitLog())
+            + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "已中止  \n";
         latestWorkInstance.setSubmitLog(submitLog);
         latestWorkInstance.setExecEndDateTime(new Date());
         if (latestWorkInstance.getExecStartDateTime() == null) {

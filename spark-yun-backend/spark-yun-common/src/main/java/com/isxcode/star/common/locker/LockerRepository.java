@@ -17,4 +17,6 @@ public interface LockerRepository extends JpaRepository<LockerEntity, Integer> {
     Integer getMinId(@Param("name") String name);
 
     List<LockerEntity> findAllByName(String name);
+
+    Boolean existsByName(String name);
 }

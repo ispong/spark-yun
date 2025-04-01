@@ -47,14 +47,17 @@ public class WorkRunJob implements Job {
 
             // 中止和已完成，调度器和事件都要删除
             if (InstanceStatus.ABORT.equals(runStatus) || InstanceStatus.FINISHED.equals(runStatus)) {
-                workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
+                if (workEventRepository.existsById(workRunContext.getInstanceId())) {
+                    workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
+                }
                 scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-
-            // 如果运行作业异常未捕获，删除事件和调度器，防止无限调度
-            workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
+            // 如果运行作业异常未捕获，删除调度器，防止无限调度
+            if (workEventRepository.existsById(workRunContext.getInstanceId())) {
+                workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
+            }
             scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
         }
     }

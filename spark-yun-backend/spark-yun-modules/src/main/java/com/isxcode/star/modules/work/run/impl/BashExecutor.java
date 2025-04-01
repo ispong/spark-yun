@@ -6,6 +6,7 @@ import com.isxcode.star.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.api.work.constants.WorkLog;
 import com.isxcode.star.api.work.constants.WorkType;
+import com.isxcode.star.api.work.dto.ClusterConfig;
 import com.isxcode.star.backend.api.base.exceptions.WorkRunException;
 import com.isxcode.star.common.locker.Locker;
 import com.isxcode.star.common.utils.aes.AesUtils;
@@ -16,8 +17,7 @@ import com.isxcode.star.modules.cluster.entity.ClusterNodeEntity;
 import com.isxcode.star.modules.cluster.mapper.ClusterNodeMapper;
 import com.isxcode.star.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.star.modules.cluster.repository.ClusterRepository;
-import com.isxcode.star.modules.work.entity.WorkEventEntity;
-import com.isxcode.star.modules.work.entity.WorkInstanceEntity;
+import com.isxcode.star.modules.work.entity.*;
 import com.isxcode.star.modules.work.repository.*;
 import com.isxcode.star.modules.work.run.WorkExecutor;
 import com.isxcode.star.modules.work.run.WorkRunContext;
@@ -57,6 +57,16 @@ public class BashExecutor extends WorkExecutor {
 
     private final WorkEventRepository workEventRepository;
 
+    private final VipWorkVersionRepository vipWorkVersionRepository;
+
+    private final WorkConfigRepository workConfigRepository;
+
+    private final WorkRepository workRepository;
+
+    private final Locker locker;
+
+    private final WorkInstanceRepository workInstanceRepository;
+
     public BashExecutor(WorkInstanceRepository workInstanceRepository,
         WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
         ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
@@ -74,6 +84,11 @@ public class BashExecutor extends WorkExecutor {
         this.sqlValueService = sqlValueService;
         this.sqlFunctionService = sqlFunctionService;
         this.workEventRepository = workEventRepository;
+        this.workConfigRepository = workConfigRepository;
+        this.vipWorkVersionRepository = vipWorkVersionRepository;
+        this.workRepository = workRepository;
+        this.locker = locker;
+        this.workInstanceRepository = workInstanceRepository;
     }
 
     @Override
@@ -85,13 +100,8 @@ public class BashExecutor extends WorkExecutor {
 
         // 获取日志和事件
         WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
-
         WorkRunContext workEventBody = JSON.parseObject(workEvent.getEventContext(), WorkRunContext.class);
-        if (workEventBody == null) {
-            workEventBody = new WorkRunContext();
-        }
-        StringBuilder logBuilder =
-            new StringBuilder(workInstance.getSubmitLog() == null ? "" : workInstance.getSubmitLog());
+        StringBuilder logBuilder = new StringBuilder(workInstance.getSubmitLog());
 
         // 检查执行脚本是否为空，保存并保存脚本
         if (processNeverRun(workEvent, 3)) {
@@ -170,8 +180,12 @@ public class BashExecutor extends WorkExecutor {
         // 提交作业，保存查询作业的pid
         if (processNeverRun(workEvent, 5)) {
 
-            // 将线程存到Map
+            // 将线程存到Map，且加锁防止多次提交
             WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
+            if (locker.isLocked(workInstance.getId())) {
+                return InstanceStatus.RUNNING;
+            }
+            Integer lockId = locker.lockOnly(workInstance.getId());
 
             try {
                 // 上传脚本
@@ -196,6 +210,9 @@ public class BashExecutor extends WorkExecutor {
                 workEventBody.setCurrentStatus("");
                 workEvent.setEventContext(JSON.toJSONString(workEventBody));
                 workEventRepository.saveAndFlush(workEvent);
+
+                // 解锁
+                locker.unlock(lockId);
             } catch (JSchException | SftpException | InterruptedException | IOException e) {
 
                 log.debug(e.getMessage(), e);
@@ -240,6 +257,12 @@ public class BashExecutor extends WorkExecutor {
 
         // 运行结束，获取作业日志和数据
         if (processNeverRun(workEvent, 7)) {
+
+            // 如果作业不在运行中，不获取数据和日志
+            WorkInstanceEntity workInstanceEntity = workInstanceRepository.findById(workInstance.getId()).get();
+            if (!InstanceStatus.RUNNING.equals(workInstanceEntity.getStatus())) {
+                return InstanceStatus.RUNNING;
+            }
 
             // 获取日志
             String getLogCommand =
@@ -288,7 +311,7 @@ public class BashExecutor extends WorkExecutor {
     }
 
     @Override
-    protected void abort(WorkInstanceEntity workInstance) {
+    protected void abort(WorkInstanceEntity workInstance) throws Exception {
 
         // 如果没有提交成功，杀死进程
         Thread thread = WORK_THREAD.get(workInstance.getId());
@@ -298,12 +321,32 @@ public class BashExecutor extends WorkExecutor {
         }
 
         // 如果提交成功，杀死pid，并清理脚本文件
-        if (Strings.isEmpty(workInstance.getWorkId())) {
+        if (!Strings.isEmpty(workInstance.getWorkPid())) {
+
+            String killPidCommand = "kill -9 " + workInstance.getWorkPid();
+            ClusterConfig clusterConfig;
             if (workInstance.getVersionId() == null) {
+                WorkEntity work = workRepository.findById(workInstance.getWorkId()).get();
+                WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
+                clusterConfig = JSON.parseObject(workConfig.getClusterConfig(), ClusterConfig.class);
 
             } else {
-
+                VipWorkVersionEntity workVersion = vipWorkVersionRepository.findById(workInstance.getVersionId()).get();
+                clusterConfig = JSON.parseObject(workVersion.getClusterConfig(), ClusterConfig.class);
             }
+
+            ClusterNodeEntity clusterNode = clusterNodeRepository.findById(clusterConfig.getClusterNodeId()).get();
+            ScpFileEngineNodeDto scpNodeInfo = clusterNodeMapper.engineNodeEntityToScpFileEngineNodeDto(clusterNode);
+            scpNodeInfo.setPasswd(aesUtils.decrypt(scpNodeInfo.getPasswd()));
+
+            // 杀死进程
+            executeCommand(scpNodeInfo, killPidCommand, false);
+
+            // 删除脚本文件
+            String clearWorkRunFile = "rm -f " + clusterNode.getAgentHomePath() + "/zhiqingyun-agent/works/"
+                + workInstance.getId() + ".log && " + "rm -f " + clusterNode.getAgentHomePath()
+                + "/zhiqingyun-agent/works/" + workInstance.getId() + ".sh";
+            SshUtils.executeCommand(scpNodeInfo, clearWorkRunFile, false);
         }
     }
 }
