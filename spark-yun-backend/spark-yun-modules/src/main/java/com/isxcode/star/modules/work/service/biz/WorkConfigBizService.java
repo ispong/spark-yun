@@ -79,7 +79,7 @@ public class WorkConfigBizService {
             throw new IsxAppException("数据同步sqlConfig配置json格式不合法");
         }
 
-        WorkEntity work = workService.getWorkEntity(wocConfigWorkReq.getWorkId());
+        WorkEntity work = workService.getWork(wocConfigWorkReq.getWorkId());
 
         WorkConfigEntity workConfig = workConfigService.getWorkConfigEntity(work.getConfigId());
 

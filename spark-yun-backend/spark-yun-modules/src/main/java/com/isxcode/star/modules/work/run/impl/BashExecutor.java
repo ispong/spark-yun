@@ -180,8 +180,7 @@ public class BashExecutor extends WorkExecutor {
         // 提交作业，保存查询作业的pid
         if (processNeverRun(workEvent, 5)) {
 
-            // 将线程存到Map，且加锁防止多次提交
-            WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
+            // 加锁，任务提交后才能执行杀死操作
             if (locker.isLocked(workInstance.getId())) {
                 return InstanceStatus.RUNNING;
             }

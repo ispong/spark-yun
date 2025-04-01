@@ -8,4 +8,9 @@ public interface EventType {
     String WORK = "WORK";
 
     String WORKFLOW = "WORKFLOW";
+
+    /**
+     * 重新运行作业.
+     */
+    String RERUN_WORK = "RERUN_WORK";
 }

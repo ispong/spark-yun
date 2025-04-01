@@ -192,7 +192,7 @@ public class WorkBizService {
     @Transactional
     public void updateWork(UpdateWorkReq updateWorkReq) {
 
-        WorkEntity work = workService.getWorkEntity(updateWorkReq.getId());
+        WorkEntity work = workService.getWork(updateWorkReq.getId());
         work = workMapper.updateWorkReqToWorkEntity(updateWorkReq, work);
         workRepository.save(work);
     }
@@ -228,7 +228,7 @@ public class WorkBizService {
 
     public void deleteWork(DeleteWorkReq deleteWorkReq) {
 
-        WorkEntity work = workService.getWorkEntity(deleteWorkReq.getWorkId());
+        WorkEntity work = workService.getWork(deleteWorkReq.getWorkId());
 
         // 拖拽到DAG中的作业无法删除
         WorkflowEntity workflow = workflowService.getWorkflow(work.getWorkflowId());
@@ -258,15 +258,14 @@ public class WorkBizService {
     public RunWorkRes runWork(RunWorkReq runWorkReq) {
 
         // 获取作业
-        WorkEntity work = workService.getWorkEntity(runWorkReq.getWorkId());
+        WorkEntity work = workService.getWork(runWorkReq.getWorkId());
 
         // 获取作业配置
         WorkConfigEntity workConfig = workConfigBizService.getWorkConfigEntity(work.getConfigId());
 
         // 初始化作业实例
-        WorkInstanceEntity workInstance = new WorkInstanceEntity();
-        workInstance.setWorkId(work.getId());
-        workInstance.setInstanceType(InstanceType.MANUAL);
+        WorkInstanceEntity workInstance =
+            WorkInstanceEntity.builder().workId(work.getId()).instanceType(InstanceType.MANUAL).build();
         workInstance = workInstanceRepository.saveAndFlush(workInstance);
 
         // 封装WorkRunContext
@@ -296,7 +295,7 @@ public class WorkBizService {
         }
 
         // 根据作业类型返回结果
-        WorkEntity workEntity = workService.getWorkEntity(workInstanceEntity.getWorkId());
+        WorkEntity workEntity = workService.getWork(workInstanceEntity.getWorkId());
         if (WorkType.API.equals(workEntity.getWorkType()) || WorkType.CURL.equals(workEntity.getWorkType())) {
             return new GetDataRes(null, JSON.toJSONString(JSON.parse(workInstanceEntity.getResultData()), true), null);
         }
@@ -334,47 +333,45 @@ public class WorkBizService {
     @Transactional
     public void stopJob(StopJobReq stopJobReq) {
 
+        // 提交中的作业，需要稍后重试
         if (locker.isLocked(stopJobReq.getInstanceId())) {
             throw new IsxAppException("任务在提交中，请稍后重试");
         }
 
-        // 通过实例 获取workId
-        Optional<WorkInstanceEntity> workInstanceEntityOptional =
-            workInstanceRepository.findById(stopJobReq.getInstanceId());
-        if (!workInstanceEntityOptional.isPresent()) {
-            throw new IsxAppException("实例不存在");
-        }
-        WorkInstanceEntity latestWorkInstance = workInstanceEntityOptional.get();
-
-        if (InstanceStatus.SUCCESS.equals(latestWorkInstance.getStatus())) {
-            throw new IsxAppException("已经成功，无法中止");
+        // 运行完毕的作业无法中止
+        WorkInstanceEntity workInstance = workService.getWorkInstance(stopJobReq.getInstanceId());
+        if (InstanceStatus.SUCCESS.equals(workInstance.getStatus())
+            || InstanceStatus.FAIL.equals(workInstance.getStatus())
+            || InstanceStatus.ABORT.equals(workInstance.getStatus())) {
+            throw new IsxAppException("已经运行完毕，无法中止");
         }
 
-        if (InstanceStatus.ABORT.equals(latestWorkInstance.getStatus())) {
-            throw new IsxAppException("已中止");
-        }
+        // 现将状态改为中止中
+        workInstance.setStatus(InstanceStatus.ABORTING);
+        workInstance = workInstanceRepository.saveAndFlush(workInstance);
 
-        // 获取作业
-        WorkEntity workEntity = workRepository.findById(latestWorkInstance.getWorkId()).get();
+        // 获取作业执行器
+        WorkEntity workEntity = workService.getWork(workInstance.getWorkId());
         WorkExecutor workExecutor = workExecutorFactory.create(workEntity.getWorkType());
+
         try {
-            workExecutor.syncAbort(latestWorkInstance);
-            latestWorkInstance.setStatus(InstanceStatus.ABORT);
+            // 中止作业
+            workExecutor.syncAbort(workInstance);
+            workInstance.setStatus(InstanceStatus.ABORT);
+            workInstance.setSubmitLog((workInstance.getSubmitLog() == null ? "" : workInstance.getSubmitLog())
+                + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "已中止  \n");
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            latestWorkInstance.setStatus(InstanceStatus.FAIL);
-            workInstanceRepository.saveAndFlush(latestWorkInstance);
+            workInstance.setStatus(InstanceStatus.FAIL);
+            workInstance.setSubmitLog((workInstance.getSubmitLog() == null ? "" : workInstance.getSubmitLog())
+                + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "中止异常  \n");
         }
-        String submitLog = (latestWorkInstance.getSubmitLog() == null ? "" : latestWorkInstance.getSubmitLog())
-            + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "已中止  \n";
-        latestWorkInstance.setSubmitLog(submitLog);
-        latestWorkInstance.setExecEndDateTime(new Date());
-        if (latestWorkInstance.getExecStartDateTime() == null) {
-            latestWorkInstance.setExecStartDateTime(new Date());
+        workInstance.setExecEndDateTime(new Date());
+        if (workInstance.getExecStartDateTime() == null) {
+            workInstance.setExecStartDateTime(new Date());
         }
-        latestWorkInstance
-            .setDuration((System.currentTimeMillis() - latestWorkInstance.getExecStartDateTime().getTime()) / 1000);
-        workInstanceRepository.saveAndFlush(latestWorkInstance);
+        workInstance.setDuration((System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
+        workInstanceRepository.saveAndFlush(workInstance);
     }
 
     public GetWorkLogRes getWorkLog(GetYarnLogReq getYarnLogReq) {
@@ -394,7 +391,7 @@ public class WorkBizService {
 
     public GetWorkRes getWork(GetWorkReq getWorkReq) {
 
-        WorkEntity work = workService.getWorkEntity(getWorkReq.getWorkId());
+        WorkEntity work = workService.getWork(getWorkReq.getWorkId());
         WorkConfigEntity workConfig = workConfigService.getWorkConfigEntity(work.getConfigId());
 
         GetWorkRes getWorkRes = new GetWorkRes();
@@ -483,7 +480,7 @@ public class WorkBizService {
 
     public void renameWork(RenameWorkReq wokRenameWorkReq) {
 
-        WorkEntity workEntity = workService.getWorkEntity(wokRenameWorkReq.getWorkId());
+        WorkEntity workEntity = workService.getWork(wokRenameWorkReq.getWorkId());
 
         workEntity.setName(wokRenameWorkReq.getWorkName());
 
@@ -493,7 +490,7 @@ public class WorkBizService {
     public void copyWork(CopyWorkReq wokCopyWorkReq) {
 
         // 获取作业信息
-        WorkEntity work = workService.getWorkEntity(wokCopyWorkReq.getWorkId());
+        WorkEntity work = workService.getWork(wokCopyWorkReq.getWorkId());
 
         // 获取作业配置
         WorkConfigEntity workConfig = workConfigBizService.getWorkConfigEntity(work.getConfigId());
@@ -513,7 +510,7 @@ public class WorkBizService {
 
     public void topWork(TopWorkReq topWorkReq) {
 
-        WorkEntity work = workService.getWorkEntity(topWorkReq.getWorkId());
+        WorkEntity work = workService.getWork(topWorkReq.getWorkId());
 
         // 获取作业最大的
         Integer maxTopIndex = workRepository.findWorkflowMaxTopIndex(work.getWorkflowId());
@@ -568,7 +565,7 @@ public class WorkBizService {
         }
 
         // 判断作业类型
-        WorkEntity workEntity = workService.getWorkEntity(workInstanceEntity.getWorkId());
+        WorkEntity workEntity = workService.getWork(workInstanceEntity.getWorkId());
 
         if (!WorkType.API.equals(workEntity.getWorkType()) && !WorkType.CURL.equals(workEntity.getWorkType())) {
             throw new IsxAppException("只支持API作业和Curl作业");
@@ -600,7 +597,7 @@ public class WorkBizService {
         }
 
         // 判断作业类型
-        WorkEntity workEntity = workService.getWorkEntity(workInstanceEntity.getWorkId());
+        WorkEntity workEntity = workService.getWork(workInstanceEntity.getWorkId());
 
         if (!WorkType.BASH.equals(workEntity.getWorkType()) && !WorkType.PYTHON.equals(workEntity.getWorkType())) {
             throw new IsxAppException("只支持Bash作业和Python作业");
@@ -633,7 +630,7 @@ public class WorkBizService {
         }
 
         // 判断作业类型
-        WorkEntity workEntity = workService.getWorkEntity(workInstanceEntity.getWorkId());
+        WorkEntity workEntity = workService.getWork(workInstanceEntity.getWorkId());
 
         if (!WorkType.PRQL.equals(workEntity.getWorkType()) && !WorkType.QUERY_JDBC_SQL.equals(workEntity.getWorkType())
             && !WorkType.QUERY_SPARK_SQL.equals(workEntity.getWorkType())

@@ -282,7 +282,7 @@ public class AlarmService {
 
     public Map<String, String> getWorkAlarmValueMap(WorkInstanceEntity workInstance, VipWorkVersionEntity workVersion) {
 
-        WorkEntity work = workService.getWorkEntity(workVersion.getWorkId());
+        WorkEntity work = workService.getWork(workVersion.getWorkId());
         WorkflowEntity workflow = workflowService.getWorkflow(work.getWorkflowId());
 
         Map<String, String> valueMap = new HashMap<>();
