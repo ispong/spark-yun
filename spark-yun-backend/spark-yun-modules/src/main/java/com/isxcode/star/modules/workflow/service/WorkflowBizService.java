@@ -538,7 +538,7 @@ public class WorkflowBizService {
             throw new IsxAppException("只有等待中的作业可以中断");
         }
         workInstance.setStatus(InstanceStatus.BREAK);
-        workInstanceRepository.save(workInstance);
+        workInstanceRepository.saveAndFlush(workInstance);
     }
 
     public void runCurrentNode(RunCurrentNodeReq runCurrentNodeReq) {

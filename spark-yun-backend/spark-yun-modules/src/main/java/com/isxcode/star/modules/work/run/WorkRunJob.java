@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSON;
 import com.isxcode.star.api.instance.constants.InstanceStatus;
 import com.isxcode.star.modules.work.repository.WorkEventRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.stereotype.Component;
@@ -27,7 +26,6 @@ public class WorkRunJob implements Job {
 
     private final WorkEventRepository workEventRepository;
 
-    @SneakyThrows
     @Override
     public void execute(JobExecutionContext context) {
 
@@ -47,7 +45,7 @@ public class WorkRunJob implements Job {
 
             // 中止和已完成，调度器和事件都要删除
             if (InstanceStatus.ABORT.equals(runStatus) || InstanceStatus.FINISHED.equals(runStatus)) {
-                if (workEventRepository.existsById(workRunContext.getInstanceId())) {
+                if (workEventRepository.existsById(workRunContext.getEventId())) {
                     workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
                 }
                 scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
@@ -55,10 +53,14 @@ public class WorkRunJob implements Job {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             // 如果运行作业异常未捕获，删除调度器，防止无限调度
-            if (workEventRepository.existsById(workRunContext.getInstanceId())) {
+            if (workEventRepository.existsById(workRunContext.getEventId())) {
                 workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
             }
-            scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
+            try {
+                scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
+            } catch (SchedulerException ex) {
+                log.error(ex.getMessage(), ex);
+            }
         }
     }
 }

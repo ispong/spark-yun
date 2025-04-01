@@ -134,12 +134,6 @@ public abstract class WorkExecutor {
                     return InstanceStatus.ABORT;
                 }
 
-                // 中断的任务，解锁，不可以再运行
-                if (InstanceStatus.BREAK.equals(workInstance.getStatus())) {
-                    locker.unlock(lockId);
-                    return InstanceStatus.ABORT;
-                }
-
                 // 成功或者失败，解锁，不可以再运行
                 if (InstanceStatus.SUCCESS.equals(workInstance.getStatus())
                     || InstanceStatus.FAIL.equals(workInstance.getStatus())) {
@@ -182,6 +176,7 @@ public abstract class WorkExecutor {
                     // 如果父级有中断，则状态直接变更为中断
                     workInstance.setStatus(InstanceStatus.BREAK);
                     workInstance.setExecEndDateTime(new Date());
+                    workInstance.setExecStartDateTime(new Date());
                     workInstance.setDuration(
                         (System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
                 } else {
@@ -210,50 +205,56 @@ public abstract class WorkExecutor {
         }
 
         // 基线管理，任务开始运行，发送消息
-        if (processNeverRun(workEvent, 2)) {
-            if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
-                alarmService.sendWorkMessage(workInstance, AlarmEventType.START_RUN);
+        if (!InstanceStatus.BREAK.equals(workInstance.getStatus())) {
+            if (processNeverRun(workEvent, 2)) {
+                if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
+                    alarmService.sendWorkMessage(workInstance, AlarmEventType.START_RUN);
+                }
             }
         }
 
         // 开始运行作业
         try {
 
-            // 开始执行作业，每次都要执行
-            String executeStatus = execute(workRunContext, workInstance);
+            // 如果作业中断，不执行
+            if (!InstanceStatus.BREAK.equals(workInstance.getStatus())) {
 
-            // 已中止的任务，不可以再运行
-            if (InstanceStatus.ABORT.equals(workInstance.getStatus())) {
-                return InstanceStatus.ABORT;
-            }
+                // 开始执行作业，每次都要执行
+                String executeStatus = execute(workRunContext, workInstance);
 
-            // 如果是运行中，直接跳过，下个调度再执行
-            if (InstanceStatus.RUNNING.equals(executeStatus)) {
-                return InstanceStatus.RUNNING;
-            }
-
-            // 作业运行成功
-            if (InstanceStatus.SUCCESS.equals(executeStatus)) {
-
-                // 获取最新作业实例，拿最新的日志，修改实例状态为成功
-                workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
-                // 已中止的任务，解锁，不可以再运行
+                // 已中止的任务，不可以再运行
                 if (InstanceStatus.ABORT.equals(workInstance.getStatus())) {
                     return InstanceStatus.ABORT;
                 }
-                // 运行中的修改为成功
-                if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
-                    workInstance.setStatus(InstanceStatus.SUCCESS);
-                    workInstance.setExecEndDateTime(new Date());
-                    workInstance.setDuration(
-                        (System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
-                    workInstance.setSubmitLog(
-                        workInstance.getSubmitLog() + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "执行成功 \n");
-                    workInstanceRepository.saveAndFlush(workInstance);
 
-                    // 基线管理，任务运行成功发送消息
-                    if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
-                        alarmService.sendWorkMessage(workInstance, AlarmEventType.RUN_SUCCESS);
+                // 如果是运行中，直接跳过，下个调度再执行
+                if (InstanceStatus.RUNNING.equals(executeStatus)) {
+                    return InstanceStatus.RUNNING;
+                }
+
+                // 作业运行成功
+                if (InstanceStatus.SUCCESS.equals(executeStatus)) {
+
+                    // 获取最新作业实例，拿最新的日志，修改实例状态为成功
+                    workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
+                    // 已中止的任务，解锁，不可以再运行
+                    if (InstanceStatus.ABORT.equals(workInstance.getStatus())) {
+                        return InstanceStatus.ABORT;
+                    }
+                    // 运行中的修改为成功
+                    if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
+                        workInstance.setStatus(InstanceStatus.SUCCESS);
+                        workInstance.setExecEndDateTime(new Date());
+                        workInstance.setDuration(
+                            (System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
+                        workInstance.setSubmitLog(
+                            workInstance.getSubmitLog() + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "执行成功 \n");
+                        workInstanceRepository.saveAndFlush(workInstance);
+
+                        // 基线管理，任务运行成功发送消息
+                        if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
+                            alarmService.sendWorkMessage(workInstance, AlarmEventType.RUN_SUCCESS);
+                        }
                     }
                 }
             }
@@ -287,15 +288,18 @@ public abstract class WorkExecutor {
         }
 
         // 基线管理，任务运行结束发送消息
-        if (processNeverRun(workEvent, 999)) {
-            if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
-                alarmService.sendWorkMessage(workInstance, AlarmEventType.RUN_END);
+        if (!InstanceStatus.BREAK.equals(workInstance.getStatus())) {
+            if (processNeverRun(workEvent, 999)) {
+                if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
+                    alarmService.sendWorkMessage(workInstance, AlarmEventType.RUN_END);
+                }
             }
         }
 
         // 如果当前作业实例运行结束
         if (InstanceStatus.FAIL.equals(workInstance.getStatus())
-            || InstanceStatus.SUCCESS.equals(workInstance.getStatus())) {
+            || InstanceStatus.SUCCESS.equals(workInstance.getStatus())
+            || InstanceStatus.BREAK.equals(workInstance.getStatus())) {
 
             // 移除任务进程
             WORK_THREAD.remove(workInstance.getId());
@@ -305,7 +309,7 @@ public abstract class WorkExecutor {
 
                 // 加锁，修改作业流状态，并推送子任务
                 // 如果被抢锁，直接跳过，下个调度再执行
-                if (locker.isLocked(workRunContext.getInstanceId())) {
+                if (locker.isLocked(workRunContext.getFlowInstanceId())) {
                     return InstanceStatus.RUNNING;
                 }
                 Integer lockId = locker.lock(workRunContext.getFlowInstanceId());
