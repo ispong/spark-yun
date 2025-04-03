@@ -268,10 +268,10 @@ public class WorkBizService {
             .status(InstanceStatus.PENDING).instanceType(InstanceType.MANUAL).build();
         workInstance = workInstanceRepository.saveAndFlush(workInstance);
 
-        // 封装WorkRunContext
+        // 封装作业运行上下文
         WorkRunContext workRunContext = genWorkRunContext(workInstance.getId(), EventType.WORK, work, workConfig);
 
-        // 提交作业运行
+        // 提交作业
         workRunFactory.execute(workRunContext);
 
         // 返回作业的实例id

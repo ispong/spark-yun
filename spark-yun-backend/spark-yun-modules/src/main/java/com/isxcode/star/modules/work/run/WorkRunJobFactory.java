@@ -26,7 +26,7 @@ public class WorkRunJobFactory {
 
     public void execute(WorkRunContext workRunContext) {
 
-        // 设置用户id和租户id
+        // 设置租户和用户
         USER_ID.set(workRunContext.getUserId());
         TENANT_ID.set(workRunContext.getTenantId());
 
@@ -35,12 +35,12 @@ public class WorkRunJobFactory {
             WorkEventEntity.builder().eventProcess(0).eventContext(JSON.toJSONString(workRunContext)).build();
         workEvent = workEventRepository.saveAndFlush(workEvent);
 
-        // 封装调度器上下文
+        // 封装调度器的运行参数
         JobDataMap jobDataMap = new JobDataMap();
         workRunContext.setEventId(workEvent.getId());
         jobDataMap.put("workRunContext", JSON.toJSONString(workRunContext));
 
-        // 初始化调度器，每1秒执行一次，每个作业都配置一个调度器刷新状态
+        // 初始化调度器，每2秒执行一次
         JobDetail jobDetail = JobBuilder.newJob(WorkRunJob.class).setJobData(jobDataMap).build();
         Trigger trigger = TriggerBuilder.newTrigger()
             .withSchedule(
@@ -53,9 +53,8 @@ public class WorkRunJobFactory {
             scheduler.getListenerManager().addJobListener(new QuartzJobErrorListener());
             scheduler.start();
         } catch (SchedulerException e) {
-            // 一般不会报错
             log.error(e.getMessage(), e);
-            throw new IsxAppException("刷新作业状态的调度器创建失败");
+            throw new IsxAppException("刷新作业运行的调度器创建失败");
         }
     }
 }

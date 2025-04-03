@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.quartz.Scheduler;
-import org.springframework.dao.EmptyResultDataAccessException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -104,11 +103,16 @@ public abstract class WorkExecutor {
         return workInstanceRepository.saveAndFlush(workInstance);
     }
 
+    /**
+     * 执行作业.
+     */
     public String runWork(WorkRunContext workRunContext) {
 
         if (EventType.WORK.equals(workRunContext.getEventType())) {
+            // 直接运行的作业逻辑
             return runSingleWork(workRunContext);
         } else {
+            // 作业流中作业运行逻辑
             return runFlowWork(workRunContext);
         }
     }
@@ -118,15 +122,18 @@ public abstract class WorkExecutor {
         this.abort(workInstance);
     }
 
+    /**
+     * 直接运行的作业逻辑.
+     */
     public String runSingleWork(WorkRunContext workRunContext) {
 
         // 获取事件
         WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
 
-        // 获取最新作业实例
+        // 获取作业实例
         WorkInstanceEntity workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
 
-        // 中止、中止中，不可以再运行
+        // 中止、中止中、成功、失败，不可以再运行
         if (InstanceStatus.ABORT.equals(workInstance.getStatus())
             || InstanceStatus.ABORTING.equals(workInstance.getStatus())
             || InstanceStatus.SUCCESS.equals(workInstance.getStatus())
@@ -134,26 +141,26 @@ public abstract class WorkExecutor {
             return InstanceStatus.FINISHED;
         }
 
-        // 先将作业改成运行中，只有pending的作业才可以改成运行中
+        // 将作业状态改成运行中
         if (InstanceStatus.PENDING.equals(workInstance.getStatus())) {
-
-            // 单个作业实例状态改成运行中
             workInstance.setSubmitLog(LocalDateTime.now() + WorkLog.SUCCESS_INFO + "开始提交作业 \n");
             workInstance.setStatus(InstanceStatus.RUNNING);
             workInstance.setExecStartDateTime(new Date());
             workInstanceRepository.saveAndFlush(workInstance);
         }
 
-        // 开始运行作业
         try {
 
             // 运行前，保存当前线程
             WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
 
-            // 开始执行作业，每次都要执行
+            // 执行作业，每次都会执行
             String executeStatus = execute(workRunContext, workInstance, workEvent);
 
-            // 如果是运行中，直接跳过，下个调度再执行
+            // 运行结束，移除当前线程
+            WORK_THREAD.remove(workInstance.getId());
+
+            // 如果是运行中，直接跳过，等待下一个调度
             if (InstanceStatus.RUNNING.equals(executeStatus)) {
                 return InstanceStatus.RUNNING;
             }
@@ -164,8 +171,6 @@ public abstract class WorkExecutor {
                 // 只有运行中的作业，才能改成成功
                 workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
                 if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
-
-                    // 运行中的修改为成功
                     workInstance.setStatus(InstanceStatus.SUCCESS);
                     workInstance.setExecEndDateTime(new Date());
                     workInstance.setDuration(
@@ -178,9 +183,6 @@ public abstract class WorkExecutor {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
 
-            // 获取异常日志
-            String msg = e instanceof WorkRunException ? ((WorkRunException) e).getMsg() : e.getMessage();
-
             // 只有运行中的作业，才能改成失败
             workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
             if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
@@ -188,14 +190,14 @@ public abstract class WorkExecutor {
                 workInstance.setExecEndDateTime(new Date());
                 workInstance
                     .setDuration((System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
-                workInstance.setSubmitLog(
-                    workInstance.getSubmitLog() + msg + LocalDateTime.now() + WorkLog.ERROR_INFO + "执行失败 \n");
+                workInstance.setSubmitLog(workInstance.getSubmitLog()
+                    + (e instanceof WorkRunException ? ((WorkRunException) e).getMsg() : e.getMessage())
+                    + LocalDateTime.now() + WorkLog.ERROR_INFO + "执行失败 \n");
                 workInstanceRepository.saveAndFlush(workInstance);
             }
         }
 
         // 单个作业运行结束
-        WORK_THREAD.remove(workInstance.getId());
         return InstanceStatus.FINISHED;
     }
 
@@ -213,18 +215,14 @@ public abstract class WorkExecutor {
             return InstanceStatus.FINISHED;
         }
 
-        // 一个作业的一个实例的一个eventId拿到锁，其他的都踢掉
-        Integer lockId = locker.lockOnly("work_run_" + workRunContext.getInstanceId(), workRunContext.getEventId());
-        if (locker.isLocked("work_run_" + workRunContext.getInstanceId(), workRunContext.getEventId())) {
-            try {
-                locker.unlock(lockId);
-            } catch (EmptyResultDataAccessException e) {
-                return InstanceStatus.FINISHED;
-            }
+        // 先加锁，id最小的事件可用，其他的事件都杀死，防止多个作业同时推送
+        Integer lockId = locker.lockOnly("work_" + workRunContext.getInstanceId(), workRunContext.getEventId());
+        if (locker.isLocked("work_" + workRunContext.getInstanceId(), workRunContext.getEventId())) {
+            locker.unlock(lockId);
             return InstanceStatus.FINISHED;
         }
 
-        // 先将作业改成运行中，只有pending的作业才可以改成运行中
+        // 将作业实例状态改为运行中
         if (InstanceStatus.PENDING.equals(workInstance.getStatus())) {
 
             // 基线管理，任务开始运行，发送消息
@@ -234,11 +232,11 @@ public abstract class WorkExecutor {
 
             // 在调度中的作业，如果自身定时器没有被触发，不可以再运行
             if (!Strings.isEmpty(workRunContext.getVersionId()) && !workInstance.getQuartzHasRun()) {
-                locker.clearLock("work_run_" + workRunContext.getInstanceId());
+                locker.unlock(lockId);
                 return InstanceStatus.FINISHED;
             }
 
-            // 获取父级别的作业实例状态
+            // 获取父级的作业实例状态
             List<String> parentNodes =
                 WorkUtils.getParentNodes(workRunContext.getNodeMapping(), workRunContext.getWorkId());
             List<WorkInstanceEntity> parentInstances = workInstanceRepository
@@ -251,7 +249,7 @@ public abstract class WorkExecutor {
             // 判断当前作业实例的状态
             if (parentIsRunning) {
                 // 如果父级在运行中，不可以再运行
-                locker.clearLock("work_run_" + workRunContext.getInstanceId());
+                locker.unlock(lockId);
                 return InstanceStatus.FINISHED;
             } else if (parentIsError) {
                 // 如果父级有错，则状态直接变更为失败
@@ -274,11 +272,11 @@ public abstract class WorkExecutor {
                 workInstance.setExecStartDateTime(new Date());
             }
 
-            // 保存作业实例状态，解锁
+            // 保存作业实例状态
             workInstanceRepository.saveAndFlush(workInstance);
         }
 
-        // 实例只有running状态，才能执行作业
+        // 实例只有运行中，才能执行作业
         if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
             try {
 
@@ -287,6 +285,9 @@ public abstract class WorkExecutor {
 
                 // 开始执行作业，每次都要执行
                 String executeStatus = execute(workRunContext, workInstance, workEvent);
+
+                // 作业执行完毕，移除当前线程
+                WORK_THREAD.remove(workInstance.getId());
 
                 // 如果是运行中，直接跳过，下个调度再执行
                 if (InstanceStatus.RUNNING.equals(executeStatus)) {
@@ -299,7 +300,6 @@ public abstract class WorkExecutor {
                     // 只有运行中的作业，才能改成成功
                     workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
                     if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
-                        // 运行中的修改为成功
                         workInstance.setStatus(InstanceStatus.SUCCESS);
                         workInstance.setExecEndDateTime(new Date());
                         workInstance.setDuration(
@@ -317,9 +317,6 @@ public abstract class WorkExecutor {
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
 
-                // 获取异常日志
-                String msg = e instanceof WorkRunException ? ((WorkRunException) e).getMsg() : e.getMessage();
-
                 // 只有运行中的作业，才能改成失败
                 workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
                 if (InstanceStatus.RUNNING.equals(workInstance.getStatus())) {
@@ -327,8 +324,9 @@ public abstract class WorkExecutor {
                     workInstance.setExecEndDateTime(new Date());
                     workInstance.setDuration(
                         (System.currentTimeMillis() - workInstance.getExecStartDateTime().getTime()) / 1000);
-                    workInstance.setSubmitLog(
-                        workInstance.getSubmitLog() + msg + LocalDateTime.now() + WorkLog.ERROR_INFO + "执行失败 \n");
+                    workInstance.setSubmitLog(workInstance.getSubmitLog()
+                        + (e instanceof WorkRunException ? ((WorkRunException) e).getMsg() : e.getMessage())
+                        + LocalDateTime.now() + WorkLog.ERROR_INFO + "执行失败 \n");
                     workInstanceRepository.saveAndFlush(workInstance);
 
                     // 基线管理，任务运行失败发送消息
@@ -337,17 +335,17 @@ public abstract class WorkExecutor {
                     }
                 }
             }
+
             // 基线管理，任务运行结束发送消息
-            if (processNeverRun(workEvent, 999)) {
-                if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
-                    alarmService.sendWorkMessage(workInstance, AlarmEventType.RUN_END);
-                }
+            if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
+                alarmService.sendWorkMessage(workInstance, AlarmEventType.RUN_END);
             }
+
         }
 
-        // 如果是作业流的作业执行结束，需要继续推送任务
-        if (InstanceStatus.FAIL.equals(workInstance.getStatus())
-            || InstanceStatus.SUCCESS.equals(workInstance.getStatus())) {
+        // 如果作业执行结束，需要继续推送任务
+        if (InstanceStatus.SUCCESS.equals(workInstance.getStatus())
+            || InstanceStatus.FAIL.equals(workInstance.getStatus())) {
 
             // 获取最新的作业流实例
             WorkflowInstanceEntity workflowInstance =
@@ -355,19 +353,13 @@ public abstract class WorkExecutor {
 
             // 中止中的作业流，不可以再推送
             if (InstanceStatus.ABORTING.equals(workflowInstance.getStatus())) {
-                locker.clearLock("work_run_" + workRunContext.getInstanceId());
+                locker.unlock(lockId);
                 return InstanceStatus.FINISHED;
             }
 
             // 获取所有节点实例状态，判断作业流是否执行完毕
-            List<WorkInstanceEntity> endNodeInstance;
-            try {
-                endNodeInstance = workInstanceRepository.findAllByWorkIdAndWorkflowInstanceId(
-                    workRunContext.getNodeList(), workRunContext.getFlowInstanceId());
-            } catch (Exception e) {
-                return InstanceStatus.RUNNING;
-            }
-
+            List<WorkInstanceEntity> endNodeInstance = workInstanceRepository
+                .findAllByWorkIdAndWorkflowInstanceId(workRunContext.getNodeList(), workRunContext.getFlowInstanceId());
             boolean flowIsOver = endNodeInstance.stream()
                 .allMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()) || InstanceStatus.SUCCESS.equals(e.getStatus())
                     || InstanceStatus.ABORT.equals(e.getStatus()) || InstanceStatus.BREAK.equals(e.getStatus()));
@@ -377,22 +369,10 @@ public abstract class WorkExecutor {
 
                 // 修改作业流状态
                 boolean flowIsError = endNodeInstance.stream().anyMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()));
+                workflowInstance.setExecEndDateTime(new Date());
                 workflowInstance.setDuration(
                     (System.currentTimeMillis() - workflowInstance.getExecStartDateTime().getTime()) / 1000);
-                workflowInstance.setExecEndDateTime(new Date());
-                if (flowIsError) {
-                    workflowInstance.setStatus(InstanceStatus.FAIL);
-                    workflowInstance
-                        .setRunLog(workflowInstanceRepository.getWorkflowLog(workRunContext.getFlowInstanceId()) + "\n"
-                            + LocalDateTime.now() + WorkLog.ERROR_INFO + "运行失败");
-                } else {
-                    workflowInstance.setStatus(InstanceStatus.SUCCESS);
-                    workflowInstance
-                        .setRunLog(workflowInstanceRepository.getWorkflowLog(workRunContext.getFlowInstanceId()) + "\n"
-                            + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "运行成功");
-                }
-
-                // 持久化作业流实例状态
+                workflowInstance.setStatus(flowIsError ? InstanceStatus.FAIL : InstanceStatus.SUCCESS);
                 workflowInstanceRepository.saveAndFlush(workflowInstance);
 
                 // 基线告警，作业流成功、失败、运行结束发送消息
@@ -437,17 +417,11 @@ public abstract class WorkExecutor {
                 workRunJobFactory.execute(sonWorkRunContext);
             });
 
-            // 作业运行结束，移除线程
-            WORK_THREAD.remove(workInstance.getId());
-
             // 作业运行完，解锁
-            locker.clearLock("work_run_" + workRunContext.getInstanceId());
-
-            // 当前作业运行完毕
-            return InstanceStatus.FINISHED;
+            locker.unlock(lockId);
         }
 
-        // 正常继续执行
-        return InstanceStatus.RUNNING;
+        // 当前作业运行完毕
+        return InstanceStatus.FINISHED;
     }
 }

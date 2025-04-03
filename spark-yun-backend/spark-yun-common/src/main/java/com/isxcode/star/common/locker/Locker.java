@@ -93,7 +93,10 @@ public class Locker {
         }
 
         // 将自己的id删掉
-        lockerRepository.deleteById(id);
+        try {
+            lockerRepository.deleteById(id);
+        } catch (Exception ignore) {
+        }
     }
 
     /**

@@ -29,19 +29,17 @@ public class WorkRunJob implements Job {
     @Override
     public void execute(JobExecutionContext context) {
 
-        // 获取调度器上下文
+        // 获取调度器中的参数
         WorkRunContext workRunContext = JSON.parseObject(
             String.valueOf(context.getJobDetail().getJobDataMap().get("workRunContext")), WorkRunContext.class);
 
-        // 判断上一个锁是否被占用，让调度器一个一个执行，上一个没有执行完，下一个不让执行
+        // 作业调度的事件，只能一个一个执行，加了锁直接等下一次调度
         if (locker.isLocked("scheduler_" + workRunContext.getEventId())) {
             return;
         }
-
-        // 当前执行器加锁
         Integer lockId = locker.lockOnly("scheduler_" + workRunContext.getEventId());
 
-        // 异步配置租户id和用户id
+        // 设置租户和用户
         USER_ID.set(workRunContext.getUserId());
         TENANT_ID.set(workRunContext.getTenantId());
 
@@ -51,28 +49,22 @@ public class WorkRunJob implements Job {
             WorkExecutor workExecutor = workExecutorFactory.create(workRunContext.getWorkType());
             runStatus = workExecutor.runWork(workRunContext);
         } catch (Exception e) {
-            // 作业运行有异常，则作业运行结束
+            // 作业运行漏捕获的异常，直接事件结束，防止一直调度
             log.error(e.getMessage(), e);
             runStatus = InstanceStatus.FINISHED;
         }
 
-        // 作业运行结束，调度器和事件都要删除
+        // 作业事件运行结束，调度器和作业事件都要删除，且只会在这里销毁作业事件和调度器
         if (InstanceStatus.FINISHED.equals(runStatus)) {
-
             try {
-                workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
-            } catch (Exception ignore) {
-                // 直接删除，异常不处理
-            }
-
-            try {
+                workEventRepository.deleteById(workRunContext.getEventId());
                 scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
+            } catch (Exception ignore) {
+                // 异常不处理
             }
         }
 
-        // 解锁，让下一个调度器可以执行
+        // 解锁，让下一个调度可以执行
         locker.unlock(lockId);
     }
 }
