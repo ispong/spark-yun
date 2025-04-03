@@ -17,7 +17,8 @@ public interface LockerRepository extends JpaRepository<LockerEntity, Integer> {
     @Query(value = "select min(L.id) from LockerEntity L where L.name = :name")
     Integer getMinId(@Param("name") String name);
 
-    @Query(value = "select L.box from LockerEntity L where L.id = (select min(L2.id) from LockerEntity L2 where L2.name =:name )")
+    @Query(
+        value = "select L.box from LockerEntity L where L.id = (select min(L2.id) from LockerEntity L2 where L2.name =:name )")
     String getMinBox(@Param("name") String name);
 
     List<LockerEntity> findAllByName(String name);
