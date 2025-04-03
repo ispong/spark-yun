@@ -68,12 +68,12 @@ public class BashExecutor extends WorkExecutor {
     private final WorkInstanceRepository workInstanceRepository;
 
     public BashExecutor(WorkInstanceRepository workInstanceRepository,
-        WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
-        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
-        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
-        WorkEventRepository workEventRepository, Scheduler scheduler, Locker locker, WorkRepository workRepository,
-        WorkRunJobFactory workRunJobFactory, WorkConfigRepository workConfigRepository,
-        VipWorkVersionRepository vipWorkVersionRepository) {
+                        WorkflowInstanceRepository workflowInstanceRepository, ClusterNodeRepository clusterNodeRepository,
+                        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterRepository clusterRepository,
+                        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
+                        WorkEventRepository workEventRepository, Scheduler scheduler, Locker locker, WorkRepository workRepository,
+                        WorkRunJobFactory workRunJobFactory, WorkConfigRepository workConfigRepository,
+                        VipWorkVersionRepository vipWorkVersionRepository) {
 
         super(alarmService, scheduler, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
             workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository, vipWorkVersionRepository);
@@ -96,15 +96,14 @@ public class BashExecutor extends WorkExecutor {
         return WorkType.BASH;
     }
 
-    public String execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance) {
+    public String execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance, WorkEventEntity workEvent) {
 
-        // 获取日志和事件
-        WorkEventEntity workEvent = workEventRepository.findById(workRunContext.getEventId()).get();
+        // 获取作业运行上下文
         WorkRunContext workEventBody = JSON.parseObject(workEvent.getEventContext(), WorkRunContext.class);
         StringBuilder logBuilder = new StringBuilder(workInstance.getSubmitLog());
 
-        // 检查执行脚本是否为空，保存并保存脚本
-        if (processNeverRun(workEvent, 3)) {
+        // 检查作业是否合法，并保存脚本信息
+        if (processNeverRun(workEvent, 1)) {
 
             logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("检测脚本内容 \n");
             if (Strings.isEmpty(workRunContext.getScript())) {
@@ -134,8 +133,8 @@ public class BashExecutor extends WorkExecutor {
             workEventRepository.saveAndFlush(workEvent);
         }
 
-        // 检查集群是否合法，保存节点信息
-        if (processNeverRun(workEvent, 4)) {
+        // 检查集群是否合法，并保存节点信息
+        if (processNeverRun(workEvent, 2)) {
 
             // 检测计算集群是否存在
             logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("开始检测集群 \n");
@@ -177,14 +176,8 @@ public class BashExecutor extends WorkExecutor {
             workEventRepository.saveAndFlush(workEvent);
         }
 
-        // 提交作业，保存查询作业的pid
-        if (processNeverRun(workEvent, 5)) {
-
-            // 加锁，任务提交后才能执行杀死操作
-            if (locker.isLocked(workInstance.getId())) {
-                return InstanceStatus.RUNNING;
-            }
-            Integer lockId = locker.lockOnly(workInstance.getId());
+        // 提交作业，保存pid信息
+        if (processNeverRun(workEvent, 3)) {
 
             try {
                 // 上传脚本
@@ -210,8 +203,6 @@ public class BashExecutor extends WorkExecutor {
                 workEvent.setEventContext(JSON.toJSONString(workEventBody));
                 workEventRepository.saveAndFlush(workEvent);
 
-                // 解锁
-                locker.unlock(lockId);
             } catch (JSchException | SftpException | InterruptedException | IOException e) {
 
                 log.debug(e.getMessage(), e);
@@ -220,8 +211,8 @@ public class BashExecutor extends WorkExecutor {
             }
         }
 
-        // 获取作业状态
-        if (processNeverRun(workEvent, 6)) {
+        // 判断作业是否执行完毕
+        if (processNeverRun(workEvent, 4)) {
 
             String getPidStatusCommand = "ps -p " + workEventBody.getPid();
 
@@ -254,8 +245,8 @@ public class BashExecutor extends WorkExecutor {
             }
         }
 
-        // 运行结束，获取作业日志和数据
-        if (processNeverRun(workEvent, 7)) {
+        // 运行结束，获取作业日志和数据，保存日志、数据信息
+        if (processNeverRun(workEvent, 5)) {
 
             // 如果作业不在运行中，不获取数据和日志
             WorkInstanceEntity workInstanceEntity = workInstanceRepository.findById(workInstance.getId()).get();
@@ -287,8 +278,8 @@ public class BashExecutor extends WorkExecutor {
             workEventRepository.saveAndFlush(workEvent);
         }
 
-        // 删除日志文件
-        if (processNeverRun(workEvent, 8)) {
+        // 删除脚本文件
+        if (processNeverRun(workEvent, 6)) {
 
             // 删除脚本和日志
             try {
@@ -299,13 +290,17 @@ public class BashExecutor extends WorkExecutor {
             } catch (JSchException | InterruptedException | IOException e) {
                 log.error("删除运行脚本失败");
             }
+        }
 
+        // 通过日志文件，判断作业是否运行成功
+        if (processNeverRun(workEvent, 7)) {
             // 判断脚本运行成功还是失败
             if (!workEventBody.getLog().contains("zhiqingyun_success")) {
                 throw new WorkRunException(LocalDateTime.now() + WorkLog.ERROR_INFO + "任务运行异常" + "\n");
             }
         }
 
+        // 如果没有抛异常，默认执行成功
         return InstanceStatus.SUCCESS;
     }
 

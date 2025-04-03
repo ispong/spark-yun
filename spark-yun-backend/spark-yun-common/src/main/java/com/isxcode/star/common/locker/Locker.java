@@ -1,6 +1,7 @@
 package com.isxcode.star.common.locker;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,14 +14,32 @@ public class Locker {
 
     private final LockerRepository lockerRepository;
 
-    /** 加锁. */
+    /**
+     * 加锁.
+     */
     public Integer lockOnly(String name) {
 
         // 给数据库加一条数据
         return lockerRepository.save(LockerEntity.builder().name(name).build()).getId();
     }
 
-    /** 加锁. */
+    /**
+     * 加锁.
+     */
+    public Integer lockOnly(String name, String box) {
+
+        Optional<LockerEntity> lockerEntityOptional = lockerRepository.findByBox(box);
+        if (lockerEntityOptional.isPresent()) {
+            return lockerEntityOptional.get().getId();
+        } else {
+            // 给数据库加一条数据
+            return lockerRepository.save(LockerEntity.builder().name(name).box(box).build()).getId();
+        }
+    }
+
+    /**
+     * 加锁.
+     */
     public Integer lock(String name) {
 
         // 给数据库加一条数据
@@ -48,17 +67,49 @@ public class Locker {
         return lockerRepository.existsByName(name);
     }
 
-    /** 解锁. */
+    /**
+     * 判断是否可行.
+     */
+    public Boolean isLocked(String name, String box) {
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ignored) {
+            // 防止没有写进去
+        }
+
+        return !Objects.equals(lockerRepository.getMinBox(name), box);
+    }
+
+    /**
+     * 解锁.
+     */
     public void unlock(Integer id) {
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ignored) {
+            // 防止没有写进去
+        }
 
         // 将自己的id删掉
         lockerRepository.deleteById(id);
     }
 
-    /** 清理锁. */
+    /**
+     * 清理锁.
+     */
     public void clearLock(String name) {
 
         // 将name相关的删掉
         lockerRepository.deleteAll(lockerRepository.findAllByName(name));
+    }
+
+    /**
+     * 清理锁.
+     */
+    public void deleteLock(String name) {
+
+        lockerRepository.findByName(name).ifPresent(lockerRepository::delete);
     }
 }

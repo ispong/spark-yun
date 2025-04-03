@@ -48,27 +48,31 @@ public class WorkRunJob implements Job {
         // 触发作业运行
         String runStatus;
         try {
-            // 调用作业执行逻辑
             WorkExecutor workExecutor = workExecutorFactory.create(workRunContext.getWorkType());
             runStatus = workExecutor.runWork(workRunContext);
         } catch (Exception e) {
+            // 作业运行有异常，则作业运行结束
             log.error(e.getMessage(), e);
             runStatus = InstanceStatus.FINISHED;
         }
 
-        // 当前作业被中止、已完成、执行异常，调度器和事件都要删除
+        // 作业运行结束，调度器和事件都要删除
         if (InstanceStatus.FINISHED.equals(runStatus)) {
-            if (workEventRepository.existsById(workRunContext.getEventId())) {
+
+            try {
                 workEventRepository.deleteByIdAndFlush(workRunContext.getEventId());
+            } catch (Exception ignore) {
+                // 直接删除，异常不处理
             }
+
             try {
                 scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
-            } catch (SchedulerException e) {
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         }
 
-        // 解锁
+        // 解锁，让下一个调度器可以执行
         locker.unlock(lockId);
     }
 }

@@ -9,3 +9,7 @@ create table SY_WORK_EVENT
     last_modified_by        varchar(200) not null comment '更新人',
     last_modified_date_time datetime     not null comment '更新时间'
 );
+
+-- 扩展NODE_MAPPING长度
+alter table SY_WORKFLOW_CONFIG
+    alter column NODE_MAPPING text;

@@ -44,7 +44,7 @@ public class WorkRunJobFactory {
         JobDetail jobDetail = JobBuilder.newJob(WorkRunJob.class).setJobData(jobDataMap).build();
         Trigger trigger = TriggerBuilder.newTrigger()
             .withSchedule(
-                CronScheduleBuilder.cronSchedule("*/1 * * * * ? ").withMisfireHandlingInstructionFireAndProceed())
+                CronScheduleBuilder.cronSchedule("*/2 * * * * ? ").withMisfireHandlingInstructionFireAndProceed())
             .withIdentity("event_" + workRunContext.getEventId()).build();
 
         // 创建并触发调度器

@@ -264,8 +264,7 @@ public class WorkBizService {
         WorkConfigEntity workConfig = workConfigBizService.getWorkConfigEntity(work.getConfigId());
 
         // 初始化作业实例
-        WorkInstanceEntity workInstance =
-            WorkInstanceEntity.builder().workId(work.getId()).instanceType(InstanceType.MANUAL).build();
+        WorkInstanceEntity workInstance = WorkInstanceEntity.builder().workId(work.getId()).status(InstanceStatus.PENDING).instanceType(InstanceType.MANUAL).build();
         workInstance = workInstanceRepository.saveAndFlush(workInstance);
 
         // 封装WorkRunContext

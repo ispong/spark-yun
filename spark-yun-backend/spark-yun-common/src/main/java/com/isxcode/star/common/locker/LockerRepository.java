@@ -1,6 +1,7 @@
 package com.isxcode.star.common.locker;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.isxcode.star.api.main.constants.ModuleCode;
 import org.springframework.cache.annotation.CacheConfig;
@@ -16,7 +17,18 @@ public interface LockerRepository extends JpaRepository<LockerEntity, Integer> {
     @Query(value = "select min(L.id) from LockerEntity L where L.name = :name")
     Integer getMinId(@Param("name") String name);
 
+    @Query(value = "select L.box from LockerEntity L where L.id = (select min(L2.id) from LockerEntity L2 where L2.name =:name )")
+    String getMinBox(@Param("name") String name);
+
     List<LockerEntity> findAllByName(String name);
 
+    Optional<LockerEntity> findByName(String name);
+
+    Optional<LockerEntity> findByBox(String box);
+
     Boolean existsByName(String name);
+
+    void deleteByName(String name);
+
+    Optional<LockerEntity> findByNameAndBox(String name, String box);
 }
