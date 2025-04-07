@@ -54,7 +54,7 @@ public abstract class WorkExecutor {
     public abstract String getWorkType();
 
     protected abstract String execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance,
-                                      WorkEventEntity workEvent) throws Exception;
+        WorkEventEntity workEvent) throws Exception;
 
     protected abstract void abort(WorkInstanceEntity workInstance) throws Exception;
 
@@ -270,7 +270,8 @@ public abstract class WorkExecutor {
 
             // 保存作业实例状态
             workInstanceRepository.saveAndFlush(workInstance);
-            log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】修改状态为运行中", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
+            log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】修改状态为运行中", workRunContext.getFlowInstanceId(),
+                workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
         }
 
         // 实例只有运行中，才能执行作业
@@ -281,7 +282,8 @@ public abstract class WorkExecutor {
                 WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
 
                 // 开始执行作业，每次都要执行
-                log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】执行一次作业", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
+                log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】执行一次作业", workRunContext.getFlowInstanceId(),
+                    workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
                 workInstance.setEventId(workRunContext.getEventId());
                 String executeStatus = execute(workRunContext, workInstance, workEvent);
 
@@ -306,7 +308,8 @@ public abstract class WorkExecutor {
                         workInstance.setSubmitLog(
                             workInstance.getSubmitLog() + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "执行成功 \n");
                         workInstanceRepository.saveAndFlush(workInstance);
-                        log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】运行成功", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
+                        log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】运行成功", workRunContext.getFlowInstanceId(),
+                            workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
 
                         // 基线管理，任务运行成功发送消息
                         if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
@@ -328,7 +331,8 @@ public abstract class WorkExecutor {
                         + (e instanceof WorkRunException ? ((WorkRunException) e).getMsg() : e.getMessage())
                         + LocalDateTime.now() + WorkLog.ERROR_INFO + "执行失败 \n");
                     workInstanceRepository.saveAndFlush(workInstance);
-                    log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】运行失败", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
+                    log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】运行失败", workRunContext.getFlowInstanceId(),
+                        workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
 
                     // 基线管理，任务运行失败发送消息
                     if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
@@ -346,8 +350,7 @@ public abstract class WorkExecutor {
 
         // 如果作业执行结束，需要继续推送任务
         if ((InstanceStatus.SUCCESS.equals(workInstance.getStatus())
-            || InstanceStatus.FAIL.equals(workInstance.getStatus()))
-            && !Strings.isEmpty(workInstance.getEventId())) {
+            || InstanceStatus.FAIL.equals(workInstance.getStatus())) && !Strings.isEmpty(workInstance.getEventId())) {
 
             // 获取最新的作业流实例
             WorkflowInstanceEntity workflowInstance =
@@ -385,10 +388,12 @@ public abstract class WorkExecutor {
                     }
                     alarmService.sendWorkflowMessage(workflowInstance, AlarmEventType.RUN_END);
                 }
-                log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】作业流运行结束", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
+                log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】作业流运行结束", workRunContext.getFlowInstanceId(),
+                    workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
             } else {
                 // 工作流没有执行完，继续推送子节点
-                List<String> sonNodes = WorkUtils.getSonNodes(workRunContext.getNodeMapping(), workRunContext.getWorkId());
+                List<String> sonNodes =
+                    WorkUtils.getSonNodes(workRunContext.getNodeMapping(), workRunContext.getWorkId());
                 List<WorkEntity> sonNodeWorks = workRepository.findAllByWorkIds(sonNodes);
                 sonNodeWorks.forEach(work -> {
 
@@ -416,7 +421,9 @@ public abstract class WorkExecutor {
 
                     // 调用调度器触发子作业
                     workRunJobFactory.execute(sonWorkRunContext);
-                    log.debug("作业流实例id:{} 作业实例id:{} 事件：【{}】推送【{}】", sonWorkRunContext.getFlowInstanceId(), sonWorkRunContext.getInstanceId(), workRunContext.getWorkName(), sonWorkRunContext.getWorkName());
+                    log.debug("作业流实例id:{} 作业实例id:{} 事件：【{}】推送【{}】", sonWorkRunContext.getFlowInstanceId(),
+                        sonWorkRunContext.getInstanceId(), workRunContext.getWorkName(),
+                        sonWorkRunContext.getWorkName());
                 });
 
                 // 每个作业只能推送一次任务
@@ -426,7 +433,8 @@ public abstract class WorkExecutor {
         }
 
         // 当前作业运行完毕
-        log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】作业流最终执行结束", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
+        log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】作业流最终执行结束", workRunContext.getFlowInstanceId(),
+            workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
         return InstanceStatus.FINISHED;
     }
 }

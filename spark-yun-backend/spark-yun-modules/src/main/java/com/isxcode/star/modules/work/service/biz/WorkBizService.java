@@ -334,9 +334,9 @@ public class WorkBizService {
     public void stopJob(StopJobReq stopJobReq) {
 
         // 提交中的作业，需要稍后重试
-//        if (locker.isLocked(stopJobReq.getInstanceId())) {
-//            throw new IsxAppException("任务在提交中，请稍后重试");
-//        }
+        // if (locker.isLocked(stopJobReq.getInstanceId())) {
+        // throw new IsxAppException("任务在提交中，请稍后重试");
+        // }
 
         // 运行完毕的作业无法中止
         WorkInstanceEntity workInstance = workService.getWorkInstance(stopJobReq.getInstanceId());
