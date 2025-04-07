@@ -40,7 +40,7 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
       initial-size: 10
-      max-active: 200
+      max-active: 500
       min-idle: 10
       max-wait: 30000
       test-while-idle: true
@@ -81,6 +81,8 @@ spring:
     job-store-type: jdbc
     jdbc:
       initialize-schema: never
+    properties:
+      org.quartz.scheduler.batchTriggerAcquisitionMaxCount: 100
 
   cache:
     type: simple
@@ -100,7 +102,7 @@ spring:
 logging:
   level:
     root: info
-    com.isxcode.star: info
+    com.isxcode.star: debug
   exception-conversion-word: '%wEx'
   file:
     name: ./logs/spark-yun.log

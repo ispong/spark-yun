@@ -54,7 +54,7 @@ public abstract class WorkExecutor {
     public abstract String getWorkType();
 
     protected abstract String execute(WorkRunContext workRunContext, WorkInstanceEntity workInstance,
-        WorkEventEntity workEvent) throws Exception;
+                                      WorkEventEntity workEvent) throws Exception;
 
     protected abstract void abort(WorkInstanceEntity workInstance) throws Exception;
 
@@ -209,16 +209,14 @@ public abstract class WorkExecutor {
         // 获取最新作业实例
         WorkInstanceEntity workInstance = workInstanceRepository.findById(workRunContext.getInstanceId()).get();
 
-        // 中止、中止中，不可以再运行
-        if (InstanceStatus.ABORT.equals(workInstance.getStatus())
-            || InstanceStatus.ABORTING.equals(workInstance.getStatus())) {
+        // 如果不是当前实例的eventId，直接杀掉
+        if (workInstance.getEventId() != null && !workInstance.getEventId().equals(workRunContext.getEventId())) {
             return InstanceStatus.FINISHED;
         }
 
-        // 先加锁，id最小的事件可用，其他的事件都杀死，防止多个作业同时推送
-        Integer lockId = locker.lockOnly("work_" + workRunContext.getInstanceId(), workRunContext.getEventId());
-        if (locker.isLocked("work_" + workRunContext.getInstanceId(), workRunContext.getEventId())) {
-            locker.unlock(lockId);
+        // 中止、中止中，不可以再运行
+        if (InstanceStatus.ABORT.equals(workInstance.getStatus())
+            || InstanceStatus.ABORTING.equals(workInstance.getStatus())) {
             return InstanceStatus.FINISHED;
         }
 
@@ -232,7 +230,6 @@ public abstract class WorkExecutor {
 
             // 在调度中的作业，如果自身定时器没有被触发，不可以再运行
             if (!Strings.isEmpty(workRunContext.getVersionId()) && !workInstance.getQuartzHasRun()) {
-                locker.unlock(lockId);
                 return InstanceStatus.FINISHED;
             }
 
@@ -249,7 +246,6 @@ public abstract class WorkExecutor {
             // 判断当前作业实例的状态
             if (parentIsRunning) {
                 // 如果父级在运行中，不可以再运行
-                locker.unlock(lockId);
                 return InstanceStatus.FINISHED;
             } else if (parentIsError) {
                 // 如果父级有错，则状态直接变更为失败
@@ -274,6 +270,7 @@ public abstract class WorkExecutor {
 
             // 保存作业实例状态
             workInstanceRepository.saveAndFlush(workInstance);
+            log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】修改状态为运行中", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
         }
 
         // 实例只有运行中，才能执行作业
@@ -284,6 +281,8 @@ public abstract class WorkExecutor {
                 WORK_THREAD.put(workInstance.getId(), Thread.currentThread());
 
                 // 开始执行作业，每次都要执行
+                log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】执行一次作业", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
+                workInstance.setEventId(workRunContext.getEventId());
                 String executeStatus = execute(workRunContext, workInstance, workEvent);
 
                 // 作业执行完毕，移除当前线程
@@ -307,6 +306,7 @@ public abstract class WorkExecutor {
                         workInstance.setSubmitLog(
                             workInstance.getSubmitLog() + LocalDateTime.now() + WorkLog.SUCCESS_INFO + "执行成功 \n");
                         workInstanceRepository.saveAndFlush(workInstance);
+                        log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】运行成功", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
 
                         // 基线管理，任务运行成功发送消息
                         if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
@@ -328,6 +328,7 @@ public abstract class WorkExecutor {
                         + (e instanceof WorkRunException ? ((WorkRunException) e).getMsg() : e.getMessage())
                         + LocalDateTime.now() + WorkLog.ERROR_INFO + "执行失败 \n");
                     workInstanceRepository.saveAndFlush(workInstance);
+                    log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】运行失败", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
 
                     // 基线管理，任务运行失败发送消息
                     if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
@@ -344,8 +345,9 @@ public abstract class WorkExecutor {
         }
 
         // 如果作业执行结束，需要继续推送任务
-        if (InstanceStatus.SUCCESS.equals(workInstance.getStatus())
-            || InstanceStatus.FAIL.equals(workInstance.getStatus())) {
+        if ((InstanceStatus.SUCCESS.equals(workInstance.getStatus())
+            || InstanceStatus.FAIL.equals(workInstance.getStatus()))
+            && !Strings.isEmpty(workInstance.getEventId())) {
 
             // 获取最新的作业流实例
             WorkflowInstanceEntity workflowInstance =
@@ -353,7 +355,6 @@ public abstract class WorkExecutor {
 
             // 中止中的作业流，不可以再推送
             if (InstanceStatus.ABORTING.equals(workflowInstance.getStatus())) {
-                locker.unlock(lockId);
                 return InstanceStatus.FINISHED;
             }
 
@@ -384,44 +385,48 @@ public abstract class WorkExecutor {
                     }
                     alarmService.sendWorkflowMessage(workflowInstance, AlarmEventType.RUN_END);
                 }
+                log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】作业流运行结束", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
+            } else {
+                // 工作流没有执行完，继续推送子节点
+                List<String> sonNodes = WorkUtils.getSonNodes(workRunContext.getNodeMapping(), workRunContext.getWorkId());
+                List<WorkEntity> sonNodeWorks = workRepository.findAllByWorkIds(sonNodes);
+                sonNodeWorks.forEach(work -> {
+
+                    // 查询子作业的实例
+                    WorkInstanceEntity sonWorkInstance = workInstanceRepository
+                        .findByWorkIdAndWorkflowInstanceId(work.getId(), workRunContext.getFlowInstanceId());
+
+                    // 封装WorkRunContext，通过是否有versionId，判断是调度中作业还是普通手动运行的作业
+                    WorkRunContext sonWorkRunContext;
+                    if (Strings.isEmpty(sonWorkInstance.getVersionId())) {
+                        WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
+                        sonWorkRunContext =
+                            WorkUtils.genWorkRunContext(sonWorkInstance.getId(), EventType.WORKFLOW, work, workConfig);
+                    } else {
+                        VipWorkVersionEntity workVersion = vipWorkVersionRepository.findById(work.getVersionId()).get();
+                        sonWorkRunContext =
+                            WorkUtils.genWorkRunContext(sonWorkInstance.getId(), EventType.WORKFLOW, work, workVersion);
+                        sonWorkRunContext.setVersionId(sonWorkInstance.getVersionId());
+                    }
+                    sonWorkRunContext.setDagEndList(workRunContext.getDagEndList());
+                    sonWorkRunContext.setDagStartList(workRunContext.getDagStartList());
+                    sonWorkRunContext.setFlowInstanceId(workRunContext.getFlowInstanceId());
+                    sonWorkRunContext.setNodeMapping(workRunContext.getNodeMapping());
+                    sonWorkRunContext.setNodeList(workRunContext.getNodeList());
+
+                    // 调用调度器触发子作业
+                    workRunJobFactory.execute(sonWorkRunContext);
+                    log.debug("作业流实例id:{} 作业实例id:{} 事件：【{}】推送【{}】", sonWorkRunContext.getFlowInstanceId(), sonWorkRunContext.getInstanceId(), workRunContext.getWorkName(), sonWorkRunContext.getWorkName());
+                });
+
+                // 每个作业只能推送一次任务
+                workInstance.setEventId(null);
+                workInstanceRepository.saveAndFlush(workInstance);
             }
-
-            // 工作流没有执行完，继续推送子节点
-            List<String> sonNodes = WorkUtils.getSonNodes(workRunContext.getNodeMapping(), workRunContext.getWorkId());
-            List<WorkEntity> sonNodeWorks = workRepository.findAllByWorkIds(sonNodes);
-            sonNodeWorks.forEach(work -> {
-
-                // 查询子作业的实例
-                WorkInstanceEntity sonWorkInstance = workInstanceRepository
-                    .findByWorkIdAndWorkflowInstanceId(work.getId(), workRunContext.getFlowInstanceId());
-
-                // 封装WorkRunContext，通过是否有versionId，判断是调度中作业还是普通手动运行的作业
-                WorkRunContext sonWorkRunContext;
-                if (Strings.isEmpty(sonWorkInstance.getVersionId())) {
-                    WorkConfigEntity workConfig = workConfigRepository.findById(work.getConfigId()).get();
-                    sonWorkRunContext =
-                        WorkUtils.genWorkRunContext(sonWorkInstance.getId(), EventType.WORKFLOW, work, workConfig);
-                } else {
-                    VipWorkVersionEntity workVersion = vipWorkVersionRepository.findById(work.getVersionId()).get();
-                    sonWorkRunContext =
-                        WorkUtils.genWorkRunContext(sonWorkInstance.getId(), EventType.WORKFLOW, work, workVersion);
-                    sonWorkRunContext.setVersionId(sonWorkInstance.getVersionId());
-                }
-                sonWorkRunContext.setDagEndList(workRunContext.getDagEndList());
-                sonWorkRunContext.setDagStartList(workRunContext.getDagStartList());
-                sonWorkRunContext.setFlowInstanceId(workRunContext.getFlowInstanceId());
-                sonWorkRunContext.setNodeMapping(workRunContext.getNodeMapping());
-                sonWorkRunContext.setNodeList(workRunContext.getNodeList());
-
-                // 调用调度器触发子作业
-                workRunJobFactory.execute(sonWorkRunContext);
-            });
-
-            // 作业运行完，解锁
-            locker.unlock(lockId);
         }
 
         // 当前作业运行完毕
+        log.debug("作业流实例id:{} 作业实例id:{} 事件id:{} 事件:【{}】作业流最终执行结束", workRunContext.getFlowInstanceId(), workRunContext.getInstanceId(), workRunContext.getEventId(), workRunContext.getWorkName());
         return InstanceStatus.FINISHED;
     }
 }

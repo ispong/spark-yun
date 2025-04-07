@@ -74,6 +74,8 @@ public class WorkInstanceEntity {
 
     private Long duration;
 
+    private String eventId;
+
     @CreatedDate
     private LocalDateTime createDateTime;
 

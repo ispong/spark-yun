@@ -13,3 +13,7 @@ create table SY_WORK_EVENT
 -- 扩展NODE_MAPPING长度
 alter table SY_WORKFLOW_CONFIG
     alter column NODE_MAPPING text;
+
+-- 作业实例绑定eventId
+alter table SY_WORK_INSTANCE
+    add event_id varchar(100);

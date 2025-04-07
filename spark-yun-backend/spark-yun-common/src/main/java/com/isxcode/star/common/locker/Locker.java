@@ -20,7 +20,7 @@ public class Locker {
     public Integer lockOnly(String name) {
 
         // 给数据库加一条数据
-        return lockerRepository.save(LockerEntity.builder().name(name).build()).getId();
+        return lockerRepository.saveAndFlush(LockerEntity.builder().name(name).build()).getId();
     }
 
     /**
@@ -62,9 +62,15 @@ public class Locker {
     /**
      * 是否加锁.
      */
-    public Boolean isLocked(String name) {
+    public Boolean isLocked(String name, Integer id) {
 
-        return lockerRepository.existsByName(name);
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ignored) {
+            // 防止没有写进去
+        }
+
+        return !Objects.equals(lockerRepository.getMinId(name), id);
     }
 
     /**
@@ -86,17 +92,7 @@ public class Locker {
      */
     public void unlock(Integer id) {
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException ignored) {
-            // 防止没有写进去
-        }
-
-        // 将自己的id删掉
-        try {
-            lockerRepository.deleteById(id);
-        } catch (Exception ignore) {
-        }
+        lockerRepository.deleteById(id);
     }
 
     /**

@@ -33,15 +33,16 @@ public class WorkRunJob implements Job {
         WorkRunContext workRunContext = JSON.parseObject(
             String.valueOf(context.getJobDetail().getJobDataMap().get("workRunContext")), WorkRunContext.class);
 
-        // 作业调度的事件，只能一个一个执行，加了锁直接等下一次调度
-        if (locker.isLocked("scheduler_" + workRunContext.getEventId())) {
-            return;
-        }
-        Integer lockId = locker.lockOnly("scheduler_" + workRunContext.getEventId());
-
         // 设置租户和用户
         USER_ID.set(workRunContext.getUserId());
         TENANT_ID.set(workRunContext.getTenantId());
+
+        // 作业调度的事件，每个作业实例只能一个一个执行，只有id最小的可以走
+        Integer lockId = locker.lockOnly("scheduler_" + workRunContext.getInstanceId());
+        if (locker.isLocked("scheduler_" + workRunContext.getInstanceId(), lockId)) {
+            locker.unlock(lockId);
+            return;
+        }
 
         // 触发作业运行
         String runStatus;
@@ -57,8 +58,8 @@ public class WorkRunJob implements Job {
         // 作业事件运行结束，调度器和作业事件都要删除，且只会在这里销毁作业事件和调度器
         if (InstanceStatus.FINISHED.equals(runStatus)) {
             try {
-                workEventRepository.deleteById(workRunContext.getEventId());
                 scheduler.unscheduleJob(TriggerKey.triggerKey("event_" + workRunContext.getEventId()));
+                workEventRepository.deleteById(workRunContext.getEventId());
             } catch (Exception ignore) {
                 // 异常不处理
             }
