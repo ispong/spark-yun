@@ -28,6 +28,15 @@
           </template>
         </ContentRenderer>
       </div>
+      <aside class="toc-aside" v-if="toc.length > 0">
+        <div class="toc-wrapper">
+          <div class="toc-title">目录</div>
+          <DocsToc
+            :contentDirTree="toc"
+            @nodeClicked="handleTocItemClick"
+          />
+        </div>
+      </aside>
     </article>
   </main>
 </template>
@@ -37,6 +46,7 @@ import getContentDirTree from "~/util/getContentDirTree";
 import { useCounterStore, useMenuStore } from "~/store/index";
 import { NScrollbar } from "naive-ui";
 import mediumZoom from "medium-zoom";
+import { DirNode } from "~/interface/docs.interface";
 
 interface NavItem {
   title: string;
@@ -65,12 +75,13 @@ const { data, pending, error, refresh } = await useAsyncData("docs", () =>
   queryContent(`/` + params.slug.join("/")).findOne()
 );
 
-const toc = ref<NavItem[]>([]);
+const toc = ref<DirNode[]>([]);
 const markdownBodyRef = ref<null>(null);
 const docsMenuKey = ref(1);
 
 onMounted(() => {
   init();
+  setupScrollListener();
 });
 
 onMounted(async () => {
@@ -259,30 +270,124 @@ function handleTocItemClick(node: DirNode) {
   toc.value.forEach((item) => {
     resetNodeActiveStatus(item);
   });
-  node.isActive = node.isActive ? false : true;
+  node.isActive = true;
 
   const markdownBody = markdownBodyRef.value.$el;
-  const HList = markdownBody.querySelectorAll(`h${node.hLevel}`);
-  const H = Array.from(HList).find((item) => item.innerText === node.title);
-  scrollTo(H);
-  const router = useRouter();
-  router.push({
-    path: router.currentRoute.value.path,
-    query: {
-      anchor: node.title,
-    },
+
+  // 首先尝试通过domId查找元素
+  let targetElement = null;
+  if (node.domId) {
+    targetElement = markdownBody.querySelector(`#${node.domId}`);
+  }
+
+  // 如果通过domId找不到，则通过标题文本查找
+  if (!targetElement) {
+    const HList = markdownBody.querySelectorAll(`h${node.hLevel}`);
+    targetElement = Array.from(HList).find((item) => {
+      const text = item.innerText.trim();
+      return text === node.title.trim();
+    });
+  }
+
+  // 如果还是找不到，尝试模糊匹配
+  if (!targetElement) {
+    const allHeadings = markdownBody.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    targetElement = Array.from(allHeadings).find((item) => {
+      const text = item.innerText.trim();
+      return text.includes(node.title.trim()) || node.title.trim().includes(text);
+    });
+  }
+
+  if (targetElement) {
+    scrollTo(targetElement);
+
+    // 更新URL hash
+    const router = useRouter();
+    router.push({
+      path: router.currentRoute.value.path,
+      hash: node.domId ? `#${node.domId}` : '',
+      query: {
+        anchor: node.title,
+      },
+    });
+  } else {
+    console.warn('无法找到对应的标题元素:', node.title);
+  }
+}
+
+function scrollTo(element, headerOffset = 100) {
+  if (!element) return;
+
+  // 获取markdown容器
+  const markdownContainer = markdownBodyRef.value?.$el;
+  if (!markdownContainer) return;
+
+  // 计算元素在容器中的位置
+  const containerRect = markdownContainer.getBoundingClientRect();
+  const elementRect = element.getBoundingClientRect();
+
+  // 计算需要滚动的距离
+  const scrollTop = markdownContainer.scrollTop;
+  const targetScrollTop = scrollTop + (elementRect.top - containerRect.top) - headerOffset;
+
+  // 平滑滚动到目标位置
+  markdownContainer.scrollTo({
+    top: Math.max(0, targetScrollTop),
+    behavior: "smooth",
   });
 }
 
-function scrollTo(element, headerOffset = 80) {
-  const elementPosition = element.getBoundingClientRect().top;
-  const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-  console.log(elementPosition, window.pageYOffset, offsetPosition);
+function setupScrollListener() {
+  const markdownContent = markdownBodyRef.value?.$el;
+  if (!markdownContent) return;
 
-  window.scrollTo({
-    top: offsetPosition,
-    behavior: "smooth",
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const headingText = entry.target.innerText;
+          updateActiveTocItem(headingText);
+        }
+      });
+    },
+    {
+      rootMargin: '-80px 0px -80% 0px',
+      threshold: 0
+    }
+  );
+
+  // 观察所有标题元素
+  const headings = markdownContent.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  headings.forEach((heading) => {
+    observer.observe(heading);
   });
+
+  onUnmounted(() => {
+    observer.disconnect();
+  });
+}
+
+function updateActiveTocItem(headingText) {
+  // 重置所有TOC项的激活状态
+  toc.value.forEach((item) => {
+    resetNodeActiveStatus(item);
+  });
+
+  // 查找并激活匹配的TOC项
+  const findAndActivateNode = (nodes) => {
+    for (const node of nodes) {
+      if (node.title === headingText) {
+        node.isActive = true;
+        return true;
+      }
+      if (node.children && findAndActivateNode(node.children)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  findAndActivateNode(toc.value);
 }
 </script>
 
@@ -292,6 +397,7 @@ function scrollTo(element, headerOffset = 80) {
   height: 100vh;
   padding-top: 80px;
   margin: auto;
+  position: relative;
   .left-side {
     margin-top: 80px;
     background: white;
@@ -316,32 +422,18 @@ function scrollTo(element, headerOffset = 80) {
   }
 
   .doc-content {
-    margin-left: 350px;
+    margin-left: 280px;
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
-
-    .aside {
-      flex: 0;
-      flex-basis: 260px;
-
-      .aside-wrapper {
-        box-sizing: border-box;
-        overflow-x: auto;
-        width: 238px;
-        position: sticky;
-        top: 120px;
-
-        .aside-content {
-        }
-      }
-    }
+    position: relative;
 
     .content {
       flex: 1;
+      width: 680px;
 
       .markdown-content {
-        width: 810px;
+        width: 680px;
         margin-top: 70px;
         height: calc(100% - 80px);
         overflow-x: hidden;
@@ -351,6 +443,88 @@ function scrollTo(element, headerOffset = 80) {
         -ms-overflow-style: none;
         overflow-y: scroll;
         scrollbar-width: thin;
+        padding-right: 20px;
+      }
+    }
+
+    .toc-aside {
+      position: fixed;
+      right: calc(50% - 600px + 20px);
+      top: 80px;
+      width: 220px;
+      height: calc(100vh - 80px);
+      overflow-y: hidden;
+      border-left: 1px solid #ebebeb;
+      background: white;
+      z-index: 10;
+
+      .toc-wrapper {
+        padding: 70px 15px 20px 15px;
+
+        .toc-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #333;
+          margin-bottom: 15px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid #ebebeb;
+        }
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 1400px) {
+  .docs {
+    width: 100%;
+    max-width: 1200px;
+
+    .doc-content {
+      .toc-aside {
+        right: 20px;
+      }
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  .docs {
+    width: 100%;
+
+    .doc-content {
+      margin-left: 250px;
+
+      .content {
+        width: calc(100vw - 280px);
+
+        .markdown-content {
+          width: calc(100vw - 280px);
+        }
+      }
+
+      .toc-aside {
+        display: none;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .docs {
+    .left-side {
+      width: 200px;
+    }
+
+    .doc-content {
+      margin-left: 200px;
+
+      .content {
+        width: calc(100vw - 220px);
+
+        .markdown-content {
+          width: calc(100vw - 220px);
+        }
       }
     }
   }
