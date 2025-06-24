@@ -1,0 +1,95 @@
+{
+  "download_config": {
+    "base_url": "https://isxcode.oss-cn-shanghai.aliyuncs.com/zhiqingyun/install",
+    "spark": {
+      "version": "3.4.1",
+      "file": "spark-3.4.1-bin-hadoop3.tgz",
+      "cleanup_items": [
+        "data",
+        "examples", 
+        "licenses",
+        "R",
+        "LICENSE",
+        "NOTICE",
+        "RELEASE"
+      ]
+    },
+    "spark_jars": [
+      "spark-sql-kafka-0-10_2.12-3.4.1.jar",
+      "spark-streaming-kafka-0-10_2.12-3.4.1.jar",
+      "spark-token-provider-kafka-0-10_2.12-3.4.1.jar",
+      "commons-pool2-2.11.1.jar",
+      "kafka-clients-3.1.2.jar",
+      "bcpkix-jdk18on-1.78.1.jar",
+      "bcprov-jdk18on-1.78.1.jar",
+      "commons-dbutils-1.7.jar",
+      "HikariCP-4.0.3.jar"
+    ],
+    "jdbc_drivers": [
+      "mysql-connector-j-8.1.0.jar",
+      "postgresql-42.6.0.jar",
+      "Dm8JdbcDriver18-8.1.1.49.jar",
+      "clickhouse-jdbc-0.5.0.jar",
+      "ngdbc-2.18.13.jar",
+      "mysql-connector-java-5.1.49.jar",
+      "mssql-jdbc-12.4.2.jre8.jar",
+      "hive-jdbc-3.1.3-standalone.jar",
+      "hive-jdbc-uber-2.6.3.0-235.jar",
+      "ojdbc8-19.23.0.0.jar",
+      "oceanbase-client-2.4.6.jar",
+      "jcc-11.5.8.0.jar",
+      "gbase-connector-java-9.5.0.7-build1-bin.jar",
+      "jconn4-16.0.jar",
+      "h2-2.2.224.jar"
+    ],
+    "project_libs": [
+      "prql-java-0.5.2.jar"
+    ],
+    "prql_binaries": {
+      "linux": {
+        "x86_64": "libprql_java-linux64.so",
+        "arm64": "libprql_java-linux-arm64.so"
+      },
+      "macos": {
+        "x86_64": "libprql_java-osx-x64.dylib",
+        "arm64": "libprql_java-osx-arm64.dylib"
+      },
+      "windows": {
+        "x86_64": "prql_java-win64.dll"
+      },
+      "common": [
+        "libprql_java-osx-arm64.dylib",
+        "libprql_java-linux64.so"
+      ]
+    }
+  },
+  "system_requirements": {
+    "commands": ["tar", "java", "node"],
+    "package_managers": {
+      "linux": {
+        "apt": {
+          "tar": "sudo apt update && sudo apt install tar",
+          "java": "sudo apt update && sudo apt install openjdk-11-jdk",
+          "node": "sudo apt update && sudo apt install nodejs npm"
+        },
+        "yum": {
+          "tar": "sudo yum install tar",
+          "java": "sudo yum install java-11-openjdk-devel",
+          "node": "sudo yum install nodejs npm"
+        },
+        "dnf": {
+          "tar": "sudo dnf install tar",
+          "java": "sudo dnf install java-11-openjdk-devel", 
+          "node": "sudo dnf install nodejs npm"
+        }
+      },
+      "macos": {
+        "brew": {
+          "tar": "tar 通常已预装在 macOS 中",
+          "java": "brew install openjdk@11",
+          "node": "brew install node"
+        }
+      }
+    }
+  }
+}
