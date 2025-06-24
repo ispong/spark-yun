@@ -82,6 +82,7 @@ const docsMenuKey = ref(1);
 onMounted(() => {
   init();
   setupScrollListener();
+  setupCodeCopyButtons();
 });
 
 onMounted(async () => {
@@ -144,6 +145,11 @@ function init() {
   }
   const htmlStr = markdownBodyRef.value?.$el.innerHTML || "";
   toc.value = getContentDirTree(htmlStr);
+
+  // 延迟设置代码复制按钮，确保DOM已渲染
+  nextTick(() => {
+    setupCodeCopyButtons();
+  });
 }
 
 function updatePathDeep(navItems: Array<NavItem>, parentPath = "") {
@@ -389,6 +395,98 @@ function updateActiveTocItem(headingText) {
 
   findAndActivateNode(toc.value);
 }
+
+function setupCodeCopyButtons() {
+  const markdownContent = markdownBodyRef.value?.$el;
+  if (!markdownContent) return;
+
+  // 查找所有代码块
+  const codeBlocks = markdownContent.querySelectorAll('pre code');
+
+  codeBlocks.forEach((codeBlock, index) => {
+    const pre = codeBlock.parentElement;
+    if (!pre || pre.querySelector('.code-copy-btn')) return; // 避免重复添加
+
+    // 创建复制按钮容器
+    const copyContainer = document.createElement('div');
+    copyContainer.className = 'code-copy-container';
+
+    // 创建复制按钮
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'code-copy-btn';
+    copyBtn.innerHTML = `
+      <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      <span class="copy-text">Copy</span>
+    `;
+
+    // 添加点击事件
+    copyBtn.addEventListener('click', async () => {
+      try {
+        const code = codeBlock.textContent || '';
+        await navigator.clipboard.writeText(code);
+
+        // 显示复制成功状态
+        copyBtn.innerHTML = `
+          <svg class="copy-icon success" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20,6 9,17 4,12"></polyline>
+          </svg>
+          <span class="copy-text">Copied</span>
+        `;
+        copyBtn.classList.add('copied');
+
+        // 2秒后恢复原状态
+        setTimeout(() => {
+          copyBtn.innerHTML = `
+            <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span class="copy-text">Copy</span>
+          `;
+          copyBtn.classList.remove('copied');
+        }, 2000);
+
+      } catch (err) {
+        console.error('复制失败:', err);
+        // 降级方案：使用旧的复制方法
+        const textArea = document.createElement('textarea');
+        textArea.value = codeBlock.textContent || '';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+
+        copyBtn.innerHTML = `
+          <svg class="copy-icon success" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20,6 9,17 4,12"></polyline>
+          </svg>
+          <span class="copy-text">Copied</span>
+        `;
+        copyBtn.classList.add('copied');
+
+        setTimeout(() => {
+          copyBtn.innerHTML = `
+            <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span class="copy-text">Copy</span>
+          `;
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      }
+    });
+
+    copyContainer.appendChild(copyBtn);
+
+    // 设置pre元素为相对定位
+    pre.style.position = 'relative';
+    pre.appendChild(copyContainer);
+  });
+}
 </script>
 
 <style scoped lang="scss">
@@ -453,13 +551,21 @@ function updateActiveTocItem(headingText) {
       top: 80px;
       width: 220px;
       height: calc(100vh - 80px);
-      overflow-y: hidden;
+      overflow-y: auto;
       border-left: 1px solid #ebebeb;
       background: white;
       z-index: 10;
 
+      // 隐藏滚动条但保持滚动功能
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+
+      &::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+      }
+
       .toc-wrapper {
-        padding: 70px 15px 20px 15px;
+        padding: 10px 15px 20px 15px;
 
         .toc-title {
           font-size: 16px;
@@ -472,6 +578,83 @@ function updateActiveTocItem(headingText) {
       }
     }
   }
+}
+
+// 代码复制按钮样式
+:deep(.code-copy-container) {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+}
+
+:deep(.code-copy-btn) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.9);
+    border-color: var(--sk-color-home-primary, #e25a1b);
+    color: var(--sk-color-home-primary, #e25a1b);
+    transform: scale(1.05);
+  }
+
+  &.copied {
+    background: rgba(0, 0, 0, 0.9);
+    border-color: var(--sk-color-home-primary, #e25a1b);
+    color: var(--sk-color-home-primary, #e25a1b);
+
+    .copy-icon.success {
+      color: var(--sk-color-home-primary, #e25a1b);
+    }
+  }
+
+  .copy-icon {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+    transition: color 0.2s ease;
+  }
+
+  .copy-text {
+    font-weight: 500;
+    white-space: nowrap;
+  }
+}
+
+// 确保代码块容器有足够的空间显示复制按钮
+:deep(pre) {
+  position: relative !important;
+
+  // 为复制按钮预留右上角空间，但不影响代码内容
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 80px;
+    height: 40px;
+    pointer-events: none;
+  }
+
+  &:hover .code-copy-container {
+    opacity: 1;
+  }
+}
+
+:deep(.code-copy-container) {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
 }
 
 // 响应式设计
