@@ -30,7 +30,6 @@
       </div>
       <aside class="toc-aside" v-if="toc.length > 0">
         <div class="toc-wrapper">
-          <div class="toc-title">目录</div>
           <DocsToc
             :contentDirTree="toc"
             @nodeClicked="handleTocItemClick"
