@@ -24,7 +24,7 @@
             :value="data"
           />
           <template #empty>
-            <p><a href="https://zhiqingyun.isxcode.com" style="color: #e25a1b">点击跳转官网</a></p>
+            <p><a style="color: #0969da; cursor: pointer;" @click="clickHome">点击刷新</a></p>
           </template>
         </ContentRenderer>
       </div>
@@ -159,6 +159,11 @@ function init() {
   nextTick(() => {
     setupCodeCopyButtons();
   });
+}
+
+function clickHome() {
+  const router = useRouter();
+  router.push("/");
 }
 
 function updatePathDeep(navItems: Array<NavItem>, parentPath = "") {
