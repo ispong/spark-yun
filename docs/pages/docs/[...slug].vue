@@ -28,7 +28,7 @@
           </template>
         </ContentRenderer>
       </div>
-      <aside class="toc-aside" v-if="toc.length > 0">
+      <aside class="toc-aside" v-if="toc.length > 0 && !isImageZoomed">
         <div class="toc-wrapper">
           <DocsToc
             :contentDirTree="toc"
@@ -77,6 +77,7 @@ const { data, pending, error, refresh } = await useAsyncData("docs", () =>
 const toc = ref<DirNode[]>([]);
 const markdownBodyRef = ref<null>(null);
 const docsMenuKey = ref(1);
+const isImageZoomed = ref(false);
 
 onMounted(() => {
   init();
@@ -91,10 +92,19 @@ onMounted(async () => {
   images.forEach((img: HTMLImageElement) => {
     img.classList.add("image-zoom");
   });
-  mediumZoom(document.querySelectorAll(".image-zoom"), {
+  const zoom = mediumZoom(document.querySelectorAll(".image-zoom"), {
     margin: 100,
     scrollOffset: 1,
     background: "#fffaf8",
+  });
+
+  // 监听图片放大和关闭事件
+  zoom.on('open', () => {
+    isImageZoomed.value = true;
+  });
+
+  zoom.on('close', () => {
+    isImageZoomed.value = false;
   });
 });
 
