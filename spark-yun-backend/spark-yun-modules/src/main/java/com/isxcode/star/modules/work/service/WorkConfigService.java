@@ -50,6 +50,7 @@ public class WorkConfigService {
             case WorkType.QUERY_JDBC_SQL:
             case WorkType.EXECUTE_JDBC_SQL:
             case WorkType.SPARK_CONTAINER_SQL:
+            case WorkType.QUERY_IMPALA:
                 workConfig.setScript(datasourceService.genDefaultSql(workConfig.getDatasourceId()));
                 break;
             case WorkType.BASH:

@@ -65,4 +65,9 @@ public interface WorkType {
      * pyspark作业.
      */
     String PY_SPARK = "PY_SPARK";
+
+    /**
+     * impala查询作业.
+     */
+    String QUERY_IMPALA = "QUERY_IMPALA";
 }

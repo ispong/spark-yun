@@ -211,6 +211,8 @@ public class PrqlExecutor extends WorkExecutor {
                 return "postgres";
             case DatasourceType.H2:
                 return "h2";
+            case DatasourceType.IMPALA:
+                return "impala";
             default:
                 throw new IsxAppException("当前数据库类型不支持");
         }

@@ -171,6 +171,10 @@ export const TypeList = [
     value: 'PRQL'
   },
   {
+    label: 'Impala查询作业',
+    value: 'QUERY_IMPALA'
+  },
+  {
     label: 'Curl作业',
     value: 'CURL'
   },

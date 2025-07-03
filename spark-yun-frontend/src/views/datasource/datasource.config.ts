@@ -126,6 +126,10 @@ export const typeList = [
   {
     label: 'OpenGauss',
     value: 'OPEN_GAUSS',
+  },
+  {
+    label: 'Impala',
+    value: 'IMPALA',
   }
 ]
 export const colConfigs: colConfig[] = [

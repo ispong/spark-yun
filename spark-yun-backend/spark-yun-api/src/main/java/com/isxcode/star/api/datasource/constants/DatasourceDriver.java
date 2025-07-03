@@ -40,4 +40,6 @@ public interface DatasourceDriver {
     String GAUSS_DRIVER = "org.postgresql.Driver";
 
     String OPEN_GAUSS_DRIVER = "org.postgresql.Driver";
+
+    String IMPALA_DRIVER = "com.cloudera.impala.jdbc.Driver";
 }

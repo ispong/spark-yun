@@ -291,6 +291,10 @@ const typeList = reactive([
   {
     label: 'OpenGauss',
     value: 'OPEN_GAUSS',
+  },
+  {
+    label: 'Impala',
+    value: 'IMPALA',
   }
 ]);
 const rules = reactive<FormRules>({
