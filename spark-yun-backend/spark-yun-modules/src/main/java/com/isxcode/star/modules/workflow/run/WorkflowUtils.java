@@ -142,8 +142,8 @@ public class WorkflowUtils {
             .funcConfig(JSON.parseArray(workConfig.getFuncConfig(), String.class))
             .libConfig(JSON.parseArray(workConfig.getLibConfig(), String.class)).workId(work.getId())
             .apiWorkConfig(JSON.parseObject(workConfig.getApiWorkConfig(), ApiWorkConfig.class))
-            .containerId(workConfig.getContainerId()).aiConfigId(workConfig.getAiConfigId())
-            .workName(work.getName()).userId(USER_ID.get()).build();
+            .containerId(workConfig.getContainerId()).aiConfigId(workConfig.getAiConfigId()).workName(work.getName())
+            .userId(USER_ID.get()).build();
     }
 
     public static WorkRunContext genWorkRunContext(String instanceId, VipWorkVersionEntity workVersion,

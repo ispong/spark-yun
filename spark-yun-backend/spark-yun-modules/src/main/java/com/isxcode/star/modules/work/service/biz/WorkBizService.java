@@ -317,7 +317,8 @@ public class WorkBizService {
         // 根据作业类型返回结果
         WorkEntity workEntity = workService.getWorkEntity(workInstanceEntity.getWorkId());
         if (WorkType.API.equals(workEntity.getWorkType()) || WorkType.CURL.equals(workEntity.getWorkType())) {
-            return new GetDataRes(null, JSON.toJSONString(JSON.parse(workInstanceEntity.getResultData()), true), null, workEntity.getWorkType());
+            return new GetDataRes(null, JSON.toJSONString(JSON.parse(workInstanceEntity.getResultData()), true), null,
+                workEntity.getWorkType());
         }
 
         if (WorkType.SPARK_JAR.equals(workEntity.getWorkType()) || WorkType.BASH.equals(workEntity.getWorkType())
@@ -339,7 +340,8 @@ public class WorkBizService {
         }
 
         if (Strings.isEmpty(workInstanceEntity.getYarnLog())) {
-            return new GetDataRes(JSON.parseArray(workInstanceEntity.getResultData()), null, null, workEntity.getWorkType());
+            return new GetDataRes(JSON.parseArray(workInstanceEntity.getResultData()), null, null,
+                workEntity.getWorkType());
         }
         return JSON.parseObject(workInstanceEntity.getResultData(), GetDataRes.class);
     }

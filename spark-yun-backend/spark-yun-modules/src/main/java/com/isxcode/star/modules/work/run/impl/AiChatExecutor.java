@@ -17,7 +17,6 @@ import com.isxcode.star.modules.work.run.WorkRunContext;
 import com.isxcode.star.api.work.constants.WorkLog;
 import com.isxcode.star.modules.workflow.repository.WorkflowInstanceRepository;
 import com.isxcode.star.modules.work.sql.SqlFunctionService;
-import com.isxcode.star.api.user.constants.UserStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -35,11 +34,8 @@ public class AiChatExecutor extends WorkExecutor {
     private final RestTemplate restTemplate;
 
     public AiChatExecutor(WorkInstanceRepository workInstanceRepository,
-                         WorkflowInstanceRepository workflowInstanceRepository,
-                         AlarmService alarmService,
-                         SqlFunctionService sqlFunctionService,
-                         AiConfigRepository aiConfigRepository,
-                         AesUtils aesUtils) {
+        WorkflowInstanceRepository workflowInstanceRepository, AlarmService alarmService,
+        SqlFunctionService sqlFunctionService, AiConfigRepository aiConfigRepository, AesUtils aesUtils) {
         super(workInstanceRepository, workflowInstanceRepository, alarmService, sqlFunctionService);
         this.aiConfigRepository = aiConfigRepository;
         this.aesUtils = aesUtils;
@@ -75,8 +71,8 @@ public class AiChatExecutor extends WorkExecutor {
             }
 
             AiConfigEntity aiConfig = aiConfigOptional.get();
-            logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO)
-                .append("AI配置检测成功，模型类型: ").append(aiConfig.getModelType()).append(" \n");
+            logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("AI配置检测成功，模型类型: ")
+                .append(aiConfig.getModelType()).append(" \n");
 
             // 检查脚本内容
             String script = workRunContext.getScript();
@@ -94,8 +90,7 @@ public class AiChatExecutor extends WorkExecutor {
                 workInstance.setResultData(response);
 
                 // 在运行日志中添加简要的AI回复信息
-                logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO)
-                    .append("AI回复成功，请查看运行结果和结果展示标签页 \n");
+                logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("AI回复成功，请查看运行结果和结果展示标签页 \n");
             } else {
                 workInstance.setResultData("{\"error\": \"AI未返回有效回复\"}");
                 logBuilder.append(LocalDateTime.now()).append(WorkLog.ERROR_INFO).append("AI未返回有效回复 \n");
@@ -108,8 +103,8 @@ public class AiChatExecutor extends WorkExecutor {
             logBuilder.append(e.getMessage());
         } catch (Exception e) {
             workInstance.setStatus(InstanceStatus.FAIL);
-            logBuilder.append(LocalDateTime.now()).append(WorkLog.ERROR_INFO)
-                .append("AI对话执行异常: ").append(e.getMessage()).append(" \n");
+            logBuilder.append(LocalDateTime.now()).append(WorkLog.ERROR_INFO).append("AI对话执行异常: ")
+                .append(e.getMessage()).append(" \n");
         } finally {
             // 更新实例状态
             workInstance.setSubmitLog(logBuilder.toString());
@@ -149,17 +144,12 @@ public class AiChatExecutor extends WorkExecutor {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
             // 发送请求
-            ResponseEntity<String> response = restTemplate.exchange(
-                aiConfig.getApiUrl(),
-                HttpMethod.POST,
-                entity,
-                String.class
-            );
+            ResponseEntity<String> response =
+                restTemplate.exchange(aiConfig.getApiUrl(), HttpMethod.POST, entity, String.class);
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 String responseBody = response.getBody();
-                logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO)
-                    .append("AI接口调用成功 \n");
+                logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("AI接口调用成功 \n");
 
                 // 解析响应
                 return parseResponse(aiConfig.getModelType(), responseBody);
@@ -168,8 +158,8 @@ public class AiChatExecutor extends WorkExecutor {
             }
 
         } catch (Exception e) {
-            logBuilder.append(LocalDateTime.now()).append(WorkLog.ERROR_INFO)
-                .append("AI接口调用异常: ").append(e.getMessage()).append(" \n");
+            logBuilder.append(LocalDateTime.now()).append(WorkLog.ERROR_INFO).append("AI接口调用异常: ")
+                .append(e.getMessage()).append(" \n");
             throw new IsxAppException("AI接口调用失败: " + e.getMessage());
         }
     }
@@ -375,8 +365,7 @@ public class AiChatExecutor extends WorkExecutor {
                             .append("未找到content字段，返回格式化JSON \n");
                     }
                 } catch (Exception e) {
-                    logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO)
-                        .append("JSON解析失败，使用原始内容 \n");
+                    logBuilder.append(LocalDateTime.now()).append(WorkLog.SUCCESS_INFO).append("JSON解析失败，使用原始内容 \n");
                 }
             }
 
@@ -384,8 +373,8 @@ public class AiChatExecutor extends WorkExecutor {
 
         } catch (Exception e) {
             log.error("提取AI响应内容失败", e);
-            logBuilder.append(LocalDateTime.now()).append(WorkLog.ERROR_INFO)
-                .append("提取AI响应内容失败: ").append(e.getMessage()).append(" \n");
+            logBuilder.append(LocalDateTime.now()).append(WorkLog.ERROR_INFO).append("提取AI响应内容失败: ")
+                .append(e.getMessage()).append(" \n");
 
             // 降级处理：返回原始响应
             return aiResponse != null ? aiResponse : "AI响应解析失败";

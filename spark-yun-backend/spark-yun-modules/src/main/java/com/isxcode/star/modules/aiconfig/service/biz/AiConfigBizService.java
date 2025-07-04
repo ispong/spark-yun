@@ -52,8 +52,8 @@ public class AiConfigBizService {
             aiConfigPage = aiConfigRepository.searchAll(pageAiConfigReq.getSearchKeyWord(),
                 PageRequest.of(pageAiConfigReq.getPage(), pageAiConfigReq.getSize()));
         } else {
-            aiConfigPage = aiConfigRepository.findAll(
-                PageRequest.of(pageAiConfigReq.getPage(), pageAiConfigReq.getSize()));
+            aiConfigPage =
+                aiConfigRepository.findAll(PageRequest.of(pageAiConfigReq.getPage(), pageAiConfigReq.getSize()));
         }
 
         return aiConfigPage.map(aiConfigMapper::aiConfigEntityToPageAiConfigRes);

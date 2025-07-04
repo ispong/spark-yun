@@ -7,7 +7,6 @@ import com.isxcode.star.api.aiconfig.req.UpdateAiConfigReq;
 import com.isxcode.star.api.aiconfig.res.PageAiConfigRes;
 import com.isxcode.star.api.main.constants.ModuleCode;
 import com.isxcode.star.api.user.constants.RoleType;
-import com.isxcode.star.backend.api.base.properties.IsxAppProperties;
 import com.isxcode.star.common.annotations.successResponse.SuccessResponse;
 import com.isxcode.star.modules.aiconfig.service.biz.AiConfigBizService;
 import io.swagger.v3.oas.annotations.Operation;
