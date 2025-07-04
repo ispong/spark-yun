@@ -142,13 +142,14 @@ public class WorkBizService {
         // 配置添加数据源
         workConfig.setDatasourceId(addWorkReq.getDatasourceId());
 
-        // 如果是sparkSql,jdbcQuerySql,jdbcExecuteSql,bash,python作业，需要初始化脚本内容，方便客户使用
+        // 如果是sparkSql,jdbcQuerySql,jdbcExecuteSql,bash,python,AI作业，需要初始化脚本内容，方便客户使用
         if (WorkType.QUERY_SPARK_SQL.equals(addWorkReq.getWorkType())
             || WorkType.EXECUTE_JDBC_SQL.equals(addWorkReq.getWorkType())
             || WorkType.QUERY_JDBC_SQL.equals(addWorkReq.getWorkType())
             || WorkType.BASH.equals(addWorkReq.getWorkType()) || WorkType.PYTHON.equals(addWorkReq.getWorkType())
             || WorkType.SPARK_CONTAINER_SQL.equals(addWorkReq.getWorkType())
-            || WorkType.PRQL.equals(addWorkReq.getWorkType()) || WorkType.PY_SPARK.equals(addWorkReq.getWorkType())) {
+            || WorkType.PRQL.equals(addWorkReq.getWorkType()) || WorkType.PY_SPARK.equals(addWorkReq.getWorkType())
+            || WorkType.AI_CHAT.equals(addWorkReq.getWorkType())) {
             workConfigService.initWorkScript(workConfig, addWorkReq.getWorkType());
         }
 
@@ -175,6 +176,14 @@ public class WorkBizService {
                 throw new IsxAppException("容器是必填项");
             }
             workConfig.setContainerId(addWorkReq.getContainerId());
+        }
+
+        // 如果是AI交互作业，必填AI配置
+        if (WorkType.AI_CHAT.equals(addWorkReq.getWorkType())) {
+            if (Strings.isEmpty(addWorkReq.getAiConfigId())) {
+                throw new IsxAppException("AI配置是必填项");
+            }
+            workConfig.setAiConfigId(addWorkReq.getAiConfigId());
         }
 
         // 初始化调度默认值
@@ -308,16 +317,29 @@ public class WorkBizService {
         // 根据作业类型返回结果
         WorkEntity workEntity = workService.getWorkEntity(workInstanceEntity.getWorkId());
         if (WorkType.API.equals(workEntity.getWorkType()) || WorkType.CURL.equals(workEntity.getWorkType())) {
-            return new GetDataRes(null, JSON.toJSONString(JSON.parse(workInstanceEntity.getResultData()), true), null);
+            return new GetDataRes(null, JSON.toJSONString(JSON.parse(workInstanceEntity.getResultData()), true), null, workEntity.getWorkType());
         }
 
         if (WorkType.SPARK_JAR.equals(workEntity.getWorkType()) || WorkType.BASH.equals(workEntity.getWorkType())
             || WorkType.PYTHON.equals(workEntity.getWorkType()) || WorkType.PY_SPARK.equals(workEntity.getWorkType())) {
-            return new GetDataRes(null, null, workInstanceEntity.getResultData());
+            return new GetDataRes(null, null, workInstanceEntity.getResultData(), workEntity.getWorkType());
+        }
+
+        // AI交互作业返回JSON格式化数据（用于运行结果tab）
+        if (WorkType.AI_CHAT.equals(workEntity.getWorkType())) {
+            try {
+                // 尝试格式化JSON
+                Object jsonObj = JSON.parse(workInstanceEntity.getResultData());
+                String formattedJson = JSON.toJSONString(jsonObj, true);
+                return new GetDataRes(null, formattedJson, null, workEntity.getWorkType());
+            } catch (Exception e) {
+                // 如果不是有效JSON，作为普通文本返回
+                return new GetDataRes(null, null, workInstanceEntity.getResultData(), workEntity.getWorkType());
+            }
         }
 
         if (Strings.isEmpty(workInstanceEntity.getYarnLog())) {
-            return new GetDataRes(JSON.parseArray(workInstanceEntity.getResultData()), null, null);
+            return new GetDataRes(JSON.parseArray(workInstanceEntity.getResultData()), null, null, workEntity.getWorkType());
         }
         return JSON.parseObject(workInstanceEntity.getResultData(), GetDataRes.class);
     }
@@ -481,6 +503,10 @@ public class WorkBizService {
             getWorkRes.setAlarmList(JSON.parseArray(workConfig.getAlarmList(), String.class));
         }
 
+        if (!Strings.isEmpty(workConfig.getAiConfigId())) {
+            getWorkRes.setAiConfigId(workConfig.getAiConfigId());
+        }
+
         return getWorkRes;
     }
 
@@ -586,8 +612,9 @@ public class WorkBizService {
         // 判断作业类型
         WorkEntity workEntity = workService.getWorkEntity(workInstanceEntity.getWorkId());
 
-        if (!WorkType.API.equals(workEntity.getWorkType()) && !WorkType.CURL.equals(workEntity.getWorkType())) {
-            throw new IsxAppException("只支持API作业和Curl作业");
+        if (!WorkType.API.equals(workEntity.getWorkType()) && !WorkType.CURL.equals(workEntity.getWorkType())
+            && !WorkType.AI_CHAT.equals(workEntity.getWorkType())) {
+            throw new IsxAppException("只支持API作业、Curl作业和AI交互作业");
         }
 
         List<GetWorkInstanceValuePathRes> result = new ArrayList<>();
@@ -618,14 +645,19 @@ public class WorkBizService {
         // 判断作业类型
         WorkEntity workEntity = workService.getWorkEntity(workInstanceEntity.getWorkId());
 
-        if (!WorkType.BASH.equals(workEntity.getWorkType()) && !WorkType.PYTHON.equals(workEntity.getWorkType())) {
-            throw new IsxAppException("只支持Bash作业和Python作业");
+        if (!WorkType.BASH.equals(workEntity.getWorkType()) && !WorkType.PYTHON.equals(workEntity.getWorkType())
+            && !WorkType.AI_CHAT.equals(workEntity.getWorkType())) {
+            throw new IsxAppException("只支持Bash作业、Python作业和AI交互作业");
         }
 
         // 返回结果
         GetWorkInstanceValuePathRes result = new GetWorkInstanceValuePathRes();
         Pattern pattern = Pattern.compile(getWorkInstanceRegexPathReq.getRegexStr());
-        Matcher matcher = pattern.matcher(workInstanceEntity.getResultData());
+
+        // 对于AI交互作业，使用resultData进行正则匹配
+        String dataToMatch = workInstanceEntity.getResultData();
+
+        Matcher matcher = pattern.matcher(dataToMatch);
         if (matcher.find()) {
             result.setValue(matcher.group(1));
         } else {

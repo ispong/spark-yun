@@ -1,8 +1,16 @@
 <template>
   <div id="content" class="running-log">
     <LoadingPage :visible="loading">
+      <!-- AI作业使用专用的AI日志组件 -->
+      <AiLogContainer
+        v-if="logMsg && isAiJob"
+        :logMsg="logMsg"
+        :status="true"
+        :showResult="false"
+      ></AiLogContainer>
+      <!-- 其他作业使用普通日志组件 -->
       <LogContainer
-        v-if="logMsg"
+        v-else-if="logMsg"
         :logMsg="logMsg"
         :status="true"
         :showResult="false"
@@ -13,21 +21,29 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, defineExpose } from 'vue'
+import { ref, defineExpose, computed } from 'vue'
 import EmptyPage from '@/components/empty-page/index.vue'
 import { GetYarnLogData } from '@/services/schedule.service'
 import LoadingPage from '@/components/loading/index.vue'
+import AiLogContainer from '@/components/ai-log-container/index.vue'
 
 const logMsg = ref('')
 const pubId = ref('')
 const loading = ref<boolean>(false)
+const workType = ref('')
 
 const props = defineProps<{
   showParse: boolean
 }>()
 
-function initData(id: string): void {
+// 判断是否是AI作业
+const isAiJob = computed(() => {
+  return workType.value === 'AI_CHAT'
+})
+
+function initData(id: string, jobType?: string): void {
   pubId.value = id
+  workType.value = jobType || ''
   getLogData(pubId.value)
 }
 

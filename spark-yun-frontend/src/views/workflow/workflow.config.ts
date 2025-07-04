@@ -209,5 +209,9 @@ export const TypeList = [
   {
     label: 'PySpark作业',
     value: 'PY_SPARK'
+  },
+  {
+    label: 'AI交互作业',
+    value: 'AI_CHAT'
   }
 ]

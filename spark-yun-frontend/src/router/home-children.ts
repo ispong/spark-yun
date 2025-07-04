@@ -103,6 +103,11 @@ export default [
     component: TenantUser
   },
   {
+    path: 'ai-config',
+    name: 'ai-config',
+    component: () => import('@/views/ai-config/index.vue')
+  },
+  {
     path: 'user-center',
     name: 'user-center',
     component: UserCenter

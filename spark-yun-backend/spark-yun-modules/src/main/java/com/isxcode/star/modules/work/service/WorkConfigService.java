@@ -67,6 +67,9 @@ public class WorkConfigService {
                         + "da = [('zhangsan', 13), \n" + "      ('lisi', 14),]\n" + "col = ['username', 'age']\n"
                         + "stu = spark.createDataFrame(data=da, schema=col)\n" + "stu.show()");
                 break;
+            case WorkType.AI_CHAT:
+                workConfig.setScript("请帮我分析一下数据趋势");
+                break;
         }
     }
 

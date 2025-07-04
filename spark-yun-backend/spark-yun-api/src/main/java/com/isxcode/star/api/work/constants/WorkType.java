@@ -65,4 +65,9 @@ public interface WorkType {
      * pyspark作业.
      */
     String PY_SPARK = "PY_SPARK";
+
+    /**
+     * AI交互作业.
+     */
+    String AI_CHAT = "AI_CHAT";
 }

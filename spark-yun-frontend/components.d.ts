@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AiLogContainer: typeof import('./src/components/ai-log-container/index.vue')['default']
     BlockDrawer: typeof import('./src/components/block-drawer/index.vue')['default']
     BlockModal: typeof import('./src/components/block-modal/index.vue')['default']
     BlockTable: typeof import('./src/components/block-table/index.vue')['default']

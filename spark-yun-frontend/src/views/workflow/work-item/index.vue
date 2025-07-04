@@ -117,6 +117,7 @@ import ConfigDetail from '../workflow-page/config-detail/index.vue'
 import PublishLog from './publish-log.vue'
 import ReturnData from './return-data.vue'
 import RunningLog from './running-log.vue'
+import AiResult from './ai-result.vue'
 import TotalDetail from './total-detail.vue'
 import { sql } from '@codemirror/lang-sql'
 import { python } from '@codemirror/lang-python'
@@ -189,6 +190,11 @@ const tabList = reactive([
     code: 'RunningLog',
     hide: true
   },
+  {
+    name: '结果展示',
+    code: 'AiResult',
+    hide: true
+  },
   // {
   //   name: '监控信息',
   //   code: 'TotalDetail',
@@ -197,7 +203,7 @@ const tabList = reactive([
 ])
 
 const showParse = computed(() => {
-  return ['CURL', 'QUERY_JDBC', 'SPARK_SQL', 'BASH', 'PYTHON'].includes(props.workItemConfig.workType)
+  return ['CURL', 'QUERY_JDBC', 'SPARK_SQL', 'BASH', 'PYTHON', 'AI_CHAT'].includes(props.workItemConfig.workType)
 })
 function initData(id?: string, tableLoading?: boolean) {
   loading.value = tableLoading ? false : true
@@ -233,6 +239,19 @@ function initData(id?: string, tableLoading?: boolean) {
                 }
                 if (['PYTHON'].includes(workConfig.workType) && ['RunningLog'].includes(item.code)) {
                   item.hide = status === 'FAIL' ? true : false
+                }
+              })
+            } else if (['AI_CHAT'].includes(workConfig.workType)) {
+              // AI作业专用tab配置
+              tabList.forEach((item: any) => {
+                if (['ReturnData'].includes(item.code)) {
+                  item.hide = status === 'FAIL' ? true : false
+                }
+                if (['RunningLog'].includes(item.code)) {
+                  item.hide = true // AI作业不显示运行日志tab
+                }
+                if (['AiResult'].includes(item.code)) {
+                  item.hide = status === 'FAIL' ? true : false // AI作业显示结果展示tab
                 }
               })
             }
@@ -439,12 +458,18 @@ function tabChangeEvent(e: string) {
     PublishLog: PublishLog,
     ReturnData: ReturnData,
     RunningLog: RunningLog,
+    AiResult: AiResult,
     TotalDetail: TotalDetail
   }
   activeName.value = e
   currentTab.value = markRaw(lookup[e])
   nextTick(() => {
-    containerInstanceRef.value.initData(instanceId.value)
+    // 为running-log组件传递作业类型
+    if (e === 'RunningLog') {
+      containerInstanceRef.value.initData(instanceId.value, props.workItemConfig.workType)
+    } else {
+      containerInstanceRef.value.initData(instanceId.value)
+    }
   })
 }
 
@@ -453,7 +478,7 @@ function sqlConfigChange(e: string) {
 }
 
 function getJsonParseResult() {
-  if (['CURL'].includes(props.workItemConfig.workType)) {
+  if (['CURL', 'AI_CHAT'].includes(props.workItemConfig.workType)) {
     parseModalRef.value.showModal(instanceId.value, 'jsonPath')
   } else if (['QUERY_JDBC', 'SPARK_SQL'].includes(props.workItemConfig.workType)) {
     parseModalRef.value.showModal(instanceId.value, 'tablePath')

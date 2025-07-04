@@ -238,6 +238,13 @@ export const menuListData: Array<Menu> = [
         icon: 'User',
         authType: [ 'ROLE_TENANT_ADMIN' ],
         childPage: []
+      },
+      {
+        code: 'ai-config',
+        name: 'AI配置',
+        icon: 'ChatDotRound',
+        authType: [ 'ROLE_TENANT_ADMIN' ],
+        childPage: []
       }
     ]
   },

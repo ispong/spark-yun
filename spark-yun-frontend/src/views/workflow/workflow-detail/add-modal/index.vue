@@ -105,6 +105,10 @@ const typeList = reactive([
   {
     label: 'Python作业',
     value: 'PYTHON'
+  },
+  {
+    label: 'AI交互作业',
+    value: 'AI_CHAT'
   }
 ])
 const rules = reactive<FormRules>({

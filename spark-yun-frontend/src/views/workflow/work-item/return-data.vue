@@ -19,6 +19,7 @@ import { reactive, ref, defineEmits, defineProps } from 'vue'
 import BlockTable from '@/components/block-table/index.vue'
 import { GetResultData } from '@/services/schedule.service'
 import LoadingPage from '@/components/loading/index.vue'
+import LogContainer from '@/components/log-container/index.vue'
 
 const emit = defineEmits(['getJsonParseResult'])
 
@@ -44,6 +45,8 @@ function getJsonParseResult() {
     emit('getJsonParseResult')
 }
 
+
+
 // 获取结果
 function getResultDatalist(id: string) {
   if (!id) {
@@ -62,33 +65,35 @@ function getResultDatalist(id: string) {
       jsonData.value = res.data.jsonData
       strData.value = res.data.strData
 
-      loading.value = false
-
-      const col = res.data.data.slice(0, 1)[0]
-      const tableData = res.data.data.slice(1, res.data.data.length)
-      tableConfig.colConfigs = col.map((colunm: any) => {
-        return {
-          prop: colunm,
-          title: colunm,
-          minWidth: 100,
-          showHeaderOverflow: true,
-          showOverflowTooltip: true
-        }
-      })
-      tableConfig.tableData = tableData.map((columnData: any) => {
-        const dataObj: any = {
-        }
-        col.forEach((c: any, index: number) => {
-          dataObj[c] = columnData[index]
+      if (res.data.data && res.data.data.length > 0) {
+        const col = res.data.data.slice(0, 1)[0]
+        const tableData = res.data.data.slice(1, res.data.data.length)
+        tableConfig.colConfigs = col.map((colunm: any) => {
+          return {
+            prop: colunm,
+            title: colunm,
+            minWidth: 100,
+            showHeaderOverflow: true,
+            showOverflowTooltip: true
+          }
         })
-        return dataObj
-      })
+        tableConfig.tableData = tableData.map((columnData: any) => {
+          const dataObj: any = {}
+          col.forEach((c: any, index: number) => {
+            dataObj[c] = columnData[index]
+          })
+          return dataObj
+        })
+      }
+
+      loading.value = false
       tableConfig.loading = false
     })
     .catch(() => {
       tableConfig.colConfigs = []
       tableConfig.tableData = []
       tableConfig.loading = false
+      loading.value = false
     })
 }
 
@@ -122,4 +127,6 @@ defineExpose({
         text-decoration: underline;
     }
 }
+
+
 </style>

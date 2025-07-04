@@ -55,4 +55,7 @@ public class GetWorkRes {
     private String containerId;
 
     private List<String> alarmList;
+
+    @Schema(title = "AI配置ID", example = "sy_xxx")
+    private String aiConfigId;
 }

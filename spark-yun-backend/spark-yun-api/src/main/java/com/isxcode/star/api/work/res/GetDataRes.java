@@ -17,4 +17,6 @@ public class GetDataRes {
     private String jsonData;
 
     private String strData;
+
+    private String workType;
 }

@@ -105,4 +105,9 @@ public class WorkRunContext {
      */
     private String containerId;
 
+    /**
+     * AI配置id.
+     */
+    private String aiConfigId;
+
 }

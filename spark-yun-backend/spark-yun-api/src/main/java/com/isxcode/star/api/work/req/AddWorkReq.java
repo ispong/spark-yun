@@ -16,10 +16,10 @@ public class AddWorkReq {
     @Schema(title = "作业类型",
         example = "类型编码：" + "SPARK_SQL： spark sql执行作业" + "EXE_JDBC： jdbc执行作业" + "QUERY_JDBC： jdbc查询作业"
             + "DATA_SYNC_JDBC： 数据同步作业" + "BASH： bash脚本作业" + "PYTHON： python脚本作业" + "API： 接口调用作业" + "PRQL： PRQL查询作业"
-            + "CURL： CURL作业" + "PY_SPARK: PySpark作业")
+            + "CURL： CURL作业" + "PY_SPARK: PySpark作业" + "AI_CHAT: AI交互作业")
     @NotEmpty(message = "作业类型不能为空")
     @Pattern(
-        regexp = "^(SPARK_SQL|EXE_JDBC|QUERY_JDBC|DATA_SYNC_JDBC|BASH|PYTHON|SPARK_JAR|SPARK_CONTAINER_SQL|API|PRQL|CURL|EXCEL_SYNC_JDBC|PY_SPARK)$",
+        regexp = "^(SPARK_SQL|EXE_JDBC|QUERY_JDBC|DATA_SYNC_JDBC|BASH|PYTHON|SPARK_JAR|SPARK_CONTAINER_SQL|API|PRQL|CURL|EXCEL_SYNC_JDBC|PY_SPARK|AI_CHAT)$",
         message = "作业类型不支持")
     private String workType;
 
@@ -44,4 +44,7 @@ public class AddWorkReq {
 
     @Schema(title = "是否支持hive", example = "true/false")
     private Boolean enableHive;
+
+    @Schema(title = "AI配置ID", example = "sy_xxx")
+    private String aiConfigId;
 }

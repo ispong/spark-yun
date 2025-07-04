@@ -105,6 +105,24 @@
                         />
                     </el-select>
                 </el-form-item>
+                <el-form-item
+                    label="AI配置"
+                    prop="aiConfigId"
+                    v-if="['AI_CHAT'].includes(formData.workType)"
+                >
+                    <el-select
+                        v-model="formData.aiConfigId"
+                        placeholder="请选择AI配置"
+                        @visible-change="getAiConfigList"
+                    >
+                        <el-option
+                            v-for="item in aiConfigList"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                        />
+                    </el-select>
+                </el-form-item>
             </template>
             <el-form-item label="备注">
                 <el-input
@@ -127,6 +145,7 @@ import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { GetComputerGroupList, GetComputerPointData } from '@/services/computer-group.service'
 import { GetDatasourceList } from '@/services/datasource.service'
 import { GetSparkContainerList } from '@/services/spark-container.service'
+import { GetAiConfigList } from '@/api/ai-config'
 import { TypeList } from '../../workflow.config'
 
 const form = ref<FormInstance>()
@@ -137,6 +156,7 @@ const dataSourceList = ref([]) // 数据源
 const showForm = ref(true)
 const renderSense = ref('')
 const sparkContainerList = ref([]) // spark容器
+const aiConfigList = ref([]) // AI配置
 
 const modelConfig = reactive({
     title: '添加作业',
@@ -164,6 +184,7 @@ const formData = reactive({
     clusterNodeId: '', // 集群节点
     datasourceId: '', // 数据源
     containerId: '', // spark容器
+    aiConfigId: '', // AI配置
     enableHive: false,
     remark: '',
     id: ''
@@ -211,6 +232,13 @@ const rules = reactive<FormRules>({
             message: '请选择计算容器',
             trigger: ['blur', 'change']
         }
+    ],
+    aiConfigId: [
+        {
+            required: true,
+            message: '请选择AI配置',
+            trigger: ['blur', 'change']
+        }
     ]
 })
 
@@ -225,6 +253,7 @@ function showModal(cb: () => void, data: any): void {
         formData.clusterNodeId && getClusterNodeList(true)
         formData.datasourceId && getDataSourceList(true)
         formData.containerId && getSparkContainerList(true)
+        formData.aiConfigId && getAiConfigList(true)
 
         modelConfig.title = '编辑作业'
         renderSense.value = 'edit'
@@ -235,6 +264,7 @@ function showModal(cb: () => void, data: any): void {
         formData.clusterId = ''
         formData.clusterNodeId = ''
         formData.datasourceId = ''
+        formData.aiConfigId = ''
         formData.enableHive = false
 
         formData.id = ''
@@ -362,10 +392,45 @@ function getSparkContainerList(e: boolean, searchType?: string) {
             })
     }
 }
+function getAiConfigList(e: boolean) {
+    if (e) {
+        GetAiConfigList({
+            page: 0,
+            size: 10000,
+            searchKeyWord: ''
+        })
+            .then((res: any) => {
+                aiConfigList.value = res.data.content
+                    .filter((item: any) => item.status === 'ENABLE')
+                    .map((item: any) => {
+                        return {
+                            label: `${item.name} (${getModelTypeName(item.modelType)})`,
+                            value: item.id
+                        }
+                    })
+            })
+            .catch(() => {
+                aiConfigList.value = []
+            })
+    }
+}
+
+function getModelTypeName(modelType: string) {
+    const typeMap: Record<string, string> = {
+        'QWEN': '通义千问',
+        'CHATGPT_4O': 'ChatGPT-4o',
+        'GEMINI': 'Gemini',
+        'CLAUDE': 'Claude',
+        'ERNIE': '文心一言'
+    }
+    return typeMap[modelType] || modelType
+}
+
 function workTypeChange() {
     formData.datasourceId = ''
     formData.clusterId = ''
     formData.clusterNodeId = ''
+    formData.aiConfigId = ''
 }
 function closeEvent() {
     modelConfig.visible = false

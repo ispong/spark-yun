@@ -69,4 +69,9 @@ public interface ModuleCode {
      * 基线告警模块
      */
     String ALARM = "alarm";
+
+    /**
+     * AI配置模块
+     */
+    String AI_CONFIG = "ai-config";
 }
