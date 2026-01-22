@@ -69,6 +69,26 @@
       flex-direction: column;
       align-items: center;
       background-color: #ffffff;
+      position: relative;
+
+      .zqy-login__language-switch {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+
+        .language-trigger {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          cursor: pointer;
+          color: getCssVar('color', 'primary');
+          font-size: getCssVar('font-size', 'extra-small');
+
+          &:hover {
+            opacity: 0.8;
+          }
+        }
+      }
 
       img {
         width: 90px;

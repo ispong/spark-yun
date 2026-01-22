@@ -3,6 +3,7 @@ import { useAuthStore } from "@/store/useAuth"
 import type { Menu } from "../menu.config"
 import { useRoute, useRouter } from "vue-router"
 import { useMenuAvatar } from "./use-menu-avatar"
+import { useI18n } from 'vue-i18n'
 
 function getCurrentMenu(menuList: Menu[], routeMenu: string, targetMenu?: menu) {
   let currentMenu: any = null
@@ -20,11 +21,17 @@ function getCurrentMenu(menuList: Menu[], routeMenu: string, targetMenu?: menu) 
   return currentMenu
 }
 
+// 将菜单代码转换为驼峰命名的 i18n key
+function getMenuI18nKey(code: string): string {
+  return code.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())
+}
+
 export function useRouterMenu(menuListData: Menu[]) {
   const authStore = useAuthStore()
   const route = useRoute()
   const router = useRouter()
   const { renderMenuAvatar } = useMenuAvatar()
+  const { t } = useI18n()
 
   const menuViewData = computed(() => menuListData.filter(menuItem => menuItem.authType?.includes(authStore.role || 'ROLE_TENANT_MEMBER')))
 
@@ -89,7 +96,7 @@ export function useRouterMenu(menuListData: Menu[]) {
                       isCollapse.value ? <el-icon class="zqy-home__icon">{ h(resolveComponent(menuData.icon)) }</el-icon> :
                       <span>
                         <el-icon class="zqy-home__icon">{ h(resolveComponent(menuData.icon)) }</el-icon>
-                        <span class="zqy-home__text">{ menuData.name }</span>
+                        <span class="zqy-home__text">{ t(`menu.${getMenuI18nKey(menuData.code)}`) }</span>
                       </span>
                     )
                   }}
@@ -99,7 +106,7 @@ export function useRouterMenu(menuListData: Menu[]) {
                       <el-menu-item key={menu.code} index={menu.code}>
                         {{
                           default: () => (<el-icon class="zqy-home__icon">{ h(resolveComponent(menu.icon)) }</el-icon>),
-                          title: () => (<span class="zqy-home__text">{ menu.name }</span>)
+                          title: () => (<span class="zqy-home__text">{ t(`menu.${getMenuI18nKey(menu.code)}`) }</span>)
                         }}
                       </el-menu-item>
                     ))
@@ -108,7 +115,7 @@ export function useRouterMenu(menuListData: Menu[]) {
                 <el-menu-item key={menuData.code} index={menuData.code}>
                   {{
                     default: () => (<el-icon class="zqy-home__icon">{ h(resolveComponent(menuData.icon)) }</el-icon>),
-                    title: () => (<span class="zqy-home__text">{ menuData.name }</span>)
+                    title: () => (<span class="zqy-home__text">{ t(`menu.${getMenuI18nKey(menuData.code)}`) }</span>)
                   }}
                 </el-menu-item>
             ))

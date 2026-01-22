@@ -5,9 +5,13 @@
 </template>
 <script lang="ts" setup>
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
-import { reactive } from 'vue'
+import enUS from 'element-plus/dist/locale/en.mjs'
+import { computed } from 'vue'
+import { useLocaleStore } from '@/store/useLocale'
 
-const { locale } = reactive({
-  locale: zhCn
+const localeStore = useLocaleStore()
+
+const locale = computed(() => {
+  return localeStore.locale === 'zh-CN' ? zhCn : enUS
 })
 </script>

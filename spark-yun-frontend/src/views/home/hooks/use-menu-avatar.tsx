@@ -6,13 +6,17 @@ import { useSwitchTenant, type TenantInfo } from '@/hooks/switch-tenant'
 import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { ChangeTenantData } from "@/services/login.service"
 import { ElMessage } from "element-plus"
+import { useI18n } from 'vue-i18n'
+import { useLocaleStore, type LocaleType } from '@/store/useLocale'
 
-export type AvatarMenuCommand = 'logout' | 'personal-info'
+export type AvatarMenuCommand = 'logout' | 'personal-info' | 'switch-language'
 
 export function useMenuAvatar() {
   let authStore = useAuthStore()
   let router = useRouter()
   let tenantVisible = ref(false)
+  const { t } = useI18n()
+  const localeStore = useLocaleStore()
 
   let username = computed(() => {
     return authStore.userInfo?.username?.slice(0, 1)
@@ -41,11 +45,15 @@ export function useMenuAvatar() {
       setTimeout(() => {
         authStore.$reset()
       });
-      ElMessage.success('退出成功')
+      ElMessage.success(t('user.logoutSuccess'))
       router.push({ name: 'login' })
     } else if (command === 'personal-info') {
       router.push({ name: 'personalInfo' })
     }
+  }
+
+  const handleLanguageChange = function(lang: LocaleType) {
+    localeStore.setLocale(lang)
   }
 
   const handleTenantChange = function(event: Event, tenant: TenantInfo) {
@@ -59,8 +67,8 @@ export function useMenuAvatar() {
     ChangeTenantData({
       tenantId: tenant.id
     }).then(() => {
-      
-      ElMessage.success('租户切换成功')
+
+      ElMessage.success(t('user.tenantSwitchSuccess'))
 
       authStore.setTenantId(tenant.id)
     })
@@ -100,11 +108,29 @@ export function useMenuAvatar() {
               { !isAdmin.value ? renderTenantSwitch() : null }
               <div class="zqy-home__menu-option" onClick={ () => handleCommand('personal-info') }>
                 <el-icon><User /></el-icon>
-                个人信息
+                { t('user.personalInfo') }
+              </div>
+              <div class="zyq-home__menu-language">
+                <el-dropdown onCommand={handleLanguageChange} placement="right-start">
+                  {{
+                    default: () => (
+                      <div class="zqy-home__menu-option">
+                        <el-icon><operation /></el-icon>
+                        { t(`language.${localeStore.locale === 'zh-CN' ? 'zhCN' : 'enUS'}`) }
+                      </div>
+                    ),
+                    dropdown: () => (
+                      <el-dropdown-menu>
+                        <el-dropdown-item command="zh-CN">{ t('language.zhCN') }</el-dropdown-item>
+                        <el-dropdown-item command="en-US">{ t('language.enUS') }</el-dropdown-item>
+                      </el-dropdown-menu>
+                    )
+                  }}
+                </el-dropdown>
               </div>
               <div class="zqy-home__menu-option" onClick={ () => handleCommand('logout') }>
                 <el-icon><switch-button /></el-icon>
-                退出登录
+                { t('user.logout') }
               </div>
             </>
           )

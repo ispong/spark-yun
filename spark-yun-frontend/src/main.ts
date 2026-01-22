@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import pinia from './store'
+import i18n from './i18n'
 
 import "normalize.css"
 
@@ -27,5 +28,6 @@ app
   .use(VXETable)
   .use(pinia)
   .use(router)
+  .use(i18n)
   .use(VueGridLayout)
   .mount('#app')
