@@ -43,6 +43,8 @@ public class TenantUserEntity {
 
     private String roleCode;
 
+    private Boolean normalAdmin;
+
     private String status;
 
     private String remark;

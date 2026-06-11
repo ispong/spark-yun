@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
 @Tag(name = "自定义函数模块")
-@RequestMapping(ModuleCode.FUNC)
+@RequestMapping({ModuleCode.FUNC, "/api/workspace/" + ModuleCode.FUNC})
 @RestController
 @RequiredArgsConstructor
 public class FuncController {
@@ -45,7 +45,7 @@ public class FuncController {
         funcBizService.updateFunc(updateFuncReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "删除自定义函数接口")
     @PostMapping("/deleteFunc")
     @SuccessResponse("删除成功")

@@ -47,6 +47,8 @@ public class UserEntity {
 
     private String roleCode;
 
+    private Boolean platformAdmin;
+
     private String status;
 
     private String currentTenantId;

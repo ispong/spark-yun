@@ -106,6 +106,9 @@
                         <el-dropdown-item @click="editData(scopeSlot.row)">
                           编辑
                         </el-dropdown-item>
+                        <el-dropdown-item @click="openReplaceAdmin(scopeSlot.row)">
+                          替换租户管理员
+                        </el-dropdown-item>
                         <el-dropdown-item v-if="!scopeSlot.row.checkLoding" @click="checkTenant(scopeSlot.row)">
                           检测
                         </el-dropdown-item>
@@ -121,6 +124,30 @@
       </div>
     </LoadingPage>
     <AddModal ref="addModalRef" />
+    <el-dialog v-model="replaceAdminVisible" title="替换租户管理员" width="480px">
+      <el-form label-position="top">
+        <el-form-item label="新租户管理员">
+          <el-select v-model="replaceAdminForm.newAdminUserId" filterable>
+            <el-option
+              v-for="user in enabledUsers"
+              :key="user.id"
+              :label="`${user.username} (${user.account})`"
+              :value="user.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="旧租户管理员处理方式">
+          <el-radio-group v-model="replaceAdminForm.oldAdminAction">
+            <el-radio label="KEEP">保留为普通成员</el-radio>
+            <el-radio label="REMOVE">移出租户</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="replaceAdminVisible = false">取消</el-button>
+        <el-button type="primary" :loading="replaceAdminLoading" @click="replaceAdmin">确认替换</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -132,15 +159,25 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './tenant-list.config'
-import { GetTenantList, AddTenantData, DeleteTenantData, CheckTenantData, DisableTenantData, EnableTenantData, UpdateTenantData } from '@/services/tenant-list.service'
+import {
+  GetTenantList,
+  AddTenantData,
+  DeleteTenantData,
+  CheckTenantData,
+  DisableTenantData,
+  EnableTenantData,
+  UpdateTenantData,
+  ReplaceTenantAdminData
+} from '@/services/tenant-list.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 import eventBus from '@/utils/eventBus'
 import { useAuthStore } from '@/store/useAuth'
+import { GetUserInfoList } from '@/services/tenant-user.service'
 // import { useState, useMutations } from '@/hooks/useStore'
 
 interface FormTenant {
-  adminUserId: string;
+  adminUserId?: string;
   maxMemberNum: string;
   maxWorkflowNum: string;
   name: string;
@@ -158,6 +195,14 @@ const networkError = ref(false)
 const addModalRef = ref(null)
 const breadCrumbList = reactive(BreadCrumbList)
 const tableConfig: any = reactive(TableConfig)
+const replaceAdminVisible = ref(false)
+const replaceAdminLoading = ref(false)
+const enabledUsers = ref<any[]>([])
+const replaceAdminForm = reactive({
+  tenantId: '',
+  newAdminUserId: '',
+  oldAdminAction: 'KEEP' as 'KEEP' | 'REMOVE'
+})
 
 function initData(tableLoading?: boolean) {
   loading.value = tableLoading ? false : true
@@ -236,6 +281,37 @@ function checkTenant(data: any) {
     })
 }
 
+function openReplaceAdmin(data: any) {
+  replaceAdminForm.tenantId = data.id
+  replaceAdminForm.newAdminUserId = ''
+  replaceAdminForm.oldAdminAction = 'KEEP'
+  GetUserInfoList({
+    page: 0,
+    pageSize: 999,
+    searchKeyWord: ''
+  }).then((res: any) => {
+    enabledUsers.value = res.data.content || []
+    replaceAdminVisible.value = true
+  })
+}
+
+function replaceAdmin() {
+  if (!replaceAdminForm.newAdminUserId) {
+    ElMessage.warning('请选择新租户管理员')
+    return
+  }
+  replaceAdminLoading.value = true
+  ReplaceTenantAdminData(replaceAdminForm)
+    .then((res: any) => {
+      ElMessage.success(res.msg)
+      replaceAdminVisible.value = false
+      initData(true)
+    })
+    .finally(() => {
+      replaceAdminLoading.value = false
+    })
+}
+
 // 启用 or 禁用
 function changeStatus(data: any, status: boolean) {
   data.statusLoading = true
@@ -268,13 +344,16 @@ function changeStatus(data: any, status: boolean) {
 
 // 删除
 function deleteData(data: any) {
-  ElMessageBox.confirm('确定删除该租户吗？', '警告', {
+  ElMessageBox.prompt(`请输入租户名称“${data.name}”确认删除`, '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
+    inputPattern: new RegExp(`^${data.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`),
+    inputErrorMessage: '租户名称不一致',
     type: 'warning'
-  }).then(() => {
+  }).then(({ value }) => {
     DeleteTenantData({
-      tenantId: data.id
+      tenantId: data.id,
+      tenantName: value
     })
       .then((res: any) => {
         ElMessage.success(res.msg)

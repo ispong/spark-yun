@@ -75,11 +75,12 @@ export const httpOption = {
     checkStatus: (status: number, msg: string, showMsg: any, response: any): void => {
       try {
         if (status == 401) {
-          router.push({
-            name: 'login'
-          })
+          const authStore = useAuthStore()
+          const tenantUnavailable = ['租户', '成员', '不在租户'].some(keyword => msg?.includes(keyword))
+          router.push(tenantUnavailable && authStore.token ? { name: 'no-tenant' } : { name: 'login' })
         } else if (status == 403) {
-          message.error('许可证无效，请联系管理员')
+          message.error(msg || '暂无权限')
+          router.push({ name: 'forbidden' })
         } else if (status == 404) {
           if (response.config.url.match('/vip/')) {
             if (!whiteList.some(url => response.config.url.match(url))) {

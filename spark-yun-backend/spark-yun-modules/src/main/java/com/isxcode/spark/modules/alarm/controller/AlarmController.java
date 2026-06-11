@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
 @Tag(name = "基线告警模块")
-@RequestMapping(ModuleCode.ALARM)
+@RequestMapping({ModuleCode.ALARM, "/api/workspace/" + ModuleCode.ALARM})
 @RestController
 @RequiredArgsConstructor
 public class AlarmController {
@@ -53,7 +53,7 @@ public class AlarmController {
         return alarmBizService.pageMessage(pageMessageReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "删除消息体接口")
     @PostMapping("/deleteMessage")
     @SuccessResponse("删除成功")
@@ -110,7 +110,7 @@ public class AlarmController {
         return alarmBizService.pageAlarm(pageAlarmReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "删除告警接口")
     @PostMapping("/deleteAlarm")
     @SuccessResponse("删除成功")

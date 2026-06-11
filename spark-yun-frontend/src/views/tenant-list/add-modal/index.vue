@@ -40,7 +40,16 @@
       </el-form-item>
       <el-form-item
         v-if="renderSence === 'new'"
-        label="管理员"
+        label="租户管理员来源"
+      >
+        <el-radio-group v-model="adminUserMode">
+          <el-radio label="existing">选择已有用户</el-radio>
+          <el-radio label="new">新建用户</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item
+        v-if="renderSence === 'new' && adminUserMode === 'existing'"
+        label="租户管理员"
         prop="adminUserId"
       >
         <el-select
@@ -55,6 +64,23 @@
           />
         </el-select>
       </el-form-item>
+      <template v-if="renderSence === 'new' && adminUserMode === 'new'">
+        <el-form-item label="用户名">
+          <el-input v-model="formData.adminUsername" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="登录账号">
+          <el-input v-model="formData.adminAccount" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="初始密码">
+          <el-input v-model="formData.adminPassword" type="password" show-password placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="formData.adminPhone" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="formData.adminEmail" placeholder="请输入" />
+        </el-form-item>
+      </template>
       <el-form-item label="备注">
         <el-input
           v-model="formData.remark"
@@ -95,6 +121,7 @@ const form = ref<FormInstance>()
 const callback = ref<any>()
 const userList = ref([])
 const renderSence = ref('new')
+const adminUserMode = ref<'existing' | 'new'>('existing')
 const modelConfig = reactive({
   title: '新建租户',
   visible: false,
@@ -119,6 +146,12 @@ const formData = reactive({
   maxMemberNum: 5,
   maxWorkflowNum: 20,
   adminUserId: '',
+  createAdminUser: false,
+  adminUsername: '',
+  adminAccount: '',
+  adminPassword: '',
+  adminPhone: '',
+  adminEmail: '',
   validDateTime: [],
   remark: '',
   id: ''
@@ -162,6 +195,12 @@ function showModal(cb: () => void, data: any): void {
     formData.maxMemberNum = 2
     formData.maxWorkflowNum = 5
     formData.adminUserId = ''
+    formData.adminUsername = ''
+    formData.adminAccount = ''
+    formData.adminPassword = ''
+    formData.adminPhone = ''
+    formData.adminEmail = ''
+    adminUserMode.value = 'existing'
     formData.remark = ''
     formData.validDateTime = []
     formData.id = ''
@@ -190,10 +229,24 @@ function getUserOfSystem() {
 function okEvent() {
   form.value?.validate((valid) => {
     if (valid) {
+      if (renderSence.value === 'new' && adminUserMode.value === 'existing' && !formData.adminUserId) {
+        ElMessage.warning('请选择租户管理员')
+        return
+      }
+      if (
+        renderSence.value === 'new'
+        && adminUserMode.value === 'new'
+        && (!formData.adminUsername || !formData.adminAccount || !formData.adminPassword)
+      ) {
+        ElMessage.warning('请填写新管理员的用户名、账号和密码')
+        return
+      }
       modelConfig.okConfig.loading = true
       callback
         .value({
           ...formData,
+          createAdminUser: adminUserMode.value === 'new',
+          adminUserId: adminUserMode.value === 'existing' ? formData.adminUserId : undefined,
           id: formData.id ? formData.id : undefined
         })
         .then((res: any) => {

@@ -25,6 +25,7 @@ interface TenantParam {
 
 interface TenantIdParam {
   tenantId: string;
+  tenantName?: string;
 }
 
 // 租户列表-查询租户
@@ -87,5 +88,17 @@ export function DeleteTenantData(params: TenantIdParam): Promise<any> {
     method: 'post',
     url: '/tenant/deleteTenant',
     params: params
+  })
+}
+
+export function ReplaceTenantAdminData(params: {
+  tenantId: string;
+  newAdminUserId: string;
+  oldAdminAction: 'KEEP' | 'REMOVE';
+}): Promise<any> {
+  return http.request({
+    method: 'post',
+    url: '/tenant/replaceAdmin',
+    params
   })
 }

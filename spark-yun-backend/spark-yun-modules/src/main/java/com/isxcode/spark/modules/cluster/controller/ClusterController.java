@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @Tag(name = "计算引擎模块")
-@RequestMapping(ModuleCode.CLUSTER)
+@RequestMapping({ModuleCode.CLUSTER, "/api/workspace/" + ModuleCode.CLUSTER})
 @RestController
 @RequiredArgsConstructor
 public class ClusterController {
@@ -52,7 +52,7 @@ public class ClusterController {
         return clusterBizService.pageCluster(pageClusterReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "删除计算集群接口")
     @PostMapping("/deleteCluster")
     @SuccessResponse("删除成功")

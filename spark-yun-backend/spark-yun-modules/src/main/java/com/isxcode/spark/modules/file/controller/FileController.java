@@ -22,7 +22,7 @@ import jakarta.validation.constraints.Pattern;
 import java.util.List;
 
 @Tag(name = "资源文件中心模块")
-@RequestMapping(ModuleCode.FILE)
+@RequestMapping({ModuleCode.FILE, "/api/workspace/" + ModuleCode.FILE})
 @RestController
 @RequiredArgsConstructor
 public class FileController {
@@ -68,7 +68,7 @@ public class FileController {
         return fileBizService.downloadFile(downloadFileReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "资源文件删除接口")
     @PostMapping("/deleteFile")
     @SuccessResponse("删除成功")

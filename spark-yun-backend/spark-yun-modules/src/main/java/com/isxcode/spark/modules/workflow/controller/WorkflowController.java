@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "作业流模块")
-@RequestMapping(ModuleCode.WORKFLOW)
+@RequestMapping({ModuleCode.WORKFLOW, "/api/workspace/" + ModuleCode.WORKFLOW})
 @RestController
 @RequiredArgsConstructor
 public class WorkflowController {
@@ -67,7 +67,7 @@ public class WorkflowController {
         return workflowBizService.pageWorkflow(pageWorkflowReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "删除作业流接口")
     @PostMapping("/deleteWorkflow")
     @SuccessResponse("删除成功")

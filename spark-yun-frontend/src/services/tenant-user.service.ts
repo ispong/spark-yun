@@ -87,3 +87,19 @@ export function RemoveAuth(params: DeleteParam): Promise<any> {
     params: params
   })
 }
+
+export function SetTenantMemberStatus(params: { tenantUserId: string; status: string }): Promise<any> {
+  return http.request({
+    method: 'post',
+    url: '/api/admin/members/setStatus',
+    params
+  })
+}
+
+export function SetMemberRoles(params: { userId: string; roleIds: string[] }): Promise<any> {
+  return http.request({
+    method: 'post',
+    url: '/api/admin/members/setRoles',
+    params
+  })
+}

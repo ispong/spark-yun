@@ -25,7 +25,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @Tag(name = "作业模块")
-@RequestMapping(ModuleCode.WORK)
+@RequestMapping({ModuleCode.WORK, "/api/workspace/" + ModuleCode.WORK})
 @RestController
 @RequiredArgsConstructor
 public class WorkController {
@@ -96,7 +96,7 @@ public class WorkController {
         return workBizService.getStatus(getStatusReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "删除作业接口")
     @PostMapping("/deleteWork")
     @SuccessResponse("删除成功")

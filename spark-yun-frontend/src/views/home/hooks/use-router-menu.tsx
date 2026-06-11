@@ -1,4 +1,4 @@
-import { computed, h, onMounted, ref, resolveComponent, watch } from "vue"
+import { computed, h, onMounted, ref, resolveComponent, unref, watch, type MaybeRef } from "vue"
 import { useAuthStore } from "@/store/useAuth"
 import type { Menu } from "../menu.config"
 import { useRoute, useRouter } from "vue-router"
@@ -21,7 +21,38 @@ function getCurrentMenu(menuList: Menu[], routeMenu: string, targetMenu?: Menu) 
   return currentMenu
 }
 
-export function useRouterMenu(menuListData: Menu[]) {
+function filterWorkspaceMenus(menuList: Menu[], permissions: string[], allPermissions: boolean): Menu[] {
+  return menuList.reduce<Menu[]>((result, menu) => {
+    const children = menu.children
+      ? filterWorkspaceMenus(menu.children, permissions, allPermissions)
+      : undefined
+    const allowed = allPermissions
+      || permissions.includes(menu.permission || `workspace:${menu.code}:menu`)
+      || !!children?.length
+    if (allowed) {
+      result.push({
+        ...menu,
+        children
+      })
+    }
+    return result
+  }, [])
+}
+
+function firstLeafMenu(menuList: Menu[]): Menu | undefined {
+  for (const menu of menuList) {
+    if (menu.children?.length) {
+      const child = firstLeafMenu(menu.children)
+      if (child) {
+        return child
+      }
+    } else {
+      return menu
+    }
+  }
+}
+
+export function useRouterMenu(menuListData: MaybeRef<Menu[]>) {
   const authStore = useAuthStore()
   const route = useRoute()
   const router = useRouter()
@@ -31,10 +62,15 @@ export function useRouterMenu(menuListData: Menu[]) {
   const vipChecked = ref(false)
 
   const menuViewData = computed(() => {
-    const roleMenu = menuListData.filter(menuItem =>
-      menuItem.authType?.includes(authStore.role || "ROLE_TENANT_MEMBER")
-    )
-    return filterVipMenus(roleMenu, vipEnabled.value, licenseApiAvailable.value)
+    const sourceMenus = unref(menuListData)
+    const areaMenus = route.path.startsWith('/workspace')
+      ? filterWorkspaceMenus(
+        sourceMenus,
+        authStore.userInfo?.permissions || [],
+        !!authStore.userInfo?.workspaceAllPermissions
+      )
+      : sourceMenus
+    return filterVipMenus(areaMenus, vipEnabled.value, licenseApiAvailable.value)
   })
 
   const currentMenu = computed(() => {
@@ -79,8 +115,12 @@ export function useRouterMenu(menuListData: Menu[]) {
         return
       }
       if (!currentMenu.value && menuViewData.value.length) {
+        const target = firstLeafMenu(menuViewData.value)
+        if (!target) {
+          return
+        }
         router.replace({
-          name: menuViewData.value[0].code
+          name: target.code
         })
       }
     },

@@ -89,6 +89,12 @@ export const colConfigs: colConfig[] = [
     customSlot: 'statusTag'
   },
   {
+    prop: 'platformAdmin',
+    title: '平台身份',
+    minWidth: 110,
+    customSlot: 'platformAdmin'
+  },
+  {
     prop: 'remark',
     title: '备注',
     minWidth: 120,
@@ -98,7 +104,7 @@ export const colConfigs: colConfig[] = [
     title: '操作',
     align: 'center',
     customSlot: 'options',
-    width: 80,
+    width: 120,
     fixed: 'right'
   }
 ]

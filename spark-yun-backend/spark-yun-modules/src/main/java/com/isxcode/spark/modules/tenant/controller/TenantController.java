@@ -9,6 +9,7 @@ import com.isxcode.spark.api.tenant.res.ChooseTenantRes;
 import com.isxcode.spark.api.tenant.res.QueryUserTenantRes;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
+import com.isxcode.spark.common.userlog.UserLog;
 import com.isxcode.spark.modules.tenant.service.biz.TenantBizService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "租户模块")
-@RequestMapping(ModuleCode.TENANT)
+@RequestMapping({ModuleCode.TENANT, "/api/platform/tenants"})
 @RestController
 @RequiredArgsConstructor
 public class TenantController {
@@ -31,7 +32,7 @@ public class TenantController {
     private final TenantBizService tenantBizService;
 
     @LicenseApi
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "创建租户接口")
     @PostMapping("/addTenant")
     @SuccessResponse("创建成功")
@@ -41,7 +42,7 @@ public class TenantController {
     }
 
     @Operation(summary = "查询租户列表接口")
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @PostMapping("/pageTenant")
     @SuccessResponse("查询成功")
     public Page<PageTenantRes> pageTenant(@Valid @RequestBody PageTenantReq pageTenantReq) {
@@ -57,7 +58,7 @@ public class TenantController {
         return tenantBizService.queryUserTenant();
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "系统管理员更新租户接口")
     @PostMapping("/updateTenantForSystemAdmin")
     @SuccessResponse("更新成功")
@@ -77,7 +78,7 @@ public class TenantController {
         tenantBizService.updateTenantForTenantAdmin(updateTenantForTenantAdminReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "启动租户接口")
     @PostMapping("/enableTenant")
     @SuccessResponse("启用成功")
@@ -86,16 +87,17 @@ public class TenantController {
         tenantBizService.enableTenant(enableTenantReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "禁用租户接口")
     @PostMapping("/disableTenant")
+    @UserLog
     @SuccessResponse("禁用成功")
     public void disableTenant(@Valid @RequestBody DisableTenantReq disableTenantReq) {
 
         tenantBizService.disableTenant(disableTenantReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "检测租户信息接口")
     @PostMapping("/checkTenant")
     @SuccessResponse("检测完成")
@@ -104,13 +106,24 @@ public class TenantController {
         tenantBizService.checkTenant(checkTenantReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "删除租户接口")
     @PostMapping("/deleteTenant")
+    @UserLog
     @SuccessResponse("删除成功")
     public void deleteTenant(@Valid @RequestBody DeleteTenantReq deleteTenantReq) {
 
         tenantBizService.deleteTenant(deleteTenantReq);
+    }
+
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Operation(summary = "替换租户管理员接口")
+    @PostMapping("/replaceAdmin")
+    @UserLog
+    @SuccessResponse("替换成功")
+    public void replaceTenantAdmin(@Valid @RequestBody ReplaceTenantAdminReq request) {
+
+        tenantBizService.replaceTenantAdmin(request);
     }
 
     @Operation(summary = "选择租户接口")

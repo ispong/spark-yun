@@ -2,8 +2,7 @@ package com.isxcode.spark.security.main;
 
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.backend.api.base.properties.IsxAppProperties;
-import com.isxcode.spark.security.user.TenantRepository;
-import com.isxcode.spark.security.user.TenantUserRepository;
+import com.isxcode.spark.security.authorization.ProductAccessService;
 import com.isxcode.spark.security.user.UserRepository;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,14 +43,12 @@ public class WebSecurityConfig {
 
     private final UserRepository userRepository;
 
-    private final TenantUserRepository tenantUserRepository;
-
-    private final TenantRepository tenantRepository;
+    private final ProductAccessService productAccessService;
 
     @Bean
     public UserDetailsService userDetailsServiceBean() {
 
-        return new UserDetailsServiceImpl(userRepository, tenantUserRepository, tenantRepository);
+        return new UserDetailsServiceImpl(userRepository, productAccessService);
     }
 
     @Bean
@@ -75,6 +72,12 @@ public class WebSecurityConfig {
     }
 
     @Bean
+    public ProductAccessAuthorizationFilter productAccessAuthorizationFilter(AccessDeniedHandler accessDeniedHandler) {
+
+        return new ProductAccessAuthorizationFilter(productAccessService, accessDeniedHandler);
+    }
+
+    @Bean
     public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
 
         DefaultHttpFirewall firewall = new DefaultHttpFirewall();
@@ -84,6 +87,7 @@ public class WebSecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter,
+        ProductAccessAuthorizationFilter productAccessAuthorizationFilter,
         AuthenticationEntryPoint authenticationEntryPoint, AccessDeniedHandler accessDeniedHandler) throws Exception {
 
         http.cors(Customizer.withDefaults());
@@ -99,6 +103,7 @@ public class WebSecurityConfig {
                 .requestMatchers(toPatterns(isxAppProperties.getAnonymousRoleUrl()))
                 .hasAuthority(RoleType.ROLE_ANONYMOUS).anyRequest().authenticated());
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(productAccessAuthorizationFilter, JwtAuthenticationFilter.class);
         http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
         return http.build();

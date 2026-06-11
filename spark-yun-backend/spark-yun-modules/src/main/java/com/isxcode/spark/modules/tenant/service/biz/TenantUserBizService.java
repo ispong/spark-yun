@@ -9,6 +9,10 @@ import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.constants.UserStatus;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.modules.license.repository.LicenseStore;
+import com.isxcode.spark.security.authorization.MemberRoleEntity;
+import com.isxcode.spark.security.authorization.MemberRoleRepository;
+import com.isxcode.spark.security.authorization.OrgMemberRepository;
+import com.isxcode.spark.security.authorization.RoleRepository;
 import com.isxcode.spark.security.user.TenantEntity;
 import com.isxcode.spark.modules.tenant.service.TenantService;
 import com.isxcode.spark.security.user.TenantUserEntity;
@@ -40,6 +44,12 @@ public class TenantUserBizService {
     private final TenantService tenantService;
 
     private final LicenseStore licenseStore;
+
+    private final MemberRoleRepository memberRoleRepository;
+
+    private final OrgMemberRepository orgMemberRepository;
+
+    private final RoleRepository roleRepository;
 
     public void addTenantUser(AddTenantUserReq turAddTenantUserReq) {
 
@@ -74,15 +84,10 @@ public class TenantUserBizService {
         }
 
         // 初始化租户用户
+        boolean normalAdmin = Boolean.TRUE.equals(turAddTenantUserReq.getIsTenantAdmin());
         TenantUserEntity tenantUserEntity = TenantUserEntity.builder().tenantId(tenantId)
-            .userId(turAddTenantUserReq.getUserId()).status(UserStatus.ENABLE).build();
-
-        // 初始化用户权限
-        if (turAddTenantUserReq.getIsTenantAdmin()) {
-            tenantUserEntity.setRoleCode(RoleType.TENANT_ADMIN);
-        } else {
-            tenantUserEntity.setRoleCode(RoleType.TENANT_MEMBER);
-        }
+            .userId(turAddTenantUserReq.getUserId()).status(UserStatus.ENABLE).normalAdmin(normalAdmin)
+            .roleCode(normalAdmin ? RoleType.TENANT_NORMAL_ADMIN : RoleType.TENANT_MEMBER).build();
 
         // 判断用户当前是否有租户
         if (Strings.isEmpty(userEntity.getCurrentTenantId())) {
@@ -106,6 +111,8 @@ public class TenantUserBizService {
             item.setPhone(
                 Strings.isEmpty(item.getPhone()) ? item.getPhone() : DesensitizedUtil.mobilePhone(item.getPhone()));
             item.setEmail(Strings.isEmpty(item.getEmail()) ? item.getEmail() : DesensitizedUtil.email(item.getEmail()));
+            item.setRoleIds(memberRoleRepository.findAllByTenantIdAndUserId(tenantId, item.getUserId()).stream()
+                .map(MemberRoleEntity::getRoleId).toList());
         });
 
         return tenantUserPage;
@@ -121,13 +128,13 @@ public class TenantUserBizService {
         }
         checkTenantPermission(tenantUserEntityOptional.get().getTenantId());
 
-        // 不可以删除自己
-        if (ContextHolder.getUserId().equals(tenantUserEntityOptional.get().getUserId())) {
-            throw new IsxAppException("不可以移除自己");
-        }
+        TenantUserEntity member = tenantUserEntityOptional.get();
+        checkTenantAdminTarget(member);
 
         // 删除租户用户
-        tenantUserRepository.deleteById(tenantUserEntityOptional.get().getId());
+        memberRoleRepository.deleteAllByTenantIdAndUserId(member.getTenantId(), member.getUserId());
+        orgMemberRepository.deleteAllByTenantIdAndUserId(member.getTenantId(), member.getUserId());
+        tenantUserRepository.delete(member);
     }
 
     public void setTenantAdmin(SetTenantAdminReq setTenantAdminReq) {
@@ -140,9 +147,12 @@ public class TenantUserBizService {
         }
         checkTenantPermission(tenantUserEntityOptional.get().getTenantId());
 
-        // 设置为租户管理员权限
+        checkTenantAdminTarget(tenantUserEntityOptional.get());
+
+        // 兼容旧接口名称：设置普通管理员
         TenantUserEntity tenantUserEntity = tenantUserEntityOptional.get();
-        tenantUserEntity.setRoleCode(RoleType.TENANT_ADMIN);
+        tenantUserEntity.setNormalAdmin(true);
+        tenantUserEntity.setRoleCode(RoleType.TENANT_NORMAL_ADMIN);
 
         // 持久化
         tenantUserRepository.save(tenantUserEntity);
@@ -158,18 +168,45 @@ public class TenantUserBizService {
         }
         checkTenantPermission(tenantUserEntityOptional.get().getTenantId());
 
-        // 管理员不可以移除自己
-        if (RoleType.TENANT_ADMIN.equals(tenantUserEntityOptional.get().getRoleCode())
-            && ContextHolder.getUserId().equals(tenantUserEntityOptional.get().getUserId())) {
-            throw new IsxAppException("不可以取消自己的管理员权限");
-        }
+        checkTenantAdminTarget(tenantUserEntityOptional.get());
 
-        // 设置为租户管理员权限
+        // 兼容旧接口名称：取消普通管理员
         TenantUserEntity tenantUserEntity = tenantUserEntityOptional.get();
+        tenantUserEntity.setNormalAdmin(false);
         tenantUserEntity.setRoleCode(RoleType.TENANT_MEMBER);
 
         // 持久化
         tenantUserRepository.save(tenantUserEntity);
+    }
+
+    public void setTenantMemberStatus(SetTenantMemberStatusReq request) {
+
+        TenantUserEntity member =
+            tenantUserRepository.findById(request.getTenantUserId()).orElseThrow(() -> new IsxAppException("成员不存在"));
+        checkTenantPermission(member.getTenantId());
+        checkTenantAdminTarget(member);
+        member.setStatus(request.getStatus());
+        tenantUserRepository.save(member);
+    }
+
+    public void setMemberRoles(SetMemberRolesReq request) {
+
+        String tenantId = resolveTenantId(null);
+        tenantUserRepository.findByTenantIdAndUserId(tenantId, request.getUserId())
+            .orElseThrow(() -> new IsxAppException("成员不存在"));
+        memberRoleRepository.deleteAllByTenantIdAndUserId(tenantId, request.getUserId());
+        if (request.getRoleIds() == null) {
+            return;
+        }
+        request.getRoleIds().stream().distinct().forEach(roleId -> {
+            roleRepository.findById(roleId).filter(role -> tenantId.equals(role.getTenantId()))
+                .orElseThrow(() -> new IsxAppException("角色不属于当前租户"));
+            MemberRoleEntity memberRole = new MemberRoleEntity();
+            memberRole.setTenantId(tenantId);
+            memberRole.setUserId(request.getUserId());
+            memberRole.setRoleId(roleId);
+            memberRoleRepository.save(memberRole);
+        });
     }
 
     private String resolveTenantId(String tenantId) {
@@ -205,5 +242,13 @@ public class TenantUserBizService {
         return SecurityContextHolder.getContext().getAuthentication() != null
             && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(authority -> RoleType.SYS_ADMIN.equals(authority.getAuthority()));
+    }
+
+    private void checkTenantAdminTarget(TenantUserEntity member) {
+
+        TenantEntity tenant = tenantService.getTenant(member.getTenantId());
+        if (member.getUserId().equals(tenant.getAdminUserId())) {
+            throw new IsxAppException("租户管理员只能在平台管理中替换");
+        }
     }
 }

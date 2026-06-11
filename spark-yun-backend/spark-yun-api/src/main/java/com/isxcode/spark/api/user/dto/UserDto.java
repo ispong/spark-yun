@@ -17,6 +17,8 @@ public class UserDto {
 
     private String status;
 
+    private Boolean platformAdmin;
+
     private String createDateTime;
 
     private String phone;

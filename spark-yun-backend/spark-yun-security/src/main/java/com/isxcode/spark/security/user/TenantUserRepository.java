@@ -20,8 +20,12 @@ public interface TenantUserRepository extends JpaRepository<TenantUserEntity, St
 
     List<TenantUserEntity> findAllByUserId(String userId);
 
+    List<TenantUserEntity> findAllByUserIdAndStatus(String userId, String status);
+
+    List<TenantUserEntity> findAllByTenantId(String tenantId);
+
     @Query(value = "select " + "   new com.isxcode.spark.api.tenant.res.PageTenantUserRes(T.id , " + "   U.account , "
-        + "   U.username , " + "   U.phone , " + "   U.email , " + "   T.roleCode,U.id) "
+        + "   U.username , " + "   U.phone , " + "   U.email , " + "   T.roleCode,T.normalAdmin,T.status,U.id) "
         + "from TenantUserEntity T left join UserEntity U on T.userId = U.id  "
         + "WHERE U.roleCode != 'ROLE_SYS_ADMIN' " + "   and T.tenantId=:tenantId "
         + "   and (U.username LIKE %:searchKeyWord% " + "OR U.account LIKE %:searchKeyWord% "

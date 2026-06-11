@@ -3,6 +3,7 @@ export interface Menu {
   name: string;
   code: string;
   authType?: Array<string>;
+  permission?: string;
   childPage?: Array<string>
   children?: Array<Menu>
 }
@@ -261,5 +262,57 @@ export const menuListData: Array<Menu> = [
     icon: 'Files',
     authType: [ 'ROLE_SYS_ADMIN' ],
     childPage: []
+  }
+]
+
+const managementMenuCodes = new Set([
+  'tenant-management',
+  'user-center',
+  'tenant-list',
+  'tenant-user',
+  'oauth-management',
+  'license'
+])
+
+export const workspaceMenuListData = menuListData.filter(menu => !managementMenuCodes.has(menu.code))
+
+export const platformMenuListData: Array<Menu> = [
+  {
+    code: 'user-center',
+    name: '用户中心',
+    icon: 'UserFilled'
+  },
+  {
+    code: 'tenant-list',
+    name: '租户管理',
+    icon: 'OfficeBuilding'
+  },
+  {
+    code: 'license',
+    name: '许可证管理',
+    icon: 'Files'
+  },
+  {
+    code: 'oauth-management',
+    name: '身份认证',
+    icon: 'Position'
+  }
+]
+
+export const adminMenuListData: Array<Menu> = [
+  {
+    code: 'tenant-user',
+    name: '成员管理',
+    icon: 'User'
+  },
+  {
+    code: 'role-management',
+    name: '角色管理',
+    icon: 'Key'
+  },
+  {
+    code: 'org-management',
+    name: '组织架构',
+    icon: 'Share'
   }
 ]

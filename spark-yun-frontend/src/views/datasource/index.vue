@@ -2,7 +2,7 @@
   <Breadcrumb :bread-crumb-list="breadCrumbList" />
   <div class="zqy-seach-table">
     <div class="zqy-table-top">
-      <el-button type="primary" @click="addData">
+      <el-button v-if="canDatasource('create')" type="primary" @click="addData">
         新建数据源
       </el-button>
       <el-button @click="goDriverManagement">
@@ -33,7 +33,12 @@
       <div class="zqy-table">
         <BlockTable :table-config="tableConfig" @size-change="handleSizeChange" @current-change="handleCurrentChange">
           <template #nameSlot="scopeSlot">
-            <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+            <span
+              :class="{ 'name-click': canDatasource('edit') }"
+              @click="canDatasource('edit') && editData(scopeSlot.row)"
+            >
+              {{ scopeSlot.row.name }}
+            </span>
           </template>
           <template #statusTag="scopeSlot">
             <ZStatusTag :status="scopeSlot.row.status"></ZStatusTag>
@@ -41,24 +46,32 @@
           <template #options="scopeSlot">
             <div class="btn-group">
 
-              <span v-if="!scopeSlot.row.checkLoading" @click="checkData(scopeSlot.row)">检测</span>
+              <span
+                v-if="canDatasource('execute') && !scopeSlot.row.checkLoading"
+                @click="checkData(scopeSlot.row)"
+              >
+                检测
+              </span>
               <el-icon
-                  v-else
-                  class="is-loading"
+                v-else-if="canDatasource('execute')"
+                class="is-loading"
               >
                 <Loading />
               </el-icon>
-              <el-dropdown trigger="click">
+              <el-dropdown
+                v-if="canDatasource('view') || canDatasource('edit') || canDatasource('delete')"
+                trigger="click"
+              >
                 <span class="click-show-more">更多</span>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item @click="showLog(scopeSlot.row)">
+                    <el-dropdown-item v-if="canDatasource('view')" @click="showLog(scopeSlot.row)">
                       日志
                     </el-dropdown-item>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
+                    <el-dropdown-item v-if="canDatasource('edit')" @click="editData(scopeSlot.row)">
                       编辑
                     </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
+                    <el-dropdown-item v-if="canDatasource('delete')" @click="deleteData(scopeSlot.row)">
                       删除
                     </el-dropdown-item>
                   </el-dropdown-menu>
@@ -77,6 +90,7 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/store/useAuth'
 import Breadcrumb from '@/layout/bread-crumb/index.vue'
 import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
@@ -96,9 +110,15 @@ const showLogRef = ref(null)
 const datasourceType = ref('')
 const datasourceTypeList = ref(typeList)
 const router = useRouter()
+const authStore = useAuthStore()
 
 const breadCrumbList = reactive(BreadCrumbList)
 const tableConfig: any = reactive(TableConfig)
+
+function canDatasource(action: string) {
+  return !!authStore.userInfo?.workspaceAllPermissions
+    || (authStore.userInfo?.permissions || []).includes(`workspace:datasource:${action}`)
+}
 
 function initData(tableLoading?: boolean) {
   loading.value = tableLoading ? false : true

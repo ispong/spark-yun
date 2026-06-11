@@ -1,15 +1,18 @@
 package com.isxcode.spark.modules.work.run;
 
 import com.isxcode.spark.api.instance.constants.InstanceStatus;
+import com.isxcode.spark.api.tenant.constants.TenantStatus;
 import com.isxcode.spark.api.work.constants.LockerPrefix;
 import com.isxcode.spark.api.work.constants.QuartzPrefix;
 import com.isxcode.spark.common.locker.Locker;
 import com.isxcode.spark.modules.work.repository.WorkEventRepository;
+import com.isxcode.spark.security.user.TenantEntity;
+import com.isxcode.spark.security.user.TenantRepository;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.stereotype.Component;
-
 
 import com.isxcode.spark.common.security.ContextHolder;
 
@@ -25,6 +28,8 @@ public class WorkRunJob implements Job {
 
     private final WorkEventRepository workEventRepository;
 
+    private final TenantRepository tenantRepository;
+
     private final Locker locker;
 
     @Override
@@ -38,18 +43,25 @@ public class WorkRunJob implements Job {
 
         // 刷新异步环境变量
         ContextHolder.setUserId(String.valueOf(context.getJobDetail().getJobDataMap().get(QuartzPrefix.USER_ID)));
-        ContextHolder.setTenantId(String.valueOf(context.getJobDetail().getJobDataMap().get(QuartzPrefix.TENANT_ID)));
+        String tenantId = String.valueOf(context.getJobDetail().getJobDataMap().get(QuartzPrefix.TENANT_ID));
+        ContextHolder.setTenantId(tenantId);
 
         // 获取当前作业运行状态
         String runStatus;
         try {
-            // 通过作业类型，获取作业执行器
-            String workType = String.valueOf(context.getJobDetail().getJobDataMap().get(QuartzPrefix.WORK_TYPE));
-            WorkExecutor workExecutor = workExecutorFactory.create(workType);
+            if (!isTenantAvailable(tenantId)) {
+                log.warn("租户不可用，取消待执行作业，TenantId: {}, EventId: {}", tenantId, workEventId);
+                runStatus = InstanceStatus.FINISHED;
+            } else {
+                // 通过作业类型，获取作业执行器
+                String workType = String.valueOf(context.getJobDetail().getJobDataMap().get(QuartzPrefix.WORK_TYPE));
+                WorkExecutor workExecutor = workExecutorFactory.create(workType);
 
-            // 运行作业获取作业运行状态
-            String eventType = String.valueOf(context.getJobDetail().getJobDataMap().get(QuartzPrefix.WORK_EVENT_TYPE));
-            runStatus = workExecutor.runWork(workEventId, eventType);
+                // 运行作业获取作业运行状态
+                String eventType =
+                    String.valueOf(context.getJobDetail().getJobDataMap().get(QuartzPrefix.WORK_EVENT_TYPE));
+                runStatus = workExecutor.runWork(workEventId, eventType);
+            }
 
         } catch (Exception e) {
 
@@ -76,5 +88,20 @@ public class WorkRunJob implements Job {
 
         }
 
+    }
+
+    private boolean isTenantAvailable(String tenantId) {
+
+        return tenantRepository.findById(tenantId).filter(tenant -> TenantStatus.ENABLE.equals(tenant.getStatus()))
+            .filter(this::isInValidTime).isPresent();
+    }
+
+    private boolean isInValidTime(TenantEntity tenant) {
+
+        if (tenant.getValidStartDateTime() == null || tenant.getValidEndDateTime() == null) {
+            return true;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        return !now.isBefore(tenant.getValidStartDateTime()) && !now.isAfter(tenant.getValidEndDateTime());
     }
 }

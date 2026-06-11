@@ -15,16 +15,11 @@ export default defineComponent({
             const code = urlParams.get('code'); // "John"
             const clientId = urlParams.get('clientId');
             OauthLogin({code: code, clientId: clientId}).then((res: any) => {
-                authStore.setUserInfo(res.data)
-                authStore.setToken(res.data.token)
-                authStore.setTenantId(res.data?.tenantId)
-                authStore.setRole(res.data?.role)
+                authStore.applyAuthResponse(res.data)
                 getVipLicenseEnabled(true).finally(() => {
                     ElMessage.success(res.msg)
                     nextTick(() => {
-                        router.push({
-                            name: 'home'
-                        })
+                        router.push(res.data.defaultArea === 'platform' ? '/platform' : '/workspace')
                     })
                 })
             }).catch((error: any) => {

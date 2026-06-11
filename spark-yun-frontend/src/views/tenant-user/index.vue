@@ -8,22 +8,6 @@
       >
         添加成员
       </el-button>
-      <div v-if="isBuiltInAdminAccount" class="zqy-tenant__select">
-        <el-select 
-          :model-value="currentTenant.id" 
-          placeholder="请选择租户" 
-          filterable
-          clearable
-          @change="handleTenantChnage"
-        >
-          <el-option
-            v-for="tenant in tenantList"
-            :key="tenant.id"
-            :label="tenant.name"
-            :value="tenant.id">
-          </el-option>
-        </el-select>
-      </div>
       <div class="zqy-seach">
         <el-input
           v-model="keyword"
@@ -53,19 +37,30 @@
                 class="ml-2"
                 type="success"
               >
-                管理员
+                租户管理员
               </el-tag>
               <el-tag
-                v-if="scopeSlot.row.roleCode === 'ROLE_TENANT_MEMBER'"
+                v-else-if="scopeSlot.row.normalAdmin"
+                type="warning"
+              >
+                普通管理员
+              </el-tag>
+              <el-tag
+                v-else
                 type="info"
               >
                 成员
               </el-tag>
             </div>
           </template>
+          <template #status="scopeSlot">
+            <el-tag :type="scopeSlot.row.status === 'ENABLE' ? 'success' : 'danger'">
+              {{ scopeSlot.row.status === 'ENABLE' ? '启用' : '禁用' }}
+            </el-tag>
+          </template>
           <template #options="scopeSlot">
-            <div class="btn-group">
-              <template v-if="scopeSlot.row.roleCode === 'ROLE_TENANT_MEMBER'">
+            <div v-if="scopeSlot.row.roleCode !== 'ROLE_TENANT_ADMIN'" class="btn-group">
+              <template v-if="!scopeSlot.row.normalAdmin">
                 <span
                   v-if="!scopeSlot.row.authLoading"
                   @click="giveAuth(scopeSlot.row)"
@@ -89,29 +84,54 @@
                   <Loading />
                 </el-icon>
               </template>
+              <span @click="openRoleDialog(scopeSlot.row)">业务角色</span>
+              <span @click="changeMemberStatus(scopeSlot.row)">
+                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+              </span>
               <span @click="deleteData(scopeSlot.row)">移除</span>
             </div>
+            <span v-else class="tenant-admin-tip">平台管理维护</span>
           </template>
         </BlockTable>
       </div>
     </LoadingPage>
     <AddModal ref="addModalRef" />
+    <el-dialog v-model="roleDialogVisible" title="分配业务角色" width="480px">
+      <el-checkbox-group v-model="selectedRoleIds">
+        <el-checkbox v-for="role in availableRoles" :key="role.id" :label="role.id">
+          {{ role.name }}
+        </el-checkbox>
+      </el-checkbox-group>
+      <template #footer>
+        <el-button @click="roleDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="roleSaving" @click="saveMemberRoles">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, onMounted, computed } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import Breadcrumb from '@/layout/bread-crumb/index.vue'
 import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './tenant-user.config'
-import { GetUserList, AddTenantUserData, DeleteTenantUser, GiveAuth, RemoveAuth } from '@/services/tenant-user.service'
+import {
+  GetUserList,
+  AddTenantUserData,
+  DeleteTenantUser,
+  GiveAuth,
+  RemoveAuth,
+  SetMemberRoles,
+  SetTenantMemberStatus
+} from '@/services/tenant-user.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { useSwitchTenant } from '@/hooks/switch-tenant'
 import { useAuthStore } from '@/store/useAuth'
+import { ListRole } from '@/services/authorization.service'
 
 interface FormUser {
   isTenantAdmin: boolean;
@@ -125,14 +145,13 @@ const loading = ref(false)
 const networkError = ref(false)
 const addModalRef = ref(null)
 const authStore = useAuthStore()
-const isBuiltInAdminAccount = computed(() => authStore.userInfo?.account === 'admin')
+const roleDialogVisible = ref(false)
+const roleSaving = ref(false)
+const selectedRoleIds = ref<string[]>([])
+const selectedMember = ref<any>()
+const availableRoles = ref<any[]>([])
 
 const { currentTenant, tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
-
-function handleTenantChnage(tenantId: string) {
-  onTenantChange(tenantId)
-  initData()
-}
 
 function initData(tableLoading?: boolean) {
   if (!currentTenant.value.id) {
@@ -179,7 +198,8 @@ function initDefaultTenantUserData() {
         networkError.value = false
         return
       }
-      onTenantChange(tenantList.value[0].id)
+      const activeTenant = tenantList.value.find(item => item.id === authStore.tenantId) || tenantList.value[0]
+      onTenantChange(activeTenant.id)
       initData()
     })
     .catch(() => {
@@ -242,6 +262,38 @@ function removeAuth(data: any) {
     })
 }
 
+function changeMemberStatus(data: any) {
+  SetTenantMemberStatus({
+    tenantUserId: data.id,
+    status: data.status === 'ENABLE' ? 'DISABLE' : 'ENABLE'
+  }).then((res: any) => {
+    ElMessage.success(res.msg)
+    initData(true)
+  })
+}
+
+function openRoleDialog(data: any) {
+  selectedMember.value = data
+  selectedRoleIds.value = [...(data.roleIds || [])]
+  roleDialogVisible.value = true
+}
+
+function saveMemberRoles() {
+  roleSaving.value = true
+  SetMemberRoles({
+    userId: selectedMember.value.userId,
+    roleIds: selectedRoleIds.value
+  })
+    .then((res: any) => {
+      ElMessage.success(res.msg)
+      roleDialogVisible.value = false
+      initData(true)
+    })
+    .finally(() => {
+      roleSaving.value = false
+    })
+}
+
 // 删除
 function deleteData(data: any) {
   ElMessageBox.confirm('确定移除该成员吗？', '警告', {
@@ -280,6 +332,9 @@ onMounted(() => {
   tableConfig.pagination.currentPage = 1
   tableConfig.pagination.pageSize = 10
   initDefaultTenantUserData()
+  ListRole().then((res: any) => {
+    availableRoles.value = res.data || []
+  })
 })
 </script>
 
@@ -289,5 +344,9 @@ onMounted(() => {
   display: flex;
   justify-content: flex-start;
   margin-left: 12px;
+}
+
+.tenant-admin-tip {
+  color: var(--el-text-color-secondary);
 }
 </style>

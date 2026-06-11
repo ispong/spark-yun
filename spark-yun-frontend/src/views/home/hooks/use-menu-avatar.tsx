@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/store/useAuth"
 import { computed, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { OfficeBuilding, Search, Setting } from '@element-plus/icons-vue'
+import { Monitor, OfficeBuilding, Search, Setting, Tools } from '@element-plus/icons-vue'
 import { useSwitchTenant, type TenantInfo } from '@/hooks/switch-tenant'
 import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { ChangeTenantData } from "@/services/login.service"
@@ -28,8 +28,11 @@ export function useMenuAvatar() {
 
   const { tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
 
-  const isAdmin = computed(() => authStore.userInfo?.role === 'ROLE_SYS_ADMIN')
-  const isBuiltInAdminAccount = computed(() => authStore.userInfo?.account === 'admin')
+  const isSystemAdmin = computed(() => !!authStore.userInfo?.systemAdmin)
+  const isPlatformAdmin = computed(() => !!authStore.userInfo?.platformAdmin)
+  const isTenantManager = computed(() =>
+    !!authStore.userInfo?.tenantAdmin || !!authStore.userInfo?.normalAdmin
+  )
   const activeTenantName = computed(() => {
     const current = tenantList.value.find(item => item.id === authStore.tenantId)
     return current?.name || '切换租户'
@@ -42,7 +45,7 @@ export function useMenuAvatar() {
     return tenantList.value.filter(tenant => (tenant.name || '').toLowerCase().includes(keyword))
   })
 
-  if (!isAdmin.value) {
+  if (!isSystemAdmin.value) {
     initSwitchTenant()
   }
 
@@ -56,9 +59,15 @@ export function useMenuAvatar() {
   }
 
   const goPersonalInfo = function() {
+    menuVisible.value = false
     router.push({
       name: 'personalInfo'
     })
+  }
+
+  const goArea = function(path: string) {
+    menuVisible.value = false
+    router.push(path)
   }
 
   const handleCommand = function(command: AvatarMenuCommand) {
@@ -98,11 +107,11 @@ export function useMenuAvatar() {
 
     ChangeTenantData({
       tenantId: targetTenantId
-    }, targetTenantId).then(() => {
+    }, targetTenantId).then((res: any) => {
       getVipLicenseEnabled(true).finally(() => {
         const needBackToWorkflowList = ['workflow-page', 'work-item', 'workflow-detail'].includes(String(route.name || ''))
         const applyTenantContext = () => {
-          authStore.setTenantId(targetTenantId)
+          authStore.applyAuthResponse(res.data)
           http.setHeader({
             tenant: targetTenantId
           })
@@ -110,14 +119,15 @@ export function useMenuAvatar() {
 
         ElMessage.success('租户切换成功')
         closeTenantDialog()
+        applyTenantContext()
         if (needBackToWorkflowList) {
           router.replace({
             name: 'workflow'
-          }).finally(() => {
-            applyTenantContext()
           })
         } else {
-          applyTenantContext()
+          if (route.path.startsWith('/admin') && !res.data.tenantAdmin && !res.data.normalAdmin) {
+            router.replace('/workspace')
+          }
         }
       })
     }).catch(() => {
@@ -143,21 +153,41 @@ export function useMenuAvatar() {
             default: () => (
               <>
                 {
-                  !isAdmin.value ? (
+                  !isSystemAdmin.value ? (
+                    <div class="zqy-home__menu-option" onClick={ () => goArea('/workspace') }>
+                      <el-icon><Monitor /></el-icon>
+                      工作台
+                    </div>
+                  ) : null
+                }
+                {
+                  isPlatformAdmin.value ? (
+                    <div class="zqy-home__menu-option" onClick={ () => goArea('/platform') }>
+                      <el-icon><Setting /></el-icon>
+                      平台管理
+                    </div>
+                  ) : null
+                }
+                {
+                  isTenantManager.value ? (
+                    <div class="zqy-home__menu-option" onClick={ () => goArea('/admin') }>
+                      <el-icon><Tools /></el-icon>
+                      后台管理
+                    </div>
+                  ) : null
+                }
+                {
+                  !isSystemAdmin.value ? (
                     <div class="zqy-home__menu-option" onClick={ openTenantDialog }>
                       <el-icon><OfficeBuilding /></el-icon>
                       <EllipsisTooltip class="zyq-home__menu-text" label={ activeTenantName.value } />
                     </div>
                   ) : null
                 }
-                {
-                  !isBuiltInAdminAccount.value ? (
-                    <div class="zqy-home__menu-option" onClick={ goPersonalInfo }>
-                      <el-icon><Setting /></el-icon>
-                      设置
-                    </div>
-                  ) : null
-                }
+                <div class="zqy-home__menu-option" onClick={ goPersonalInfo }>
+                  <el-icon><Setting /></el-icon>
+                  个人中心
+                </div>
                 <div class="zqy-home__menu-option" onClick={ () => handleCommand('logout') }>
                   <el-icon><switch-button /></el-icon>
                   退出登录

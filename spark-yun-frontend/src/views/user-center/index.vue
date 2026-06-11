@@ -51,6 +51,10 @@
               </el-tag>
             </div>
           </template>
+          <template #platformAdmin="scopeSlot">
+            <el-tag v-if="scopeSlot.row.platformAdmin" type="warning">平台管理员</el-tag>
+            <span v-else>-</span>
+          </template>
           <template #options="scopeSlot">
             <div class="btn-group">
               <template v-if="scopeSlot.row.status === 'ENABLE'">
@@ -87,6 +91,18 @@
                     <el-dropdown-item @click="changePassword(scopeSlot.row)">
                         修改密码
                     </el-dropdown-item>
+                    <el-dropdown-item
+                      v-if="authStore.userInfo?.systemAdmin && !scopeSlot.row.platformAdmin"
+                      @click="changePlatformAdmin(scopeSlot.row, true)"
+                    >
+                      设为平台管理员
+                    </el-dropdown-item>
+                    <el-dropdown-item
+                      v-if="scopeSlot.row.platformAdmin"
+                      @click="changePlatformAdmin(scopeSlot.row, false)"
+                    >
+                      取消平台管理员
+                    </el-dropdown-item>
                     <el-dropdown-item @click="deleteData(scopeSlot.row)">
                         删除
                     </el-dropdown-item>
@@ -112,8 +128,18 @@ import AddModal from './add-modal/index.vue'
 import PasswordModal from './password-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './user-center.config'
-import { GetUserCenterList, DisableUser, EnableUser, DeleteUser, AddUserData, UpdateUserData, UpdateUserPassword } from '@/services/user-center.service'
+import {
+  GetUserCenterList,
+  DisableUser,
+  EnableUser,
+  DeleteUser,
+  AddUserData,
+  UpdateUserData,
+  UpdateUserPassword,
+  SetPlatformAdmin
+} from '@/services/user-center.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useAuthStore } from '@/store/useAuth'
 
 interface FormUser {
   account: string;
@@ -132,6 +158,7 @@ const loading = ref(false)
 const networkError = ref(false)
 const addModalRef = ref(null)
 const passwordModalRef = ref(null)
+const authStore = useAuthStore()
 
 function initData(tableLoading?: boolean) {
   loading.value = tableLoading ? false : true
@@ -202,6 +229,16 @@ function changePassword(data: any) {
         })
     })
   }, data)
+}
+
+function changePlatformAdmin(data: any, platformAdmin: boolean) {
+  SetPlatformAdmin({
+    userId: data.id,
+    platformAdmin
+  }).then((res: any) => {
+    ElMessage.success(res.msg)
+    initData(true)
+  })
 }
 
 // 启用 or 禁用

@@ -19,9 +19,8 @@ export function useColony() {
     return queryAllClusterInfo().then(({ data }) => {
       colonyList.value = data
 
-      let defaultCluster = data.find(item => item.defaultCluster) || data[0]
-
-      currentColonyId.value = defaultCluster.id
+      const defaultCluster = data.find(item => item.defaultCluster) || data[0]
+      currentColonyId.value = defaultCluster?.id
     })
   }
 

@@ -1,6 +1,7 @@
 package com.isxcode.spark.api.user.res;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,4 +29,18 @@ public class GetUserRes {
     private String tenantId;
 
     private String role;
+
+    private Boolean systemAdmin;
+
+    private Boolean platformAdmin;
+
+    private Boolean tenantAdmin;
+
+    private Boolean normalAdmin;
+
+    private Boolean workspaceAllPermissions;
+
+    private List<String> permissions;
+
+    private String defaultArea;
 }

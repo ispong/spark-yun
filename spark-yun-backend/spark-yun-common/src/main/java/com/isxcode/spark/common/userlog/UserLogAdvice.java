@@ -29,7 +29,7 @@ public class UserLogAdvice {
 
     private final UserActionRepository userActionRepository;
 
-    private UserActionEntity userActionEntity;
+    private final ThreadLocal<UserActionEntity> userActionHolder = new ThreadLocal<>();
 
     private final IsxAppProperties isxAppProperties;
 
@@ -43,7 +43,8 @@ public class UserLogAdvice {
             return;
         }
 
-        userActionEntity = new UserActionEntity();
+        UserActionEntity userActionEntity = new UserActionEntity();
+        userActionHolder.set(userActionEntity);
         userActionEntity.setStartTimestamp(System.currentTimeMillis());
         if (Strings.isEmpty(ContextHolder.getUserId())) {
             userActionEntity.setUserId("anonymous");
@@ -91,6 +92,10 @@ public class UserLogAdvice {
             return;
         }
 
+        UserActionEntity userActionEntity = userActionHolder.get();
+        if (userActionEntity == null) {
+            return;
+        }
         if (Strings.isEmpty(ContextHolder.getUserId())) {
             userActionEntity.setCreateBy("anonymous");
         }
@@ -99,6 +104,8 @@ public class UserLogAdvice {
             userActionRepository.save(userActionEntity);
         } catch (Exception e) {
             log.error(e.getMessage());
+        } finally {
+            userActionHolder.remove();
         }
     }
 
@@ -109,6 +116,9 @@ public class UserLogAdvice {
             return;
         }
 
-        userActionEntity.setResBody(JSON.toJSONString(successResponseException.getBaseResponse()));
+        UserActionEntity userActionEntity = userActionHolder.get();
+        if (userActionEntity != null) {
+            userActionEntity.setResBody(JSON.toJSONString(successResponseException.getBaseResponse()));
+        }
     }
 }

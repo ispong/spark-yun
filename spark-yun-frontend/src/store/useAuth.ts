@@ -9,6 +9,13 @@ interface AuthState {
   isCollapse: boolean
 }
 
+interface AuthResponse {
+  token?: string
+  tenantId?: string
+  role?: string
+  [key: string]: any
+}
+
 export const useAuthStore = defineStore('authStore', {
   state: (): AuthState => ({
     userInfo: {},
@@ -36,6 +43,15 @@ export const useAuthStore = defineStore('authStore', {
     },
     setCollapse(this: AuthState, isCollapse: boolean): void {
       this.isCollapse = isCollapse
+    },
+    applyAuthResponse(this: AuthState, data: AuthResponse): void {
+      this.userInfo = {
+        ...this.userInfo,
+        ...data
+      }
+      this.token = data.token || ''
+      this.tenantId = data.tenantId || ''
+      this.role = data.role || ''
     }
   },
   persist: true

@@ -22,7 +22,12 @@ public class RestSecurityExceptionHandler implements AuthenticationEntryPoint, A
     public void commence(HttpServletRequest request, HttpServletResponse response,
         AuthenticationException authException) throws IOException {
 
-        writeJson(response, HttpStatus.UNAUTHORIZED, "token异常，请重新登录");
+        Throwable cause = authException;
+        while (cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        String message = cause.getMessage() == null ? "token异常，请重新登录" : cause.getMessage();
+        writeJson(response, HttpStatus.UNAUTHORIZED, message);
     }
 
     @Override

@@ -29,6 +29,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final List<String> TENANT_RECOVERY_PATHS =
+        List.of("/tenant/queryUserTenant", "/tenant/chooseTenant", "/user/getUser", "/api/access/context");
+
     private final AuthenticationManager authenticationManager;
 
     private final List<String> excludeUrlPaths;
@@ -75,9 +78,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 通过用户id，给用户授权
             try {
+                String authenticationTenantId =
+                    TENANT_RECOVERY_PATHS.contains(request.getServletPath()) ? null : currentUser.tenantId();
                 Authentication authentication = authenticationManager
-                    .authenticate(new AuthenticationToken(currentUser.userId(), currentUser.tenantId()));
+                    .authenticate(new AuthenticationToken(currentUser.userId(), authenticationTenantId));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                ContextHolder.setCurrentUser(currentUser.userId(), currentUser.tenantId());
             } catch (IsxAppException isxAppException) {
                 log.debug(isxAppException.getMessage(), isxAppException);
                 authenticationEntryPoint.commence(request, response,

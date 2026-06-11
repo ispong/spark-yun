@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "数据源模块")
-@RequestMapping(ModuleCode.DATASOURCE)
+@RequestMapping({ModuleCode.DATASOURCE, "/api/workspace/" + ModuleCode.DATASOURCE})
 @RestController
 @RequiredArgsConstructor
 public class DatasourceController {
@@ -33,7 +33,7 @@ public class DatasourceController {
         datasourceBizService.addDatasource(addDatasourceReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "更新数据源接口")
     @PostMapping("/updateDatasource")
     @SuccessResponse("更新成功")
@@ -51,7 +51,7 @@ public class DatasourceController {
         return datasourceBizService.pageDatasource(pageDatasourceReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "删除数据源接口")
     @PostMapping("/deleteDatasource")
     @SuccessResponse("删除成功")
@@ -103,7 +103,7 @@ public class DatasourceController {
         return datasourceBizService.pageDatabaseDriver(pageDatabaseDriverReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @PostMapping("/deleteDatabaseDriver")
     @Operation(summary = "删除数据库驱动接口")
     @SuccessResponse("删除成功")

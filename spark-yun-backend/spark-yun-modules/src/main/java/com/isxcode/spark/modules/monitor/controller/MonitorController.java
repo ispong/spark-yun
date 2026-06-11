@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
 @Tag(name = "监控模块")
-@RequestMapping(ModuleCode.MONITOR)
+@RequestMapping({ModuleCode.MONITOR, "/api/workspace/" + ModuleCode.MONITOR})
 @RestController
 @RequiredArgsConstructor
 public class MonitorController {

@@ -1,5 +1,6 @@
 package com.isxcode.spark.api.tenant.res;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,4 +15,18 @@ public class ChooseTenantRes {
     private String tenantId;
 
     private String role;
+
+    private Boolean systemAdmin;
+
+    private Boolean platformAdmin;
+
+    private Boolean tenantAdmin;
+
+    private Boolean normalAdmin;
+
+    private Boolean workspaceAllPermissions;
+
+    private List<String> permissions;
+
+    private String defaultArea;
 }

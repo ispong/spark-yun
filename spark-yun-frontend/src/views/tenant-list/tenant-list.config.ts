@@ -60,6 +60,12 @@ export const colConfigs: colConfig[] = [
     customSlot: 'memberProgress'
   },
   {
+    prop: 'adminUserId',
+    title: '租户管理员',
+    minWidth: 160,
+    showOverflowTooltip: true
+  },
+  {
     prop: 'maxWorkflowNum',
     title: '作业流数',
     minWidth: 180,

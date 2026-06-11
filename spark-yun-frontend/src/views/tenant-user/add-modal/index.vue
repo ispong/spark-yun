@@ -23,7 +23,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="管理员">
+      <el-form-item label="普通管理员">
         <el-switch v-model="formData.isTenantAdmin" />
       </el-form-item>
     </el-form>
@@ -40,7 +40,7 @@ const form = ref<FormInstance>()
 const callback = ref<any>()
 const userList = ref([])
 const modelConfig = reactive({
-  title: '添加数据源',
+  title: '添加成员',
   visible: false,
   width: '520px',
   okConfig: {

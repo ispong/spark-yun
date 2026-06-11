@@ -25,8 +25,19 @@ public class AddTenantReq {
     private Integer maxMemberNum;
 
     @Schema(title = "管理员用户id", example = "sy_1234567890")
-    @NotEmpty(message = "租户管理员不能为空")
     private String adminUserId;
+
+    private Boolean createAdminUser;
+
+    private String adminUsername;
+
+    private String adminAccount;
+
+    private String adminPassword;
+
+    private String adminPhone;
+
+    private String adminEmail;
 
     @Schema(title = "有效期开始时间", example = "2025-12-12 12:12:12")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

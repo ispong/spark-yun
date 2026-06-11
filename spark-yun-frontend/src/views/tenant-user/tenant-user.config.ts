@@ -76,10 +76,16 @@ export const colConfigs: colConfig[] = [
     customSlot: 'roleCode'
   },
   {
+    prop: 'status',
+    title: '状态',
+    minWidth: 90,
+    customSlot: 'status'
+  },
+  {
     title: '操作',
     align: 'center',
     customSlot: 'options',
-    width: 100,
+    width: 240,
     fixed: 'right'
   }
 ]

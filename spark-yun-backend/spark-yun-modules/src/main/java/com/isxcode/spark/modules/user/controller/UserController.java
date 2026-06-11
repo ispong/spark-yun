@@ -6,6 +6,7 @@ import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.req.*;
 import com.isxcode.spark.api.user.res.*;
 import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
+import com.isxcode.spark.common.userlog.UserLog;
 import com.isxcode.spark.modules.user.service.UserBizService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @Tag(name = "用户模块")
-@RequestMapping(ModuleCode.USER)
+@RequestMapping({ModuleCode.USER, "/api/platform/users"})
 @RestController
 @RequiredArgsConstructor
 public class UserController {
@@ -50,7 +51,6 @@ public class UserController {
         userBizService.logout();
     }
 
-    @Secured({RoleType.SYS_ADMIN})
     @Operation(summary = "获取用户信息接口")
     @PostMapping("/getUser")
     @SuccessResponse("获取成功")
@@ -60,7 +60,7 @@ public class UserController {
     }
 
     @LicenseApi
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "创建用户接口")
     @PostMapping("/addUser")
     @SuccessResponse("创建成功")
@@ -69,7 +69,7 @@ public class UserController {
         userBizService.addUser(addUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "更新用户接口")
     @PostMapping("/updateUser")
     @SuccessResponse("更新成功")
@@ -78,7 +78,7 @@ public class UserController {
         userBizService.updateUser(updateUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "修改用户密码接口")
     @PostMapping("/updateUserPassword")
     @SuccessResponse("修改成功")
@@ -103,16 +103,17 @@ public class UserController {
         userBizService.updateMyPassword(updateMyPasswordReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "禁用用户接口")
     @PostMapping("/disableUser")
+    @UserLog
     @SuccessResponse("禁用成功")
     public void disableUser(@Valid @RequestBody DisableUserReq disableUserReq) {
 
         userBizService.disableUser(disableUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "启用用户接口")
     @PostMapping("/enableUser")
     @SuccessResponse("启用成功")
@@ -121,16 +122,17 @@ public class UserController {
         userBizService.enableUser(enableUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "删除用户接口")
     @PostMapping("/deleteUser")
+    @UserLog
     @SuccessResponse("删除成功")
     public void deleteUser(@Valid @RequestBody DeleteUserReq deleteUserReq) {
 
         userBizService.deleteUser(deleteUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "查询所有用户接口")
     @PostMapping("/pageUser")
     @SuccessResponse("查询成功")
@@ -139,7 +141,7 @@ public class UserController {
         return userBizService.pageUser(pageUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "查询所有启用用户接口")
     @PostMapping("/pageEnableUser")
     @SuccessResponse("查询成功")
@@ -148,12 +150,22 @@ public class UserController {
         return userBizService.pageEnableUser(pageEnableUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.SYS_ADMIN, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "获取匿名者访问token接口")
     @PostMapping("/getAnonymousToken")
     @SuccessResponse("查询成功")
     public GetAnonymousTokenRes getAnonymousToken(@Valid @RequestBody GetAnonymousTokenReq getAnonymousTokenReq) {
 
         return userBizService.getAnonymousToken(getAnonymousTokenReq);
+    }
+
+    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Operation(summary = "设置平台管理员接口")
+    @PostMapping("/setPlatformAdmin")
+    @UserLog
+    @SuccessResponse("设置成功")
+    public void setPlatformAdmin(@Valid @RequestBody SetPlatformAdminReq setPlatformAdminReq) {
+
+        userBizService.setPlatformAdmin(setPlatformAdminReq);
     }
 }

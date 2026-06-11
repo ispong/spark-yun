@@ -15,6 +15,8 @@ import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.backend.api.base.properties.IsxAppProperties;
 import com.isxcode.spark.common.utils.jwt.JwtUtils;
 import com.isxcode.spark.modules.tenant.service.TenantService;
+import com.isxcode.spark.security.authorization.AccessSnapshot;
+import com.isxcode.spark.security.authorization.ProductAccessService;
 import com.isxcode.spark.security.user.*;
 import com.isxcode.spark.modules.user.mapper.UserMapper;
 
@@ -48,6 +50,8 @@ public class UserBizService {
     private final TenantUserRepository tenantUserRepository;
 
     private final TenantService tenantService;
+
+    private final ProductAccessService productAccessService;
 
     public LoginRes login(LoginReq usrLoginReq) {
 
@@ -84,18 +88,14 @@ public class UserBizService {
 
         // 如果是系统管理员直接返回
         if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
-            String jwtToken = generateUserToken(userEntity.getId(), userEntity.getCurrentTenantId());
-            return LoginRes.builder().tenantId(userEntity.getCurrentTenantId()).username(userEntity.getUsername())
-                .account(userEntity.getAccount()).phone(userEntity.getPhone()).email(userEntity.getEmail())
-                .remark(userEntity.getRemark()).token(jwtToken)
-                .refreshToken(generateRefreshToken(userEntity.getId(), userEntity.getCurrentTenantId()))
-                .role(userEntity.getRoleCode()).build();
+            return buildLoginRes(userEntity, null, userEntity.getRoleCode());
         }
 
         // 如果用户不在任何一个租户报错
-        List<TenantUserEntity> tenantUserEntities = tenantUserRepository.findAllByUserId(userEntity.getId());
+        List<TenantUserEntity> tenantUserEntities =
+            tenantUserRepository.findAllByUserIdAndStatus(userEntity.getId(), UserStatus.ENABLE);
         if (tenantUserEntities.isEmpty()) {
-            throw new IsxAppException("无可用租户，请联系管理员");
+            throw new IsxAppException("当前账号暂无可访问租户，请联系管理员。");
         }
 
         // 如果用户没有任何启动租户报错
@@ -110,7 +110,7 @@ public class UserBizService {
                 && LocalDateTime.now().isBefore(e.getValidEndDateTime());
         }).collect(Collectors.toList());
         if (enableTenants.isEmpty()) {
-            throw new IsxAppException("暂无租户，请联系管理员");
+            throw new IsxAppException("当前账号暂无可访问租户，请联系管理员。");
         }
 
         // 如果用户当前租户id启动则返回当前租户，没有则随机挑一个
@@ -134,11 +134,7 @@ public class UserBizService {
         }
 
         // 生成token并返回
-        String jwtToken = generateUserToken(userEntity.getId(), currentTenantId);
-        return LoginRes.builder().username(userEntity.getUsername()).account(userEntity.getAccount())
-            .phone(userEntity.getPhone()).email(userEntity.getEmail()).remark(userEntity.getRemark()).token(jwtToken)
-            .refreshToken(generateRefreshToken(userEntity.getId(), currentTenantId)).tenantId(currentTenantId)
-            .role(tenantUserEntityOptional.get().getRoleCode()).build();
+        return buildLoginRes(userEntity, currentTenantId, tenantUserEntityOptional.get().getRoleCode());
     }
 
     public GetUserRes getUser() {
@@ -157,31 +153,25 @@ public class UserBizService {
 
         // 如果是系统管理员直接返回
         if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
-            String jwtToken = generateUserToken(userEntity.getId(), userEntity.getCurrentTenantId());
-            return GetUserRes.builder().tenantId(userEntity.getCurrentTenantId()).username(userEntity.getUsername())
-                .account(userEntity.getAccount()).token(jwtToken)
-                .refreshToken(generateRefreshToken(userEntity.getId(), userEntity.getCurrentTenantId()))
-                .role(userEntity.getRoleCode()).build();
+            return buildGetUserRes(userEntity, null, userEntity.getRoleCode());
         }
 
-        // 获取用户最近一次租户信息
-        if (Strings.isEmpty(userEntity.getCurrentTenantId())) {
-            throw new IsxAppException("无可用租户，请联系管理员");
+        List<TenantUserEntity> memberships =
+            tenantUserRepository.findAllByUserIdAndStatus(userEntity.getId(), UserStatus.ENABLE);
+        List<String> memberTenantIds = memberships.stream().map(TenantUserEntity::getTenantId).toList();
+        List<TenantEntity> availableTenants =
+            tenantRepository.findAllByIdInAndStatus(memberTenantIds, TenantStatus.ENABLE).stream()
+                .filter(this::isTenantInValidTime).toList();
+        if (availableTenants.isEmpty()) {
+            throw new IsxAppException("当前账号暂无可访问租户，请联系管理员。");
         }
-        Optional<TenantEntity> tenantEntityOptional = tenantRepository.findById(userEntity.getCurrentTenantId());
-
-        // 如果租户不存在,则随机选择一个
-        String currentTenantId;
-        if (!tenantEntityOptional.isPresent()) {
-            List<TenantUserEntity> tenantUserEntities = tenantUserRepository.findAllByUserId(userEntity.getId());
-            if (tenantUserEntities.isEmpty()) {
-                throw new IsxAppException("无可用租户，请联系管理员");
-            }
-            currentTenantId = tenantUserEntities.get(0).getTenantId();
+        List<String> availableTenantIds = availableTenants.stream().map(TenantEntity::getId).toList();
+        String currentTenantId =
+            availableTenantIds.contains(userEntity.getCurrentTenantId()) ? userEntity.getCurrentTenantId()
+                : availableTenantIds.get(0);
+        if (!currentTenantId.equals(userEntity.getCurrentTenantId())) {
             userEntity.setCurrentTenantId(currentTenantId);
             userRepository.save(userEntity);
-        } else {
-            currentTenantId = tenantEntityOptional.get().getId();
         }
 
         // 返回用户在租户中的角色
@@ -192,11 +182,7 @@ public class UserBizService {
         }
 
         // 生成token并返回
-        String jwtToken = generateUserToken(userEntity.getId(), currentTenantId);
-        return GetUserRes.builder().username(userEntity.getUsername()).account(userEntity.getAccount())
-            .phone(userEntity.getPhone()).email(userEntity.getEmail()).remark(userEntity.getRemark()).token(jwtToken)
-            .refreshToken(generateRefreshToken(userEntity.getId(), currentTenantId)).tenantId(currentTenantId)
-            .role(tenantUserEntityOptional.get().getRoleCode()).build();
+        return buildGetUserRes(userEntity, currentTenantId, tenantUserEntityOptional.get().getRoleCode());
     }
 
     public LoginRes refreshToken(RefreshTokenReq refreshTokenReq) {
@@ -226,6 +212,15 @@ public class UserBizService {
         return buildLoginRes(userEntity, refreshUserToken.tenantId(), tenantUserEntity.getRoleCode());
     }
 
+    public LoginRes buildAuthenticatedLoginRes(UserEntity userEntity, String tenantId) {
+
+        if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
+            return buildLoginRes(userEntity, null, RoleType.SYS_ADMIN);
+        }
+        TenantUserEntity tenantUser = validateTenantUser(userEntity.getId(), tenantId);
+        return buildLoginRes(userEntity, tenantId, tenantUser.getRoleCode());
+    }
+
     public void logout() {
 
         System.out.println("用户退出登录");
@@ -233,32 +228,14 @@ public class UserBizService {
 
     public void addUser(AddUserReq usrAddUserReq) {
 
-        // 判断账号是否存在
-        Optional<UserEntity> userEntityOptional = userRepository.findByAccount(usrAddUserReq.getAccount());
-        if (userEntityOptional.isPresent()) {
-            throw new IsxAppException("用户已存在");
-        }
-
-        // 判断手机号是否存在
-        if (!Strings.isEmpty(usrAddUserReq.getPhone())) {
-            Optional<UserEntity> byPhoneOptional = userRepository.findByPhone(usrAddUserReq.getPhone());
-            if (byPhoneOptional.isPresent()) {
-                throw new IsxAppException("手机号已存在");
-            }
-        }
-
-        // 判断邮箱是否存在
-        if (!Strings.isEmpty(usrAddUserReq.getEmail())) {
-            Optional<UserEntity> byPhoneOptional = userRepository.findByEmail(usrAddUserReq.getEmail());
-            if (byPhoneOptional.isPresent()) {
-                throw new IsxAppException("邮箱已存在");
-            }
-        }
+        validateUniqueUserFields(usrAddUserReq.getUsername(), usrAddUserReq.getAccount(), usrAddUserReq.getPhone(),
+            usrAddUserReq.getEmail(), "");
 
         // UsrAddUserReq To UserEntity
         UserEntity userEntity = userMapper.addUserReqToUserEntity(usrAddUserReq);
         userEntity.setStatus(UserStatus.ENABLE);
         userEntity.setRoleCode(RoleType.NORMAL_MEMBER);
+        userEntity.setPlatformAdmin(false);
         userEntity.setPasswd(SecureUtil.md5(userEntity.getPasswd()));
 
         // 特殊处理时间
@@ -278,6 +255,8 @@ public class UserBizService {
         if (!userEntityOptional.isPresent()) {
             throw new IsxAppException("用户不存在");
         }
+        validateUniqueUserFields(usrUpdateUserReq.getUsername(), usrUpdateUserReq.getAccount(),
+            usrUpdateUserReq.getPhone(), usrUpdateUserReq.getEmail(), usrUpdateUserReq.getId());
 
         UserEntity userEntity = userMapper.updateUserReqToUserEntity(usrUpdateUserReq, userEntityOptional.get());
 
@@ -317,6 +296,7 @@ public class UserBizService {
         }
 
         UserEntity userEntity = userEntityOptional.get();
+        checkBuiltInAdmin(userEntity);
         userEntity.setStatus(UserStatus.DISABLE);
         userRepository.save(userEntity);
     }
@@ -340,10 +320,10 @@ public class UserBizService {
             throw new IsxAppException("用户不存在");
         }
 
+        checkBuiltInAdmin(userEntityOptional.get());
         userRepository.deleteById(deleteUserReq.getUserId());
 
-        // 同时删除租户中的成员
-        tenantUserRepository.deleteAllByUserId(deleteUserReq.getUserId());
+        // 保留历史成员关系、任务归属和审计记录。
     }
 
     public Page<PageUserRes> pageUser(PageUserReq usrQueryAllUsersReq) {
@@ -352,6 +332,20 @@ public class UserBizService {
             PageRequest.of(usrQueryAllUsersReq.getPage(), usrQueryAllUsersReq.getPageSize()));
 
         return userEntitiesPage.map(userMapper::userEntityToUsrQueryAllUsersRes);
+    }
+
+    public void setPlatformAdmin(SetPlatformAdminReq setPlatformAdminReq) {
+
+        UserEntity target =
+            userRepository.findById(setPlatformAdminReq.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
+        checkBuiltInAdmin(target);
+        boolean callerIsSystemAdmin = userRepository.findById(ContextHolder.getUserId())
+            .map(user -> RoleType.SYS_ADMIN.equals(user.getRoleCode())).orElse(false);
+        if (Boolean.TRUE.equals(setPlatformAdminReq.getPlatformAdmin()) && !callerIsSystemAdmin) {
+            throw new IsxAppException("只有超级管理员可以设置平台管理员");
+        }
+        target.setPlatformAdmin(setPlatformAdminReq.getPlatformAdmin());
+        userRepository.save(target);
     }
 
     public Page<PageEnableUserRes> pageEnableUser(PageEnableUserReq usrQueryAllEnableUsersReq) {
@@ -371,19 +365,8 @@ public class UserBizService {
             throw new IsxAppException("用户不存在");
         }
 
-        // 邮箱不能重复
-        Optional<UserEntity> emailOptional = userRepository.findByEmail(updateUserInfoReq.getEmail());
-        if (emailOptional.isPresent()
-            && !emailOptional.get().getAccount().equals(userEntityOptional.get().getAccount())) {
-            throw new IsxAppException("邮箱已被占用");
-        }
-
-        // 手机号不能重复
-        Optional<UserEntity> phoneOptional = userRepository.findByPhone(updateUserInfoReq.getPhone());
-        if (phoneOptional.isPresent()
-            && !phoneOptional.get().getAccount().equals(userEntityOptional.get().getAccount())) {
-            throw new IsxAppException("手机已被占用");
-        }
+        validateUniqueUserFields(userEntityOptional.get().getUsername(), userEntityOptional.get().getAccount(),
+            updateUserInfoReq.getPhone(), updateUserInfoReq.getEmail(), userEntityOptional.get().getId());
 
         // 更新信息
         UserEntity userEntity = userMapper.updateUserInfoToUserEntity(updateUserInfoReq, userEntityOptional.get());
@@ -433,6 +416,23 @@ public class UserBizService {
             isxAppProperties.getJwtKey(), isxAppProperties.getExpirationMin());
     }
 
+    private void validateUniqueUserFields(String username, String account, String phone, String email,
+        String excludedUserId) {
+
+        if (userRepository.countIncludingDeletedByUsername(username, excludedUserId) > 0) {
+            throw new IsxAppException("用户名已存在");
+        }
+        if (userRepository.countIncludingDeletedByAccount(account, excludedUserId) > 0) {
+            throw new IsxAppException("账号已存在");
+        }
+        if (!Strings.isEmpty(phone) && userRepository.countIncludingDeletedByPhone(phone, excludedUserId) > 0) {
+            throw new IsxAppException("手机号已存在");
+        }
+        if (!Strings.isEmpty(email) && userRepository.countIncludingDeletedByEmail(email, excludedUserId) > 0) {
+            throw new IsxAppException("邮箱已存在");
+        }
+    }
+
     private String generateRefreshToken(String userId, String tenantId) {
 
         return JwtUtils.encrypt(isxAppProperties.getAesSlat(), new RefreshUserToken(userId, tenantId, REFRESH_TOKEN),
@@ -441,10 +441,56 @@ public class UserBizService {
 
     private LoginRes buildLoginRes(UserEntity userEntity, String tenantId, String role) {
 
+        AccessSnapshot access = productAccessService.resolve(userEntity.getId(), tenantId);
         return LoginRes.builder().username(userEntity.getUsername()).account(userEntity.getAccount())
             .phone(userEntity.getPhone()).email(userEntity.getEmail()).remark(userEntity.getRemark())
             .token(generateUserToken(userEntity.getId(), tenantId))
-            .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId).role(role).build();
+            .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId)
+            .role(resolveCompatibilityRole(access, role)).systemAdmin(access.systemAdmin())
+            .platformAdmin(access.platformAdmin()).tenantAdmin(access.tenantAdmin()).normalAdmin(access.normalAdmin())
+            .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
+            .defaultArea(access.systemAdmin() ? "platform" : "workspace").build();
+    }
+
+    private GetUserRes buildGetUserRes(UserEntity userEntity, String tenantId, String role) {
+
+        AccessSnapshot access = productAccessService.resolve(userEntity.getId(), tenantId);
+        return GetUserRes.builder().username(userEntity.getUsername()).account(userEntity.getAccount())
+            .phone(userEntity.getPhone()).email(userEntity.getEmail()).remark(userEntity.getRemark())
+            .token(generateUserToken(userEntity.getId(), tenantId))
+            .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId)
+            .role(resolveCompatibilityRole(access, role)).systemAdmin(access.systemAdmin())
+            .platformAdmin(access.platformAdmin()).tenantAdmin(access.tenantAdmin()).normalAdmin(access.normalAdmin())
+            .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
+            .defaultArea(access.systemAdmin() ? "platform" : "workspace").build();
+    }
+
+    private String resolveCompatibilityRole(AccessSnapshot access, String fallbackRole) {
+
+        if (access.systemAdmin()) {
+            return RoleType.SYS_ADMIN;
+        }
+        if (access.tenantAdmin()) {
+            return RoleType.TENANT_ADMIN;
+        }
+        if (access.normalAdmin()) {
+            return RoleType.TENANT_NORMAL_ADMIN;
+        }
+        return fallbackRole == null ? RoleType.TENANT_MEMBER : fallbackRole;
+    }
+
+    private void checkBuiltInAdmin(UserEntity userEntity) {
+
+        if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
+            throw new IsxAppException("超级管理员账号不允许执行该操作");
+        }
+    }
+
+    private boolean isTenantInValidTime(TenantEntity tenant) {
+
+        return tenant.getValidStartDateTime() == null || tenant.getValidEndDateTime() == null
+            || (!LocalDateTime.now().isBefore(tenant.getValidStartDateTime())
+                && !LocalDateTime.now().isAfter(tenant.getValidEndDateTime()));
     }
 
     private void validateUserStatus(UserEntity userEntity) {

@@ -96,3 +96,11 @@ export function UpdateUserPassword(params: UpdateUserPasswordParams): Promise<an
     params: params
   })
 }
+
+export function SetPlatformAdmin(params: { userId: string; platformAdmin: boolean }): Promise<any> {
+  return http.request({
+    method: 'post',
+    url: '/user/setPlatformAdmin',
+    params
+  })
+}

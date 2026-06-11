@@ -45,6 +45,8 @@ public class TenantEntity {
 
     private String status;
 
+    private String adminUserId;
+
     private String introduce;
 
     private String remark;

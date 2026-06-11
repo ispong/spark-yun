@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "集群节点模块")
-@RequestMapping(ModuleCode.CLUSTER_NODE)
+@RequestMapping({ModuleCode.CLUSTER_NODE, "/api/workspace/" + ModuleCode.CLUSTER_NODE})
 @RestController
 @RequiredArgsConstructor
 public class ClusterNodeController {
@@ -53,7 +53,7 @@ public class ClusterNodeController {
         return clusterNodeBizService.pageClusterNode(pageClusterNodeReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
     @Operation(summary = "删除节点接口")
     @PostMapping("/deleteClusterNode")
     @SuccessResponse("删除成功")

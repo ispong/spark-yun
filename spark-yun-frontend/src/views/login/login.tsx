@@ -19,18 +19,13 @@ export default defineComponent({
     const handleLogin = (loginModel: LoginModel): Promise<void> => {
       return LoginUserInfo(loginModel).then((res: any) => {
 
-        authStore.setUserInfo(res.data)
-        authStore.setToken(res.data.token)
-        authStore.setTenantId(res.data?.tenantId)
-        authStore.setRole(res.data?.role)
+        authStore.applyAuthResponse(res.data)
 
         return getVipLicenseEnabled(true).finally(() => {
           ElMessage.success(res.msg)
 
           nextTick(() => {
-            router.push({
-              name: 'home'
-            })
+            router.push(res.data.defaultArea === 'platform' ? '/platform' : '/workspace')
           })
         })
       }).finally(() => {
