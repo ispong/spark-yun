@@ -67,8 +67,8 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import { DeleteOrg, ListOrg, ListRole, SaveOrg } from '@/modules/admin/api'
-import { GetUserList } from '@/modules/tenant-user/api'
+import { DeleteOrg, ListOrg, ListRole, SaveOrg } from '@/app/management/admin/api'
+import { GetUserList } from '@/app/management/tenant-user/api'
 import { useAuthStore } from '@/store/useAuth'
 
 const authStore = useAuthStore()

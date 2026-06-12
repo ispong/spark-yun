@@ -6,7 +6,7 @@ import { useSwitchTenant, type TenantInfo } from '@/hooks/switch-tenant'
 import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { ChangeTenantData } from '@/app/api'
 import { ElMessage } from 'element-plus'
-import { CheckLicenseStatus } from '@/modules/license/api'
+import { CheckLicenseStatus } from '@/app/management/license/api'
 import { getVipLicenseEnabled, resetVipLicenseCache } from '@/utils/vip-license'
 import { http } from '@/utils/http'
 

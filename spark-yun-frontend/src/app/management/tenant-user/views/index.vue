@@ -93,12 +93,12 @@ import {
     RemoveAuth,
     SetMemberRoles,
     SetTenantMemberStatus
-} from '@/modules/tenant-user/api'
+} from '@/app/management/tenant-user/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { useSwitchTenant } from '@/hooks/switch-tenant'
 import { useAuthStore } from '@/store/useAuth'
-import { ListRole } from '@/modules/admin/api'
+import { ListRole } from '@/app/management/admin/api'
 
 interface FormUser {
     isTenantAdmin: boolean

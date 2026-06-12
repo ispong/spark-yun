@@ -68,7 +68,7 @@ import { ElMessage, FormInstance, FormRules } from 'element-plus'
 // import CodeMirror from 'vue-codemirror6'
 import { json } from '@codemirror/lang-json'
 import { jsonFormatter } from '@/utils/formatter'
-import { GetUserList } from '@/modules/tenant-user/api'
+import { GetUserList } from '@/app/management/tenant-user/api'
 import { GetMessagePagesList } from '../../../api'
 
 const form = ref<FormInstance>()

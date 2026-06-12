@@ -2,9 +2,10 @@ import { createRouter, createWebHistory, type RouteLocationRaw, type RouteRecord
 import Home from '@/app/views/home/home'
 import { editionWorkspaceRoutes } from '@edition'
 import { useAuthStore } from '@/store/useAuth'
-import adminRoutes from '@/modules/admin/routes'
-import { personalInfoRootRoute } from '@/modules/personal-info'
-import platformRoutes from '@/modules/platform/routes'
+import adminRoutes from '@/app/routes/admin'
+import { personalInfoRootRoute } from '@/app/management/personal-info'
+import platformRoutes from '@/app/routes/platform'
+import workspaceManagementRoutes from '@/app/routes/workspace-management'
 import { shareReportRoute } from '@/modules/report'
 import workspaceRoutes from '@/modules/workspace/routes'
 import { setupRouterGuard } from './guard'
@@ -15,16 +16,7 @@ const ShareForm = () => import('@/modules/custom-form/views/share-form-page/inde
 const Forbidden = () => import('@/app/views/system/forbidden.vue')
 const NoTenant = () => import('@/app/views/system/no-tenant.vue')
 
-const managementRoutes = new Set([
-    'tenant-user',
-    'user-center',
-    'tenant-list',
-    'oauth-management',
-    'license',
-    'personalInfo'
-])
-const workspaceChildren = workspaceRoutes.filter((route) => !managementRoutes.has(String(route.name || '')))
-    .concat(editionWorkspaceRoutes)
+const workspaceChildren = workspaceRoutes.concat(workspaceManagementRoutes, editionWorkspaceRoutes)
 
 function workspaceDefaultRoute(): RouteLocationRaw {
     const authStore = useAuthStore()

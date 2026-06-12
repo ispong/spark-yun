@@ -84,7 +84,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import { DeleteRole, GetPermissionCatalog, PageRole, SaveRole } from '@/modules/admin/api'
+import { DeleteRole, GetPermissionCatalog, PageRole, SaveRole } from '@/app/management/admin/api'
 
 const actionLabels: Record<string, string> = {
     menu: '菜单',

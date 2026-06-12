@@ -146,12 +146,12 @@ import {
     EnableTenantData,
     UpdateTenantData,
     ReplaceTenantAdminData
-} from '@/modules/tenant-list/api'
+} from '@/app/management/tenant-list/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 import eventBus from '@/utils/eventBus'
 import { useAuthStore } from '@/store/useAuth'
-import { GetUserInfoList } from '@/modules/tenant-user/api'
+import { GetUserInfoList } from '@/app/management/tenant-user/api'
 
 interface FormTenant {
     adminUserId?: string

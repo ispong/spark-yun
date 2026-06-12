@@ -5,6 +5,8 @@ This project keeps open-source code, shared runtime code, and edition-specific e
 ## Directory Roles
 
 - `src/app`: application bootstrap and app-level APIs, such as login and tenant switching.
+- `src/app/management`: built-in platform, admin, account, tenant, role, organization, license, and SSO management pages.
+- `src/app/routes`: base route groups for platform, admin, and workspace management areas.
 - `src/modules`: feature modules. Each module should own its `api`, `views`, `routes`, and local config.
 - `src/shared`: reusable APIs, hooks, and utilities that are intentionally shared by multiple modules.
 - `src/edition`: edition extension points. Open-source builds keep default implementations here; `spark-yun-vip` can override or extend them through aliases or file replacement.
@@ -33,6 +35,8 @@ import { LoginUserInfo } from '@/app/api'
 `src/services` has been removed. Do not recreate it; import APIs from their owning layer instead.
 
 `src/views` has been removed. App-level pages live under `src/app/views`, and feature pages live under their owning `src/modules/*/views` directory.
+
+Built-in management pages are not feature modules. Keep login, platform management, admin management, account, tenant, member, role, organization, license, and SSO code under `src/app`.
 
 ## Edition Split
 

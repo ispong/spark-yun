@@ -104,7 +104,7 @@ import {
     UpdateUserData,
     UpdateUserPassword,
     SetPlatformAdmin
-} from '@/modules/user-center/api'
+} from '@/app/management/user-center/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/store/useAuth'
 

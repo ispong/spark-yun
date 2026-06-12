@@ -51,7 +51,7 @@
 import { useRouter } from 'vue-router'
 import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { ChangeTenantData, QueryTenantList } from '@/app/api'
-import { CheckLicenseStatus } from '@/modules/license/api'
+import { CheckLicenseStatus } from '@/app/management/license/api'
 import { resetVipLicenseCache } from '@/utils/vip-license'
 import eventBus from '@/utils/eventBus'
 import { useAuthStore } from '@/store/useAuth'
