@@ -1,15 +1,8 @@
 <template>
-  <div
-    id="content"
-    class="running-log"
-  >
-    <LogContainer
-      v-if="logMsg || loading"
-      :log-msg="logMsg || ''"
-      :status="status"
-    />
-    <EmptyPage v-else />
-  </div>
+    <div id="content" class="running-log">
+        <LogContainer v-if="logMsg || loading" :log-msg="logMsg || ''" :status="status" />
+        <EmptyPage v-else />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -59,7 +52,7 @@ function getLogData(id: string) {
         id: id
     })
         .then((res: any) => {
-            status.value = [ 'FAIL', 'STOP' ].includes(res.data.status) ? true : false
+            status.value = ['FAIL', 'STOP'].includes(res.data.status) ? true : false
             logMsg.value = res.data.runningLog
             isRequest.value = false
             // 只有在有日志数据或任务完成时才关闭 loading

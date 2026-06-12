@@ -1,96 +1,60 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group acquisition-task-add"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="采集任务名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="数据源类型"
-        prop="dbType"
-      >
-        <el-select
-          v-model="formData.dbType"
-          :disabled="renderSence === 'edit'"
-          placeholder="请选择"
-          @change="dbTypeChangeEvent"
+    <BlockModal :model-config="modelConfig">
+        <el-form
+            ref="form"
+            class="add-computer-group acquisition-task-add"
+            label-position="top"
+            :model="formData"
+            :rules="rules"
         >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="数据源"
-        prop="datasourceId"
-      >
-        <el-select
-          v-model="formData.datasourceId"
-          :disabled="renderSence === 'edit'"
-          placeholder="请选择"
-          @visible-change="getDataSourceList"
-        >
-          <el-option
-            v-for="item in dataSourceList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="表"
-        prop="collectType"
-      >
-        <el-radio-group
-          v-model="formData.collectType"
-          @change="collectTypeChangeEvent"
-        >
-          <el-radio :label="'ALL_TABLE'">
-            所有表
-          </el-radio>
-          <el-radio :label="'CUSTOM_TABLE'">
-            指定表
-          </el-radio>
-        </el-radio-group>
-      </el-form-item>
-      <el-form-item
-        v-if="formData.collectType === 'CUSTOM_TABLE'"
-        label="正则表达式"
-        prop="tablePattern"
-      >
-        <el-input
-          v-model="formData.tablePattern"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+            <el-form-item label="采集任务名称" prop="name">
+                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="数据源类型" prop="dbType">
+                <el-select
+                    v-model="formData.dbType"
+                    :disabled="renderSence === 'edit'"
+                    placeholder="请选择"
+                    @change="dbTypeChangeEvent"
+                >
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="数据源" prop="datasourceId">
+                <el-select
+                    v-model="formData.datasourceId"
+                    :disabled="renderSence === 'edit'"
+                    placeholder="请选择"
+                    @visible-change="getDataSourceList"
+                >
+                    <el-option
+                        v-for="item in dataSourceList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="表" prop="collectType">
+                <el-radio-group v-model="formData.collectType" @change="collectTypeChangeEvent">
+                    <el-radio :label="'ALL_TABLE'">所有表</el-radio>
+                    <el-radio :label="'CUSTOM_TABLE'">指定表</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item v-if="formData.collectType === 'CUSTOM_TABLE'" label="正则表达式" prop="tablePattern">
+                <el-input v-model="formData.tablePattern" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -242,35 +206,35 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入采集任务名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     dbType: [
         {
             required: true,
             message: '请选择数据源类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     datasourceId: [
         {
             required: true,
             message: '请选择数据源',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     collectType: [
         {
             required: true,
             message: '请选择表',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     tablePattern: [
         {
             required: true,
             message: '请输入正则表达式',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

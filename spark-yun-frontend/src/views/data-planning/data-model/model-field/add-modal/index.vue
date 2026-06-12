@@ -1,95 +1,76 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group model-field-container"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="500"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="字段标准"
-        prop="columnFormatId"
-      >
-        <el-button
-          class="add-format-data"
-          link
-          type="primary"
-          @click="addFormatDataEvent"
+    <BlockModal :model-config="modelConfig">
+        <el-form
+            ref="form"
+            class="add-computer-group model-field-container"
+            label-position="top"
+            :model="formData"
+            :rules="rules"
         >
-          新建字段标准
-        </el-button>
-        <el-select
-          v-model="formData.columnFormatId"
-          filterable
-          clearable
-          placeholder="请选择"
-          @change="columnFormatChangeEvent"
-          @visible-change="getFieldFormatList"
-        >
-          <el-option
-            v-for="item in fieldTypeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="字段名"
-        prop="columnName"
-        :show-message="false"
-      >
-        <el-input
-          v-if="showPrefixRuleInput"
-          v-model="formData.columnNameInput"
-          maxlength="500"
-          :placeholder="columnNamePlaceholder"
-        >
-          <template #prepend>
-            {{ currentColumnRule.input }}
-          </template>
-        </el-input>
-        <el-input
-          v-else-if="showSuffixRuleInput"
-          v-model="formData.columnNameInput"
-          maxlength="500"
-          :placeholder="columnNamePlaceholder"
-        >
-          <template #append>
-            {{ currentColumnRule.input }}
-          </template>
-        </el-input>
-        <el-input
-          v-else
-          v-model="formData.columnName"
-          :disabled="showExactRuleInput"
-          maxlength="500"
-          :placeholder="columnNamePlaceholder"
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-    <AddModal ref="addModalRef" />
-  </BlockModal>
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="500" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="字段标准" prop="columnFormatId">
+                <el-button class="add-format-data" link type="primary" @click="addFormatDataEvent">
+                    新建字段标准
+                </el-button>
+                <el-select
+                    v-model="formData.columnFormatId"
+                    filterable
+                    clearable
+                    placeholder="请选择"
+                    @change="columnFormatChangeEvent"
+                    @visible-change="getFieldFormatList"
+                >
+                    <el-option
+                        v-for="item in fieldTypeList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="字段名" prop="columnName" :show-message="false">
+                <el-input
+                    v-if="showPrefixRuleInput"
+                    v-model="formData.columnNameInput"
+                    maxlength="500"
+                    :placeholder="columnNamePlaceholder"
+                >
+                    <template #prepend>
+                        {{ currentColumnRule.input }}
+                    </template>
+                </el-input>
+                <el-input
+                    v-else-if="showSuffixRuleInput"
+                    v-model="formData.columnNameInput"
+                    maxlength="500"
+                    :placeholder="columnNamePlaceholder"
+                >
+                    <template #append>
+                        {{ currentColumnRule.input }}
+                    </template>
+                </el-input>
+                <el-input
+                    v-else
+                    v-model="formData.columnName"
+                    :disabled="showExactRuleInput"
+                    maxlength="500"
+                    :placeholder="columnNamePlaceholder"
+                />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+        <AddModal ref="addModalRef" />
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -149,14 +130,14 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入字段',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     columnName: [
         {
             required: true,
             message: '请输入字段名',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         },
         {
             validator: (_rule, value, callback) => {
@@ -200,14 +181,14 @@ const rules = reactive<FormRules>({
                 }
                 callback()
             },
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     columnFormatId: [
         {
             required: true,
             message: '请选择字段标准',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

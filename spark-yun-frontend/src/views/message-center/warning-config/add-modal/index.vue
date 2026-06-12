@@ -1,123 +1,65 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group message-check-form"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="类型"
-        prop="alarmType"
-      >
-        <el-select
-          v-model="formData.alarmType"
-          :disabled="!!formData.id"
-          placeholder="请选择"
+    <BlockModal :model-config="modelConfig">
+        <el-form
+            ref="form"
+            class="add-computer-group message-check-form"
+            label-position="top"
+            :model="formData"
+            :rules="rules"
         >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="告警事件"
-        prop="alarmEvent"
-      >
-        <el-select
-          v-model="formData.alarmEvent"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in eventList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="消息通知"
-        prop="msgId"
-      >
-        <el-select
-          v-model="formData.msgId"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in messageNotiList"
-            :key="item.id"
-            :label="item.name"
-            :value="item.id"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="通知人"
-        prop="receiverList"
-      >
-        <el-select
-          v-model="formData.receiverList"
-          multiple
-          collapse-tags
-          collapse-tags-tooltip
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in userList"
-            :key="item.userId"
-            :label="item.username"
-            :value="item.userId"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="通知内容"
-        prop="alarmTemplate"
-      >
-        <span
-          class="format-json"
-          @click="formatterJsonEvent(formData, 'alarmTemplate')"
-        >格式化JSON</span>
-        <el-icon
-          class="modal-full-screen"
-          @click="fullScreenEvent()"
-        >
-          <FullScreen v-if="!fullStatus" />
-          <Close v-else />
-        </el-icon>
-        <code-mirror
-          ref="responseBodyRef"
-          v-model="formData.alarmTemplate"
-          basic
-          :lang="jsonLang"
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="类型" prop="alarmType">
+                <el-select v-model="formData.alarmType" :disabled="!!formData.id" placeholder="请选择">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="告警事件" prop="alarmEvent">
+                <el-select v-model="formData.alarmEvent" placeholder="请选择">
+                    <el-option v-for="item in eventList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="消息通知" prop="msgId">
+                <el-select v-model="formData.msgId" placeholder="请选择">
+                    <el-option v-for="item in messageNotiList" :key="item.id" :label="item.name" :value="item.id" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="通知人" prop="receiverList">
+                <el-select
+                    v-model="formData.receiverList"
+                    multiple
+                    collapse-tags
+                    collapse-tags-tooltip
+                    placeholder="请选择"
+                >
+                    <el-option
+                        v-for="item in userList"
+                        :key="item.userId"
+                        :label="item.username"
+                        :value="item.userId"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="通知内容" prop="alarmTemplate">
+                <span class="format-json" @click="formatterJsonEvent(formData, 'alarmTemplate')">格式化JSON</span>
+                <el-icon class="modal-full-screen" @click="fullScreenEvent()">
+                    <FullScreen v-if="!fullStatus" />
+                    <Close v-else />
+                </el-icon>
+                <code-mirror ref="responseBodyRef" v-model="formData.alarmTemplate" basic :lang="jsonLang" />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -197,42 +139,42 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     alarmType: [
         {
             required: true,
             message: '请选择类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     alarmEvent: [
         {
             required: true,
             message: '请选择告警事件',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     msgId: [
         {
             required: true,
             message: '请选择消息通知',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     receiverList: [
         {
             required: true,
             message: '请选择通知人',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     alarmTemplate: [
         {
             required: true,
             message: '请输入通知内容',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })
@@ -414,14 +356,30 @@ defineExpose({
 
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-tooltip-autocomplete {
@@ -432,8 +390,16 @@ defineExpose({
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         li[aria-selected] {

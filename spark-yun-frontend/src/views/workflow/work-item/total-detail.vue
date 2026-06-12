@@ -1,14 +1,11 @@
 <template>
-  <div
-    id="content"
-    class="total-detail"
-  >
-    <div class="detail-container">
-      <span>作业运行地址: {{ detailData.trackingUrl }}</span>
-      <span>作业当前状态: {{ detailData.finalApplicationStatus }}</span>
-      <span>Yarn容器状态: {{ detailData.yarnApplicationState }}</span>
+    <div id="content" class="total-detail">
+        <div class="detail-container">
+            <span>作业运行地址: {{ detailData.trackingUrl }}</span>
+            <span>作业当前状态: {{ detailData.finalApplicationStatus }}</span>
+            <span>Yarn容器状态: {{ detailData.yarnApplicationState }}</span>
+        </div>
     </div>
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -17,7 +14,7 @@ import { GetResultItemDetail } from '@/services/workflow.service'
 
 const timer = ref(null)
 
-let detailData = reactive({
+const detailData = reactive({
     finalApplicationStatus: '',
     trackingUrl: '',
     yarnApplicationState: ''

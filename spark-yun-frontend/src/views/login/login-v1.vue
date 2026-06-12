@@ -7,61 +7,37 @@
  * @FilePath: /spark-yun/spark-yun-website/src/views/login/login.vue
 -->
 <template>
-  <div
-    class="zqy-login"
-    @keyup.enter="clickToLogin"
-  >
-    <div class="zqy-login-container">
-      <div class="normal-login-title">
-        至轻云
-      </div>
-      <el-form
-        ref="loginForm"
-        :model="formData"
-        :rules="rules"
-        class="normal-login-form"
-      >
-        <el-form-item
-          label=""
-          prop="account"
-        >
-          <el-input
-            v-model="formData.account"
-            placeholder="请输入账号"
-          />
-        </el-form-item>
-        <el-form-item
-          label=""
-          prop="passwd"
-        >
-          <el-input
-            v-model="formData.passwd"
-            type="password"
-            placeholder="请输入密码"
-            autocomplete="off"
-            :show-password="true"
-          />
-        </el-form-item>
-        <el-form-item class="login-button-content">
-          <el-button
-            class="login-button"
-            type="primary"
-            :loading="loading"
-            @click="clickToLogin"
-          >
-            登录
-          </el-button>
-        </el-form-item>
-        <el-form-item class="registered-content">
-          <span class="registered">
-            超轻量级智能化大数据中心
-            <!-- <a class="do-registered" @click="clickRegistered"
+    <div class="zqy-login" @keyup.enter="clickToLogin">
+        <div class="zqy-login-container">
+            <div class="normal-login-title">至轻云</div>
+            <el-form ref="loginForm" :model="formData" :rules="rules" class="normal-login-form">
+                <el-form-item label="" prop="account">
+                    <el-input v-model="formData.account" placeholder="请输入账号" />
+                </el-form-item>
+                <el-form-item label="" prop="passwd">
+                    <el-input
+                        v-model="formData.passwd"
+                        type="password"
+                        placeholder="请输入密码"
+                        autocomplete="off"
+                        :show-password="true"
+                    />
+                </el-form-item>
+                <el-form-item class="login-button-content">
+                    <el-button class="login-button" type="primary" :loading="loading" @click="clickToLogin">
+                        登录
+                    </el-button>
+                </el-form-item>
+                <el-form-item class="registered-content">
+                    <span class="registered">
+                        超轻量级智能化大数据中心
+                        <!-- <a class="do-registered" @click="clickRegistered"
                             >免费注册</a -->
-          </span>
-        </el-form-item>
-      </el-form>
+                    </span>
+                </el-form-item>
+            </el-form>
+        </div>
     </div>
-  </div>
 </template>
 
 <script lang="ts" setup>

@@ -1,102 +1,69 @@
 <template>
-  <div class="vm-list">
-    <div class="vm-list__header">
-      <span class="vm-list__title">实例列表</span>
-      <div class="vm-list__ops">
-        <el-icon
-          class="vm-list__icon"
-          @click="queryVmlistData"
-        >
-          <RefreshRight />
-        </el-icon>
-        <el-input
-          v-model="keyWord"
-          class="vm-list__search"
-          placeholder="作业流"
-          @keydown.enter="queryVmlistData"
-        />
-      </div>
+    <div class="vm-list">
+        <div class="vm-list__header">
+            <span class="vm-list__title">实例列表</span>
+            <div class="vm-list__ops">
+                <el-icon class="vm-list__icon" @click="queryVmlistData">
+                    <RefreshRight />
+                </el-icon>
+                <el-input
+                    v-model="keyWord"
+                    class="vm-list__search"
+                    placeholder="作业流"
+                    @keydown.enter="queryVmlistData"
+                />
+            </div>
+        </div>
+        <div class="vm-list__body">
+            <el-table
+                v-loading="tableLoading"
+                class="vm-list__table"
+                :class="{ 'vm-list__table-empty': !tableData.length }"
+                :data="tableData"
+            >
+                <el-table-column prop="workflowName" label="作业流" width="180" show-overflow-tooltip />
+                <el-table-column prop="status" label="状态">
+                    <template #default="{ row }">
+                        <ZStatusTag :status="row.status" />
+                    </template>
+                </el-table-column>
+                <el-table-column prop="lastModifiedBy" label="发布人">
+                    <template #default="{ row }">
+                        <person-tag :person-name="row.lastModifiedBy" />
+                    </template>
+                </el-table-column>
+                <el-table-column prop="startDateTime" label="开始时间" width="170" show-overflow-tooltip />
+                <el-table-column prop="endDateTime" label="结束时间" width="170" show-overflow-tooltip />
+                <el-table-column label="操作" align="center">
+                    <template #default="{ row }">
+                        <el-dropdown trigger="click">
+                            <el-icon class="vm-list__more">
+                                <MoreFilled />
+                            </el-icon>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item @click="showDagDetail(row)">DAG</el-dropdown-item>
+                                    <el-dropdown-item @click="reRunWorkFlowDataEvent(row)">重跑</el-dropdown-item>
+                                    <el-dropdown-item @click="deleteWorkflowSchedule(row)">删除</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </template>
+                </el-table-column>
+                <template #empty>
+                    <empty-page />
+                </template>
+            </el-table>
+            <el-pagination
+                class="vm-list__pagination"
+                small
+                layout="prev, pager, next"
+                :total="total"
+                @current-change="handleCurrentChange"
+            />
+        </div>
+        <dag-detail ref="dagDetailRef" />
     </div>
-    <div class="vm-list__body">
-      <el-table
-        v-loading="tableLoading"
-        class="vm-list__table"
-        :class="{ 'vm-list__table-empty': !tableData.length }"
-        :data="tableData"
-      >
-        <el-table-column
-          prop="workflowName"
-          label="作业流"
-          width="180"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          prop="status"
-          label="状态"
-        >
-          <template #default="{ row }">
-            <ZStatusTag :status="row.status" />
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="lastModifiedBy"
-          label="发布人"
-        >
-          <template #default="{ row }">
-            <person-tag :person-name="row.lastModifiedBy" />
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="startDateTime"
-          label="开始时间"
-          width="170"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          prop="endDateTime"
-          label="结束时间"
-          width="170"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          label="操作"
-          align="center"
-        >
-          <template #default="{ row }">
-            <el-dropdown trigger="click">
-              <el-icon class="vm-list__more">
-                <MoreFilled />
-              </el-icon>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="showDagDetail(row)">
-                    DAG
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="reRunWorkFlowDataEvent(row)">
-                    重跑
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="deleteWorkflowSchedule(row)">
-                    删除
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-        </el-table-column>
-        <template #empty>
-          <empty-page />
-        </template>
-      </el-table>
-      <el-pagination
-        class="vm-list__pagination"
-        small
-        layout="prev, pager, next"
-        :total="total"
-        @current-change="handleCurrentChange"
-      />
-    </div>
-    <dag-detail ref="dagDetailRef" />
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -130,9 +97,7 @@ function queryVmlistData(loading?: boolean) {
         ...paginationInfo.value,
         searchKeyWord: keyWord.value || null
     })
-        .then(({
- data 
-}) => {
+        .then(({ data }) => {
             tableData.value = data.content
             total.value = data.totalElements
             tableLoading.value = false

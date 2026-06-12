@@ -55,9 +55,7 @@ export function useRouterMenu(menuListData: MaybeRef<Menu[]>) {
     const authStore = useAuthStore()
     const route = useRoute()
     const router = useRouter()
-    const {
- renderMenuAvatar 
-} = useMenuAvatar()
+    const { renderMenuAvatar } = useMenuAvatar()
     const vipEnabled = ref(false)
     const licenseApiAvailable = ref(true)
     const vipChecked = ref(false)
@@ -75,7 +73,7 @@ export function useRouterMenu(menuListData: MaybeRef<Menu[]>) {
     })
 
     const currentMenu = computed(() => {
-        let m = menuViewData.value.find((menuData) => menuData.code === route.name)
+        const m = menuViewData.value.find((menuData) => menuData.code === route.name)
         if (!m) {
             const current = getCurrentMenu(menuViewData.value, route.name)
             // const current = menuViewData.value.find(m => m.childPage?.includes(route.name))
@@ -85,20 +83,20 @@ export function useRouterMenu(menuListData: MaybeRef<Menu[]>) {
         }
     })
 
-    const loadVipLicense = async(forceRefresh = false) => {
+    const loadVipLicense = async (forceRefresh = false) => {
         vipChecked.value = false
         vipEnabled.value = await getVipLicenseEnabled(forceRefresh)
         licenseApiAvailable.value = getLicenseApiAvailable()
         vipChecked.value = true
     }
 
-    onMounted(async() => {
+    onMounted(async () => {
         await loadVipLicense()
     })
 
     watch(
         () => authStore.tenantId,
-        async(tenantId, oldTenantId) => {
+        async (tenantId, oldTenantId) => {
             if (!tenantId || tenantId === oldTenantId) {
                 return
             }
@@ -107,7 +105,7 @@ export function useRouterMenu(menuListData: MaybeRef<Menu[]>) {
     )
 
     watch(
-        () => [ vipChecked.value, route.name, menuViewData.value.length ],
+        () => [vipChecked.value, route.name, menuViewData.value.length],
         () => {
             if (!vipChecked.value) {
                 return
@@ -130,9 +128,9 @@ export function useRouterMenu(menuListData: MaybeRef<Menu[]>) {
         }
     )
 
-    let isCollapse = ref(true)
+    const isCollapse = ref(true)
 
-    let handleSelect = (index: Menu['code']) => {
+    const handleSelect = (index: Menu['code']) => {
         router.push({
             name: index
         })

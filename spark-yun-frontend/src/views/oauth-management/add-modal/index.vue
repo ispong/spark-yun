@@ -1,127 +1,50 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="类型"
-        prop="ssoType"
-      >
-        <el-select
-          v-model="formData.ssoType"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="clientId"
-        prop="clientId"
-      >
-        <el-input
-          v-model="formData.clientId"
-          maxlength="2000"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="clientSecret"
-        prop="clientSecret"
-      >
-        <el-input
-          v-model="formData.clientSecret"
-          maxlength="2000"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item label="scope">
-        <el-input
-          v-model="formData.scope"
-          maxlength="2000"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="authUrl"
-        prop="authUrl"
-      >
-        <el-input
-          v-model="formData.authUrl"
-          maxlength="2000"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="accessTokenUrl"
-        prop="accessTokenUrl"
-      >
-        <el-input
-          v-model="formData.accessTokenUrl"
-          maxlength="2000"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="redirectUrl (回调地址)"
-        prop="redirectUrl"
-      >
-        <el-input
-          v-model="formData.redirectUrl"
-          maxlength="2000"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="userUrl"
-        prop="userUrl"
-      >
-        <el-input
-          v-model="formData.userUrl"
-          maxlength="2000"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="authJsonPath"
-        prop="authJsonPath"
-      >
-        <el-input
-          v-model="formData.authJsonPath"
-          maxlength="2000"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          show-word-limit
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="类型" prop="ssoType">
+                <el-select v-model="formData.ssoType" placeholder="请选择">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="clientId" prop="clientId">
+                <el-input v-model="formData.clientId" maxlength="2000" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="clientSecret" prop="clientSecret">
+                <el-input v-model="formData.clientSecret" maxlength="2000" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="scope">
+                <el-input v-model="formData.scope" maxlength="2000" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="authUrl" prop="authUrl">
+                <el-input v-model="formData.authUrl" maxlength="2000" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="accessTokenUrl" prop="accessTokenUrl">
+                <el-input v-model="formData.accessTokenUrl" maxlength="2000" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="redirectUrl (回调地址)" prop="redirectUrl">
+                <el-input v-model="formData.redirectUrl" maxlength="2000" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="userUrl" prop="userUrl">
+                <el-input v-model="formData.userUrl" maxlength="2000" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="authJsonPath" prop="authJsonPath">
+                <el-input v-model="formData.authJsonPath" maxlength="2000" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    show-word-limit
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -200,70 +123,70 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入名称',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     ssoType: [
         {
             required: true,
             message: '请选择类型',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     authJsonPath: [
         {
             required: true,
             message: '请输入authJsonPath',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     scope: [
         {
             required: true,
             message: '请输入scope',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     clientId: [
         {
             required: true,
             message: '请输入clientId',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     clientSecret: [
         {
             required: true,
             message: '请输入clientSecret',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     accessTokenUrl: [
         {
             required: true,
             message: '请输入accessTokenUrl',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     authUrl: [
         {
             required: true,
             message: '请输入authUrl',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     userUrl: [
         {
             required: true,
             message: '请输入userUrl',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     redirectUrl: [
         {
             required: true,
             message: '请输入redirectUrl',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ]
 })

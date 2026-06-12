@@ -1,16 +1,8 @@
 <template>
-  <pre
-    ref="preContentRef"
-    class="zqy-log-container"
-    @mousewheel="mousewheelEvent"
-  >{{
+    <pre ref="preContentRef" class="zqy-log-container" @mousewheel="mousewheelEvent">{{
         (logMsg || '') + loadingMsg
     }}</pre>
-  <span
-    v-if="!showResult"
-    class="zqy-download-log"
-    @click="downloadLog"
-  >下载日志</span>
+    <span v-if="!showResult" class="zqy-download-log" @click="downloadLog">下载日志</span>
 </template>
 
 <script lang="ts" setup>
@@ -28,7 +20,7 @@ const loadingTimer = ref()
 const loadingPoint = ref('.')
 const preContentRef = ref(null)
 
-const emit = defineEmits([ 'getJsonParseResult' ])
+const emit = defineEmits(['getJsonParseResult'])
 
 watch(
     () => props.logMsg,
@@ -56,7 +48,7 @@ function getResult() {
 function downloadLog() {
     const logStr = props.logMsg
     const nowDate = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss')
-    const blob = new Blob([ logStr ], {
+    const blob = new Blob([logStr], {
         type: 'text/plain;charset=utf-8'
     })
     const objectURL = URL.createObjectURL(blob)

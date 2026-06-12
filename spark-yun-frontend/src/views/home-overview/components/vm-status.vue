@@ -1,8 +1,8 @@
 <template>
-  <div :class="vmStatusClass">
-    <div class="vm-status__pointer" />
-    <span class="vm-status__text">{{ vmStatus.name }}</span>
-  </div>
+    <div :class="vmStatusClass">
+        <div class="vm-status__pointer" />
+        <span class="vm-status__text">{{ vmStatus.name }}</span>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -28,7 +28,7 @@ const props = withDefaults(
 )
 
 const vmStatusClass = computed(() => {
-    return [ 'vm-status', 'is-' + props.status.toLowerCase() ]
+    return ['vm-status', 'is-' + props.status.toLowerCase()]
 })
 
 const vmStatus = computed<{ status: VmData['status']; name: string }>(() => {

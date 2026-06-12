@@ -1,22 +1,14 @@
 <template>
-  <el-form-item
-    label="默认值"
-    class="form-default-time"
-  >
-    <el-time-picker
-      v-model="formData"
-      placeholder="请选择"
-      value-format="HH:mm:ss"
-      format="HH:mm:ss"
-    />
-  </el-form-item>
+    <el-form-item label="默认值" class="form-default-time">
+        <el-time-picker v-model="formData" placeholder="请选择" value-format="HH:mm:ss" format="HH:mm:ss" />
+    </el-form-item>
 </template>
 
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed } from 'vue'
 
-const props = defineProps([ 'modelValue' ])
-const emit = defineEmits([ 'update:modelValue' ])
+const props = defineProps(['modelValue'])
+const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {
         return props.modelValue

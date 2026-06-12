@@ -1,149 +1,115 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table zqy-computer-node">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        添加节点
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入节点名称/地址/备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table zqy-computer-node">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">添加节点</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入节点名称/地址/备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #nameSlot="scopeSlot">
+                        <span class="name-click" @click="editNodeData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #cpuSlot="scopeSlot">
+                        <div class="resource-progress">
+                            <el-progress
+                                :percentage="getPercentFromCpu(scopeSlot.row.cpu)"
+                                :color="getPercentColor(getPercentFromCpu(scopeSlot.row.cpu))"
+                                :stroke-width="12"
+                                :show-text="false"
+                            />
+                            <span class="resource-progress__value">{{ getCpuDisplay(scopeSlot.row.cpu) }}</span>
+                        </div>
+                    </template>
+                    <template #memorySlot="scopeSlot">
+                        <div class="resource-progress">
+                            <el-progress
+                                :percentage="getPercentFromUsage(scopeSlot.row.memory)"
+                                :color="getPercentColor(getPercentFromUsage(scopeSlot.row.memory))"
+                                :stroke-width="12"
+                                :show-text="false"
+                            />
+                            <span class="resource-progress__value">{{ getUsageDisplay(scopeSlot.row.memory) }}</span>
+                        </div>
+                    </template>
+                    <template #storageSlot="scopeSlot">
+                        <div class="resource-progress">
+                            <el-progress
+                                :percentage="getPercentFromUsage(scopeSlot.row.storage)"
+                                :color="getPercentColor(getPercentFromUsage(scopeSlot.row.storage))"
+                                :stroke-width="12"
+                                :show-text="false"
+                            />
+                            <span class="resource-progress__value">{{ getUsageDisplay(scopeSlot.row.storage) }}</span>
+                        </div>
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #defaultNodeTag="scopeSlot">
+                        <div class="btn-group">
+                            <el-tag v-if="scopeSlot.row.defaultClusterNode" class="ml-2" type="success">是</el-tag>
+                            <el-tag v-if="!scopeSlot.row.defaultClusterNode" class="ml-2" type="danger">否</el-tag>
+                        </div>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span @click="checkData(scopeSlot.row)">检测</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editNodeData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item @click="showLog(scopeSlot.row)">日志</el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status === 'RUNNING'"
+                                            @click="stopAgent(scopeSlot.row)"
+                                        >
+                                            停止
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status === 'STOP'"
+                                            @click="startAgent(scopeSlot.row)"
+                                        >
+                                            激活
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="
+                                                scopeSlot.row.status === 'UN_INSTALL' ||
+                                                scopeSlot.row.status === 'INSTALL_ERROR'
+                                            "
+                                            @click="installData(scopeSlot.row)"
+                                        >
+                                            安装
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="uninstallData(scopeSlot.row)">卸载</el-dropdown-item>
+                                        <el-dropdown-item @click="cleanData(scopeSlot.row)">清理</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <ShowLog ref="showLogRef" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #nameSlot="scopeSlot">
-            <span
-              class="name-click"
-              @click="editNodeData(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #cpuSlot="scopeSlot">
-            <div class="resource-progress">
-              <el-progress
-                :percentage="getPercentFromCpu(scopeSlot.row.cpu)"
-                :color="getPercentColor(getPercentFromCpu(scopeSlot.row.cpu))"
-                :stroke-width="12"
-                :show-text="false"
-              />
-              <span class="resource-progress__value">{{ getCpuDisplay(scopeSlot.row.cpu) }}</span>
-            </div>
-          </template>
-          <template #memorySlot="scopeSlot">
-            <div class="resource-progress">
-              <el-progress
-                :percentage="getPercentFromUsage(scopeSlot.row.memory)"
-                :color="getPercentColor(getPercentFromUsage(scopeSlot.row.memory))"
-                :stroke-width="12"
-                :show-text="false"
-              />
-              <span class="resource-progress__value">{{ getUsageDisplay(scopeSlot.row.memory) }}</span>
-            </div>
-          </template>
-          <template #storageSlot="scopeSlot">
-            <div class="resource-progress">
-              <el-progress
-                :percentage="getPercentFromUsage(scopeSlot.row.storage)"
-                :color="getPercentColor(getPercentFromUsage(scopeSlot.row.storage))"
-                :stroke-width="12"
-                :show-text="false"
-              />
-              <span class="resource-progress__value">{{ getUsageDisplay(scopeSlot.row.storage) }}</span>
-            </div>
-          </template>
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status" />
-          </template>
-          <template #defaultNodeTag="scopeSlot">
-            <div class="btn-group">
-              <el-tag
-                v-if="scopeSlot.row.defaultClusterNode"
-                class="ml-2"
-                type="success"
-              >
-                是
-              </el-tag>
-              <el-tag
-                v-if="!scopeSlot.row.defaultClusterNode"
-                class="ml-2"
-                type="danger"
-              >
-                否
-              </el-tag>
-            </div>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span @click="checkData(scopeSlot.row)">检测</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editNodeData(scopeSlot.row)">
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="showLog(scopeSlot.row)">
-                      日志
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="scopeSlot.row.status === 'RUNNING'"
-                      @click="stopAgent(scopeSlot.row)"
-                    >
-                      停止
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="scopeSlot.row.status === 'STOP'"
-                      @click="startAgent(scopeSlot.row)"
-                    >
-                      激活
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="
-                        scopeSlot.row.status === 'UN_INSTALL' ||
-                          scopeSlot.row.status === 'INSTALL_ERROR'
-                      "
-                      @click="installData(scopeSlot.row)"
-                    >
-                      安装
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="uninstallData(scopeSlot.row)">
-                      卸载
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="cleanData(scopeSlot.row)">
-                      清理
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <ShowLog ref="showLogRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -155,7 +121,8 @@ import AddModal from './add-modal/index.vue'
 import ShowLog from './show-log/index.vue'
 
 import { PointTableConfig, FormData } from '../computer-group.config'
-import { GetComputerPointData,
+import {
+    GetComputerPointData,
     CheckComputerPointData,
     AddComputerPointData,
     InstallComputerPointData,
@@ -165,7 +132,8 @@ import { GetComputerPointData,
     StartComputerPointData,
     EditComputerPointData,
     CleanComputerPointData,
-    SetDefaultComputerPointNode } from '@/services/computer-group.service'
+    SetDefaultComputerPointNode
+} from '@/services/computer-group.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute } from 'vue-router'
 

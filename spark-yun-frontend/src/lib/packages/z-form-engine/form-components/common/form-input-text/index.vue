@@ -1,26 +1,21 @@
 <template>
-  <form-render-item
-    class="form-input-text"
-    :form-config="formConfig"
-    :rules="rules"
-    :is-dragger="isDragger"
-  >
-    <el-input
-      v-model="formData"
-      clearable
-      :disabled="formConfig.disabled"
-      :placeholder="formConfig.placeholder"
-      :maxlength="formConfig.maxlength"
-      :readonly="isDragger"
-    />
-  </form-render-item>
+    <form-render-item class="form-input-text" :form-config="formConfig" :rules="rules" :is-dragger="isDragger">
+        <el-input
+            v-model="formData"
+            clearable
+            :disabled="formConfig.disabled"
+            :placeholder="formConfig.placeholder"
+            :maxlength="formConfig.maxlength"
+            :readonly="isDragger"
+        />
+    </form-render-item>
 </template>
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed, ref, watch } from 'vue'
 import FormRenderItem from '../../form-render-item/index.vue'
 
-const props = defineProps([ 'renderSence', 'modelValue', 'formConfig', 'isDragger' ])
-const emit = defineEmits([ 'update:modelValue' ])
+const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'isDragger'])
+const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {
         return props.modelValue
@@ -33,7 +28,7 @@ const rules = ref([
     {
         required: true,
         message: `请输入${props.formConfig.label}`,
-        trigger: [ 'blur', 'change' ]
+        trigger: ['blur', 'change']
     }
 ])
 watch(

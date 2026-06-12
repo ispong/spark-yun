@@ -1,19 +1,9 @@
 <template>
-  <BlockModal
-    :model-config="modelConfig"
-    @close="closeEvent"
-  >
-    <div
-      id="content"
-      class="content-box"
-    >
-      <LogContainer
-        v-if="logMsg"
-        :log-msg="logMsg"
-        :status="true"
-      />
-    </div>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig" @close="closeEvent">
+        <div id="content" class="content-box">
+            <LogContainer v-if="logMsg" :log-msg="logMsg" :status="true" />
+        </div>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>

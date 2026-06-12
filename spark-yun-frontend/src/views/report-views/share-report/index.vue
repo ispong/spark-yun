@@ -1,23 +1,19 @@
 <template>
-  <div class="z-share-form">
-    <Header />
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="getReportConfigById"
-    >
-      <div class="share-form-container">
-        <ZChartsEngine
-          ref="ZChartsEngineRef"
-          :charts-list="chartsList"
-          :render-sence="renderSence"
-          :component-list="componentList"
-          :get-preview-option="getPreviewOption"
-          :get-real-data-option="getRealDataOption"
-        />
-      </div>
-    </LoadingPage>
-  </div>
+    <div class="z-share-form">
+        <Header />
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="getReportConfigById">
+            <div class="share-form-container">
+                <ZChartsEngine
+                    ref="ZChartsEngineRef"
+                    :charts-list="chartsList"
+                    :render-sence="renderSence"
+                    :component-list="componentList"
+                    :get-preview-option="getPreviewOption"
+                    :get-real-data-option="getRealDataOption"
+                />
+            </div>
+        </LoadingPage>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -27,10 +23,12 @@ import LoadingPage from '@/components/loading/index.vue'
 import { useRoute } from 'vue-router'
 import Header from '@/layout/header/index.vue'
 import ZChartsEngine from '@/lib/packages/z-charts-engine/index.vue'
-import { GetChartsLinkInfoConfig,
+import {
+    GetChartsLinkInfoConfig,
     RefreshReportViewItemData,
     GetReportComponentData,
-    GetReportViewDetail } from '@/services/report-echarts.service'
+    GetReportViewDetail
+} from '@/services/report-echarts.service'
 
 interface baseParam {
     tenantId: string

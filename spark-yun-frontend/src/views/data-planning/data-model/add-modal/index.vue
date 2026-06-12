@@ -1,159 +1,131 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group acquisition-task-add"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="数据分层"
-        prop="layerId"
-      >
-        <el-select
-          v-model="formData.layerId"
-          filterable
-          clearable
-          placeholder="请选择"
-          @change="layerChangeEvent"
+    <BlockModal :model-config="modelConfig">
+        <el-form
+            ref="form"
+            class="add-computer-group acquisition-task-add"
+            label-position="top"
+            :model="formData"
+            :rules="rules"
         >
-          <el-option
-            v-for="item in parentLayerIdList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="模型类型"
-        prop="modelType"
-      >
-        <el-select
-          v-model="formData.modelType"
-          filterable
-          :disabled="!!formData.id"
-          clearable
-          placeholder="请选择"
-          @change="modelTypeChangeEvent"
-        >
-          <el-option
-            v-for="item in modelTypeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="数据源类型"
-        prop="dbType"
-      >
-        <el-select
-          v-model="formData.dbType"
-          placeholder="请选择"
-          filterable
-          clearable
-          @change="dbTypeChangeEvent"
-        >
-          <el-option
-            v-for="item in dbTypeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="数据源"
-        prop="datasourceId"
-      >
-        <el-select
-          v-model="formData.datasourceId"
-          placeholder="请选择"
-          filterable
-          clearable
-          @change="datasouceChangeEvent"
-          @visible-change="getDataSourceList"
-        >
-          <el-option
-            v-for="item in dataSourceList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="表名"
-        prop="tableName"
-        :show-message="false"
-      >
-        <el-select
-          v-if="formData.modelType === 'LINK_MODEL'"
-          v-model="formData.tableName"
-          placeholder="请选择"
-          filterable
-          clearable
-          @visible-change="getDataSourceTable"
-        >
-          <el-option
-            v-for="item in tableNameList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-        <el-input
-          v-else-if="showPrefixRuleInput"
-          v-model="formData.tableNameInput"
-          maxlength="500"
-          :placeholder="tableNamePlaceholder"
-        >
-          <template #prepend>
-            {{ currentLayerRule.input }}
-          </template>
-        </el-input>
-        <el-input
-          v-else-if="showSuffixRuleInput"
-          v-model="formData.tableNameInput"
-          maxlength="500"
-          :placeholder="tableNamePlaceholder"
-        >
-          <template #append>
-            {{ currentLayerRule.input }}
-          </template>
-        </el-input>
-        <el-input
-          v-else
-          v-model="formData.tableName"
-          :disabled="showExactRuleTip"
-          maxlength="500"
-          :placeholder="tableNamePlaceholder"
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="数据分层" prop="layerId">
+                <el-select
+                    v-model="formData.layerId"
+                    filterable
+                    clearable
+                    placeholder="请选择"
+                    @change="layerChangeEvent"
+                >
+                    <el-option
+                        v-for="item in parentLayerIdList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="模型类型" prop="modelType">
+                <el-select
+                    v-model="formData.modelType"
+                    filterable
+                    :disabled="!!formData.id"
+                    clearable
+                    placeholder="请选择"
+                    @change="modelTypeChangeEvent"
+                >
+                    <el-option
+                        v-for="item in modelTypeList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="数据源类型" prop="dbType">
+                <el-select
+                    v-model="formData.dbType"
+                    placeholder="请选择"
+                    filterable
+                    clearable
+                    @change="dbTypeChangeEvent"
+                >
+                    <el-option v-for="item in dbTypeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="数据源" prop="datasourceId">
+                <el-select
+                    v-model="formData.datasourceId"
+                    placeholder="请选择"
+                    filterable
+                    clearable
+                    @change="datasouceChangeEvent"
+                    @visible-change="getDataSourceList"
+                >
+                    <el-option
+                        v-for="item in dataSourceList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="表名" prop="tableName" :show-message="false">
+                <el-select
+                    v-if="formData.modelType === 'LINK_MODEL'"
+                    v-model="formData.tableName"
+                    placeholder="请选择"
+                    filterable
+                    clearable
+                    @visible-change="getDataSourceTable"
+                >
+                    <el-option
+                        v-for="item in tableNameList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+                <el-input
+                    v-else-if="showPrefixRuleInput"
+                    v-model="formData.tableNameInput"
+                    maxlength="500"
+                    :placeholder="tableNamePlaceholder"
+                >
+                    <template #prepend>
+                        {{ currentLayerRule.input }}
+                    </template>
+                </el-input>
+                <el-input
+                    v-else-if="showSuffixRuleInput"
+                    v-model="formData.tableNameInput"
+                    maxlength="500"
+                    :placeholder="tableNamePlaceholder"
+                >
+                    <template #append>
+                        {{ currentLayerRule.input }}
+                    </template>
+                </el-input>
+                <el-input
+                    v-else
+                    v-model="formData.tableName"
+                    :disabled="showExactRuleTip"
+                    maxlength="500"
+                    :placeholder="tableNamePlaceholder"
+                />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -319,8 +291,7 @@ const formData = reactive<any>({
     datasourceId: '',
     tableName: '',
     tableNameInput: '',
-    tableConfig: {
-}, // 高级配置
+    tableConfig: {}, // 高级配置
     remark: '',
     id: ''
 })
@@ -334,42 +305,42 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入采集任务名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     layerId: [
         {
             required: true,
             message: '请选择数据分层',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     modelType: [
         {
             required: true,
             message: '请选择模型类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     dbType: [
         {
             required: true,
             message: '请选择数据源类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     datasourceId: [
         {
             required: true,
             message: '请选择数据源',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     tableName: [
         {
             required: true,
             message: '请选择表名',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         },
         {
             validator: (_rule, value, callback) => {
@@ -414,7 +385,7 @@ const rules = reactive<FormRules>({
                 }
                 callback()
             },
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

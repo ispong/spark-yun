@@ -1,55 +1,43 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建合集
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入名称 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #name="scopeSlot">
-            <span
-              class="name-click"
-              @click="configData(scopeSlot.row)"
-            >
-              {{ scopeSlot.row.name }}
-            </span>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span @click="editData(scopeSlot.row)">编辑</span>
-              <span @click="deleteData(scopeSlot.row)">删除</span>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建合集</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入名称 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <ConfigModal ref="configModalRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #name="scopeSlot">
+                        <span class="name-click" @click="configData(scopeSlot.row)">
+                            {{ scopeSlot.row.name }}
+                        </span>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span @click="editData(scopeSlot.row)">编辑</span>
+                            <span @click="deleteData(scopeSlot.row)">删除</span>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <ConfigModal ref="configModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -61,11 +49,13 @@ import AddModal from './add-modal/index.vue'
 import ConfigModal from './config-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './lib-package.config'
-import { PageLibPackage,
+import {
+    PageLibPackage,
     AddLibPackage,
     UpdateLibPackage,
     DeleteLibPackage,
-    GetLibPackage } from '@/services/lib-package.service'
+    GetLibPackage
+} from '@/services/lib-package.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const keyword = ref('')

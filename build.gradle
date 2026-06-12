@@ -190,13 +190,18 @@ allprojects {
 
 spotless {
     java {
-        target fileTree(rootDir) {
-            include 'spark-yun-agent/**/*.java'
-            include 'spark-yun-backend/**/*.java'
-            include 'spark-yun-plugins/**/*.java'
-            include 'spark-yun-vip/**/*.java'
-            exclude '**/build/**/*.java'
+        def javaSourceTrees = allprojects.findAll { it.plugins.hasPlugin('java') }.collectMany { javaProject ->
+            javaProject.sourceSets.collectMany { sourceSet ->
+                sourceSet.allJava.srcDirs
+                    .findAll { it.exists() }
+                    .collect { sourceDir ->
+                        javaProject.fileTree(sourceDir) {
+                            include '**/*.java'
+                        }
+                    }
+            }
         }
+        target(*javaSourceTrees)
         eclipse().configFile(rootProject.file('format/spotless/eclipse-java-google-style.xml'))
         removeUnusedImports()
     }

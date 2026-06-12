@@ -1,26 +1,16 @@
 <template>
-  <BlockTable
-    :table-config="tableConfig"
-    @size-change="handleSizeChange"
-    @current-change="handleCurrentChange"
-  >
-    <template #nameSlot="scopeSlot">
-      <span
-        class="name-click"
-        @click="showPreviewModal(scopeSlot.row)"
-      >{{ scopeSlot.row.tableName }}</span>
-    </template>
-    <template #options="scopeSlot">
-      <div class="btn-group">
-        <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
-        <span @click="editEvent(scopeSlot.row)">备注</span>
-      </div>
-    </template>
-  </BlockTable>
-  <PreviewModal
-    ref="previewModalRef"
-    @edit-event="editPreEvent"
-  />
+    <BlockTable :table-config="tableConfig" @size-change="handleSizeChange" @current-change="handleCurrentChange">
+        <template #nameSlot="scopeSlot">
+            <span class="name-click" @click="showPreviewModal(scopeSlot.row)">{{ scopeSlot.row.tableName }}</span>
+        </template>
+        <template #options="scopeSlot">
+            <div class="btn-group">
+                <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
+                <span @click="editEvent(scopeSlot.row)">备注</span>
+            </div>
+        </template>
+    </BlockTable>
+    <PreviewModal ref="previewModalRef" @edit-event="editPreEvent" />
 </template>
 
 <script lang="ts" setup>
@@ -28,7 +18,7 @@ import { reactive, ref, onMounted, defineEmits, defineProps } from 'vue'
 import { GetMetadataCodesList } from '@/services/metadata-page.service'
 import PreviewModal from './preview-modal/index.vue'
 
-const emit = defineEmits([ 'editEvent', 'dataLineageEvent' ])
+const emit = defineEmits(['editEvent', 'dataLineageEvent'])
 const props = defineProps<{
     keyword: string
 }>()

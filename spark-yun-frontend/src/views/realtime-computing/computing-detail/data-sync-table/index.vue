@@ -1,141 +1,70 @@
 <template>
-  <div class="select-link-type">
-    <el-button
-      v-for="button in buttons"
-      :key="button.text"
-      :type="button.type"
-      link
-      @click="clickSelectLinkConnect(button.code)"
-    >
-      {{ button.text }}
-    </el-button>
-  </div>
-  <div
-    v-if="showDataSync"
-    id="container"
-    class="data-sync-body"
-  >
-    <div class="source-table-container">
-      <el-table
-        v-if="formData.sourceDBType === 'KAFKA'"
-        ref="sourceTableRef"
-        :data="sourceTableColumn"
-        row-key="code"
-      >
-        <el-table-column
-          width="80"
-          prop="code"
-          :show-overflow-tooltip="true"
-          label="字段名"
-        />
-        <el-table-column
-          width="60"
-          prop="type"
-          :show-overflow-tooltip="true"
-          label="类型"
-        />
-        <el-table-column
-          prop="jsonPath"
-          :show-overflow-tooltip="true"
-          label="jsonPath"
-        />
-        <el-table-column
-          prop="sql"
-          :show-overflow-tooltip="true"
-          label="转换"
-        />
-        <el-table-column
-          label=""
-          width="8px"
+    <div class="select-link-type">
+        <el-button
+            v-for="button in buttons"
+            :key="button.text"
+            :type="button.type"
+            link
+            @click="clickSelectLinkConnect(button.code)"
         >
-          <template #default="scope">
-            <el-dropdown trigger="click">
-              <el-icon
-                class="option-more"
-                @click.stop
-              >
-                <MoreFilled />
-              </el-icon>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="addNewCode">
-                    添加
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="removeCode(scope)">
-                    删除
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="editCode(scope.row)">
-                    转换
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-table
-        v-else
-        ref="sourceTableRef"
-        :data="sourceTableColumn"
-        row-key="code"
-      >
-        <el-table-column
-          prop="code"
-          :show-overflow-tooltip="true"
-          label="字段名"
-        />
-        <el-table-column
-          prop="type"
-          :show-overflow-tooltip="true"
-          label="类型"
-        />
-      </el-table>
-      <ul class="source-link-pointer">
-        <li
-          v-for="row in sourceTableColumn"
-          :key="row.code"
-        >
-          <div
-            class="lint-pointer"
-            :class="`leftRow code-source-${row.code}`"
-          />
-        </li>
-      </ul>
+            {{ button.text }}
+        </el-button>
     </div>
-    <div class="target-link-line">
-      <ul class="target-link-pointer">
-        <li
-          v-for="row in targetTableColumn"
-          :key="row.code"
-        >
-          <div
-            class="lint-pointer"
-            :class="`rightRow code-target-${row.code}`"
-          />
-        </li>
-      </ul>
+    <div v-if="showDataSync" id="container" class="data-sync-body">
+        <div class="source-table-container">
+            <el-table
+                v-if="formData.sourceDBType === 'KAFKA'"
+                ref="sourceTableRef"
+                :data="sourceTableColumn"
+                row-key="code"
+            >
+                <el-table-column width="80" prop="code" :show-overflow-tooltip="true" label="字段名" />
+                <el-table-column width="60" prop="type" :show-overflow-tooltip="true" label="类型" />
+                <el-table-column prop="jsonPath" :show-overflow-tooltip="true" label="jsonPath" />
+                <el-table-column prop="sql" :show-overflow-tooltip="true" label="转换" />
+                <el-table-column label="" width="8px">
+                    <template #default="scope">
+                        <el-dropdown trigger="click">
+                            <el-icon class="option-more" @click.stop>
+                                <MoreFilled />
+                            </el-icon>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item @click="addNewCode">添加</el-dropdown-item>
+                                    <el-dropdown-item @click="removeCode(scope)">删除</el-dropdown-item>
+                                    <el-dropdown-item @click="editCode(scope.row)">转换</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-table v-else ref="sourceTableRef" :data="sourceTableColumn" row-key="code">
+                <el-table-column prop="code" :show-overflow-tooltip="true" label="字段名" />
+                <el-table-column prop="type" :show-overflow-tooltip="true" label="类型" />
+            </el-table>
+            <ul class="source-link-pointer">
+                <li v-for="row in sourceTableColumn" :key="row.code">
+                    <div class="lint-pointer" :class="`leftRow code-source-${row.code}`" />
+                </li>
+            </ul>
+        </div>
+        <div class="target-link-line">
+            <ul class="target-link-pointer">
+                <li v-for="row in targetTableColumn" :key="row.code">
+                    <div class="lint-pointer" :class="`rightRow code-target-${row.code}`" />
+                </li>
+            </ul>
+        </div>
+        <div class="target-table-container">
+            <el-table ref="targetTableRef" :data="targetTableColumn" row-key="code">
+                <el-table-column prop="code" :show-overflow-tooltip="true" label="字段名" />
+                <el-table-column prop="type" :show-overflow-tooltip="true" label="类型" />
+            </el-table>
+        </div>
     </div>
-    <div class="target-table-container">
-      <el-table
-        ref="targetTableRef"
-        :data="targetTableColumn"
-        row-key="code"
-      >
-        <el-table-column
-          prop="code"
-          :show-overflow-tooltip="true"
-          label="字段名"
-        />
-        <el-table-column
-          prop="type"
-          :show-overflow-tooltip="true"
-          label="类型"
-        />
-      </el-table>
-    </div>
-  </div>
-  <!-- 添加字段 -->
-  <add-code ref="addCodeRef" />
+    <!-- 添加字段 -->
+    <add-code ref="addCodeRef" />
 </template>
 
 <script lang="ts" setup>
@@ -365,19 +294,19 @@ function setContainer() {
     const leftElList = document.querySelectorAll('.leftRow') // 左侧行元素集合
     const rightElList = document.querySelectorAll('.rightRow') // 右侧行元素集合
     // 将dom元素设置为连线的起点或者终点 设置了起点的元素才能开始连线 设置为终点的元素才能为连线终点
-    instance.batch(function() {
-        ;[ leftElList, rightElList ].forEach((trList, index) => {
+    instance.batch(function () {
+        ;[leftElList, rightElList].forEach((trList, index) => {
             trList.forEach((tr) => {
                 if (index === 0) {
                     instance.makeSource(tr, {
                         allowLoopback: false,
-                        anchor: [ 'Right' ], // 设置端点位置
+                        anchor: ['Right'], // 设置端点位置
                         maxConnections: -1
                     })
                 } else {
                     // 判断是否有子项,若没有则设置为终点
                     instance.makeTarget(tr, {
-                        anchor: [ 'Left' ],
+                        anchor: ['Left'],
                         maxConnections: 1
                     })
                 }
@@ -390,7 +319,7 @@ const interceptId = (className: string) => {
     return className.slice(className.indexOf('-') + 1)
 }
 const initJsPlumb = () => {
-    jsPlumb.ready(function() {
+    jsPlumb.ready(function () {
         // 初始化jsPlumb 创建jsPlumb实例
         tableLinkInit()
         // 设置可以为连线起点和连线终点的元素
@@ -433,7 +362,7 @@ function getLinkData() {
 function clickSelectLinkConnect(type: string) {
     connectNodeList.value = []
     instance.deleteEveryConnection()
-    if ([ 'SameLine', 'SameName' ].includes(type)) {
+    if (['SameLine', 'SameName'].includes(type)) {
         sourceTableColumn.value.forEach((column: any, index: number) => {
             if (type === 'SameLine' && targetTableColumn.value[index]) {
                 connectNodeList.value.push({
@@ -514,7 +443,7 @@ function editCode(row: codeParam) {
 
 onMounted(() => {
     initJsPlumb()
-    window.addEventListener('resize', function() {
+    window.addEventListener('resize', function () {
         // 在窗口大小调整时执行的操作
         nextTick(() => {
             setTimeout(() => {

@@ -13,22 +13,20 @@ import { http } from '@/utils/http'
 export type AvatarMenuCommand = 'logout'
 
 export function useMenuAvatar() {
-    let authStore = useAuthStore()
-    let router = useRouter()
-    let route = useRoute()
-    let menuVisible = ref(false)
-    let tenantDialogVisible = ref(false)
-    let selectedTenantId = ref('')
-    let switchTenantLoading = ref(false)
-    let tenantKeyword = ref('')
+    const authStore = useAuthStore()
+    const router = useRouter()
+    const route = useRoute()
+    const menuVisible = ref(false)
+    const tenantDialogVisible = ref(false)
+    const selectedTenantId = ref('')
+    const switchTenantLoading = ref(false)
+    const tenantKeyword = ref('')
 
-    let username = computed(() => {
+    const username = computed(() => {
         return authStore.userInfo?.username?.slice(0, 1)
     })
 
-    const {
- tenantList, initSwitchTenant, onTenantChange 
-} = useSwitchTenant()
+    const { tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
 
     const isSystemAdmin = computed(() => !!authStore.userInfo?.systemAdmin)
     const isPlatformAdmin = computed(() => !!authStore.userInfo?.platformAdmin)
@@ -49,7 +47,7 @@ export function useMenuAvatar() {
         initSwitchTenant()
     }
 
-    const doLogout = function() {
+    const doLogout = function () {
         resetVipLicenseCache()
         setTimeout(() => {
             authStore.$reset()
@@ -60,19 +58,19 @@ export function useMenuAvatar() {
         })
     }
 
-    const goPersonalInfo = function() {
+    const goPersonalInfo = function () {
         menuVisible.value = false
         router.push({
             name: 'personalInfo'
         })
     }
 
-    const goArea = function(path: string) {
+    const goArea = function (path: string) {
         menuVisible.value = false
         router.push(path)
     }
 
-    const handleCommand = function(command: AvatarMenuCommand) {
+    const handleCommand = function (command: AvatarMenuCommand) {
         if (command === 'logout') {
             CheckLicenseStatus()
                 .catch(() => {
@@ -84,17 +82,17 @@ export function useMenuAvatar() {
         }
     }
 
-    const handleTenantSelect = function(tenant: TenantInfo) {
+    const handleTenantSelect = function (tenant: TenantInfo) {
         selectedTenantId.value = tenant.id
     }
 
-    const closeTenantDialog = function() {
+    const closeTenantDialog = function () {
         tenantDialogVisible.value = false
         selectedTenantId.value = authStore.tenantId
         tenantKeyword.value = ''
     }
 
-    const confirmTenantSwitch = function() {
+    const confirmTenantSwitch = function () {
         if (!selectedTenantId.value || switchTenantLoading.value) {
             return
         }
@@ -115,7 +113,7 @@ export function useMenuAvatar() {
         )
             .then((res: any) => {
                 getVipLicenseEnabled(true).finally(() => {
-                    const needBackToWorkflowList = [ 'workflow-page', 'work-item', 'workflow-detail' ].includes(
+                    const needBackToWorkflowList = ['workflow-page', 'work-item', 'workflow-detail'].includes(
                         String(route.name || '')
                     )
                     const applyTenantContext = () => {
@@ -147,7 +145,7 @@ export function useMenuAvatar() {
             })
     }
 
-    const openTenantDialog = function() {
+    const openTenantDialog = function () {
         menuVisible.value = false
         selectedTenantId.value = authStore.tenantId
         tenantKeyword.value = ''

@@ -1,11 +1,7 @@
 <template>
-  <svg
-    :class="svgClass"
-    aria-hidden="true"
-    :fill="iconColor"
-  >
-    <use :xlink:href="iconName" />
-  </svg>
+    <svg :class="svgClass" aria-hidden="true" :fill="iconColor">
+        <use :xlink:href="iconName" />
+    </svg>
 </template>
 
 <script setup lang="ts">

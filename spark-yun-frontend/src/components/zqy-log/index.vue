@@ -1,27 +1,16 @@
 <template>
-  <BlockModal
-    :model-config="modelConfig"
-    @close="closeEvent"
-  >
-    <div
-      id="content"
-      class="content-box"
-    >
-      <!-- 日志展示 -->
-      <template v-if="['log', 'yarnLog', 'result_log'].includes(modalType)">
-        <LogContainer
-          v-if="logMsg"
-          :log-msg="logMsg"
-          :show-result="false"
-          :status="true"
-        />
-      </template>
-      <!-- 结果展示 -->
-      <template v-else-if="modalType === 'result'">
-        <BlockTable :table-config="tableConfig" />
-      </template>
-    </div>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig" @close="closeEvent">
+        <div id="content" class="content-box">
+            <!-- 日志展示 -->
+            <template v-if="['log', 'yarnLog', 'result_log'].includes(modalType)">
+                <LogContainer v-if="logMsg" :log-msg="logMsg" :show-result="false" :status="true" />
+            </template>
+            <!-- 结果展示 -->
+            <template v-else-if="modalType === 'result'">
+                <BlockTable :table-config="tableConfig" />
+            </template>
+        </div>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -91,7 +80,7 @@ function getLogData() {
     })
         .then((res: any) => {
             logMsg.value = res.data.log
-            if ([ 'SUCCESS', 'FAIL' ].includes(res.data.status)) {
+            if (['SUCCESS', 'FAIL'].includes(res.data.status)) {
                 if (timer.value) {
                     clearInterval(timer.value)
                 }
@@ -110,7 +99,7 @@ function getYarnLogData() {
     })
         .then((res: any) => {
             logMsg.value = res.data.yarnLog
-            if ([ 'SUCCESS', 'FAIL' ].includes(res.data.status)) {
+            if (['SUCCESS', 'FAIL'].includes(res.data.status)) {
                 if (timer.value) {
                     clearInterval(timer.value)
                 }
@@ -144,8 +133,7 @@ function getResultDatalist() {
                     }
                 })
                 tableConfig.tableData = tableData.map((columnData: any) => {
-                    const dataObj: any = {
-}
+                    const dataObj: any = {}
                     col.forEach((c: any, index: number) => {
                         dataObj[c] = columnData[index]
                     })

@@ -7,24 +7,17 @@
  * @FilePath: /spark-yun/spark-yun-website/src/views/home/index.vue
 -->
 <template>
-  <div class="zqy-home">
-    <Header />
-    <div class="home-container">
-      <div class="container-left">
-        <menu-list
-          :default-menu="defaultMenu"
-          :menu-list="menuListData"
-          @select="select"
-        />
-      </div>
-      <div
-        v-if="showData"
-        class="container-right"
-      >
-        <router-view />
-      </div>
+    <div class="zqy-home">
+        <Header />
+        <div class="home-container">
+            <div class="container-left">
+                <menu-list :default-menu="defaultMenu" :menu-list="menuListData" @select="select" />
+            </div>
+            <div v-if="showData" class="container-right">
+                <router-view />
+            </div>
+        </div>
     </div>
-  </div>
 </template>
 
 <script lang="ts" setup>

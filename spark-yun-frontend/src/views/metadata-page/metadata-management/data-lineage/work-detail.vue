@@ -1,54 +1,54 @@
 <template>
-  <BlockDrawer :drawer-config="drawerConfig">
-    <!-- <LoadingPage :visible="loading"> -->
-    <div class="workflow-page">
-      <div class="flow-container flow-container__lineage">
-        <spark-jar
-          v-if="workConfig.workType === 'SPARK_JAR' || workConfig.workType === 'FLINK_JAR'"
-          :work-item-config="workConfig"
-          :work-flow-data="workFlowData"
-          :disabled="true"
-        />
-        <WorkApi
-          v-if="workConfig.workType === 'API'"
-          :work-item-config="workConfig"
-          :work-flow-data="workFlowData"
-          :disabled="true"
-        />
-        <ApiSync
-          v-if="workConfig.workType === 'API_SYNC_JDBC'"
-          :work-item-config="workConfig"
-          :disabled="true"
-        />
-        <WorkItem
-          v-if="
-            !['SPARK_JAR', 'API_SYNC_JDBC', 'DATA_SYNC_JDBC', 'EXCEL_SYNC_JDBC', 'DB_MIGRATE'].includes(
-              workConfig.workType
-            )
-          "
-          :work-item-config="workConfig"
-          :work-flow-data="workFlowData"
-          :disabled="true"
-        />
-        <data-sync
-          v-if="workConfig.workType === 'DATA_SYNC_JDBC'"
-          :work-item-config="workConfig"
-          :disabled="true"
-        />
-        <ExcelImport
-          v-if="workConfig.workType === 'EXCEL_SYNC_JDBC'"
-          :work-item-config="workConfig"
-          :disabled="true"
-        />
-        <DatabaseMigrate
-          v-if="workConfig.workType === 'DB_MIGRATE'"
-          :work-item-config="workConfig"
-          :disabled="true"
-        />
-      </div>
-    </div>
-    <!-- </LoadingPage> -->
-  </BlockDrawer>
+    <BlockDrawer :drawer-config="drawerConfig">
+        <!-- <LoadingPage :visible="loading"> -->
+        <div class="workflow-page">
+            <div class="flow-container flow-container__lineage">
+                <spark-jar
+                    v-if="workConfig.workType === 'SPARK_JAR' || workConfig.workType === 'FLINK_JAR'"
+                    :work-item-config="workConfig"
+                    :work-flow-data="workFlowData"
+                    :disabled="true"
+                />
+                <WorkApi
+                    v-if="workConfig.workType === 'API'"
+                    :work-item-config="workConfig"
+                    :work-flow-data="workFlowData"
+                    :disabled="true"
+                />
+                <ApiSync
+                    v-if="workConfig.workType === 'API_SYNC_JDBC'"
+                    :work-item-config="workConfig"
+                    :disabled="true"
+                />
+                <WorkItem
+                    v-if="
+                        !['SPARK_JAR', 'API_SYNC_JDBC', 'DATA_SYNC_JDBC', 'EXCEL_SYNC_JDBC', 'DB_MIGRATE'].includes(
+                            workConfig.workType
+                        )
+                    "
+                    :work-item-config="workConfig"
+                    :work-flow-data="workFlowData"
+                    :disabled="true"
+                />
+                <data-sync
+                    v-if="workConfig.workType === 'DATA_SYNC_JDBC'"
+                    :work-item-config="workConfig"
+                    :disabled="true"
+                />
+                <ExcelImport
+                    v-if="workConfig.workType === 'EXCEL_SYNC_JDBC'"
+                    :work-item-config="workConfig"
+                    :disabled="true"
+                />
+                <DatabaseMigrate
+                    v-if="workConfig.workType === 'DB_MIGRATE'"
+                    :work-item-config="workConfig"
+                    :disabled="true"
+                />
+            </div>
+        </div>
+        <!-- </LoadingPage> -->
+    </BlockDrawer>
 </template>
 
 <script lang="ts" setup>

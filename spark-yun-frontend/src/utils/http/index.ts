@@ -15,7 +15,7 @@ import { useAuthStore } from '@/store/useAuth'
 
 const message = ElMessage
 
-const whiteList = [ '/vip/auth/open/querySsoAuth', '/vip/license/open/checkLicense' ]
+const whiteList = ['/vip/auth/open/querySsoAuth', '/vip/license/open/checkLicense']
 let isRefreshingLicense = false
 
 function isLicenseMissingError(msg: string): boolean {
@@ -76,7 +76,7 @@ export const httpOption = {
             try {
                 if (status == 401) {
                     const authStore = useAuthStore()
-                    const tenantUnavailable = [ '租户', '成员', '不在租户' ].some((keyword) => msg?.includes(keyword))
+                    const tenantUnavailable = ['租户', '成员', '不在租户'].some((keyword) => msg?.includes(keyword))
                     router.push(
                         tenantUnavailable && authStore.token
                             ? {
@@ -117,12 +117,10 @@ export const httpOption = {
     timeout: 30 * 1e3
 }
 
-export const createHttp = (option = {
-}) => {
+export const createHttp = (option = {}) => {
     return createAxios(
         merge(
-            {
-},
+            {},
             {
                 ...httpOption
             },

@@ -1,49 +1,45 @@
 <template>
-  <div class="vm-chart">
-    <div class="vm-chart__header">
-      <span class="vm-chart__title">实例图</span>
-      <div class="vm-chart__ops">
-        <el-icon
-          class="vm-chart__icon"
-          @click="queryVmChartData"
-        >
-          <RefreshRight />
-        </el-icon>
-        <el-date-picker
-          v-model="currentDate"
-          type="date"
-          value-format="YYYY-MM-DD"
-          :clearable="false"
-          @change="queryVmChartData"
-        />
-      </div>
+    <div class="vm-chart">
+        <div class="vm-chart__header">
+            <span class="vm-chart__title">实例图</span>
+            <div class="vm-chart__ops">
+                <el-icon class="vm-chart__icon" @click="queryVmChartData">
+                    <RefreshRight />
+                </el-icon>
+                <el-date-picker
+                    v-model="currentDate"
+                    type="date"
+                    value-format="YYYY-MM-DD"
+                    :clearable="false"
+                    @change="queryVmChartData"
+                />
+            </div>
+        </div>
+        <div class="vm-chart__body">
+            <div ref="chartContainerRef" class="vm-chart__container" />
+        </div>
     </div>
-    <div class="vm-chart__body">
-      <div
-        ref="chartContainerRef"
-        class="vm-chart__container"
-      />
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch, onUnmounted } from 'vue'
 import dayjs from 'dayjs'
 import * as echarts from 'echarts/core'
-import { TooltipComponent,
+import {
+    TooltipComponent,
     TooltipComponentOption,
     GridComponent,
     GridComponentOption,
     LegendComponent,
-    LegendComponentOption } from 'echarts/components'
+    LegendComponentOption
+} from 'echarts/components'
 import { LineChart, LineSeriesOption } from 'echarts/charts'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
 import { queryVmChartInfo } from '../services/computer-group'
 import { useAuthStore } from '@/store/useAuth'
 
-echarts.use([ TooltipComponent, GridComponent, LegendComponent, LineChart, CanvasRenderer, UniversalTransition ])
+echarts.use([TooltipComponent, GridComponent, LegendComponent, LineChart, CanvasRenderer, UniversalTransition])
 
 type EChartsOption = echarts.ComposeOption<
     TooltipComponentOption | GridComponentOption | LegendComponentOption | LineSeriesOption
@@ -74,7 +70,7 @@ const options = computed<EChartsOption>(() => {
         legend: {
             top: '6%',
             right: '4%',
-            data: [ '成功', '失败', '运行中' ]
+            data: ['成功', '失败', '运行中']
         },
         grid: {
             left: '4%',
@@ -148,14 +144,12 @@ watch(
 function queryVmChartData() {
     queryVmChartInfo({
         localDate: currentDate.value
-    }).then(({
- data 
-}) => {
+    }).then(({ data }) => {
         if (data.instanceNumLine) {
-            let successData: number[] = []
-            let runningData: number[] = []
-            let failData: number[] = []
-            let localTime: string[] = []
+            const successData: number[] = []
+            const runningData: number[] = []
+            const failData: number[] = []
+            const localTime: string[] = []
             data.instanceNumLine.forEach((vm) => {
                 successData.push(vm.successNum)
                 runningData.push(vm.runningNum)

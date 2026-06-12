@@ -1,133 +1,73 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group acquisition-task-add"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-      :disabled="readonly"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="500"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="字段名规范"
-        prop="columnRuleInput"
-      >
-        <el-tooltip
-          content="支持前缀/后缀/包含/精确匹配，系统会自动转为正则保存"
-          placement="top"
+    <BlockModal :model-config="modelConfig">
+        <el-form
+            ref="form"
+            class="add-computer-group acquisition-task-add"
+            label-position="top"
+            :model="formData"
+            :rules="rules"
+            :disabled="readonly"
         >
-          <el-icon
-            style="left: 60px"
-            class="tooltip-msg"
-          >
-            <QuestionFilled />
-          </el-icon>
-        </el-tooltip>
-        <div class="table-rule-config">
-          <el-select v-model="columnRuleMode">
-            <el-option
-              v-for="item in columnRuleModeList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-          <el-input
-            v-model="formData.columnRuleInput"
-            maxlength="500"
-            :placeholder="columnRulePlaceholder"
-          />
-        </div>
-      </el-form-item>
-      <el-form-item
-        label="字段类型"
-        prop="columnTypeCode"
-      >
-        <el-select
-          v-model="formData.columnTypeCode"
-          filterable
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in fieldTypeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="字段精度">
-        <el-input
-          v-model="formData.columnType"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="属性"
-        class="field-attr-row"
-      >
-        <el-checkbox
-          v-model="formData.isPrimary"
-          true-label="ENABLE"
-          false-label="DISABLE"
-        >
-          主键
-        </el-checkbox>
-        <el-checkbox
-          v-model="formData.isNull"
-          true-label="ENABLE"
-          false-label="DISABLE"
-        >
-          非空
-        </el-checkbox>
-        <el-checkbox
-          v-model="formData.isDuplicate"
-          true-label="ENABLE"
-          false-label="DISABLE"
-        >
-          唯一
-        </el-checkbox>
-        <el-checkbox
-          v-model="formData.isPartition"
-          true-label="ENABLE"
-          false-label="DISABLE"
-        >
-          分区键
-        </el-checkbox>
-      </el-form-item>
-      <el-form-item
-        label="默认值"
-        prop="defaultValue"
-        :show-message="false"
-      >
-        <el-input
-          v-model="formData.defaultValue"
-          maxlength="500"
-          :placeholder="formData.isNull === 'ENABLE' ? '勾选非空时，请输入默认值' : '请输入'"
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="500" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="字段名规范" prop="columnRuleInput">
+                <el-tooltip content="支持前缀/后缀/包含/精确匹配，系统会自动转为正则保存" placement="top">
+                    <el-icon style="left: 60px" class="tooltip-msg">
+                        <QuestionFilled />
+                    </el-icon>
+                </el-tooltip>
+                <div class="table-rule-config">
+                    <el-select v-model="columnRuleMode">
+                        <el-option
+                            v-for="item in columnRuleModeList"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                        />
+                    </el-select>
+                    <el-input v-model="formData.columnRuleInput" maxlength="500" :placeholder="columnRulePlaceholder" />
+                </div>
+            </el-form-item>
+            <el-form-item label="字段类型" prop="columnTypeCode">
+                <el-select v-model="formData.columnTypeCode" filterable placeholder="请选择">
+                    <el-option
+                        v-for="item in fieldTypeList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="字段精度">
+                <el-input v-model="formData.columnType" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="属性" class="field-attr-row">
+                <el-checkbox v-model="formData.isPrimary" true-label="ENABLE" false-label="DISABLE">主键</el-checkbox>
+                <el-checkbox v-model="formData.isNull" true-label="ENABLE" false-label="DISABLE">非空</el-checkbox>
+                <el-checkbox v-model="formData.isDuplicate" true-label="ENABLE" false-label="DISABLE">唯一</el-checkbox>
+                <el-checkbox v-model="formData.isPartition" true-label="ENABLE" false-label="DISABLE">
+                    分区键
+                </el-checkbox>
+            </el-form-item>
+            <el-form-item label="默认值" prop="defaultValue" :show-message="false">
+                <el-input
+                    v-model="formData.defaultValue"
+                    maxlength="500"
+                    :placeholder="formData.isNull === 'ENABLE' ? '勾选非空时，请输入默认值' : '请输入'"
+                />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -236,21 +176,21 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     columnTypeCode: [
         {
             required: true,
             message: '请选择字段类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     columnType: [
         {
             required: true,
             message: '请输入字段精度',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     columnRuleInput: [
@@ -258,7 +198,6 @@ const rules = reactive<FormRules>({
             validator: (_rule, value, callback) => {
                 if (value?.trim() && columnRuleMode.value === 'regex') {
                     try {
-                        // eslint-disable-next-line no-new
                         new RegExp(value)
                     } catch (error) {
                         callback(new Error('请输入合法的正则表达式'))
@@ -267,12 +206,12 @@ const rules = reactive<FormRules>({
                 }
                 callback()
             },
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     defaultValue: [
         {
-            trigger: [ 'blur', 'change' ],
+            trigger: ['blur', 'change'],
             validator: (_rule: any, value: string, callback: (error?: Error) => void) => {
                 if (formData.isNull === 'ENABLE' && !value?.trim()) {
                     callback(new Error('勾选非空时，请输入默认值'))
@@ -316,7 +255,7 @@ function showModal(cb: () => void, data: any, type?: string): void {
         modelConfig.title = '编辑标准'
     } else {
         readonly.value = false
-        const keys = [ 'isNull', 'isPrimary', 'isDuplicate', 'isPartition' ]
+        const keys = ['isNull', 'isPrimary', 'isDuplicate', 'isPartition']
         Object.keys(formData).forEach((key: string) => {
             formData[key] = ''
             if (keys.includes(key)) {

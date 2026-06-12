@@ -1,68 +1,40 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="custom-api-form"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="renderSence === 'new'"
-        label="图表类型"
-        prop="type"
-      >
-        <el-select
-          v-model="formData.type"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in chartTypeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        v-if="renderSence === 'new'"
-        label="数据源"
-        prop="datasourceId"
-      >
-        <el-select
-          v-model="formData.datasourceId"
-          placeholder="请选择"
-          @visible-change="getDataSourceList"
-        >
-          <el-option
-            v-for="item in dataSourceList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="custom-api-form" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item v-if="renderSence === 'new'" label="图表类型" prop="type">
+                <el-select v-model="formData.type" placeholder="请选择">
+                    <el-option
+                        v-for="item in chartTypeList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item v-if="renderSence === 'new'" label="数据源" prop="datasourceId">
+                <el-select v-model="formData.datasourceId" placeholder="请选择" @visible-change="getDataSourceList">
+                    <el-option
+                        v-for="item in dataSourceList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -121,21 +93,21 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     type: [
         {
             required: true,
             message: '请选择图表类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     datasourceId: [
         {
             required: true,
             message: '请选择数据源',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })
@@ -346,14 +318,30 @@ defineExpose({
 
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-tooltip-autocomplete {
@@ -364,8 +352,16 @@ defineExpose({
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         li[aria-selected] {

@@ -1,87 +1,55 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        上传资源
-      </el-button>
-      <div class="zqy-tenant__select">
-        <el-select
-          v-model="type"
-          clearable
-          placeholder="请选择类型进行搜索"
-          @change="initData(false)"
-        >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </div>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span
-                v-if="!scopeSlot.row.downloadLoading"
-                @click="downloadFile(scopeSlot.row, true)"
-              >
-                下载
-              </span>
-              <el-icon
-                v-else
-                class="is-loading"
-              >
-                <Loading />
-              </el-icon>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
-                      备注
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">上传资源</el-button>
+            <div class="zqy-tenant__select">
+                <el-select v-model="type" clearable placeholder="请选择类型进行搜索" @change="initData(false)">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal
-      ref="addModalRef"
-      :show-excel-type="showExcelType"
-    />
-  </div>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span v-if="!scopeSlot.row.downloadLoading" @click="downloadFile(scopeSlot.row, true)">
+                                下载
+                            </span>
+                            <el-icon v-else class="is-loading">
+                                <Loading />
+                            </el-icon>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">备注</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" :show-excel-type="showExcelType" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -92,11 +60,13 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './file-center.config'
-import { GetFileCenterList,
+import {
+    GetFileCenterList,
     UploadFileData,
     DeleteFileData,
     DownloadFileData,
-    UpdateFileData } from '@/services/file-center.service'
+    UpdateFileData
+} from '@/services/file-center.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 import { getVipLicenseEnabled } from '@/utils/vip-license'

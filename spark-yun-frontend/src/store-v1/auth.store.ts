@@ -9,8 +9,7 @@
 export const authStore = {
     namespaced: true,
     state: {
-        userInfo: {
-},
+        userInfo: {},
         token: '',
         tenantId: '',
         role: '',
@@ -33,10 +32,8 @@ export const authStore = {
             state.currentMenu = menu
         }
     },
-    actions: {
-},
-    getters: {
-}
+    actions: {},
+    getters: {}
 }
 
 // export default {

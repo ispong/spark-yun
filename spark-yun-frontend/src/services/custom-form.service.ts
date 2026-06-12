@@ -78,8 +78,7 @@ export function QueryFormDataList(params: any): Promise<any> {
 }
 
 // 生成的表单-添加数据
-export function AddFormData(params: any, config: any = {
-}): Promise<any> {
+export function AddFormData(params: any, config: any = {}): Promise<any> {
     return http.request({
         method: 'post',
         url: '/vip/form/addData',

@@ -1,32 +1,25 @@
 <template>
-  <BlockTable
-    :table-config="tableConfig"
-    @size-change="handleSizeChange"
-    @current-change="handleCurrentChange"
-  >
-    <template #nameSlot="scopeSlot">
-      <span
-        class="name-click"
-        @click="redirectToTable(scopeSlot.row)"
-      >{{ scopeSlot.row.name }}</span>
-    </template>
-    <template #statusTag="scopeSlot">
-      <ZStatusTag :status="scopeSlot.row.status" />
-    </template>
-    <template #options="scopeSlot">
-      <div class="btn-group">
-        <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
-        <span @click="editEvent(scopeSlot.row)">备注</span>
-      </div>
-    </template>
-  </BlockTable>
+    <BlockTable :table-config="tableConfig" @size-change="handleSizeChange" @current-change="handleCurrentChange">
+        <template #nameSlot="scopeSlot">
+            <span class="name-click" @click="redirectToTable(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+        </template>
+        <template #statusTag="scopeSlot">
+            <ZStatusTag :status="scopeSlot.row.status" />
+        </template>
+        <template #options="scopeSlot">
+            <div class="btn-group">
+                <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
+                <span @click="editEvent(scopeSlot.row)">备注</span>
+            </div>
+        </template>
+    </BlockTable>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted, defineEmits, defineProps } from 'vue'
 import { GetMetadataManagementList } from '@/services/metadata-page.service'
 
-const emit = defineEmits([ 'redirectToTable', 'editEvent', 'dataLineageEvent' ])
+const emit = defineEmits(['redirectToTable', 'editEvent', 'dataLineageEvent'])
 const props = defineProps<{
     keyword: string
 }>()

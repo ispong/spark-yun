@@ -39,16 +39,10 @@ export class VAxios {
     // 请求方法
     request<T = any>(config: AxiosRequestConfig, options?: RequestOptions): Promise<T> {
         let conf: AxiosRequestConfig = cloneDeep(config)
-        const {
- transform, requestOptions 
-} = this.options
-        const opt: RequestOptions = Object.assign({
-}, requestOptions, options)
+        const { transform, requestOptions } = this.options
+        const opt: RequestOptions = Object.assign({}, requestOptions, options)
 
-        const {
- beforeRequestHook, requestCatch, transformRequestData 
-} = transform || {
-}
+        const { beforeRequestHook, requestCatch, transformRequestData } = transform || {}
         if (beforeRequestHook && isFunction(beforeRequestHook)) {
             conf = beforeRequestHook(conf, opt)
         }
@@ -92,16 +86,9 @@ export class VAxios {
     // 文件上传
     uploadFile<T = any>(config: AxiosRequestConfig, params?: any) {
         let conf: AxiosRequestConfig = cloneDeep(config)
-        const {
- transform, requestOptions 
-} = this.options
-        const opt: RequestOptions = Object.assign({
-}, requestOptions, {
-})
-        const {
- beforeRequestHook, requestCatch, transformRequestData 
-} = transform || {
-}
+        const { transform, requestOptions } = this.options
+        const opt: RequestOptions = Object.assign({}, requestOptions, {})
+        const { beforeRequestHook, requestCatch, transformRequestData } = transform || {}
         if (beforeRequestHook && isFunction(beforeRequestHook)) {
             conf = beforeRequestHook(conf, opt)
         }
@@ -119,15 +106,11 @@ export class VAxios {
 
     // 拦截器配置
     private setupInterceptors() {
-        const {
- transform, requestOptions 
-} = this.options
+        const { transform, requestOptions } = this.options
         if (!transform || !requestOptions) {
             return
         }
-        const {
- requestInterceptors, requestInterceptorsCatch, responseInterceptors, responseInterceptorsCatch 
-} =
+        const { requestInterceptors, requestInterceptorsCatch, responseInterceptors, responseInterceptorsCatch } =
             transform
 
         const axiosCanceler = new AxiosCanceler()
@@ -135,9 +118,7 @@ export class VAxios {
         // 请求拦截器配置处理
         this.axiosInstance.interceptors.request.use((config: any) => {
             const {
-                headers: {
- ignoreCancelToken 
-}
+                headers: { ignoreCancelToken }
             } = config as any
             const ignoreCancel =
                 ignoreCancelToken !== undefined ? ignoreCancelToken : this.options.requestOptions?.ignoreCancelToken

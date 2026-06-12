@@ -1,21 +1,21 @@
 <template>
-  <div class="zqy-flow">
-    <section class="section-cot">
-      <div id="container">
-        <div id="draw-cot" />
-      </div>
-      <!-- 后续动态注入 -->
-      <div class="status-container">
-        <span class="status-tag status-SUCCESS">成功</span>
-        <span class="status-tag status-PENDING">等待中</span>
-        <span class="status-tag status-RUNNING">运行中</span>
-        <span class="status-tag status-BREAK">中断</span>
-        <span class="status-tag status-FAIL">失败</span>
-        <span class="status-tag status-ABORT">已中止</span>
-        <span class="status-tag status-ABORTING">中止中</span>
-      </div>
-    </section>
-  </div>
+    <div class="zqy-flow">
+        <section class="section-cot">
+            <div id="container">
+                <div id="draw-cot" />
+            </div>
+            <!-- 后续动态注入 -->
+            <div class="status-container">
+                <span class="status-tag status-SUCCESS">成功</span>
+                <span class="status-tag status-PENDING">等待中</span>
+                <span class="status-tag status-RUNNING">运行中</span>
+                <span class="status-tag status-BREAK">中断</span>
+                <span class="status-tag status-FAIL">失败</span>
+                <span class="status-tag status-ABORT">已中止</span>
+                <span class="status-tag status-ABORTING">中止中</span>
+            </div>
+        </section>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -30,7 +30,7 @@ let container: HTMLElement | undefined
 const runningStatus = ref(false)
 const hideGridStatus = ref(false)
 
-const emit = defineEmits([ 'refresh' ])
+const emit = defineEmits(['refresh'])
 
 function initGraph() {
     Graph.registerNode(
@@ -135,7 +135,7 @@ function initGraph() {
         container: container,
         panning: {
             enabled: true,
-            eventTypes: [ 'leftMouseDown', 'mouseWheel' ]
+            eventTypes: ['leftMouseDown', 'mouseWheel']
         },
         mousewheel: {
             enabled: true,
@@ -168,9 +168,7 @@ function initGraph() {
             targetAnchor: 'top',
             allowNode: false,
             allowEdge: false,
-            validateMagnet({
- magnet 
-}) {
+            validateMagnet({ magnet }) {
                 // if (!hideGridStatus.value) {
                 //     return false
                 // } else {
@@ -217,9 +215,7 @@ function initGraph() {
             return true
         }
     })
-    _Graph.on('node:mouseenter', ({
- node 
-}) => {
+    _Graph.on('node:mouseenter', ({ node }) => {
         if (!runningStatus.value && !hideGridStatus.value) {
             node.addTools({
                 name: 'button-remove',
@@ -237,14 +233,10 @@ function initGraph() {
             })
         }
     })
-    _Graph.on('node:mouseleave', ({
- node 
-}) => {
+    _Graph.on('node:mouseleave', ({ node }) => {
         node.removeTools()
     })
-    _Graph.on('edge:mouseenter', ({
- edge 
-}) => {
+    _Graph.on('edge:mouseenter', ({ edge }) => {
         if (!runningStatus.value && !hideGridStatus.value) {
             edge.addTools({
                 name: 'button-remove',
@@ -254,9 +246,7 @@ function initGraph() {
             })
         }
     })
-    _Graph.on('edge:mouseleave', ({
- edge 
-}) => {
+    _Graph.on('edge:mouseleave', ({ edge }) => {
         edge.removeTools()
     })
     _Graph.bindKey('backspace', () => {

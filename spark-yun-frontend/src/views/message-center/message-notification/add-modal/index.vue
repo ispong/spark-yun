@@ -1,179 +1,85 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="类型"
-        prop="msgType"
-      >
-        <el-select
-          v-model="formData.msgType"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <!-- 如果选择了阿里短信 -->
-      <template v-if="formData.msgType === 'ALI_SMS'">
-        <el-form-item
-          label="服务地址(region)"
-          prop="region"
-        >
-          <el-select
-            v-model="formData.region"
-            placeholder="请选择"
-          >
-            <el-option
-              v-for="item in regionList"
-              :key="item.regionId"
-              :label="item.regionName"
-              :value="item.regionId"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          label="AccessKeyId"
-          prop="accessKeyId"
-        >
-          <el-input
-            v-model="formData.accessKeyId"
-            maxlength="1000"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item
-          label="AccessKeySecret"
-          prop="accessKeySecret"
-        >
-          <el-input
-            v-model="formData.accessKeySecret"
-            maxlength="1000"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item
-          label="短信签名名称(SignName)"
-          prop="signName"
-        >
-          <el-input
-            v-model="formData.signName"
-            maxlength="200"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item
-          label="短信模板Code(TemplateCode)"
-          prop="templateCode"
-        >
-          <el-input
-            v-model="formData.templateCode"
-            maxlength="200"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item label="短信模版样例(TemplateParam)">
-          <el-input
-            v-model="formData.contentTemplate"
-            type="textarea"
-            maxlength="1000"
-            :autosize="{ minRows: 4, maxRows: 4 }"
-            placeholder="请输入"
-          />
-        </el-form-item>
-      </template>
-      <template v-else-if="formData.msgType === 'EMAIL'">
-        <el-form-item
-          label="服务地址(Host)"
-          prop="host"
-        >
-          <el-input
-            v-model="formData.host"
-            maxlength="200"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item
-          label="端口号(Port)"
-          prop="port"
-        >
-          <el-input
-            v-model="formData.port"
-            maxlength="200"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item
-          label="账号(Username)"
-          prop="username"
-        >
-          <el-input
-            v-model="formData.username"
-            maxlength="200"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item
-          label="密码"
-          prop="password"
-        >
-          <el-input
-            v-model="formData.password"
-            :show-password="true"
-            maxlength="200"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item
-          label="主题(Subject)"
-          prop="subject"
-        >
-          <el-input
-            v-model="formData.subject"
-            maxlength="200"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item label="邮箱模版样例">
-          <el-input
-            v-model="formData.contentTemplate"
-            type="textarea"
-            maxlength="1000"
-            :autosize="{ minRows: 4, maxRows: 4 }"
-            placeholder="请输入"
-          />
-        </el-form-item>
-      </template>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="类型" prop="msgType">
+                <el-select v-model="formData.msgType" placeholder="请选择">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <!-- 如果选择了阿里短信 -->
+            <template v-if="formData.msgType === 'ALI_SMS'">
+                <el-form-item label="服务地址(region)" prop="region">
+                    <el-select v-model="formData.region" placeholder="请选择">
+                        <el-option
+                            v-for="item in regionList"
+                            :key="item.regionId"
+                            :label="item.regionName"
+                            :value="item.regionId"
+                        />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="AccessKeyId" prop="accessKeyId">
+                    <el-input v-model="formData.accessKeyId" maxlength="1000" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="AccessKeySecret" prop="accessKeySecret">
+                    <el-input v-model="formData.accessKeySecret" maxlength="1000" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="短信签名名称(SignName)" prop="signName">
+                    <el-input v-model="formData.signName" maxlength="200" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="短信模板Code(TemplateCode)" prop="templateCode">
+                    <el-input v-model="formData.templateCode" maxlength="200" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="短信模版样例(TemplateParam)">
+                    <el-input
+                        v-model="formData.contentTemplate"
+                        type="textarea"
+                        maxlength="1000"
+                        :autosize="{ minRows: 4, maxRows: 4 }"
+                        placeholder="请输入"
+                    />
+                </el-form-item>
+            </template>
+            <template v-else-if="formData.msgType === 'EMAIL'">
+                <el-form-item label="服务地址(Host)" prop="host">
+                    <el-input v-model="formData.host" maxlength="200" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="端口号(Port)" prop="port">
+                    <el-input v-model="formData.port" maxlength="200" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="账号(Username)" prop="username">
+                    <el-input v-model="formData.username" maxlength="200" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="密码" prop="password">
+                    <el-input v-model="formData.password" :show-password="true" maxlength="200" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="主题(Subject)" prop="subject">
+                    <el-input v-model="formData.subject" maxlength="200" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="邮箱模版样例">
+                    <el-input
+                        v-model="formData.contentTemplate"
+                        type="textarea"
+                        maxlength="1000"
+                        :autosize="{ minRows: 4, maxRows: 4 }"
+                        placeholder="请输入"
+                    />
+                </el-form-item>
+            </template>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -238,14 +144,14 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入函数名',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     msgType: [
         {
             required: true,
             message: '请选择类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     // 阿里短信
@@ -253,28 +159,28 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请选择region',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     accessKeyId: [
         {
             required: true,
             message: '请输入AccessKeyId',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     accessKeySecret: [
         {
             required: true,
             message: '请输入AccessKeySecret',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     templateCode: [
         {
             required: true,
             message: '请输入TemplateCode(短信模板Code)',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     // 邮箱
@@ -282,28 +188,28 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入地址',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     port: [
         {
             required: true,
             message: '请输入端口',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     username: [
         {
             required: true,
             message: '请输入账号',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     password: [
         {
             required: true,
             message: '请输入账号',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })
@@ -335,13 +241,12 @@ function okEvent() {
     form.value?.validate((valid) => {
         if (valid) {
             modelConfig.okConfig.loading = true
-            let formDataParams = {
+            const formDataParams = {
                 name: formData.name,
                 msgType: formData.msgType,
                 remark: formData.remark,
                 id: formData.id,
-                messageConfig: {
-}
+                messageConfig: {}
             }
             if (formData.msgType === 'ALI_SMS') {
                 formDataParams.messageConfig = {

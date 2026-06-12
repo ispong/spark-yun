@@ -1,34 +1,29 @@
 <template>
-  <form-render-item
-    class="form-input-money"
-    :form-config="formConfig"
-    :rules="rules"
-    :is-dragger="isDragger"
-  >
-    <el-input
-      v-model="formData"
-      :disabled="formConfig.disabled"
-      :placeholder="formConfig.placeholder"
-      :maxlength="formConfig.maxlength"
-      :readonly="isDragger"
-      @focus="focusEvent"
-      @input="inputEvent"
-      @blur="blurEvent"
-    />
-  </form-render-item>
+    <form-render-item class="form-input-money" :form-config="formConfig" :rules="rules" :is-dragger="isDragger">
+        <el-input
+            v-model="formData"
+            :disabled="formConfig.disabled"
+            :placeholder="formConfig.placeholder"
+            :maxlength="formConfig.maxlength"
+            :readonly="isDragger"
+            @focus="focusEvent"
+            @input="inputEvent"
+            @blur="blurEvent"
+        />
+    </form-render-item>
 </template>
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed, ref, watch } from 'vue'
 import FormRenderItem from '../../form-render-item/index.vue'
 
 const validateAssetValue = (value: string): string => {
-    let val = value?.replace(/,/g, '').replace(/[^0-9.]/g, '')
-    let valueNum = Number(val)
+    const val = value?.replace(/,/g, '').replace(/[^0-9.]/g, '')
+    const valueNum = Number(val)
     return value && isNaN(valueNum) ? '' : val
 }
 
-const props = defineProps([ 'renderSence', 'modelValue', 'formConfig', 'isDragger' ])
-const emit = defineEmits([ 'update:modelValue' ])
+const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'isDragger'])
+const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {
         if (focusStatus.value) {
@@ -51,7 +46,7 @@ const rules = ref([
     {
         required: true,
         message: `请输入${props.formConfig.label}`,
-        trigger: [ 'blur', 'change' ]
+        trigger: ['blur', 'change']
     }
 ])
 watch(
@@ -72,7 +67,7 @@ function inputEvent(input: string) {
 
 function blurEvent(e: any) {
     focusStatus.value = false
-    let value = e.target.value || ''
+    const value = e.target.value || ''
     emit('update:modelValue', value ? parseFloat(validateAssetValue(value)) : null)
 }
 </script>

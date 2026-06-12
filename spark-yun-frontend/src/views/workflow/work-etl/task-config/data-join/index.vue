@@ -1,294 +1,220 @@
 <template>
-  <div class="config-components data-join">
-    <el-form-item
-      prop="mainAliaCode"
-      class="form-item-top"
-      label="主表"
-      :rules="rules.mainAliaCode"
-    >
-      <el-select
-        v-model="formData.mainAliaCode"
-        filterable
-        clearable
-        placeholder="请选择"
-        @change="tableChangeEvent($event, formData.joinEtl, tableNameList)"
-      >
-        <el-option
-          v-for="opt in tableNameList"
-          :key="opt.value"
-          :label="opt.label"
-          :value="opt.value"
-        />
-      </el-select>
-    </el-form-item>
-    <div class="config-label">
-      <span>关联配置</span>
-      <span class="add-btn">
-        <el-icon @click="addNewOption">
-          <CirclePlus />
-        </el-icon>
-      </span>
-    </div>
-    <div
-      v-for="(joinItem, i) in formData.joinEtl"
-      :key="joinItem.id || i"
-      class="form-options__list"
-      :style="getGroupStyle(i)"
-    >
-      <el-icon
-        v-if="formData.joinEtl.length > 1"
-        class="remove-block-btn"
-        @click="removeItem(i)"
-      >
-        <CircleClose />
-      </el-icon>
-      <div class="join-header-row">
-        <el-form-item
-          :prop="`joinEtl[${i}].joinWay`"
-          :rules="rules.joinWay"
-          label="关联"
-          class="join-way-item"
-        >
-          <el-select
-            v-model="formData.joinEtl[i].joinWay"
-            placeholder="请选择"
-          >
-            <el-option
-              label="左连接"
-              value="LEFT_JOIN"
-            />
-            <el-option
-              label="右连接"
-              value="RIGHT_JOIN"
-            />
-            <el-option
-              label="内连接"
-              value="INNER_JOIN"
-            />
-            <el-option
-              label="外连接"
-              value="OUTER_JOIN"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          :prop="`joinEtl[${i}].joinAliaCode`"
-          :rules="rules.joinAliaCode"
-          class="join-table-item"
-        >
-          <el-select
-            v-model="formData.joinEtl[i].joinAliaCode"
-            clearable
-            :filterable="true"
-            placeholder="输入表"
-          >
-            <el-option
-              v-for="opt in tableNameList"
-              :key="opt.value"
-              :label="opt.label"
-              :value="opt.value"
-            />
-          </el-select>
-        </el-form-item>
-      </div>
-      <el-form-item
-        class="form-item-top"
-        label="条件"
-      >
-        <div
-          v-if="formData.joinEtl[i].joinConditions && formData.joinEtl[i].joinConditions.length"
-          class="form-options-ul__list"
-        >
-          <div
-            v-for="(element, index) in formData.joinEtl[i].joinConditions"
-            :key="element.id || index"
-            class="form-options__item"
-          >
-            <el-form-item
-              :prop="`joinEtl[${i}].joinConditions[${index}].joinType`"
-              :rules="rules.joinType"
-            >
-              <el-select
-                v-model="element.joinType"
-                @change="transformChangeEvent($event, element)"
-              >
-                <el-option
-                  label="字段关联"
-                  value="COLUMN_JOIN"
-                />
-                <el-option
-                  label="过滤关联"
-                  value="CONDITION_JOIN"
-                />
-                <el-option
-                  label="自定义关联"
-                  value="CUSTOM_JOIN"
-                />
-              </el-select>
-            </el-form-item>
-            <template v-if="element.joinType === 'COLUMN_JOIN'">
-              <el-form-item
-                :prop="`joinEtl[${i}].joinConditions[${index}].joinLeftColumn`"
-                :rules="rules.joinLeftColumn"
-              >
-                <el-select
-                  v-model="element.joinLeftColumn"
-                  filterable
-                  clearable
-                  placeholder="主表字段"
-                  @visible-change="getMainTableFields($event)"
-                >
-                  <el-option
-                    v-for="item in mainTableFields"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                :prop="`joinEtl[${i}].joinConditions[${index}].joinCondition`"
-                :rules="rules.joinCondition"
-              >
-                <el-select
-                  v-model="element.joinCondition"
-                  filterable
-                  clearable
-                  placeholder="条件"
-                >
-                  <el-option
-                    v-for="opt in joinConditionOptions"
-                    :key="opt.value"
-                    :label="opt.label"
-                    :value="opt.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                :prop="`joinEtl[${i}].joinConditions[${index}].joinRightColumn`"
-                :rules="rules.joinRightColumn"
-              >
-                <el-select
-                  v-model="element.joinRightColumn"
-                  filterable
-                  clearable
-                  placeholder="字段"
-                  @visible-change="getTableFields($event, formData.joinEtl[i])"
-                >
-                  <el-option
-                    v-for="item in tableFields"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-            </template>
-            <template v-if="element.joinType === 'CONDITION_JOIN'">
-              <el-form-item
-                :prop="`joinEtl[${i}].joinConditions[${index}].joinAliaCode`"
-                :rules="rules.joinAliaCode"
-              >
-                <el-select
-                  v-model="element.joinAliaCode"
-                  filterable
-                  clearable
-                  placeholder="请选择表"
-                  @change="conditionTableChangeEvent(element)"
-                >
-                  <el-option
-                    v-for="opt in tableNameList"
-                    :key="opt.value"
-                    :label="opt.label"
-                    :value="opt.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                :prop="`joinEtl[${i}].joinConditions[${index}].joinColumn`"
-                :rules="rules.joinColumn"
-              >
-                <el-select
-                  v-model="element.joinColumn"
-                  filterable
-                  clearable
-                  placeholder="请选择字段"
-                  @visible-change="getConditionTableFields($event, element)"
-                >
-                  <el-option
-                    v-for="item in conditionTableFields"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                :prop="`joinEtl[${i}].joinConditions[${index}].joinCondition`"
-                :rules="rules.joinCondition"
-              >
-                <el-select
-                  v-model="element.joinCondition"
-                  filterable
-                  clearable
-                  placeholder="条件"
-                >
-                  <el-option
-                    v-for="opt in joinConditionOptions"
-                    :key="opt.value"
-                    :label="opt.label"
-                    :value="opt.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                :prop="`joinEtl[${i}].joinConditions[${index}].joinValue`"
-                :rules="rules.joinValue"
-              >
-                <el-input
-                  v-model="element.joinValue"
-                  clearable
-                  placeholder="请输入"
-                />
-              </el-form-item>
-            </template>
-            <el-form-item
-              v-if="element.joinType === 'CUSTOM_JOIN'"
-              :prop="`joinEtl[${i}].joinConditions[${index}].joinSql`"
-              :rules="rules.joinSql"
-            >
-              <el-input
-                v-model="element.joinSql"
+    <div class="config-components data-join">
+        <el-form-item prop="mainAliaCode" class="form-item-top" label="主表" :rules="rules.mainAliaCode">
+            <el-select
+                v-model="formData.mainAliaCode"
+                filterable
                 clearable
-                placeholder="请输入"
-              />
-            </el-form-item>
-            <!-- --------------- -->
-            <div class="option-btn">
-              <el-icon
-                v-if="formData.joinEtl[i].joinConditions.length > 1"
-                class="remove"
-                @click="removeCondition(formData.joinEtl[i].joinConditions, index)"
-              >
+                placeholder="请选择"
+                @change="tableChangeEvent($event, formData.joinEtl, tableNameList)"
+            >
+                <el-option v-for="opt in tableNameList" :key="opt.value" :label="opt.label" :value="opt.value" />
+            </el-select>
+        </el-form-item>
+        <div class="config-label">
+            <span>关联配置</span>
+            <span class="add-btn">
+                <el-icon @click="addNewOption">
+                    <CirclePlus />
+                </el-icon>
+            </span>
+        </div>
+        <div
+            v-for="(joinItem, i) in formData.joinEtl"
+            :key="joinItem.id || i"
+            class="form-options__list"
+            :style="getGroupStyle(i)"
+        >
+            <el-icon v-if="formData.joinEtl.length > 1" class="remove-block-btn" @click="removeItem(i)">
                 <CircleClose />
-              </el-icon>
+            </el-icon>
+            <div class="join-header-row">
+                <el-form-item :prop="`joinEtl[${i}].joinWay`" :rules="rules.joinWay" label="关联" class="join-way-item">
+                    <el-select v-model="formData.joinEtl[i].joinWay" placeholder="请选择">
+                        <el-option label="左连接" value="LEFT_JOIN" />
+                        <el-option label="右连接" value="RIGHT_JOIN" />
+                        <el-option label="内连接" value="INNER_JOIN" />
+                        <el-option label="外连接" value="OUTER_JOIN" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item :prop="`joinEtl[${i}].joinAliaCode`" :rules="rules.joinAliaCode" class="join-table-item">
+                    <el-select
+                        v-model="formData.joinEtl[i].joinAliaCode"
+                        clearable
+                        :filterable="true"
+                        placeholder="输入表"
+                    >
+                        <el-option
+                            v-for="opt in tableNameList"
+                            :key="opt.value"
+                            :label="opt.label"
+                            :value="opt.value"
+                        />
+                    </el-select>
+                </el-form-item>
             </div>
-          </div>
+            <el-form-item class="form-item-top" label="条件">
+                <div
+                    v-if="formData.joinEtl[i].joinConditions && formData.joinEtl[i].joinConditions.length"
+                    class="form-options-ul__list"
+                >
+                    <div
+                        v-for="(element, index) in formData.joinEtl[i].joinConditions"
+                        :key="element.id || index"
+                        class="form-options__item"
+                    >
+                        <el-form-item :prop="`joinEtl[${i}].joinConditions[${index}].joinType`" :rules="rules.joinType">
+                            <el-select v-model="element.joinType" @change="transformChangeEvent($event, element)">
+                                <el-option label="字段关联" value="COLUMN_JOIN" />
+                                <el-option label="过滤关联" value="CONDITION_JOIN" />
+                                <el-option label="自定义关联" value="CUSTOM_JOIN" />
+                            </el-select>
+                        </el-form-item>
+                        <template v-if="element.joinType === 'COLUMN_JOIN'">
+                            <el-form-item
+                                :prop="`joinEtl[${i}].joinConditions[${index}].joinLeftColumn`"
+                                :rules="rules.joinLeftColumn"
+                            >
+                                <el-select
+                                    v-model="element.joinLeftColumn"
+                                    filterable
+                                    clearable
+                                    placeholder="主表字段"
+                                    @visible-change="getMainTableFields($event)"
+                                >
+                                    <el-option
+                                        v-for="item in mainTableFields"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item
+                                :prop="`joinEtl[${i}].joinConditions[${index}].joinCondition`"
+                                :rules="rules.joinCondition"
+                            >
+                                <el-select v-model="element.joinCondition" filterable clearable placeholder="条件">
+                                    <el-option
+                                        v-for="opt in joinConditionOptions"
+                                        :key="opt.value"
+                                        :label="opt.label"
+                                        :value="opt.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item
+                                :prop="`joinEtl[${i}].joinConditions[${index}].joinRightColumn`"
+                                :rules="rules.joinRightColumn"
+                            >
+                                <el-select
+                                    v-model="element.joinRightColumn"
+                                    filterable
+                                    clearable
+                                    placeholder="字段"
+                                    @visible-change="getTableFields($event, formData.joinEtl[i])"
+                                >
+                                    <el-option
+                                        v-for="item in tableFields"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                        </template>
+                        <template v-if="element.joinType === 'CONDITION_JOIN'">
+                            <el-form-item
+                                :prop="`joinEtl[${i}].joinConditions[${index}].joinAliaCode`"
+                                :rules="rules.joinAliaCode"
+                            >
+                                <el-select
+                                    v-model="element.joinAliaCode"
+                                    filterable
+                                    clearable
+                                    placeholder="请选择表"
+                                    @change="conditionTableChangeEvent(element)"
+                                >
+                                    <el-option
+                                        v-for="opt in tableNameList"
+                                        :key="opt.value"
+                                        :label="opt.label"
+                                        :value="opt.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item
+                                :prop="`joinEtl[${i}].joinConditions[${index}].joinColumn`"
+                                :rules="rules.joinColumn"
+                            >
+                                <el-select
+                                    v-model="element.joinColumn"
+                                    filterable
+                                    clearable
+                                    placeholder="请选择字段"
+                                    @visible-change="getConditionTableFields($event, element)"
+                                >
+                                    <el-option
+                                        v-for="item in conditionTableFields"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item
+                                :prop="`joinEtl[${i}].joinConditions[${index}].joinCondition`"
+                                :rules="rules.joinCondition"
+                            >
+                                <el-select v-model="element.joinCondition" filterable clearable placeholder="条件">
+                                    <el-option
+                                        v-for="opt in joinConditionOptions"
+                                        :key="opt.value"
+                                        :label="opt.label"
+                                        :value="opt.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item
+                                :prop="`joinEtl[${i}].joinConditions[${index}].joinValue`"
+                                :rules="rules.joinValue"
+                            >
+                                <el-input v-model="element.joinValue" clearable placeholder="请输入" />
+                            </el-form-item>
+                        </template>
+                        <el-form-item
+                            v-if="element.joinType === 'CUSTOM_JOIN'"
+                            :prop="`joinEtl[${i}].joinConditions[${index}].joinSql`"
+                            :rules="rules.joinSql"
+                        >
+                            <el-input v-model="element.joinSql" clearable placeholder="请输入" />
+                        </el-form-item>
+                        <!-- --------------- -->
+                        <div class="option-btn">
+                            <el-icon
+                                v-if="formData.joinEtl[i].joinConditions.length > 1"
+                                class="remove"
+                                @click="removeCondition(formData.joinEtl[i].joinConditions, index)"
+                            >
+                                <CircleClose />
+                            </el-icon>
+                        </div>
+                    </div>
+                </div>
+                <div class="join-condition-actions">
+                    <el-button
+                        link
+                        type="primary"
+                        size="small"
+                        @click="addNewCondition(formData.joinEtl[i].joinConditions)"
+                    >
+                        <el-icon><Plus /></el-icon>
+                        条件
+                    </el-button>
+                </div>
+            </el-form-item>
         </div>
-        <div class="join-condition-actions">
-          <el-button
-            link
-            type="primary"
-            size="small"
-            @click="addNewCondition(formData.joinEtl[i].joinConditions)"
-          >
-            <el-icon><Plus /></el-icon>
-            条件
-          </el-button>
-        </div>
-      </el-form-item>
-    </div>
-    <!-- <div v-show="false" class="table-container" style="height: 314px;">
+        <!-- <div v-show="false" class="table-container" style="height: 314px;">
             <el-form-item>
                 <el-button type="primary" @click="addNewCode">添加</el-button>
             </el-form-item>
@@ -302,9 +228,9 @@
                 </template>
             </BlockTable>
         </div> -->
-    <!-- 添加字段 -->
-    <!-- <add-code ref="addCodeRef"></add-code> -->
-  </div>
+        <!-- 添加字段 -->
+        <!-- <add-code ref="addCodeRef"></add-code> -->
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -326,7 +252,7 @@ const props = defineProps<{
     modelValue: any
     incomeNodes: any
 }>()
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 
 const mainTableFields = ref<Option[]>()
 const tableFields = ref<Option[]>()
@@ -339,70 +265,70 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请选择主表',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinWay: [
         {
             required: true,
             message: '请选择关联',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinAliaCode: [
         {
             required: true,
             message: '请选择输入表',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinType: [
         {
             required: true,
             message: '请选择关联关系',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinLeftColumn: [
         {
             required: true,
             message: '请选择主表字段',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinCondition: [
         {
             required: true,
             message: '请选择条件',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinRightColumn: [
         {
             required: true,
             message: '请选择字段',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinColumn: [
         {
             required: true,
             message: '请选择字段',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinValue: [
         {
             required: true,
             message: '请输入字段值',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinSql: [
         {
             required: true,
             message: '请输入sql',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

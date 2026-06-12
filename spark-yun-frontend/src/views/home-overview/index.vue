@@ -1,14 +1,14 @@
 <template>
-  <div class="computer-group">
-    <div class="computer-group__left">
-      <sys-info />
-      <vm-chart />
-      <vm-list />
+    <div class="computer-group">
+        <div class="computer-group__left">
+            <sys-info />
+            <vm-chart />
+            <vm-list />
+        </div>
+        <div class="computer-group__right">
+            <monitor-info />
+        </div>
     </div>
-    <div class="computer-group__right">
-      <monitor-info />
-    </div>
-  </div>
 </template>
 
 <script lang="ts" setup>

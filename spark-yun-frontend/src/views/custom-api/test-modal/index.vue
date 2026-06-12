@@ -1,167 +1,109 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="custom-api-form"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item label="请求路径">
-        <el-input
-          v-model="formData.path"
-          maxlength="1000"
-          placeholder="请输入"
-          :disabled="true"
-        />
-        <span
-          id="api-path"
-          class="copy-url"
-          :data-clipboard-text="formData.path"
-          @click="copyUrlEvent('api-path')"
-        >
-          复制
-        </span>
-      </el-form-item>
-      <el-form-item
-        label="请求头"
-        prop="headerConfig"
-        :class="{ 'show-screen__full': reqHeaderFullStatus }"
-      >
-        <!-- <el-icon class="modal-full-screen" @click="fullScreenEvent('reqHeaderFullStatus')"><FullScreen v-if="!reqHeaderFullStatus" /><Close v-else /></el-icon>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="custom-api-form" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="请求路径">
+                <el-input v-model="formData.path" maxlength="1000" placeholder="请输入" :disabled="true" />
+                <span
+                    id="api-path"
+                    class="copy-url"
+                    :data-clipboard-text="formData.path"
+                    @click="copyUrlEvent('api-path')"
+                >
+                    复制
+                </span>
+            </el-form-item>
+            <el-form-item label="请求头" prop="headerConfig" :class="{ 'show-screen__full': reqHeaderFullStatus }">
+                <!-- <el-icon class="modal-full-screen" @click="fullScreenEvent('reqHeaderFullStatus')"><FullScreen v-if="!reqHeaderFullStatus" /><Close v-else /></el-icon>
         <code-mirror v-model="formData.headerConfig" basic :lang="jsonLang"/> -->
-        <span class="add-btn">
-          <el-icon @click="addNewOption(formData.headerConfig)"><CirclePlus /></el-icon>
-        </span>
-        <div class="form-options__list">
-          <div
-            v-for="(element, index) in formData.headerConfig"
-            :key="index"
-            class="form-options__item"
-          >
-            <div class="input-item">
-              <span class="item-label">键</span>
-              <el-input
-                v-model="element.label"
-                placeholder="请输入"
-              />
-            </div>
-            <div class="input-item">
-              <span class="item-label">值</span>
-              <el-input
-                v-model="element.value"
-                placeholder="请输入"
-              />
-            </div>
-            <div class="option-btn">
-              <el-icon
-                v-if="formData.headerConfig && formData.headerConfig.length > 1"
-                class="remove"
-                @click="removeItem(index, formData.headerConfig)"
-              >
-                <CircleClose />
-              </el-icon>
-            </div>
-          </div>
-        </div>
-      </el-form-item>
-      <el-form-item
-        v-if="formData.method === 'POST'"
-        label="请求体"
-        prop="bodyParams"
-        :class="{ 'show-screen__full': reqBodyFullStatus }"
-      >
-        <span
-          class="format-json"
-          @click="formatterJsonEvent(formData, 'bodyParams')"
-        >格式化JSON</span>
-        <el-icon
-          class="modal-full-screen"
-          @click="fullScreenEvent('reqBodyFullStatus')"
-        >
-          <FullScreen v-if="!reqBodyFullStatus" />
-          <Close v-else />
-        </el-icon>
-        <code-mirror
-          v-model="formData.bodyParams"
-          basic
-          :lang="jsonLang"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="formData.method === 'GET'"
-        label="请求体"
-        prop="bodyConfig"
-      >
-        <span class="add-btn">
-          <el-icon @click="addNewOption(formData.bodyConfig)"><CirclePlus /></el-icon>
-        </span>
-        <div class="form-options__list">
-          <div
-            v-for="(element, index) in formData.bodyConfig"
-            :key="index"
-            class="form-options__item"
-          >
-            <div class="input-item">
-              <span class="item-label">键</span>
-              <el-input
-                v-model="element.label"
-                placeholder="请输入"
-              />
-            </div>
-            <div class="input-item">
-              <span class="item-label">值</span>
-              <el-input
-                v-model="element.value"
-                placeholder="请输入"
-              />
-            </div>
-            <div class="option-btn">
-              <el-icon
-                v-if="formData.bodyConfig && formData.bodyConfig.length > 1"
-                class="remove"
-                @click="removeItem(index, formData.bodyConfig)"
-              >
-                <CircleClose />
-              </el-icon>
-            </div>
-          </div>
-        </div>
-      </el-form-item>
-      <!-- 响应体 状态码 -->
-      <el-form-item
-        class="resp-http-body"
-        label="响应体"
-        prop="returnConfig"
-        :class="{ 'show-screen__full': respBodyFullStatus }"
-      >
-        <span
-          class="format-json"
-          @click="formatterJsonEvent(formData, 'bodyParams')"
-        >格式化JSON</span>
-        <span
-          class="resp-http-status"
-          :style="{ color: httpStatus == 500 ? 'red' : '' }"
-        >
-          {{ httpStatus }}
-        </span>
-        <el-icon
-          class="modal-full-screen"
-          @click="fullScreenEvent('respBodyFullStatus')"
-        >
-          <FullScreen v-if="!respBodyFullStatus" />
-          <Close v-else />
-        </el-icon>
-        <code-mirror
-          ref="responseBodyRef"
-          v-model="formData.returnConfig"
-          :disabled="true"
-          basic
-          :lang="jsonLang"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+                <span class="add-btn">
+                    <el-icon @click="addNewOption(formData.headerConfig)"><CirclePlus /></el-icon>
+                </span>
+                <div class="form-options__list">
+                    <div v-for="(element, index) in formData.headerConfig" :key="index" class="form-options__item">
+                        <div class="input-item">
+                            <span class="item-label">键</span>
+                            <el-input v-model="element.label" placeholder="请输入" />
+                        </div>
+                        <div class="input-item">
+                            <span class="item-label">值</span>
+                            <el-input v-model="element.value" placeholder="请输入" />
+                        </div>
+                        <div class="option-btn">
+                            <el-icon
+                                v-if="formData.headerConfig && formData.headerConfig.length > 1"
+                                class="remove"
+                                @click="removeItem(index, formData.headerConfig)"
+                            >
+                                <CircleClose />
+                            </el-icon>
+                        </div>
+                    </div>
+                </div>
+            </el-form-item>
+            <el-form-item
+                v-if="formData.method === 'POST'"
+                label="请求体"
+                prop="bodyParams"
+                :class="{ 'show-screen__full': reqBodyFullStatus }"
+            >
+                <span class="format-json" @click="formatterJsonEvent(formData, 'bodyParams')">格式化JSON</span>
+                <el-icon class="modal-full-screen" @click="fullScreenEvent('reqBodyFullStatus')">
+                    <FullScreen v-if="!reqBodyFullStatus" />
+                    <Close v-else />
+                </el-icon>
+                <code-mirror v-model="formData.bodyParams" basic :lang="jsonLang" />
+            </el-form-item>
+            <el-form-item v-if="formData.method === 'GET'" label="请求体" prop="bodyConfig">
+                <span class="add-btn">
+                    <el-icon @click="addNewOption(formData.bodyConfig)"><CirclePlus /></el-icon>
+                </span>
+                <div class="form-options__list">
+                    <div v-for="(element, index) in formData.bodyConfig" :key="index" class="form-options__item">
+                        <div class="input-item">
+                            <span class="item-label">键</span>
+                            <el-input v-model="element.label" placeholder="请输入" />
+                        </div>
+                        <div class="input-item">
+                            <span class="item-label">值</span>
+                            <el-input v-model="element.value" placeholder="请输入" />
+                        </div>
+                        <div class="option-btn">
+                            <el-icon
+                                v-if="formData.bodyConfig && formData.bodyConfig.length > 1"
+                                class="remove"
+                                @click="removeItem(index, formData.bodyConfig)"
+                            >
+                                <CircleClose />
+                            </el-icon>
+                        </div>
+                    </div>
+                </div>
+            </el-form-item>
+            <!-- 响应体 状态码 -->
+            <el-form-item
+                class="resp-http-body"
+                label="响应体"
+                prop="returnConfig"
+                :class="{ 'show-screen__full': respBodyFullStatus }"
+            >
+                <span class="format-json" @click="formatterJsonEvent(formData, 'bodyParams')">格式化JSON</span>
+                <span class="resp-http-status" :style="{ color: httpStatus == 500 ? 'red' : '' }">
+                    {{ httpStatus }}
+                </span>
+                <el-icon class="modal-full-screen" @click="fullScreenEvent('respBodyFullStatus')">
+                    <FullScreen v-if="!respBodyFullStatus" />
+                    <Close v-else />
+                </el-icon>
+                <code-mirror
+                    ref="responseBodyRef"
+                    v-model="formData.returnConfig"
+                    :disabled="true"
+                    basic
+                    :lang="jsonLang"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -287,14 +229,12 @@ function getApiDetailData(id: string) {
 function okEvent() {
     form.value?.validate((valid) => {
         if (valid) {
-            const headerParams: any = {
-}
+            const headerParams: any = {}
             formData.headerConfig.forEach((item) => {
                 headerParams[item.label] = item.value
             })
             try {
-                let bodyParams: any = {
-}
+                let bodyParams: any = {}
                 if (formData.method === 'GET') {
                     formData.bodyConfig.forEach((item) => {
                         bodyParams[item.label] = item.value
@@ -363,7 +303,7 @@ function removeItem(index: number, data: any) {
 }
 
 function copyUrlEvent(id: string) {
-    let clipboard = new Clipboard('#' + id)
+    const clipboard = new Clipboard('#' + id)
     clipboard.on('success', () => {
         ElMessage.success('复制成功')
         clipboard.destroy()
@@ -459,14 +399,30 @@ defineExpose({
 
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-tooltip-autocomplete {
@@ -477,8 +433,16 @@ defineExpose({
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         li[aria-selected] {

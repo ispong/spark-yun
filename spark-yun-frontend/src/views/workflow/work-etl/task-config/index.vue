@@ -1,43 +1,31 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-scrollbar>
-      <el-form
-        ref="formRef"
-        label-position="left"
-        label-width="80px"
-        :model="formData"
-      >
-        <div class="main-config-container">
-          <component
-            :is="currentComponent(formData.type)"
-            ref="instanceRef"
-            v-model="formData"
-            :income-nodes="incomeNodes"
-          />
-        </div>
-      </el-form>
-    </el-scrollbar>
-    <template #customLeft>
-      <el-button
-        v-if="formData.type !== 'DATA_OUTPUT'"
-        type="primary"
-        style="margin-right: auto"
-        @click="showFieldsModal"
-      >
-        输出字段
-      </el-button>
-      <el-button
-        v-else
-        type="primary"
-        style="margin-right: auto"
-        @click="showLinkModal"
-      >
-        字段映射
-      </el-button>
-    </template>
-  </BlockModal>
-  <OutputModal ref="outputModalRef" />
-  <LinkModal ref="linkModalRef" />
+    <BlockModal :model-config="modelConfig">
+        <el-scrollbar>
+            <el-form ref="formRef" label-position="left" label-width="80px" :model="formData">
+                <div class="main-config-container">
+                    <component
+                        :is="currentComponent(formData.type)"
+                        ref="instanceRef"
+                        v-model="formData"
+                        :income-nodes="incomeNodes"
+                    />
+                </div>
+            </el-form>
+        </el-scrollbar>
+        <template #customLeft>
+            <el-button
+                v-if="formData.type !== 'DATA_OUTPUT'"
+                type="primary"
+                style="margin-right: auto"
+                @click="showFieldsModal"
+            >
+                输出字段
+            </el-button>
+            <el-button v-else type="primary" style="margin-right: auto" @click="showLinkModal">字段映射</el-button>
+        </template>
+    </BlockModal>
+    <OutputModal ref="outputModalRef" />
+    <LinkModal ref="linkModalRef" />
 </template>
 
 <script lang="ts" setup>
@@ -73,8 +61,7 @@ const formRef = ref<FormInstance>()
 const callback = ref<any>()
 const incomeNodes = ref<any>()
 
-const formData = ref<any>({
-})
+const formData = ref<any>({})
 const instanceRef = ref<any>()
 
 // 字段映射
@@ -105,14 +92,14 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     aliaCode: [
         {
             required: true,
             message: '请输入编码',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

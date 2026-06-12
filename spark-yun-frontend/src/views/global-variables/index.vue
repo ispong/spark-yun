@@ -1,64 +1,48 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建变量
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #varName="scopeSlot">
-            <span
-              class="name-click"
-              @click="editData(scopeSlot.row)"
-            >{{ scopeSlot.row.keyName }}</span>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span @click="copyData(scopeSlot.row)">复制</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建变量</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #varName="scopeSlot">
+                        <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.keyName }}</span>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span @click="copyData(scopeSlot.row)">复制</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -69,11 +53,13 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './list.config'
-import { CopyGlobalVariablesPath,
+import {
+    CopyGlobalVariablesPath,
     DeleteGlobalVariablesData,
     GetGlobalVariablesList,
     SaveGlobalVariablesData,
-    UpdateGlobalVariablesData } from '@/services/global-variables.service'
+    UpdateGlobalVariablesData
+} from '@/services/global-variables.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 

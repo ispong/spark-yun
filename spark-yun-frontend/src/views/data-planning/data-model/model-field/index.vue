@@ -1,79 +1,58 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table model-field">
-    <div class="zqy-table-top">
-      <div class="btn-container">
-        <el-button
-          type="primary"
-          @click="addData"
-        >
-          添加字段
-        </el-button>
-        <el-button @click="backDataModel">
-          返回数据模型
-        </el-button>
-      </div>
-      <div class="zqy-seach model-field-search">
-        <div class="search-actions">
-          <el-button @click="configData">
-            高级配置
-          </el-button>
-          <el-button
-            type="primary"
-            @click="buildData"
-          >
-            构建
-          </el-button>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table model-field">
+        <div class="zqy-table-top">
+            <div class="btn-container">
+                <el-button type="primary" @click="addData">添加字段</el-button>
+                <el-button @click="backDataModel">返回数据模型</el-button>
+            </div>
+            <div class="zqy-seach model-field-search">
+                <div class="search-actions">
+                    <el-button @click="configData">高级配置</el-button>
+                    <el-button type="primary" @click="buildData">构建</el-button>
+                </div>
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入搜索条件 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
         </div>
-        <el-input
-          v-model="keyword"
-          placeholder="请输入搜索条件 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <div class="model-field-table">
+                    <BlockTable :table-config="tableConfig" @row-dragend-event="rowDragendEvent">
+                        <template #statusTag="scopeSlot">
+                            <ZStatusTag :status="scopeSlot.row.status" />
+                        </template>
+                        <template #booleanTag="scopeSlot">
+                            <el-checkbox
+                                v-model="scopeSlot.row[scopeSlot.column.property]"
+                                disabled
+                                true-label="ENABLE"
+                                false-label="DISABLE"
+                            />
+                        </template>
+                        <template #options="scopeSlot">
+                            <div class="btn-group btn-group-msg">
+                                <template v-if="route.query && route.query.modelType === 'ORIGIN_MODEL'">
+                                    <span @click="editData(scopeSlot.row)">编辑</span>
+                                    <span @click="deleteData(scopeSlot.row)">删除</span>
+                                </template>
+                                <template v-else>
+                                    <span>-</span>
+                                </template>
+                            </div>
+                        </template>
+                    </BlockTable>
+                </div>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <div class="model-field-table">
-          <BlockTable
-            :table-config="tableConfig"
-            @row-dragend-event="rowDragendEvent"
-          >
-            <template #statusTag="scopeSlot">
-              <ZStatusTag :status="scopeSlot.row.status" />
-            </template>
-            <template #booleanTag="scopeSlot">
-              <el-checkbox
-                v-model="scopeSlot.row[scopeSlot.column.property]"
-                disabled
-                true-label="ENABLE"
-                false-label="DISABLE"
-              />
-            </template>
-            <template #options="scopeSlot">
-              <div class="btn-group btn-group-msg">
-                <template v-if="route.query && route.query.modelType === 'ORIGIN_MODEL'">
-                  <span @click="editData(scopeSlot.row)">编辑</span>
-                  <span @click="deleteData(scopeSlot.row)">删除</span>
-                </template>
-                <template v-else>
-                  <span>-</span>
-                </template>
-              </div>
-            </template>
-          </BlockTable>
-        </div>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -82,14 +61,16 @@ import Breadcrumb from '@/layout/bread-crumb/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 import { BreadCrumbList, TableConfig } from './list.config'
-import { GetModelFieldList,
+import {
+    GetModelFieldList,
     AddModelFieldData,
     UpdateModelFieldData,
     DeleteModelField,
     BuildDataModel,
     UpdateModelFieldList,
     GetDataModelList,
-    UpdateDataModelData } from '@/services/data-model.service'
+    UpdateDataModelData
+} from '@/services/data-model.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -219,9 +200,7 @@ async function configData() {
         inputValue: modelInfo.tableConfig || '',
         inputPlaceholder: '请输入'
     })
-        .then(({
- value 
-}) => {
+        .then(({ value }) => {
             UpdateDataModelData({
                 id: modelInfo.id,
                 name: modelInfo.name,

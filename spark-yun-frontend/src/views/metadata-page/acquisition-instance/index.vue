@@ -1,59 +1,53 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table message-notification">
-    <div class="zqy-table-top">
-      <span />
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入搜索条件 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status" />
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group btn-group-msg">
-              <span @click="showLog(scopeSlot.row)">日志</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item
-                      v-if="['COLLECTING'].includes(scopeSlot.row.status)"
-                      @click="abortData(scopeSlot.row)"
-                    >
-                      中止
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table message-notification">
+        <div class="zqy-table-top">
+            <span />
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入搜索条件 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <ShowLog ref="showLogRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group btn-group-msg">
+                            <span @click="showLog(scopeSlot.row)">日志</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item
+                                            v-if="['COLLECTING'].includes(scopeSlot.row.status)"
+                                            @click="abortData(scopeSlot.row)"
+                                        >
+                                            中止
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <ShowLog ref="showLogRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -63,9 +57,11 @@ import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 import { BreadCrumbList, TableConfig } from './list.config'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { AbortMetadataInstanceList,
+import {
+    AbortMetadataInstanceList,
     RefreshMetadataInstanceList,
-    RemoveMetadataInstanceList } from '@/services/metadata-page.service'
+    RemoveMetadataInstanceList
+} from '@/services/metadata-page.service'
 import ShowLog from '../../computer-group/computer-pointer/show-log/index.vue'
 
 const breadCrumbList = reactive(BreadCrumbList)

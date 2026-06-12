@@ -1,205 +1,133 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-steps
-      class="custom-api-form__step"
-      :active="stepIndex"
-      finish-status="success"
-    >
-      <el-step title="基础配置" />
-      <el-step title="接口配置" />
-      <el-step title="高级配置" />
-      <el-step title="接口检测" />
-    </el-steps>
-    <el-form
-      v-if="stepIndex <= 2"
-      ref="form"
-      class="custom-api-form custom-api-form__config"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <div
-        v-if="stepIndex === 0"
-        class="api-item"
-      >
-        <!-- 基础配置 -->
-        <!-- <div class="item-title">基础配置</div> -->
-        <el-form-item
-          label="名称"
-          prop="name"
+    <BlockModal :model-config="modelConfig">
+        <el-steps class="custom-api-form__step" :active="stepIndex" finish-status="success">
+            <el-step title="基础配置" />
+            <el-step title="接口配置" />
+            <el-step title="高级配置" />
+            <el-step title="接口检测" />
+        </el-steps>
+        <el-form
+            v-if="stepIndex <= 2"
+            ref="form"
+            class="custom-api-form custom-api-form__config"
+            label-position="top"
+            :model="formData"
+            :rules="rules"
         >
-          <el-input
-            v-model="formData.name"
-            maxlength="200"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item
-          label="请求方式"
-          prop="apiType"
-        >
-          <el-select
-            v-model="formData.apiType"
-            placeholder="请选择"
-            :filterable="true"
-          >
-            <el-option
-              label="GET"
-              value="GET"
-            />
-            <el-option
-              label="POST"
-              value="POST"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          label="自定义访问路径"
-          prop="path"
-        >
-          <el-tooltip
-            content="路径规则：/path1、/path1/path2、/path1/path2/path3，仅支持三级"
-            placement="top"
-          >
-            <el-icon
-              style="left: 92px"
-              class="tooltip-msg"
-            >
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
-          <el-input
-            v-model="formData.path"
-            maxlength="1000"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item
-          label="数据源"
-          prop="datasourceId"
-        >
-          <el-select
-            v-model="formData.datasourceId"
-            :filterable="true"
-            placeholder="请选择"
-            @visible-change="getDataSourceList"
-          >
-            <el-option
-              v-for="item in dataSourceList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input
-            v-model="formData.remark"
-            type="textarea"
-            maxlength="200"
-            :autosize="{ minRows: 4, maxRows: 4 }"
-            placeholder="请输入"
-          />
-        </el-form-item>
-      </div>
-      <div
-        v-if="stepIndex === 1"
-        class="api-item"
-      >
-        <!-- 接口配置 -->
-        <!-- <div class="item-title">请求配置</div> -->
-        <el-form-item label="请求头模式">
-          <el-tooltip
-            content="任何人访问：无权限拦截。系统认证：通过至轻云用户权限拦截。自定义：用户自定义请求头拦截"
-            placement="top"
-          >
-            <el-icon
-              style="left: 68px"
-              class="tooltip-msg"
-            >
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
-          <el-radio-group
-            v-model="formData.tokenType"
-            size="small"
-            @change="tokenTypeChangeEvent"
-          >
-            <el-radio-button label="ANONYMOUS">
-              任何人访问
-            </el-radio-button>
-            <el-radio-button label="SYSTEM">
-              系统认证
-            </el-radio-button>
-            <el-radio-button label="CUSTOM">
-              自定义
-            </el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item
-          v-if="formData.tokenType === 'CUSTOM'"
-          label="请求头设置"
-          prop="reqHeader"
-          :class="{ 'show-screen__full': reqHeaderFullStatus }"
-        >
-          <!-- <el-icon class="modal-full-screen" @click="fullScreenEvent('reqHeaderFullStatus')"><FullScreen v-if="!reqHeaderFullStatus" /><Close v-else /></el-icon>
-          <code-mirror v-model="formData.headerToken" basic :lang="jsonLang"/> -->
-          <span class="add-btn">
-            <el-icon @click="addNewOption()"><CirclePlus /></el-icon>
-          </span>
-          <div class="form-options__list">
-            <div
-              v-for="(element, index) in formData.reqHeader"
-              :key="index"
-              class="form-options__item"
-            >
-              <div class="input-item">
-                <span class="item-label">键</span>
-                <el-input
-                  v-model="element.label"
-                  placeholder="请输入"
-                />
-              </div>
-              <div class="input-item">
-                <span class="item-label">值</span>
-                <el-input
-                  v-model="element.value"
-                  placeholder="请输入"
-                />
-              </div>
-              <div class="option-btn">
-                <el-icon
-                  v-if="formData.reqHeader && formData.reqHeader.length > 1"
-                  class="remove"
-                  @click="removeItem(index)"
-                >
-                  <CircleClose />
-                </el-icon>
-              </div>
+            <div v-if="stepIndex === 0" class="api-item">
+                <!-- 基础配置 -->
+                <!-- <div class="item-title">基础配置</div> -->
+                <el-form-item label="名称" prop="name">
+                    <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="请求方式" prop="apiType">
+                    <el-select v-model="formData.apiType" placeholder="请选择" :filterable="true">
+                        <el-option label="GET" value="GET" />
+                        <el-option label="POST" value="POST" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="自定义访问路径" prop="path">
+                    <el-tooltip
+                        content="路径规则：/path1、/path1/path2、/path1/path2/path3，仅支持三级"
+                        placement="top"
+                    >
+                        <el-icon style="left: 92px" class="tooltip-msg">
+                            <QuestionFilled />
+                        </el-icon>
+                    </el-tooltip>
+                    <el-input v-model="formData.path" maxlength="1000" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="数据源" prop="datasourceId">
+                    <el-select
+                        v-model="formData.datasourceId"
+                        :filterable="true"
+                        placeholder="请选择"
+                        @visible-change="getDataSourceList"
+                    >
+                        <el-option
+                            v-for="item in dataSourceList"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                        />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input
+                        v-model="formData.remark"
+                        type="textarea"
+                        maxlength="200"
+                        :autosize="{ minRows: 4, maxRows: 4 }"
+                        placeholder="请输入"
+                    />
+                </el-form-item>
             </div>
-          </div>
-        </el-form-item>
-        <el-form-item label="开启分页">
-          <el-tooltip
-            content="分页系统参数如下：$system.page（分页的页数，从0开始），$system.pageSize（分页的每页条数），$system.count（总条数）"
-            placement="top"
-          >
-            <el-icon
-              style="left: 54px"
-              class="tooltip-msg"
-            >
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
-          <el-switch v-model="formData.pageType" />
-        </el-form-item>
-        <el-form-item
-          label="请求体设置"
-          :class="{ 'show-screen__full': reqBodyFullStatus }"
-        >
-          <el-tooltip placement="top">
-            <template #content>
-              <pre style="max-height: 300px; overflow: auto">
+            <div v-if="stepIndex === 1" class="api-item">
+                <!-- 接口配置 -->
+                <!-- <div class="item-title">请求配置</div> -->
+                <el-form-item label="请求头模式">
+                    <el-tooltip
+                        content="任何人访问：无权限拦截。系统认证：通过至轻云用户权限拦截。自定义：用户自定义请求头拦截"
+                        placement="top"
+                    >
+                        <el-icon style="left: 68px" class="tooltip-msg">
+                            <QuestionFilled />
+                        </el-icon>
+                    </el-tooltip>
+                    <el-radio-group v-model="formData.tokenType" size="small" @change="tokenTypeChangeEvent">
+                        <el-radio-button label="ANONYMOUS">任何人访问</el-radio-button>
+                        <el-radio-button label="SYSTEM">系统认证</el-radio-button>
+                        <el-radio-button label="CUSTOM">自定义</el-radio-button>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item
+                    v-if="formData.tokenType === 'CUSTOM'"
+                    label="请求头设置"
+                    prop="reqHeader"
+                    :class="{ 'show-screen__full': reqHeaderFullStatus }"
+                >
+                    <!-- <el-icon class="modal-full-screen" @click="fullScreenEvent('reqHeaderFullStatus')"><FullScreen v-if="!reqHeaderFullStatus" /><Close v-else /></el-icon>
+          <code-mirror v-model="formData.headerToken" basic :lang="jsonLang"/> -->
+                    <span class="add-btn">
+                        <el-icon @click="addNewOption()"><CirclePlus /></el-icon>
+                    </span>
+                    <div class="form-options__list">
+                        <div v-for="(element, index) in formData.reqHeader" :key="index" class="form-options__item">
+                            <div class="input-item">
+                                <span class="item-label">键</span>
+                                <el-input v-model="element.label" placeholder="请输入" />
+                            </div>
+                            <div class="input-item">
+                                <span class="item-label">值</span>
+                                <el-input v-model="element.value" placeholder="请输入" />
+                            </div>
+                            <div class="option-btn">
+                                <el-icon
+                                    v-if="formData.reqHeader && formData.reqHeader.length > 1"
+                                    class="remove"
+                                    @click="removeItem(index)"
+                                >
+                                    <CircleClose />
+                                </el-icon>
+                            </div>
+                        </div>
+                    </div>
+                </el-form-item>
+                <el-form-item label="开启分页">
+                    <el-tooltip
+                        content="分页系统参数如下：$system.page（分页的页数，从0开始），$system.pageSize（分页的每页条数），$system.count（总条数）"
+                        placement="top"
+                    >
+                        <el-icon style="left: 54px" class="tooltip-msg">
+                            <QuestionFilled />
+                        </el-icon>
+                    </el-tooltip>
+                    <el-switch v-model="formData.pageType" />
+                </el-form-item>
+                <el-form-item label="请求体设置" :class="{ 'show-screen__full': reqBodyFullStatus }">
+                    <el-tooltip placement="top">
+                        <template #content>
+                            <pre style="max-height: 300px; overflow: auto">
 post模版:
 {
   "req":{
@@ -218,75 +146,47 @@ post模版:
 get模版:
 custom_a=${a.date}&custom_b=${b.datetime}&custom_c=${c.timestamp}&custom_d=${d.string}&custom_e=
 ${e.boolean}&custom_f=${f.double}&custom_g=${g.int}&custom_page=${page.int}&custom_pageSize=${pageSize.int}
-</pre>
-            </template>
-            <el-icon
-              style="left: 68px"
-              class="tooltip-msg"
-            >
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
-          <span
-            class="format-json"
-            @click="formatterJsonEvent(formData, 'reqBody')"
-          >格式化JSON</span>
-          <el-icon
-            class="modal-full-screen"
-            @click="fullScreenEvent('reqBodyFullStatus')"
-          >
-            <FullScreen v-if="!reqBodyFullStatus" />
-            <Close v-else />
-          </el-icon>
-          <code-mirror
-            v-model="formData.reqBody"
-            basic
-            :lang="jsonLang"
-          />
-        </el-form-item>
-        <el-form-item
-          label="SQL设置"
-          :class="{ 'show-screen__full': sqlFullStatus }"
-        >
-          <el-tooltip placement="top">
-            <template #content>
-              <pre>
+</pre
+                            >
+                        </template>
+                        <el-icon style="left: 68px" class="tooltip-msg">
+                            <QuestionFilled />
+                        </el-icon>
+                    </el-tooltip>
+                    <span class="format-json" @click="formatterJsonEvent(formData, 'reqBody')">格式化JSON</span>
+                    <el-icon class="modal-full-screen" @click="fullScreenEvent('reqBodyFullStatus')">
+                        <FullScreen v-if="!reqBodyFullStatus" />
+                        <Close v-else />
+                    </el-icon>
+                    <code-mirror v-model="formData.reqBody" basic :lang="jsonLang" />
+                </el-form-item>
+                <el-form-item label="SQL设置" :class="{ 'show-screen__full': sqlFullStatus }">
+                    <el-tooltip placement="top">
+                        <template #content>
+                            <pre>
 不支持*表达语法，'${a}'对应请求中的"$a.date"
 插入模版：
 insert into demo (col1,col2,col3,col4,col5,col6,col7) values ('${a}','${b}','${c}','${d}','${e}','${f}','${g}')
 
 查询模版：
 select col1,col2,col3,col4,col5,col6,col7 from demo where col1 = '${a}' and col2= '${b}'
-and col3= '${c}' and col4= '${d}' and col5= '${e}' and col6= '${f}' and col7= '${g}'</pre>
-            </template>
-            <el-icon
-              style="left: 48px"
-              class="tooltip-msg"
-            >
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
-          <el-icon
-            class="modal-full-screen"
-            @click="fullScreenEvent('sqlFullStatus')"
-          >
-            <FullScreen v-if="!sqlFullStatus" />
-            <Close v-else />
-          </el-icon>
-          <code-mirror
-            v-model="formData.apiSql"
-            basic
-            :lang="sqlLang"
-          />
-        </el-form-item>
-        <el-form-item
-          label="返回体设置"
-          prop="resBody"
-          :class="{ 'show-screen__full': respBodyFullStatus }"
-        >
-          <el-tooltip placement="top">
-            <template #content>
-              <pre style="max-height: 300px; overflow: auto">
+and col3= '${c}' and col4= '${d}' and col5= '${e}' and col6= '${f}' and col7= '${g}'</pre
+                            >
+                        </template>
+                        <el-icon style="left: 48px" class="tooltip-msg">
+                            <QuestionFilled />
+                        </el-icon>
+                    </el-tooltip>
+                    <el-icon class="modal-full-screen" @click="fullScreenEvent('sqlFullStatus')">
+                        <FullScreen v-if="!sqlFullStatus" />
+                        <Close v-else />
+                    </el-icon>
+                    <code-mirror v-model="formData.apiSql" basic :lang="sqlLang" />
+                </el-form-item>
+                <el-form-item label="返回体设置" prop="resBody" :class="{ 'show-screen__full': respBodyFullStatus }">
+                    <el-tooltip placement="top">
+                        <template #content>
+                            <pre style="max-height: 300px; overflow: auto">
 系统参数$count.long，需要开启分页激活
 
 单对象模版：
@@ -327,291 +227,172 @@ and col3= '${c}' and col4= '${d}' and col5= '${e}' and col6= '${f}' and col7= '$
     }
   ],
   "count": "${count.long}"
-}</pre>
-            </template>
-            <el-icon
-              style="left: 68px"
-              class="tooltip-msg"
+}</pre
+                            >
+                        </template>
+                        <el-icon style="left: 68px" class="tooltip-msg">
+                            <QuestionFilled />
+                        </el-icon>
+                    </el-tooltip>
+                    <span class="format-json" @click="formatterJsonEvent(formData, 'resBody')">格式化JSON</span>
+                    <el-icon class="modal-full-screen" @click="fullScreenEvent('respBodyFullStatus')">
+                        <FullScreen v-if="!respBodyFullStatus" />
+                        <Close v-else />
+                    </el-icon>
+                    <code-mirror v-model="formData.resBody" basic :lang="jsonLang" />
+                </el-form-item>
+            </div>
+            <div v-if="stepIndex === 2" class="api-item">
+                <!-- 高级配置 -->
+                <el-form-item label="黑白名单">
+                    <el-select
+                        v-model="formData.accessRuleId"
+                        placeholder="请选择黑白名单规则"
+                        clearable
+                        @visible-change="getAccessRuleList"
+                    >
+                        <el-option
+                            v-for="item in accessRuleList"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                        />
+                    </el-select>
+                </el-form-item>
+            </div>
+        </el-form>
+        <!-- 第四步-接口检测---------------- ++ -->
+        <el-form
+            v-if="stepIndex === 3"
+            ref="formTest"
+            class="custom-api-form custom-api-form__test"
+            label-position="top"
+            :model="formDataTest"
+        >
+            <el-form-item label="请求路径">
+                <el-input v-model="formDataTest.path" maxlength="1000" placeholder="请输入" :disabled="true" />
+                <span
+                    id="api-path"
+                    class="copy-url"
+                    :data-clipboard-text="formDataTest.path"
+                    @click="copyUrlEvent('api-path-test')"
+                >
+                    复制
+                </span>
+            </el-form-item>
+            <el-form-item label="请求头" prop="headerConfig" :class="{ 'show-screen__full': reqHeaderFullStatus }">
+                <span class="add-btn">
+                    <el-icon @click="addNewOption(formDataTest.headerConfig)"><CirclePlus /></el-icon>
+                </span>
+                <div class="form-options__list">
+                    <div v-for="(element, index) in formDataTest.headerConfig" :key="index" class="form-options__item">
+                        <div class="input-item">
+                            <span class="item-label">键</span>
+                            <el-input v-model="element.label" placeholder="请输入" />
+                        </div>
+                        <div class="input-item">
+                            <span class="item-label">值</span>
+                            <el-input v-model="element.value" placeholder="请输入" />
+                        </div>
+                        <div class="option-btn">
+                            <el-icon
+                                v-if="formDataTest.headerConfig && formDataTest.headerConfig.length > 1"
+                                class="remove"
+                                @click="removeItem(index, formDataTest.headerConfig)"
+                            >
+                                <CircleClose />
+                            </el-icon>
+                        </div>
+                    </div>
+                </div>
+            </el-form-item>
+            <el-form-item
+                v-if="formDataTest.method === 'POST'"
+                label="请求体"
+                prop="bodyParams"
+                :class="{ 'show-screen__full': reqBodyFullStatus }"
             >
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
-          <span
-            class="format-json"
-            @click="formatterJsonEvent(formData, 'resBody')"
-          >格式化JSON</span>
-          <el-icon
-            class="modal-full-screen"
-            @click="fullScreenEvent('respBodyFullStatus')"
-          >
-            <FullScreen v-if="!respBodyFullStatus" />
-            <Close v-else />
-          </el-icon>
-          <code-mirror
-            v-model="formData.resBody"
-            basic
-            :lang="jsonLang"
-          />
-        </el-form-item>
-      </div>
-      <div
-        v-if="stepIndex === 2"
-        class="api-item"
-      >
-        <!-- 高级配置 -->
-        <el-form-item label="黑白名单">
-          <el-select
-            v-model="formData.accessRuleId"
-            placeholder="请选择黑白名单规则"
-            clearable
-            @visible-change="getAccessRuleList"
-          >
-            <el-option
-              v-for="item in accessRuleList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-      </div>
-    </el-form>
-    <!-- 第四步-接口检测---------------- ++ -->
-    <el-form
-      v-if="stepIndex === 3"
-      ref="formTest"
-      class="custom-api-form custom-api-form__test"
-      label-position="top"
-      :model="formDataTest"
-    >
-      <el-form-item label="请求路径">
-        <el-input
-          v-model="formDataTest.path"
-          maxlength="1000"
-          placeholder="请输入"
-          :disabled="true"
-        />
-        <span
-          id="api-path"
-          class="copy-url"
-          :data-clipboard-text="formDataTest.path"
-          @click="copyUrlEvent('api-path-test')"
-        >
-          复制
-        </span>
-      </el-form-item>
-      <el-form-item
-        label="请求头"
-        prop="headerConfig"
-        :class="{ 'show-screen__full': reqHeaderFullStatus }"
-      >
-        <span class="add-btn">
-          <el-icon @click="addNewOption(formDataTest.headerConfig)"><CirclePlus /></el-icon>
-        </span>
-        <div class="form-options__list">
-          <div
-            v-for="(element, index) in formDataTest.headerConfig"
-            :key="index"
-            class="form-options__item"
-          >
-            <div class="input-item">
-              <span class="item-label">键</span>
-              <el-input
-                v-model="element.label"
-                placeholder="请输入"
-              />
-            </div>
-            <div class="input-item">
-              <span class="item-label">值</span>
-              <el-input
-                v-model="element.value"
-                placeholder="请输入"
-              />
-            </div>
-            <div class="option-btn">
-              <el-icon
-                v-if="formDataTest.headerConfig && formDataTest.headerConfig.length > 1"
-                class="remove"
-                @click="removeItem(index, formDataTest.headerConfig)"
-              >
-                <CircleClose />
-              </el-icon>
-            </div>
-          </div>
-        </div>
-      </el-form-item>
-      <el-form-item
-        v-if="formDataTest.method === 'POST'"
-        label="请求体"
-        prop="bodyParams"
-        :class="{ 'show-screen__full': reqBodyFullStatus }"
-      >
-        <span
-          class="format-json"
-          @click="formatterJsonEvent(formDataTest, 'bodyParams')"
-        >格式化JSON</span>
-        <el-icon
-          class="modal-full-screen"
-          @click="fullScreenEvent('reqBodyFullStatus')"
-        >
-          <FullScreen v-if="!reqBodyFullStatus" />
-          <Close v-else />
-        </el-icon>
-        <code-mirror
-          v-model="formDataTest.bodyParams"
-          basic
-          :lang="jsonLang"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="formDataTest.method === 'GET'"
-        label="请求体"
-        prop="bodyConfig"
-      >
-        <span class="add-btn">
-          <el-icon @click="addNewOption(formDataTest.bodyConfig)"><CirclePlus /></el-icon>
-        </span>
-        <div class="form-options__list">
-          <div
-            v-for="(element, index) in formDataTest.bodyConfig"
-            :key="index"
-            class="form-options__item"
-          >
-            <div class="input-item">
-              <span class="item-label">键</span>
-              <el-input
-                v-model="element.label"
-                placeholder="请输入"
-              />
-            </div>
-            <div class="input-item">
-              <span class="item-label">值</span>
-              <el-input
-                v-model="element.value"
-                placeholder="请输入"
-              />
-            </div>
-            <div class="option-btn">
-              <el-icon
-                v-if="formDataTest.bodyConfig && formDataTest.bodyConfig.length > 1"
-                class="remove"
-                @click="removeItem(index, formDataTest.bodyConfig)"
-              >
-                <CircleClose />
-              </el-icon>
-            </div>
-          </div>
-        </div>
-      </el-form-item>
-      <!-- 响应体 状态码 -->
-      <el-form-item
-        class="resp-http-body"
-        label="响应体"
-        prop="returnConfig"
-        :class="{ 'show-screen__full': respBodyFullStatus }"
-      >
-        <span
-          class="format-json"
-          @click="formatterJsonEvent(formDataTest, 'bodyParams')"
-        >格式化JSON</span>
-        <span
-          class="resp-http-status"
-          :style="{ color: httpStatus == 500 ? 'red' : '' }"
-        >
-          {{ httpStatus }}
-        </span>
-        <el-icon
-          class="modal-full-screen"
-          @click="fullScreenEvent('respBodyFullStatus')"
-        >
-          <FullScreen v-if="!respBodyFullStatus" />
-          <Close v-else />
-        </el-icon>
-        <code-mirror
-          ref="responseBodyRef"
-          v-model="formDataTest.returnConfig"
-          :disabled="true"
-          basic
-          :lang="jsonLang"
-        />
-      </el-form-item>
-    </el-form>
-    <!-- 第四步-接口检测---------------- ++ -->
-    <template #customLeft>
-      <template v-if="stepIndex === 0">
-        <el-button @click="closeEvent">
-          取消
-        </el-button>
-        <el-button
-          type="primary"
-          @click="nextStepEvent"
-        >
-          下一步
-        </el-button>
-      </template>
-      <template v-if="stepIndex === 1">
-        <el-button @click="closeEvent">
-          取消
-        </el-button>
-        <el-button
-          type="primary"
-          @click="stepIndex = 0"
-        >
-          上一步
-        </el-button>
-        <el-button
-          :loading="okLoading"
-          type="primary"
-          @click="nextStepEvent"
-        >
-          下一步
-        </el-button>
-      </template>
-      <template v-if="stepIndex === 2">
-        <el-button @click="closeEvent">
-          取消
-        </el-button>
-        <el-button
-          type="primary"
-          @click="stepIndex = 1"
-        >
-          上一步
-        </el-button>
-        <el-button
-          :loading="okLoading"
-          type="primary"
-          @click="nextStepEvent"
-        >
-          下一步
-        </el-button>
-      </template>
-      <template v-if="stepIndex === 3">
-        <el-button @click="closeEvent">
-          取消
-        </el-button>
-        <el-button
-          type="primary"
-          @click="stepIndex = 2"
-        >
-          上一步
-        </el-button>
-        <el-button
-          :loading="testLoading"
-          type="primary"
-          @click="testApiEvent"
-        >
-          检测
-        </el-button>
-        <el-button
-          :loading="okLoading"
-          type="primary"
-          @click="okToCloseEvent"
-        >
-          确定
-        </el-button>
-      </template>
-    </template>
-  </BlockModal>
+                <span class="format-json" @click="formatterJsonEvent(formDataTest, 'bodyParams')">格式化JSON</span>
+                <el-icon class="modal-full-screen" @click="fullScreenEvent('reqBodyFullStatus')">
+                    <FullScreen v-if="!reqBodyFullStatus" />
+                    <Close v-else />
+                </el-icon>
+                <code-mirror v-model="formDataTest.bodyParams" basic :lang="jsonLang" />
+            </el-form-item>
+            <el-form-item v-if="formDataTest.method === 'GET'" label="请求体" prop="bodyConfig">
+                <span class="add-btn">
+                    <el-icon @click="addNewOption(formDataTest.bodyConfig)"><CirclePlus /></el-icon>
+                </span>
+                <div class="form-options__list">
+                    <div v-for="(element, index) in formDataTest.bodyConfig" :key="index" class="form-options__item">
+                        <div class="input-item">
+                            <span class="item-label">键</span>
+                            <el-input v-model="element.label" placeholder="请输入" />
+                        </div>
+                        <div class="input-item">
+                            <span class="item-label">值</span>
+                            <el-input v-model="element.value" placeholder="请输入" />
+                        </div>
+                        <div class="option-btn">
+                            <el-icon
+                                v-if="formDataTest.bodyConfig && formDataTest.bodyConfig.length > 1"
+                                class="remove"
+                                @click="removeItem(index, formDataTest.bodyConfig)"
+                            >
+                                <CircleClose />
+                            </el-icon>
+                        </div>
+                    </div>
+                </div>
+            </el-form-item>
+            <!-- 响应体 状态码 -->
+            <el-form-item
+                class="resp-http-body"
+                label="响应体"
+                prop="returnConfig"
+                :class="{ 'show-screen__full': respBodyFullStatus }"
+            >
+                <span class="format-json" @click="formatterJsonEvent(formDataTest, 'bodyParams')">格式化JSON</span>
+                <span class="resp-http-status" :style="{ color: httpStatus == 500 ? 'red' : '' }">
+                    {{ httpStatus }}
+                </span>
+                <el-icon class="modal-full-screen" @click="fullScreenEvent('respBodyFullStatus')">
+                    <FullScreen v-if="!respBodyFullStatus" />
+                    <Close v-else />
+                </el-icon>
+                <code-mirror
+                    ref="responseBodyRef"
+                    v-model="formDataTest.returnConfig"
+                    :disabled="true"
+                    basic
+                    :lang="jsonLang"
+                />
+            </el-form-item>
+        </el-form>
+        <!-- 第四步-接口检测---------------- ++ -->
+        <template #customLeft>
+            <template v-if="stepIndex === 0">
+                <el-button @click="closeEvent">取消</el-button>
+                <el-button type="primary" @click="nextStepEvent">下一步</el-button>
+            </template>
+            <template v-if="stepIndex === 1">
+                <el-button @click="closeEvent">取消</el-button>
+                <el-button type="primary" @click="stepIndex = 0">上一步</el-button>
+                <el-button :loading="okLoading" type="primary" @click="nextStepEvent">下一步</el-button>
+            </template>
+            <template v-if="stepIndex === 2">
+                <el-button @click="closeEvent">取消</el-button>
+                <el-button type="primary" @click="stepIndex = 1">上一步</el-button>
+                <el-button :loading="okLoading" type="primary" @click="nextStepEvent">下一步</el-button>
+            </template>
+            <template v-if="stepIndex === 3">
+                <el-button @click="closeEvent">取消</el-button>
+                <el-button type="primary" @click="stepIndex = 2">上一步</el-button>
+                <el-button :loading="testLoading" type="primary" @click="testApiEvent">检测</el-button>
+                <el-button :loading="okLoading" type="primary" @click="okToCloseEvent">确定</el-button>
+            </template>
+        </template>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -740,25 +521,25 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     apiType: [
         {
             required: true,
             message: '请选择请求方式',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     path: [
         {
             required: true,
             message: '请输入自定义访问路径',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         },
         {
             validator: checkPath,
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     // clusterId: [{ required: true, message: '请选择计算集群', trigger: [ 'blur', 'change' ]}],
@@ -766,34 +547,34 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请选择数据源',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     reqHeader: [
         {
             validator: optionsRule,
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     reqBody: [
         {
             required: true,
             message: '请输入请求体设置',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     apiSql: [
         {
             required: true,
             message: '请输入SQL设置',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     resBody: [
         {
             required: true,
             message: '请输入返回体设置（成功/失败）',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })
@@ -1019,14 +800,12 @@ function nextStepEvent() {
 }
 
 function testApiEvent() {
-    const headerParams: any = {
-}
+    const headerParams: any = {}
     formDataTest.headerConfig.forEach((item) => {
         headerParams[item.label] = item.value
     })
     try {
-        let bodyParams: any = {
-}
+        let bodyParams: any = {}
         if (formDataTest.method === 'GET') {
             formDataTest.bodyConfig.forEach((item) => {
                 bodyParams[item.label] = item.value
@@ -1136,7 +915,7 @@ function fullScreenEvent(type: string) {
 
 // 接口检测部分
 function copyUrlEvent(id: string) {
-    let clipboard = new Clipboard('#' + id)
+    const clipboard = new Clipboard('#' + id)
     clipboard.on('success', () => {
         ElMessage.success('复制成功')
         clipboard.destroy()
@@ -1262,14 +1041,30 @@ defineExpose({
 
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-tooltip-autocomplete {
@@ -1280,8 +1075,16 @@ defineExpose({
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         li[aria-selected] {

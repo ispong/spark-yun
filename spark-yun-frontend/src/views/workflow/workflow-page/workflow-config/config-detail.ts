@@ -55,84 +55,84 @@ export const CronConfigRules = {
         {
             required: true,
             message: '请选择生效时间',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     cron: [
         {
             required: true,
             message: '请输入cron表达式',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     range: [
         {
             required: true,
             message: '请选择调度周期',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     endDate: [
         {
             required: true,
             message: '请选择结束时间',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     startDate: [
         {
             required: true,
             message: '请选择开始时间',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     startDateMin: [
         {
             required: true,
             message: '请选择开始时间',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     endDateMin: [
         {
             required: true,
             message: '请选择结束时间',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     minNum: [
         {
             required: true,
             message: '请输入时间间隔',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     hourNum: [
         {
             required: true,
             message: '请输入时间间隔',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     scheduleDate: [
         {
             required: true,
             message: '请选择调度时间',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     monthDay: [
         {
             required: true,
             message: '请选择指定时间',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     weekDate: [
         {
             required: true,
             message: '请选择指定时间',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 }

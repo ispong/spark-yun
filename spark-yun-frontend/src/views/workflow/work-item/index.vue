@@ -1,77 +1,49 @@
 <template>
-  <div class="zqy-work-item">
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData"
-    >
-      <div class="zqy-work-container">
-        <div class="sql-code-container">
-          <div class="sql-option-container">
-            <div
-              class="btn-box"
-              @click="goBack"
-            >
-              <el-icon>
-                <RefreshLeft />
-              </el-icon>
-              <span class="btn-text">返回</span>
-            </div>
-            <div
-              class="btn-box"
-              @click="saveData"
-            >
-              <el-icon v-if="!saveLoading">
-                <Finished />
-              </el-icon>
-              <el-icon
-                v-else
-                class="is-loading"
-              >
-                <Loading />
-              </el-icon>
-              <span class="btn-text">保存</span>
-            </div>
-            <div
-              class="btn-box"
-              @click="runWorkData"
-            >
-              <el-icon v-if="!runningLoading">
-                <VideoPlay />
-              </el-icon>
-              <el-icon
-                v-else
-                class="is-loading"
-              >
-                <Loading />
-              </el-icon>
-              <span class="btn-text">运行</span>
-            </div>
-            <div
-              class="btn-box"
-              @click="terWorkData"
-            >
-              <el-icon v-if="!terLoading">
-                <Close />
-              </el-icon>
-              <el-icon
-                v-else
-                class="is-loading"
-              >
-                <Loading />
-              </el-icon>
-              <span class="btn-text">中止</span>
-            </div>
-            <div
-              class="btn-box"
-              @click="setConfigData"
-            >
-              <el-icon>
-                <Setting />
-              </el-icon>
-              <span class="btn-text">配置</span>
-            </div>
-            <!-- <div class="btn-box" @click="publishData">
+    <div class="zqy-work-item">
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData">
+            <div class="zqy-work-container">
+                <div class="sql-code-container">
+                    <div class="sql-option-container">
+                        <div class="btn-box" @click="goBack">
+                            <el-icon>
+                                <RefreshLeft />
+                            </el-icon>
+                            <span class="btn-text">返回</span>
+                        </div>
+                        <div class="btn-box" @click="saveData">
+                            <el-icon v-if="!saveLoading">
+                                <Finished />
+                            </el-icon>
+                            <el-icon v-else class="is-loading">
+                                <Loading />
+                            </el-icon>
+                            <span class="btn-text">保存</span>
+                        </div>
+                        <div class="btn-box" @click="runWorkData">
+                            <el-icon v-if="!runningLoading">
+                                <VideoPlay />
+                            </el-icon>
+                            <el-icon v-else class="is-loading">
+                                <Loading />
+                            </el-icon>
+                            <span class="btn-text">运行</span>
+                        </div>
+                        <div class="btn-box" @click="terWorkData">
+                            <el-icon v-if="!terLoading">
+                                <Close />
+                            </el-icon>
+                            <el-icon v-else class="is-loading">
+                                <Loading />
+                            </el-icon>
+                            <span class="btn-text">中止</span>
+                        </div>
+                        <div class="btn-box" @click="setConfigData">
+                            <el-icon>
+                                <Setting />
+                            </el-icon>
+                            <span class="btn-text">配置</span>
+                        </div>
+                        <!-- <div class="btn-box" @click="publishData">
               <el-icon v-if="!publishLoading">
                 <Promotion />
               </el-icon>
@@ -89,105 +61,68 @@
               </el-icon>
               <span class="btn-text">下线</span>
             </div> -->
-            <div
-              class="btn-box"
-              @click="locationNode"
-            >
-              <el-icon>
-                <Position />
-              </el-icon>
-              <span class="btn-text">定位</span>
-            </div>
-            <div
-              class="btn-box"
-              @click="emit('sortWorkList')"
-            >
-              <el-icon>
-                <Sort v-if="!props.orderType" />
-                <SortDown v-else-if="props.orderType === 'desc'" />
-                <SortUp v-else />
-              </el-icon>
-              <span class="btn-text">
-                {{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}
-              </span>
-            </div>
-          </div>
-          <code-mirror
-            v-model="sqltextData"
-            basic
-            :lang="workConfig.workType === 'PYTHON' ? pythonLang : lang"
-            @change="sqlConfigChange"
-          />
-        </div>
+                        <div class="btn-box" @click="locationNode">
+                            <el-icon>
+                                <Position />
+                            </el-icon>
+                            <span class="btn-text">定位</span>
+                        </div>
+                        <div class="btn-box" @click="emit('sortWorkList')">
+                            <el-icon>
+                                <Sort v-if="!props.orderType" />
+                                <SortDown v-else-if="props.orderType === 'desc'" />
+                                <SortUp v-else />
+                            </el-icon>
+                            <span class="btn-text">
+                                {{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}
+                            </span>
+                        </div>
+                    </div>
+                    <code-mirror
+                        v-model="sqltextData"
+                        basic
+                        :lang="workConfig.workType === 'PYTHON' ? pythonLang : lang"
+                        @change="sqlConfigChange"
+                    />
+                </div>
 
-        <el-collapse
-          ref="logCollapseRef"
-          v-model="collapseActive"
-          class="work-item-log__collapse"
-        >
-          <div
-            class="log-resize-handle"
-            @mousedown="startResizeLogPanel"
-          />
-          <el-collapse-item
-            title="查看日志"
-            :disabled="true"
-            name="1"
-          >
-            <template #title>
-              <el-tabs
-                v-model="activeName"
-                @tab-click="changeCollapseUp"
-                @tab-change="tabChangeEvent"
-              >
-                <template
-                  v-for="tab in tabList"
-                  :key="tab.code"
-                >
-                  <el-tab-pane
-                    v-if="!tab.hide"
-                    :label="tab.name"
-                    :name="tab.code"
-                  />
-                </template>
-              </el-tabs>
-              <span class="log__collapse">
-                <el-icon
-                  v-if="isCollapse"
-                  @click="changeCollapseDown"
-                >
-                  <ArrowDown />
-                </el-icon>
-                <el-icon
-                  v-else
-                  @click="changeCollapseUp"
-                >
-                  <ArrowUp />
-                </el-icon>
-              </span>
-            </template>
-            <div
-              class="log-show log-show-datasync"
-              :style="{ height: `${logPanelHeight}px` }"
-            >
-              <component
-                :is="currentTab"
-                ref="containerInstanceRef"
-                class="show-container"
-                :style="{ height: `${logPanelHeight}px` }"
-                :show-parse="showParse"
-                @get-json-parse-result="getJsonParseResult"
-              />
+                <el-collapse ref="logCollapseRef" v-model="collapseActive" class="work-item-log__collapse">
+                    <div class="log-resize-handle" @mousedown="startResizeLogPanel" />
+                    <el-collapse-item title="查看日志" :disabled="true" name="1">
+                        <template #title>
+                            <el-tabs v-model="activeName" @tab-click="changeCollapseUp" @tab-change="tabChangeEvent">
+                                <template v-for="tab in tabList" :key="tab.code">
+                                    <el-tab-pane v-if="!tab.hide" :label="tab.name" :name="tab.code" />
+                                </template>
+                            </el-tabs>
+                            <span class="log__collapse">
+                                <el-icon v-if="isCollapse" @click="changeCollapseDown">
+                                    <ArrowDown />
+                                </el-icon>
+                                <el-icon v-else @click="changeCollapseUp">
+                                    <ArrowUp />
+                                </el-icon>
+                            </span>
+                        </template>
+                        <div class="log-show log-show-datasync" :style="{ height: `${logPanelHeight}px` }">
+                            <component
+                                :is="currentTab"
+                                ref="containerInstanceRef"
+                                class="show-container"
+                                :style="{ height: `${logPanelHeight}px` }"
+                                :show-parse="showParse"
+                                @get-json-parse-result="getJsonParseResult"
+                            />
+                        </div>
+                    </el-collapse-item>
+                </el-collapse>
             </div>
-          </el-collapse-item>
-        </el-collapse>
-      </div>
-    </LoadingPage>
-    <!-- 配置 -->
-    <config-detail ref="configDetailRef" />
-    <!-- 解析弹窗 -->
-    <ParseModal ref="parseModalRef" />
-  </div>
+        </LoadingPage>
+        <!-- 配置 -->
+        <config-detail ref="configDetailRef" />
+        <!-- 解析弹窗 -->
+        <ParseModal ref="parseModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -202,12 +137,14 @@ import TotalDetail from './total-detail.vue'
 import { sql } from '@codemirror/lang-sql'
 import { python } from '@codemirror/lang-python'
 
-import { DeleteWorkData,
+import {
+    DeleteWorkData,
     GetWorkItemConfig,
     PublishWorkData,
     RunWorkItemConfig,
     SaveWorkItemConfig,
-    TerWorkItemConfig } from '@/services/workflow.service'
+    TerWorkItemConfig
+} from '@/services/workflow.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { Loading } from '@element-plus/icons-vue'
@@ -215,7 +152,7 @@ import ParseModal from '@/components/log-container/parse-modal/index.vue'
 
 const route = useRoute()
 const router = useRouter()
-const emit = defineEmits([ 'back', 'locationNode', 'sortWorkList' ])
+const emit = defineEmits(['back', 'locationNode', 'sortWorkList'])
 
 const props = defineProps<{
     workItemConfig: any
@@ -291,7 +228,7 @@ const tabList = reactive([
 ])
 
 const showParse = computed(() => {
-    return [ 'CURL', 'QUERY_JDBC', 'SPARK_SQL', 'FLINK_SQL', 'BASH', 'PYTHON' ].includes(props.workItemConfig.workType)
+    return ['CURL', 'QUERY_JDBC', 'SPARK_SQL', 'FLINK_SQL', 'BASH', 'PYTHON'].includes(props.workItemConfig.workType)
 })
 function initData(id?: string, tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -310,9 +247,9 @@ function initData(id?: string, tableLoading?: boolean) {
                 containerInstanceRef.value.initData(id || instanceId.value, (status: string) => {
                     if (id) {
                         // 运行结束
-                        if ([ 'SPARK_SQL', 'BASH', 'PYTHON' ].includes(workConfig.workType)) {
+                        if (['SPARK_SQL', 'BASH', 'PYTHON'].includes(workConfig.workType)) {
                             tabList.forEach((item: any) => {
-                                if ([ 'RunningLog', 'TotalDetail' ].includes(item.code)) {
+                                if (['RunningLog', 'TotalDetail'].includes(item.code)) {
                                     item.hide = false
                                 }
                                 if (item.code === 'ReturnData') {
@@ -320,22 +257,22 @@ function initData(id?: string, tableLoading?: boolean) {
                                 }
                             })
                         } else if (
-                            [ 'QUERY_JDBC', 'SPARK_CONTAINER_SQL', 'PRQL', 'CURL', 'PY_SPARK' ].includes(
+                            ['QUERY_JDBC', 'SPARK_CONTAINER_SQL', 'PRQL', 'CURL', 'PY_SPARK'].includes(
                                 workConfig.workType
                             )
                         ) {
                             tabList.forEach((item: any) => {
-                                if ([ 'ReturnData' ].includes(item.code)) {
+                                if (['ReturnData'].includes(item.code)) {
                                     item.hide = status === 'FAIL' ? true : false
                                 }
-                                if ([ 'PYTHON' ].includes(workConfig.workType) && [ 'RunningLog' ].includes(item.code)) {
+                                if (['PYTHON'].includes(workConfig.workType) && ['RunningLog'].includes(item.code)) {
                                     item.hide = status === 'FAIL' ? true : false
                                 }
                             })
                         }
-                        if ([ 'CURL', 'FLINK_SQL', 'PY_SPARK' ].includes(workConfig.workType)) {
+                        if (['CURL', 'FLINK_SQL', 'PY_SPARK'].includes(workConfig.workType)) {
                             tabList.forEach((item: any) => {
-                                if ([ 'RunningLog' ].includes(item.code)) {
+                                if (['RunningLog'].includes(item.code)) {
                                     item.hide = false
                                 }
                             })
@@ -389,7 +326,7 @@ function runWorkData() {
             type: 'warning'
         }).then(() => {
             tabList.forEach((item: any) => {
-                if ([ 'RunningLog', 'TotalDetail', 'ReturnData' ].includes(item.code)) {
+                if (['RunningLog', 'TotalDetail', 'ReturnData'].includes(item.code)) {
                     item.hide = true
                 }
             })
@@ -419,7 +356,7 @@ function runWorkData() {
         })
     } else {
         tabList.forEach((item: any) => {
-            if ([ 'RunningLog', 'TotalDetail', 'ReturnData' ].includes(item.code)) {
+            if (['RunningLog', 'TotalDetail', 'ReturnData'].includes(item.code)) {
                 item.hide = true
             }
         })
@@ -584,11 +521,11 @@ function sqlConfigChange(e: string) {
 }
 
 function getJsonParseResult() {
-    if ([ 'CURL' ].includes(props.workItemConfig.workType)) {
+    if (['CURL'].includes(props.workItemConfig.workType)) {
         parseModalRef.value.showModal(instanceId.value, 'jsonPath')
-    } else if ([ 'QUERY_JDBC', 'SPARK_SQL', 'FLINK_SQL' ].includes(props.workItemConfig.workType)) {
+    } else if (['QUERY_JDBC', 'SPARK_SQL', 'FLINK_SQL'].includes(props.workItemConfig.workType)) {
         parseModalRef.value.showModal(instanceId.value, 'tablePath')
-    } else if ([ 'BASH', 'PYTHON' ].includes(props.workItemConfig.workType)) {
+    } else if (['BASH', 'PYTHON'].includes(props.workItemConfig.workType)) {
         parseModalRef.value.showModal(instanceId.value, 'regexPath')
     }
 }
@@ -624,14 +561,30 @@ onUnmounted(() => {
 
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-tooltip-autocomplete {
@@ -643,8 +596,16 @@ onUnmounted(() => {
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         li[aria-selected] {

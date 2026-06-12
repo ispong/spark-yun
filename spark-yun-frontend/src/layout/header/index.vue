@@ -7,17 +7,11 @@
  * @FilePath: /spark-yun/spark-yun-website/src/layout/header/index.vue
 -->
 <template>
-  <div class="zqy-header">
-    <div
-      class="header-name"
-      @click="clickToSPK"
-    >
-      <img
-        src="../../assets/imgs/logo-a.png"
-        alt="至轻云"
-      >
-    </div>
-    <!-- <div
+    <div class="zqy-header">
+        <div class="header-name" @click="clickToSPK">
+            <img src="../../assets/imgs/logo-a.png" alt="至轻云" />
+        </div>
+        <!-- <div
       v-if="headerConfig.tenantList && headerConfig.tenantList.length > 0 && tenantSelect"
       class="zqy-tenant"
     >
@@ -34,7 +28,7 @@
         />
       </el-select>
     </div> -->
-    <!-- <div class="header-user">
+        <!-- <div class="header-user">
       <span class="redirect-url" @click="clickRedirectUrl">帮助文档</span>
       <el-dropdown @command="handleCommand">
         <span class="el-dropdown-link">
@@ -50,7 +44,7 @@
         </template>
       </el-dropdown>
     </div> -->
-  </div>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -71,7 +65,7 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const tenantSelect = ref('')
-let headerConfig = reactive({
+const headerConfig = reactive({
     tenantList: [],
     userInfo: authStore.userInfo
 })
@@ -93,8 +87,7 @@ function handleCommand(command: string): void {
 
 function clearStore() {
     resetVipLicenseCache()
-    authStore.setUserInfo({
-})
+    authStore.setUserInfo({})
     authStore.setToken('')
     authStore.setTenantId('')
     authStore.setRole('')

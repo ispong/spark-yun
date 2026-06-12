@@ -1,89 +1,65 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table driver-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建接口
-      </el-button>
-      <el-button @click="goAccessRule">
-        黑白名单
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入名称/备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #apiName="scopeSlot">
-            <span
-              class="name-click"
-              @click="editData(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status" />
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span
-                v-if="scopeSlot.row.status !== 'UNPUBLISHED'"
-                @click="underlineApi(scopeSlot.row)"
-              >
-                下线
-              </span>
-              <span
-                v-if="scopeSlot.row.status === 'UNPUBLISHED'"
-                @click="publishApi(scopeSlot.row)"
-              >
-                发布
-              </span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="testApi(scopeSlot.row)">
-                      测试
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="scopeSlot.row.status === 'UNPUBLISHED'"
-                      @click="deleteData(scopeSlot.row)"
-                    >
-                      删除
-                    </el-dropdown-item>
-                    <!-- <el-dropdown-item>历史</el-dropdown-item> -->
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table driver-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建接口</el-button>
+            <el-button @click="goAccessRule">黑白名单</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入名称/备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <TestModal ref="testModalRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #apiName="scopeSlot">
+                        <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span v-if="scopeSlot.row.status !== 'UNPUBLISHED'" @click="underlineApi(scopeSlot.row)">
+                                下线
+                            </span>
+                            <span v-if="scopeSlot.row.status === 'UNPUBLISHED'" @click="publishApi(scopeSlot.row)">
+                                发布
+                            </span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item @click="testApi(scopeSlot.row)">测试</el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status === 'UNPUBLISHED'"
+                                            @click="deleteData(scopeSlot.row)"
+                                        >
+                                            删除
+                                        </el-dropdown-item>
+                                        <!-- <el-dropdown-item>历史</el-dropdown-item> -->
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <TestModal ref="testModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -95,12 +71,14 @@ import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 
 import { BreadCrumbList, TableConfig } from './costom-api.config'
-import { QueryCustomApiList,
+import {
+    QueryCustomApiList,
     CreateCustomApiData,
     UpdateCustomApiData,
     DeleteCustomApiData,
     PublishCustomApiData,
-    OfflineCustomApiData } from '@/services/custom-api.service'
+    OfflineCustomApiData
+} from '@/services/custom-api.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 
@@ -130,8 +108,7 @@ function initData(tableLoading?: boolean) {
             networkError.value = false
         })
         .catch(() => {
-            tableConfig.tableData = [ {
-} ]
+            tableConfig.tableData = [{}]
             tableConfig.pagination.total = 0
             loading.value = false
             tableConfig.loading = false

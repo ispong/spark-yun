@@ -1,82 +1,54 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group acquisition-task-add"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="分层名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="父级分层"
-        prop="parentLayerId"
-      >
-        <el-select
-          v-model="formData.parentLayerId"
-          filterable
-          clearable
-          placeholder="请选择"
+    <BlockModal :model-config="modelConfig">
+        <el-form
+            ref="form"
+            class="add-computer-group acquisition-task-add"
+            label-position="top"
+            :model="formData"
+            :rules="rules"
         >
-          <el-option
-            v-for="item in parentLayerIdList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="表名规范"
-        prop="tableRuleInput"
-      >
-        <el-tooltip
-          content="支持前缀/后缀/包含/精确匹配，系统会自动转为正则保存"
-          placement="top"
-        >
-          <el-icon
-            style="left: 50px"
-            class="tooltip-msg"
-          >
-            <QuestionFilled />
-          </el-icon>
-        </el-tooltip>
-        <div class="table-rule-config">
-          <el-select v-model="tableRuleMode">
-            <el-option
-              v-for="item in tableRuleModeList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-          <el-input
-            v-model="formData.tableRuleInput"
-            maxlength="200"
-            :placeholder="tableRulePlaceholder"
-          />
-        </div>
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+            <el-form-item label="分层名称" prop="name">
+                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="父级分层" prop="parentLayerId">
+                <el-select v-model="formData.parentLayerId" filterable clearable placeholder="请选择">
+                    <el-option
+                        v-for="item in parentLayerIdList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="表名规范" prop="tableRuleInput">
+                <el-tooltip content="支持前缀/后缀/包含/精确匹配，系统会自动转为正则保存" placement="top">
+                    <el-icon style="left: 50px" class="tooltip-msg">
+                        <QuestionFilled />
+                    </el-icon>
+                </el-tooltip>
+                <div class="table-rule-config">
+                    <el-select v-model="tableRuleMode">
+                        <el-option
+                            v-for="item in tableRuleModeList"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                        />
+                    </el-select>
+                    <el-input v-model="formData.tableRuleInput" maxlength="200" :placeholder="tableRulePlaceholder" />
+                </div>
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -151,7 +123,7 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     // parentLayerId: [{ required: true, message: '请选择父级分层', trigger: ['blur', 'change'] }],
@@ -161,7 +133,7 @@ const rules = reactive<FormRules>({
                 if (value?.trim() && tableRuleMode.value === 'regex') {
                     try {
                         // 仅校验正则合法性，不在这里实际使用
-                        // eslint-disable-next-line no-new
+
                         new RegExp(value)
                     } catch (error) {
                         callback(new Error('请输入合法的正则表达式'))
@@ -170,7 +142,7 @@ const rules = reactive<FormRules>({
                 }
                 callback()
             },
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

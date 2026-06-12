@@ -1,98 +1,73 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table message-notification">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建模型
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入搜索条件 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="handleCurrentChange(1)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status" />
-          </template>
-          <template #nameSlot="scopeSlot">
-            <span
-              class="name-click"
-              @click="showDetail(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #layerNameSlot="scopeSlot">
-            <span>{{ scopeSlot.row.layerName }}</span>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group btn-group-msg">
-              <span
-                v-if="['INIT', 'FAIL', 'ERROR'].includes(scopeSlot.row.status)"
-                @click="buildData(scopeSlot.row)"
-              >
-                构建
-              </span>
-              <span
-                v-if="scopeSlot.row.status === 'SUCCESS'"
-                @click="showMetadataDetail(scopeSlot.row)"
-              >
-                详情
-              </span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="resetData(scopeSlot.row)">
-                      重置
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="scopeSlot.row.status !== 'INIT'"
-                      @click="buildData(scopeSlot.row)"
-                    >
-                      构建
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="copyData(scopeSlot.row)">
-                      复制
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="showLog(scopeSlot.row)">
-                      日志
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table message-notification">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建模型</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入搜索条件 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="handleCurrentChange(1)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <CopyModal ref="copyModalRef" />
-    <ShowLog ref="showLogRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #nameSlot="scopeSlot">
+                        <span class="name-click" @click="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #layerNameSlot="scopeSlot">
+                        <span>{{ scopeSlot.row.layerName }}</span>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group btn-group-msg">
+                            <span
+                                v-if="['INIT', 'FAIL', 'ERROR'].includes(scopeSlot.row.status)"
+                                @click="buildData(scopeSlot.row)"
+                            >
+                                构建
+                            </span>
+                            <span v-if="scopeSlot.row.status === 'SUCCESS'" @click="showMetadataDetail(scopeSlot.row)">
+                                详情
+                            </span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                        <el-dropdown-item @click="resetData(scopeSlot.row)">重置</el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status !== 'INIT'"
+                                            @click="buildData(scopeSlot.row)"
+                                        >
+                                            构建
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="copyData(scopeSlot.row)">复制</el-dropdown-item>
+                                        <el-dropdown-item @click="showLog(scopeSlot.row)">日志</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <CopyModal ref="copyModalRef" />
+        <ShowLog ref="showLogRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -103,14 +78,16 @@ import AddModal from './add-modal/index.vue'
 import CopyModal from './copy-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './list.config'
-import { GetDataModelList,
+import {
+    GetDataModelList,
     GetDataModelTreeData,
     SaveDataModelData,
     UpdateDataModelData,
     DeleteDataModelData,
     ResetDataModel,
     BuildDataModel,
-    CopyDataModelData } from '@/services/data-model.service'
+    CopyDataModelData
+} from '@/services/data-model.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import ShowLog from '../../computer-group/computer-pointer/show-log/index.vue'

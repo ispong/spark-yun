@@ -1,23 +1,18 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <component
-      :is="currentComponent(componentType)"
-      ref="instanceRef"
-      v-model="tableData"
-      :pre-nodes="preNodes"
-      :node-form-data="nodeFormData"
-    />
-    <template #customLeft>
-      <el-button
-        v-if="showRefreshBtn"
-        type="primary"
-        style="margin-right: auto"
-        @click="refreshFields"
-      >
-        刷新
-      </el-button>
-    </template>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <component
+            :is="currentComponent(componentType)"
+            ref="instanceRef"
+            v-model="tableData"
+            :pre-nodes="preNodes"
+            :node-form-data="nodeFormData"
+        />
+        <template #customLeft>
+            <el-button v-if="showRefreshBtn" type="primary" style="margin-right: auto" @click="refreshFields">
+                刷新
+            </el-button>
+        </template>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -39,8 +34,7 @@ const instanceRef = ref<any>()
 const tableData = ref<any[]>([])
 const componentType = ref<string>('DEFAULT')
 const preNodes = ref<any[]>([])
-const nodeFormData = ref<any>({
-})
+const nodeFormData = ref<any>({})
 const saveCallback = ref<((data: any[]) => void) | null>(null)
 const formInstance = shallowRef<any>(Components)
 const modelConfig = reactive({
@@ -90,8 +84,7 @@ function showModal(data: any[], type: string, incomeNodes: any[], formData?: any
     tableData.value = data
     componentType.value = type
     preNodes.value = incomeNodes
-    nodeFormData.value = formData || {
-}
+    nodeFormData.value = formData || {}
     saveCallback.value = (newData: any[]) => {
         // 直接修改原数组引用，确保数据回写到formData.outColumnList
         data.length = 0

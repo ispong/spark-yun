@@ -54,10 +54,7 @@ export default class ResizeEngine {
 
     // 获取鼠标所在div的位置
     getDirection(ev: any): string {
-        let xP, 
-yP, 
-offset, 
-dir
+        let xP, yP, offset, dir
         dir = ''
 
         xP = ev.offsetX
@@ -84,7 +81,7 @@ dir
     }
 
     down(e: any): void {
-        let d = this.getDirection(e)
+        const d = this.getDirection(e)
         // 当位置为四个边和四个角时才开启尺寸修改
         if (d !== '') {
             this.resizeable = true
@@ -95,7 +92,7 @@ dir
     }
 
     move(e: any): void {
-        let d = this.getDirection(e)
+        const d = this.getDirection(e)
         let cursor
         if (d === '') {
             cursor = 'default'

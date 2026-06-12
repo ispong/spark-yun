@@ -38,9 +38,7 @@ const transform: AxiosTransform = {
         }
 
         // 统一处理后台返回的内容
-        const {
- code, msg 
-} = res.data
+        const { code, msg } = res.data
 
         // 接口请求成功
         if (code == ResultEnum.SUCCESS || code == ResultEnum.SUCCESS2 || !code) {
@@ -68,9 +66,7 @@ const transform: AxiosTransform = {
 
     // 请求之前处理config
     beforeRequestHook: (config, options) => {
-        const {
- apiUrl, joinPrefix, joinParamsToUrl, formatDate, joinTime = true, urlPrefix 
-} = options
+        const { apiUrl, joinPrefix, joinParamsToUrl, formatDate, joinTime = true, urlPrefix } = options
         const isUrlStr = isUrl(config.url as string)
 
         if (!isUrlStr && joinPrefix) {
@@ -82,8 +78,7 @@ const transform: AxiosTransform = {
 
         // GET请求
         if (config.method?.toUpperCase() === RequestEnum.GET) {
-            const params = config.params || config.data || {
-}
+            const params = config.params || config.data || {}
 
             if (!isString(params)) {
                 // 给get请求加上时间戳参数，避免从缓存中拿数据
@@ -96,8 +91,7 @@ const transform: AxiosTransform = {
         }
         // POST请求
         else {
-            const params = config.params || {
-}
+            const params = config.params || {}
             const data = config.data || false
 
             if (!isString(params)) {
@@ -110,8 +104,7 @@ const transform: AxiosTransform = {
                     config.params = undefined
                 }
                 if (joinParamsToUrl) {
-                    config.url = setObjToUrlParams(config.url as string, Object.assign({
-}, config.params, config.data))
+                    config.url = setObjToUrlParams(config.url as string, Object.assign({}, config.params, config.data))
                 }
             } else {
                 // 兼容restful风格
@@ -135,13 +128,8 @@ const transform: AxiosTransform = {
 
     // 响应错误处理
     responseInterceptorsCatch: (error: any, options: RequestOptions) => {
-        const {
- code, message, response 
-} = error || {
-}
-        const {
- showErrorMessage, checkStatus 
-} = options
+        const { code, message, response } = error || {}
+        const { showErrorMessage, checkStatus } = options
 
         try {
             if (code === 'ECONNABORTED' && message.indexOf('timeout') !== -1) {
@@ -209,13 +197,11 @@ const originOptions = {
 export function createAxios(opt?: Partial<CreateAxiosOptions>) {
     return new VAxios(
         merge(
-            {
-},
+            {},
             {
                 ...originOptions
             },
-            opt || {
-}
+            opt || {}
         )
     )
 }

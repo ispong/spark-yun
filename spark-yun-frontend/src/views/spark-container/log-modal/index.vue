@@ -1,24 +1,11 @@
 <template>
-  <BlockModal
-    :model-config="modelConfig"
-    @close="closeEvent"
-  >
-    <LoadingPage
-      class="log-loading"
-      :visible="loading"
-    >
-      <div
-        id="content"
-        class="content-box"
-      >
-        <LogContainer
-          v-if="logMsg"
-          :log-msg="logMsg"
-          :status="status"
-        />
-      </div>
-    </LoadingPage>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig" @close="closeEvent">
+        <LoadingPage class="log-loading" :visible="loading">
+            <div id="content" class="content-box">
+                <LogContainer v-if="logMsg" :log-msg="logMsg" :status="status" />
+            </div>
+        </LoadingPage>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -85,9 +72,9 @@ function getLogData(data: any, type?: string) {
             id: data.id
         })
             .then((res: any) => {
-                status.value = [ 'FAIL', 'RUNNING' ].includes(res.data.status) ? true : false
+                status.value = ['FAIL', 'RUNNING'].includes(res.data.status) ? true : false
                 logMsg.value = res.data.submitLog
-                if ([ 'RUNNING', 'FAIL' ].includes(res.data.status)) {
+                if (['RUNNING', 'FAIL'].includes(res.data.status)) {
                     if (timer.value) {
                         clearInterval(timer.value)
                     }

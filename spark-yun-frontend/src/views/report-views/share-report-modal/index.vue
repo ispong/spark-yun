@@ -1,43 +1,30 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <div class="share-form-container">
-      <div class="share-form">
-        <span class="label">链接：</span>
-        <span class="url">
-          <EllipsisTooltip
-            class="url-show"
-            :label="url || '暂无链接'"
-          />
-        </span>
-        <span
-          v-if="url"
-          id="share-report-url"
-          class="copy-url"
-          :data-clipboard-text="url"
-          @click="copyUrlEvent('share-report-url')"
-        >
-          复制
-        </span>
-      </div>
-    </div>
-    <div class="share-option-container">
-      <div class="valid-day-input">
-        <span>生效时间（天）</span>
-        <el-input-number
-          v-model="validDay"
-          :min="1"
-          controls-position="right"
-        />
-      </div>
-      <el-button
-        :loading="loading"
-        type="primary"
-        @click="getShareFormUrl"
-      >
-        生成分享链接
-      </el-button>
-    </div>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <div class="share-form-container">
+            <div class="share-form">
+                <span class="label">链接：</span>
+                <span class="url">
+                    <EllipsisTooltip class="url-show" :label="url || '暂无链接'" />
+                </span>
+                <span
+                    v-if="url"
+                    id="share-report-url"
+                    class="copy-url"
+                    :data-clipboard-text="url"
+                    @click="copyUrlEvent('share-report-url')"
+                >
+                    复制
+                </span>
+            </div>
+        </div>
+        <div class="share-option-container">
+            <div class="valid-day-input">
+                <span>生效时间（天）</span>
+                <el-input-number v-model="validDay" :min="1" controls-position="right" />
+            </div>
+            <el-button :loading="loading" type="primary" @click="getShareFormUrl">生成分享链接</el-button>
+        </div>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -89,7 +76,7 @@ function getShareFormUrl() {
 }
 
 function copyUrlEvent(id: string) {
-    let clipboard = new Clipboard('#' + id)
+    const clipboard = new Clipboard('#' + id)
     clipboard.on('success', () => {
         ElMessage.success('复制成功')
         clipboard.destroy()

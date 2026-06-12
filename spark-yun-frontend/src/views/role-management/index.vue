@@ -1,148 +1,83 @@
 <template>
-  <Breadcrumb :bread-crumb-list="[{ name: '角色管理', code: 'role-management' }]" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="openEditor()"
-      >
-        新建角色
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          clearable
-          placeholder="搜索角色名称或编码"
-          @keyup.enter="loadRoles"
-        />
-      </div>
-    </div>
-    <el-table
-      v-loading="loading"
-      :data="roles"
-    >
-      <el-table-column
-        prop="name"
-        label="角色名称"
-        min-width="160"
-      />
-      <el-table-column
-        prop="code"
-        label="角色编码"
-        min-width="180"
-      />
-      <el-table-column
-        label="状态"
-        width="100"
-      >
-        <template #default="{ row }">
-          <el-tag :type="row.status === 'ENABLE' ? 'success' : 'info'">
-            {{ row.status === 'ENABLE' ? '启用' : '禁用' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="权限数"
-        width="100"
-      >
-        <template #default="{ row }">
-          {{ row.permissionCodes?.length || 0 }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="操作"
-        width="140"
-        fixed="right"
-      >
-        <template #default="{ row }">
-          <el-button
-            link
-            type="primary"
-            @click="openEditor(row)"
-          >
-            编辑
-          </el-button>
-          <el-button
-            link
-            type="danger"
-            @click="removeRole(row)"
-          >
-            删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
-      v-model:current-page="page"
-      v-model:page-size="pageSize"
-      class="role-pagination"
-      layout="total, sizes, prev, pager, next"
-      :total="total"
-      @current-change="loadRoles"
-      @size-change="loadRoles"
-    />
-  </div>
-
-  <el-dialog
-    v-model="editorVisible"
-    title="角色配置"
-    width="760px"
-  >
-    <el-form label-position="top">
-      <div class="role-form-row">
-        <el-form-item label="角色名称">
-          <el-input v-model="form.name" />
-        </el-form-item>
-        <el-form-item label="角色编码">
-          <el-input v-model="form.code" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="form.status">
-            <el-option
-              label="启用"
-              value="ENABLE"
-            />
-            <el-option
-              label="禁用"
-              value="DISABLE"
-            />
-          </el-select>
-        </el-form-item>
-      </div>
-      <el-form-item label="工作台权限">
-        <div class="permission-grid">
-          <div
-            v-for="module in catalog.modules"
-            :key="module"
-            class="permission-row"
-          >
-            <strong>{{ module }}</strong>
-            <el-checkbox-group v-model="form.permissionCodes">
-              <el-checkbox
-                v-for="action in catalog.actions"
-                :key="`${module}:${action}`"
-                :label="`workspace:${module}:${action}`"
-              >
-                {{ actionLabels[action] || action }}
-              </el-checkbox>
-            </el-checkbox-group>
-          </div>
+    <Breadcrumb :bread-crumb-list="[{ name: '角色管理', code: 'role-management' }]" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="openEditor()">新建角色</el-button>
+            <div class="zqy-seach">
+                <el-input v-model="keyword" clearable placeholder="搜索角色名称或编码" @keyup.enter="loadRoles" />
+            </div>
         </div>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="editorVisible = false">
-        取消
-      </el-button>
-      <el-button
-        type="primary"
-        :loading="saving"
-        @click="saveRole"
-      >
-        保存
-      </el-button>
-    </template>
-  </el-dialog>
+        <el-table v-loading="loading" :data="roles">
+            <el-table-column prop="name" label="角色名称" min-width="160" />
+            <el-table-column prop="code" label="角色编码" min-width="180" />
+            <el-table-column label="状态" width="100">
+                <template #default="{ row }">
+                    <el-tag :type="row.status === 'ENABLE' ? 'success' : 'info'">
+                        {{ row.status === 'ENABLE' ? '启用' : '禁用' }}
+                    </el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column label="权限数" width="100">
+                <template #default="{ row }">
+                    {{ row.permissionCodes?.length || 0 }}
+                </template>
+            </el-table-column>
+            <el-table-column label="操作" width="140" fixed="right">
+                <template #default="{ row }">
+                    <el-button link type="primary" @click="openEditor(row)">编辑</el-button>
+                    <el-button link type="danger" @click="removeRole(row)">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+            v-model:current-page="page"
+            v-model:page-size="pageSize"
+            class="role-pagination"
+            layout="total, sizes, prev, pager, next"
+            :total="total"
+            @current-change="loadRoles"
+            @size-change="loadRoles"
+        />
+    </div>
+
+    <el-dialog v-model="editorVisible" title="角色配置" width="760px">
+        <el-form label-position="top">
+            <div class="role-form-row">
+                <el-form-item label="角色名称">
+                    <el-input v-model="form.name" />
+                </el-form-item>
+                <el-form-item label="角色编码">
+                    <el-input v-model="form.code" />
+                </el-form-item>
+                <el-form-item label="状态">
+                    <el-select v-model="form.status">
+                        <el-option label="启用" value="ENABLE" />
+                        <el-option label="禁用" value="DISABLE" />
+                    </el-select>
+                </el-form-item>
+            </div>
+            <el-form-item label="工作台权限">
+                <div class="permission-grid">
+                    <div v-for="module in catalog.modules" :key="module" class="permission-row">
+                        <strong>{{ module }}</strong>
+                        <el-checkbox-group v-model="form.permissionCodes">
+                            <el-checkbox
+                                v-for="action in catalog.actions"
+                                :key="`${module}:${action}`"
+                                :label="`workspace:${module}:${action}`"
+                            >
+                                {{ actionLabels[action] || action }}
+                            </el-checkbox>
+                        </el-checkbox-group>
+                    </div>
+                </div>
+            </el-form-item>
+        </el-form>
+        <template #footer>
+            <el-button @click="editorVisible = false">取消</el-button>
+            <el-button type="primary" :loading="saving" @click="saveRole">保存</el-button>
+        </template>
+    </el-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -200,7 +135,7 @@ function openEditor(role?: any) {
     form.name = role?.name || ''
     form.code = role?.code || ''
     form.status = role?.status || 'ENABLE'
-    form.permissionCodes = [ ...(role?.permissionCodes || []) ]
+    form.permissionCodes = [...(role?.permissionCodes || [])]
     editorVisible.value = true
 }
 

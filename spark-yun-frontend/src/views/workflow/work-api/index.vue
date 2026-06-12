@@ -1,321 +1,206 @@
 <template>
-  <div class="zqy-work-item zqy-work-api">
-    <div class="header-options">
-      <div
-        class="btn-box"
-        @click="goBack"
-      >
-        <el-icon>
-          <RefreshLeft />
-        </el-icon>
-        <span class="btn-text">返回</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="saveData"
-      >
-        <el-icon v-if="!saveLoading">
-          <Finished />
-        </el-icon>
-        <el-icon
-          v-else
-          class="is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <span class="btn-text">保存</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="runWorkData"
-      >
-        <el-icon v-if="!runningLoading">
-          <VideoPlay />
-        </el-icon>
-        <el-icon
-          v-else
-          class="is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <span class="btn-text">运行</span>
-      </div>
-      <div
-        v-if="workConfig.workType === 'API'"
-        class="btn-box"
-        @click="terWorkData"
-      >
-        <el-icon v-if="!terLoading">
-          <Close />
-        </el-icon>
-        <el-icon
-          v-else
-          class="is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <span class="btn-text">中止</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="setConfigData"
-      >
-        <el-icon>
-          <Setting />
-        </el-icon>
-        <span class="btn-text">配置</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="locationNode"
-      >
-        <el-icon>
-          <Position />
-        </el-icon>
-        <span class="btn-text">定位</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="emit('sortWorkList')"
-      >
-        <el-icon>
-          <Sort v-if="!props.orderType" />
-          <SortDown v-else-if="props.orderType === 'desc'" />
-          <SortUp v-else />
-        </el-icon>
-        <span class="btn-text">
-          {{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}
-        </span>
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData"
-    >
-      <div class="zqy-work-container api-work-container">
-        <div class="sql-code-container">
-          <!-- 这里是表单部分 -->
-          <el-form
-            ref="form"
-            label-position="top"
-            label-width="70px"
-            :model="apiWorkConfig"
-            :rules="rules"
-          >
-            <el-form-item
-              label="接口地址"
-              class="api-request-line__form-item"
-            >
-              <div class="api-request-line">
-                <el-form-item
-                  prop="requestType"
-                  class="api-request-line__method"
-                >
-                  <el-select
-                    v-model="apiWorkConfig.requestType"
-                    placeholder="请选择"
-                    @change="requestTypeChange"
-                  >
-                    <el-option
-                      label="GET"
-                      value="GET"
-                    />
-                    <el-option
-                      label="POST"
-                      value="POST"
-                    />
-                  </el-select>
-                </el-form-item>
-                <el-form-item
-                  prop="requestUrl"
-                  class="api-request-line__url"
-                >
-                  <el-input
-                    v-model="apiWorkConfig.requestUrl"
-                    clearable
-                    placeholder="请输入"
-                    maxlength="1000"
-                  />
-                </el-form-item>
-              </div>
-            </el-form-item>
-            <el-form-item
-              label="请求头"
-              prop="requestHeader"
-            >
-              <span class="add-btn">
-                <el-icon @click="addNewOption('requestHeader')">
-                  <CirclePlus />
+    <div class="zqy-work-item zqy-work-api">
+        <div class="header-options">
+            <div class="btn-box" @click="goBack">
+                <el-icon>
+                    <RefreshLeft />
                 </el-icon>
-              </span>
-              <div class="form-options__list">
-                <div
-                  v-for="(element, index) in apiWorkConfig.requestHeader"
-                  :key="index"
-                  class="form-options__item"
-                >
-                  <div class="input-item">
-                    <span class="item-label">键</span>
-                    <el-input
-                      v-model="element.label"
-                      placeholder="请输入"
-                    />
-                  </div>
-                  <div class="input-item">
-                    <span class="item-label">值</span>
-                    <el-input
-                      v-model="element.value"
-                      placeholder="请输入"
-                    />
-                  </div>
-                  <div class="option-btn">
-                    <el-icon
-                      v-if="apiWorkConfig.requestHeader.length > 1"
-                      class="remove"
-                      @click="removeItem(index, 'requestHeader')"
-                    >
-                      <CircleClose />
-                    </el-icon>
-                  </div>
-                </div>
-              </div>
-            </el-form-item>
-            <el-form-item
-              label="请求参数"
-              prop="requestParam"
-            >
-              <span class="add-btn">
-                <el-icon @click="addNewOption('requestParam')">
-                  <CirclePlus />
+                <span class="btn-text">返回</span>
+            </div>
+            <div class="btn-box" @click="saveData">
+                <el-icon v-if="!saveLoading">
+                    <Finished />
                 </el-icon>
-              </span>
-              <div class="form-options__list">
-                <div
-                  v-for="(element, index) in apiWorkConfig.requestParam"
-                  :key="index"
-                  class="form-options__item"
-                >
-                  <div class="input-item">
-                    <span class="item-label">键</span>
-                    <el-input
-                      v-model="element.label"
-                      placeholder="请输入"
-                    />
-                  </div>
-                  <div class="input-item">
-                    <span class="item-label">值</span>
-                    <el-input
-                      v-model="element.value"
-                      placeholder="请输入"
-                    />
-                  </div>
-                  <div class="option-btn">
-                    <el-icon
-                      v-if="apiWorkConfig.requestParam.length > 1"
-                      class="remove"
-                      @click="removeItem(index, 'requestParam')"
-                    >
-                      <CircleClose />
-                    </el-icon>
-                  </div>
-                </div>
-              </div>
-            </el-form-item>
-            <el-form-item
-              v-if="apiWorkConfig.requestType === 'POST'"
-              label="请求体"
-              :class="{ 'show-screen__full': reqBodyFullStatus }"
-            >
-              <span
-                class="format-json"
-                @click="formatterJsonEvent(apiWorkConfig, 'requestBody')"
-              >
-                格式化JSON
-              </span>
-              <el-icon
-                class="modal-full-screen"
-                @click="fullScreenEvent"
-              >
-                <FullScreen v-if="!reqBodyFullStatus" />
-                <Close v-else />
-              </el-icon>
-              <code-mirror
-                v-model="apiWorkConfig.requestBody"
-                basic
-                :lang="jsonLang"
-              />
-            </el-form-item>
-          </el-form>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">保存</span>
+            </div>
+            <div class="btn-box" @click="runWorkData">
+                <el-icon v-if="!runningLoading">
+                    <VideoPlay />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">运行</span>
+            </div>
+            <div v-if="workConfig.workType === 'API'" class="btn-box" @click="terWorkData">
+                <el-icon v-if="!terLoading">
+                    <Close />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">中止</span>
+            </div>
+            <div class="btn-box" @click="setConfigData">
+                <el-icon>
+                    <Setting />
+                </el-icon>
+                <span class="btn-text">配置</span>
+            </div>
+            <div class="btn-box" @click="locationNode">
+                <el-icon>
+                    <Position />
+                </el-icon>
+                <span class="btn-text">定位</span>
+            </div>
+            <div class="btn-box" @click="emit('sortWorkList')">
+                <el-icon>
+                    <Sort v-if="!props.orderType" />
+                    <SortDown v-else-if="props.orderType === 'desc'" />
+                    <SortUp v-else />
+                </el-icon>
+                <span class="btn-text">
+                    {{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}
+                </span>
+            </div>
         </div>
-      </div>
-      <el-collapse
-        ref="logCollapseRef"
-        v-model="collapseActive"
-        class="work-item-log__collapse"
-      >
-        <div
-          class="log-resize-handle"
-          @mousedown="startResizeLogPanel"
-        />
-        <el-collapse-item
-          title="查看日志"
-          :disabled="true"
-          name="1"
-        >
-          <template #title>
-            <el-tabs
-              v-model="activeName"
-              @tab-click="changeCollapseUp"
-              @tab-change="tabChangeEvent"
-            >
-              <template
-                v-for="tab in tabList"
-                :key="tab.code"
-              >
-                <el-tab-pane
-                  v-if="!tab.hide"
-                  :label="tab.name"
-                  :name="tab.code"
-                />
-              </template>
-            </el-tabs>
-            <span class="log__collapse">
-              <el-icon
-                v-if="isCollapse"
-                @click="changeCollapseDown"
-              >
-                <ArrowDown />
-              </el-icon>
-              <el-icon
-                v-else
-                @click="changeCollapseUp"
-              >
-                <ArrowUp />
-              </el-icon>
-            </span>
-          </template>
-          <div
-            class="log-show log-show-datasync"
-            :style="{ height: `${logPanelHeight}px` }"
-          >
-            <component
-              :is="currentTab"
-              ref="containerInstanceRef"
-              class="show-container"
-              :style="{ height: `${logPanelHeight}px` }"
-              :show-parse="true"
-              @get-json-parse-result="getJsonParseResult"
-            />
-          </div>
-        </el-collapse-item>
-      </el-collapse>
-    </LoadingPage>
-    <!-- 配置 -->
-    <config-detail ref="configDetailRef" />
-    <!-- 解析弹窗 -->
-    <ParseModal ref="parseModalRef" />
-  </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData">
+            <div class="zqy-work-container api-work-container">
+                <div class="sql-code-container">
+                    <!-- 这里是表单部分 -->
+                    <el-form ref="form" label-position="top" label-width="70px" :model="apiWorkConfig" :rules="rules">
+                        <el-form-item label="接口地址" class="api-request-line__form-item">
+                            <div class="api-request-line">
+                                <el-form-item prop="requestType" class="api-request-line__method">
+                                    <el-select
+                                        v-model="apiWorkConfig.requestType"
+                                        placeholder="请选择"
+                                        @change="requestTypeChange"
+                                    >
+                                        <el-option label="GET" value="GET" />
+                                        <el-option label="POST" value="POST" />
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item prop="requestUrl" class="api-request-line__url">
+                                    <el-input
+                                        v-model="apiWorkConfig.requestUrl"
+                                        clearable
+                                        placeholder="请输入"
+                                        maxlength="1000"
+                                    />
+                                </el-form-item>
+                            </div>
+                        </el-form-item>
+                        <el-form-item label="请求头" prop="requestHeader">
+                            <span class="add-btn">
+                                <el-icon @click="addNewOption('requestHeader')">
+                                    <CirclePlus />
+                                </el-icon>
+                            </span>
+                            <div class="form-options__list">
+                                <div
+                                    v-for="(element, index) in apiWorkConfig.requestHeader"
+                                    :key="index"
+                                    class="form-options__item"
+                                >
+                                    <div class="input-item">
+                                        <span class="item-label">键</span>
+                                        <el-input v-model="element.label" placeholder="请输入" />
+                                    </div>
+                                    <div class="input-item">
+                                        <span class="item-label">值</span>
+                                        <el-input v-model="element.value" placeholder="请输入" />
+                                    </div>
+                                    <div class="option-btn">
+                                        <el-icon
+                                            v-if="apiWorkConfig.requestHeader.length > 1"
+                                            class="remove"
+                                            @click="removeItem(index, 'requestHeader')"
+                                        >
+                                            <CircleClose />
+                                        </el-icon>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-form-item>
+                        <el-form-item label="请求参数" prop="requestParam">
+                            <span class="add-btn">
+                                <el-icon @click="addNewOption('requestParam')">
+                                    <CirclePlus />
+                                </el-icon>
+                            </span>
+                            <div class="form-options__list">
+                                <div
+                                    v-for="(element, index) in apiWorkConfig.requestParam"
+                                    :key="index"
+                                    class="form-options__item"
+                                >
+                                    <div class="input-item">
+                                        <span class="item-label">键</span>
+                                        <el-input v-model="element.label" placeholder="请输入" />
+                                    </div>
+                                    <div class="input-item">
+                                        <span class="item-label">值</span>
+                                        <el-input v-model="element.value" placeholder="请输入" />
+                                    </div>
+                                    <div class="option-btn">
+                                        <el-icon
+                                            v-if="apiWorkConfig.requestParam.length > 1"
+                                            class="remove"
+                                            @click="removeItem(index, 'requestParam')"
+                                        >
+                                            <CircleClose />
+                                        </el-icon>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-form-item>
+                        <el-form-item
+                            v-if="apiWorkConfig.requestType === 'POST'"
+                            label="请求体"
+                            :class="{ 'show-screen__full': reqBodyFullStatus }"
+                        >
+                            <span class="format-json" @click="formatterJsonEvent(apiWorkConfig, 'requestBody')">
+                                格式化JSON
+                            </span>
+                            <el-icon class="modal-full-screen" @click="fullScreenEvent">
+                                <FullScreen v-if="!reqBodyFullStatus" />
+                                <Close v-else />
+                            </el-icon>
+                            <code-mirror v-model="apiWorkConfig.requestBody" basic :lang="jsonLang" />
+                        </el-form-item>
+                    </el-form>
+                </div>
+            </div>
+            <el-collapse ref="logCollapseRef" v-model="collapseActive" class="work-item-log__collapse">
+                <div class="log-resize-handle" @mousedown="startResizeLogPanel" />
+                <el-collapse-item title="查看日志" :disabled="true" name="1">
+                    <template #title>
+                        <el-tabs v-model="activeName" @tab-click="changeCollapseUp" @tab-change="tabChangeEvent">
+                            <template v-for="tab in tabList" :key="tab.code">
+                                <el-tab-pane v-if="!tab.hide" :label="tab.name" :name="tab.code" />
+                            </template>
+                        </el-tabs>
+                        <span class="log__collapse">
+                            <el-icon v-if="isCollapse" @click="changeCollapseDown">
+                                <ArrowDown />
+                            </el-icon>
+                            <el-icon v-else @click="changeCollapseUp">
+                                <ArrowUp />
+                            </el-icon>
+                        </span>
+                    </template>
+                    <div class="log-show log-show-datasync" :style="{ height: `${logPanelHeight}px` }">
+                        <component
+                            :is="currentTab"
+                            ref="containerInstanceRef"
+                            class="show-container"
+                            :style="{ height: `${logPanelHeight}px` }"
+                            :show-parse="true"
+                            @get-json-parse-result="getJsonParseResult"
+                        />
+                    </div>
+                </el-collapse-item>
+            </el-collapse>
+        </LoadingPage>
+        <!-- 配置 -->
+        <config-detail ref="configDetailRef" />
+        <!-- 解析弹窗 -->
+        <ParseModal ref="parseModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -328,12 +213,14 @@ import ReturnData from '../work-item/return-data.vue'
 import RunningLog from '../work-item/running-log.vue'
 import TotalDetail from '../work-item/total-detail.vue'
 
-import { DeleteWorkData,
+import {
+    DeleteWorkData,
     GetWorkItemConfig,
     PublishWorkData,
     RunWorkItemConfig,
     SaveWorkItemConfig,
-    TerWorkItemConfig } from '@/services/workflow.service'
+    TerWorkItemConfig
+} from '@/services/workflow.service'
 import { ElMessage, ElMessageBox, ElInput, FormRules } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { Loading } from '@element-plus/icons-vue'
@@ -346,7 +233,7 @@ interface Option {
     label: string
     value: string
 }
-const emit = defineEmits([ 'back', 'locationNode', 'sortWorkList' ])
+const emit = defineEmits(['back', 'locationNode', 'sortWorkList'])
 
 const optionsRule = (rule: any, value: any, callback: any) => {
     const valueList = (value || []).map((v) => v.value).filter((v) => !!v)
@@ -398,7 +285,7 @@ let workConfig = reactive({
     workId: '',
     workType: ''
 })
-let apiWorkConfig = reactive({
+const apiWorkConfig = reactive({
     requestUrl: '', // 接口请求url
     requestType: 'GET', // 接口请求类型
     requestParam: [
@@ -420,7 +307,7 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请选择请求方式',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     requestParam: [],
@@ -587,7 +474,7 @@ function runWorkData() {
         })
     } else {
         tabList.forEach((item: any) => {
-            if ([ 'RunningLog', 'TotalDetail', 'ReturnData' ].includes(item.code)) {
+            if (['RunningLog', 'TotalDetail', 'ReturnData'].includes(item.code)) {
                 item.hide = true
             }
         })
@@ -911,14 +798,30 @@ onUnmounted(() => {
 
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-tooltip-autocomplete {
@@ -929,8 +832,16 @@ onUnmounted(() => {
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         li[aria-selected] {

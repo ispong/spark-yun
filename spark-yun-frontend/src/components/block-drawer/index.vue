@@ -1,39 +1,39 @@
 <template>
-  <el-drawer
-    v-model="visible"
-    :close-on-press-escape="false"
-    :close-on-click-modal="false"
-    :append-to-body="true"
-    :destroy-on-close="true"
-    :title="drawerConfig.title"
-    :size="drawerConfig.width || '40%'"
-    :class="drawerConfig.customClass + ' zqy-block-drawer'"
-    :z-index="drawerConfig.zIndex"
-    @close="close"
-  >
-    <template #default>
-      <slot />
-    </template>
-    <template #footer>
-      <slot name="customLeft" />
-      <el-button
-        v-if="drawerConfig.cancelConfig"
-        :disabled="drawerConfig.cancelConfig.disabled || false"
-        @click="clickToCancel"
-      >
-        {{ drawerConfig.cancelConfig.title }}
-      </el-button>
-      <el-button
-        v-if="drawerConfig.okConfig"
-        type="primary"
-        :loading="drawerConfig.okConfig.loading"
-        :disabled="drawerConfig.okConfig.disabled || false"
-        @click="clickToSave"
-      >
-        {{ drawerConfig.okConfig.title }}
-      </el-button>
-    </template>
-  </el-drawer>
+    <el-drawer
+        v-model="visible"
+        :close-on-press-escape="false"
+        :close-on-click-modal="false"
+        :append-to-body="true"
+        :destroy-on-close="true"
+        :title="drawerConfig.title"
+        :size="drawerConfig.width || '40%'"
+        :class="drawerConfig.customClass + ' zqy-block-drawer'"
+        :z-index="drawerConfig.zIndex"
+        @close="close"
+    >
+        <template #default>
+            <slot />
+        </template>
+        <template #footer>
+            <slot name="customLeft" />
+            <el-button
+                v-if="drawerConfig.cancelConfig"
+                :disabled="drawerConfig.cancelConfig.disabled || false"
+                @click="clickToCancel"
+            >
+                {{ drawerConfig.cancelConfig.title }}
+            </el-button>
+            <el-button
+                v-if="drawerConfig.okConfig"
+                type="primary"
+                :loading="drawerConfig.okConfig.loading"
+                :disabled="drawerConfig.okConfig.disabled || false"
+                @click="clickToSave"
+            >
+                {{ drawerConfig.okConfig.title }}
+            </el-button>
+        </template>
+    </el-drawer>
 </template>
 
 <script lang="ts" setup>

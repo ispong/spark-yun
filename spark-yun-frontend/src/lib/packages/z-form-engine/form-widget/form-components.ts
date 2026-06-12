@@ -27,6 +27,6 @@ const commonComponents = [
     FormInputEmailConfig
 ]
 
-const staticComponents = [ FormStaticPlaceholderConfig, FormStaticEmptyConfig ]
+const staticComponents = [FormStaticPlaceholderConfig, FormStaticEmptyConfig]
 
-export default [ ...commonComponents, ...staticComponents ]
+export default [...commonComponents, ...staticComponents]

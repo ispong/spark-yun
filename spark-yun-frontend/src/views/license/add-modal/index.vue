@@ -1,23 +1,23 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-upload
-      class="license-upload"
-      action=""
-      :limit="1"
-      :multiple="false"
-      :drag="true"
-      :auto-upload="false"
-      :on-change="handleChange"
-    >
-      <el-icon class="el-icon--upload">
-        <upload-filled />
-      </el-icon>
-      <div class="el-upload__text">
-        上传企业许可证
-        <em>点击上传</em>
-      </div>
-    </el-upload>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-upload
+            class="license-upload"
+            action=""
+            :limit="1"
+            :multiple="false"
+            :drag="true"
+            :auto-upload="false"
+            :on-change="handleChange"
+        >
+            <el-icon class="el-icon--upload">
+                <upload-filled />
+            </el-icon>
+            <div class="el-upload__text">
+                上传企业许可证
+                <em>点击上传</em>
+            </div>
+        </el-upload>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>

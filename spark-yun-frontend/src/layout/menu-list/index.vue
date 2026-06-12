@@ -1,39 +1,30 @@
 <template>
-  <div class="menu-list">
-    <el-menu
-      :default-active="defaultMenu"
-      class="el-menu-vertical-demo"
-      :collapse="isCollapse"
-      :unique-opened="true"
-      @select="handleSelect"
-    >
-      <template
-        v-for="menu in menuList"
-        :key="menu.code"
-      >
-        <el-menu-item
-          v-if="menu.authType.includes(configData.role)"
-          :index="menu.code"
+    <div class="menu-list">
+        <el-menu
+            :default-active="defaultMenu"
+            class="el-menu-vertical-demo"
+            :collapse="isCollapse"
+            :unique-opened="true"
+            @select="handleSelect"
         >
-          <el-icon><component :is="menu.icon" /></el-icon>
-          <template #title>
-            {{ menu.name }}
-          </template>
-        </el-menu-item>
-      </template>
-    </el-menu>
-    <div
-      class="collapse-btn"
-      @click="clickToCollapse"
-    >
-      <template v-if="isCollapse">
-        <el-icon><ArrowRight /></el-icon>
-      </template>
-      <template v-else>
-        <el-icon><ArrowLeft /></el-icon>
-      </template>
+            <template v-for="menu in menuList" :key="menu.code">
+                <el-menu-item v-if="menu.authType.includes(configData.role)" :index="menu.code">
+                    <el-icon><component :is="menu.icon" /></el-icon>
+                    <template #title>
+                        {{ menu.name }}
+                    </template>
+                </el-menu-item>
+            </template>
+        </el-menu>
+        <div class="collapse-btn" @click="clickToCollapse">
+            <template v-if="isCollapse">
+                <el-icon><ArrowRight /></el-icon>
+            </template>
+            <template v-else>
+                <el-icon><ArrowLeft /></el-icon>
+            </template>
+        </div>
     </div>
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -50,7 +41,7 @@ interface menu {
 
 const authStore = useAuthStore()
 // const state = useState([ 'role' ], 'authStoreModule')
-let isCollapse = ref(false)
+const isCollapse = ref(false)
 const configData = reactive({
     role: authStore.role
 })
@@ -58,11 +49,11 @@ const configData = reactive({
 defineProps<{
     menuList: {
         type: Array<menu>
-        default:() => []
+        default: () => []
     }
     defaultMenu: string
 }>()
-const emit = defineEmits([ 'select' ])
+const emit = defineEmits(['select'])
 
 const handleSelect = (key: string, keyPath: string[]) => {
     emit('select', key)

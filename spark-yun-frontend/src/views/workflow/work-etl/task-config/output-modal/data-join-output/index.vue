@@ -1,55 +1,39 @@
 <template>
-  <div class="data-join-output">
-    <div style="max-height: 444px">
-      <BlockTable
-        :table-config="tableConfig"
-        @row-dragend-event="onRowDragend"
-      >
-        <template #checkboxHeaderSlot>
-          <el-checkbox
-            :model-value="isAllChecked"
-            @change="toggleSelectAll"
-          />
-        </template>
-        <template #checkboxSlot="scopeSlot">
-          <el-checkbox
-            v-model="scopeSlot.row.checked"
-            @change="updateAllChecked"
-          />
-        </template>
-        <template #fromSource="scopeSlot">
-          <span>【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}</span>
-        </template>
-        <template #options="scopeSlot">
-          <div class="btn-group">
-            <el-dropdown trigger="click">
-              <el-icon
-                class="option-more"
-                @click.stop
-              >
-                <MoreFilled />
-              </el-icon>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="addNewCode">
-                    添加
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">
-                    编辑
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="removeCode(scopeSlot)">
-                    删除
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-        </template>
-      </BlockTable>
+    <div class="data-join-output">
+        <div style="max-height: 444px">
+            <BlockTable :table-config="tableConfig" @row-dragend-event="onRowDragend">
+                <template #checkboxHeaderSlot>
+                    <el-checkbox :model-value="isAllChecked" @change="toggleSelectAll" />
+                </template>
+                <template #checkboxSlot="scopeSlot">
+                    <el-checkbox v-model="scopeSlot.row.checked" @change="updateAllChecked" />
+                </template>
+                <template #fromSource="scopeSlot">
+                    <span>【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}</span>
+                </template>
+                <template #options="scopeSlot">
+                    <div class="btn-group">
+                        <el-dropdown trigger="click">
+                            <el-icon class="option-more" @click.stop>
+                                <MoreFilled />
+                            </el-icon>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item @click="addNewCode">添加</el-dropdown-item>
+                                    <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">
+                                        编辑
+                                    </el-dropdown-item>
+                                    <el-dropdown-item @click="removeCode(scopeSlot)">删除</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </div>
+                </template>
+            </BlockTable>
+        </div>
+        <!-- 添加字段 -->
+        <add-code ref="addCodeRef" />
     </div>
-    <!-- 添加字段 -->
-    <add-code ref="addCodeRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -69,7 +53,7 @@ const props = defineProps<{
     preNodes: any
     nodeFormData?: any
 }>()
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 
 const mainTableFields = ref<Option[]>()
 const tableFields = ref<Option[]>()
@@ -80,70 +64,70 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请选择主表',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinWay: [
         {
             required: true,
             message: '请选择关联',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinAliaCode: [
         {
             required: true,
             message: '请选择输入表',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinType: [
         {
             required: true,
             message: '请选择关联关系',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinLeftColumn: [
         {
             required: true,
             message: '请选择主表字段',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinCondition: [
         {
             required: true,
             message: '请选择条件',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinRightColumn: [
         {
             required: true,
             message: '请选择字段',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinColumn: [
         {
             required: true,
             message: '请选择字段',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinValue: [
         {
             required: true,
             message: '请输入字段值',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     joinSql: [
         {
             required: true,
             message: '请输入sql',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

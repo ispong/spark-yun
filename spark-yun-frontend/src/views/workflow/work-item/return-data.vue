@@ -1,26 +1,11 @@
 <template>
-  <LoadingPage
-    class="log-loading"
-    :visible="loading"
-  >
-    <LogContainer
-      v-if="strData || jsonData"
-      :log-msg="strData || jsonData"
-      :show-result="true"
-      :status="true"
-    />
-    <template v-else>
-      <BlockTable
-        class="result-table-log"
-        :table-config="tableConfig"
-      />
-    </template>
-  </LoadingPage>
-  <span
-    v-if="showParseWithLicense"
-    class="zqy-json-parse"
-    @click="getJsonParseResult"
-  >结果解析</span>
+    <LoadingPage class="log-loading" :visible="loading">
+        <LogContainer v-if="strData || jsonData" :log-msg="strData || jsonData" :show-result="true" :status="true" />
+        <template v-else>
+            <BlockTable class="result-table-log" :table-config="tableConfig" />
+        </template>
+    </LoadingPage>
+    <span v-if="showParseWithLicense" class="zqy-json-parse" @click="getJsonParseResult">结果解析</span>
 </template>
 
 <script lang="ts" setup>
@@ -30,7 +15,7 @@ import { GetResultData } from '@/services/schedule.service'
 import LoadingPage from '@/components/loading/index.vue'
 import { getVipLicenseEnabled } from '@/utils/vip-license'
 
-const emit = defineEmits([ 'getJsonParseResult' ])
+const emit = defineEmits(['getJsonParseResult'])
 
 const props = defineProps<{
     showParse: boolean
@@ -56,7 +41,7 @@ function getJsonParseResult() {
     emit('getJsonParseResult')
 }
 
-onMounted(async() => {
+onMounted(async () => {
     licenseEnabled.value = await getVipLicenseEnabled()
 })
 
@@ -92,8 +77,7 @@ function getResultDatalist(id: string) {
                 }
             })
             tableConfig.tableData = tableData.map((columnData: any) => {
-                const dataObj: any = {
-}
+                const dataObj: any = {}
                 col.forEach((c: any, index: number) => {
                     dataObj[c] = columnData[index]
                 })

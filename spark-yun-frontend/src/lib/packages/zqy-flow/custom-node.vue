@@ -1,106 +1,75 @@
 <template>
-  <div
-    class="zqy-flow-node"
-    :class="status"
-    @dblclick="dbclickToDetain"
-  >
-    <div
-      ref="content"
-      class="flow-node-container"
-    >
-      <p class="text">
-        {{ name }}
-      </p>
-      <template v-if="isRunning">
-        <el-icon
-          v-if="status === 'RUNNING'"
-          class="custom-icon is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <el-icon
-          v-if="status === 'ABORTING'"
-          class="custom-icon is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <el-icon
-          v-if="status === 'PENDING'"
-          class="custom-icon"
-        >
-          <Clock />
-        </el-icon>
-        <el-icon
-          v-if="status === 'ABORT'"
-          class="custom-icon"
-        >
-          <VideoPause />
-        </el-icon>
-      </template>
-      <el-dropdown
-        v-if="showMenu"
-        trigger="click"
-        @command="handleCommand"
-      >
-        <el-icon class="node-option-more">
-          <MoreFilled />
-        </el-icon>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="node_log">
-              日志
-            </el-dropdown-item>
-            <el-dropdown-item
-              v-if="
-                status === 'SUCCESS' &&
-                  ['SPARK_SQL', 'QUERY_JDBC', 'SPARK_CONTAINER_SQL', 'PRQL'].includes(
-                    node.data.nodeConfigData.workType
-                  )
-              "
-              command="node_result"
-            >
-              运行结果
-            </el-dropdown-item>
-            <el-dropdown-item
-              v-if="
-                status === 'SUCCESS' && ['API', 'SPARK_JAR'].includes(node.data.nodeConfigData.workType)
-              "
-              command="json_result"
-            >
-              运行结果
-            </el-dropdown-item>
-            <el-dropdown-item
-              v-if="
-                [
-                  'SPARK_SQL',
-                  'FLINK_SQL',
-                  'FLINK_JAR',
-                  'SPARK_JAR',
-                  'PY_SPARK',
-                  'BASH',
-                  'PYTHON',
-                  'DATA_SYNC_JDBC',
-                  'CURL'
-                ].includes(node.data.nodeConfigData.workType)
-              "
-              command="node_yarnLog"
-            >
-              运行日志
-            </el-dropdown-item>
-            <el-dropdown-item command="node_runAfter">
-              重跑下游
-            </el-dropdown-item>
-            <el-dropdown-item command="node_break">
-              中断
-            </el-dropdown-item>
-            <el-dropdown-item command="node_reRun">
-              重跑当前
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+    <div class="zqy-flow-node" :class="status" @dblclick="dbclickToDetain">
+        <div ref="content" class="flow-node-container">
+            <p class="text">
+                {{ name }}
+            </p>
+            <template v-if="isRunning">
+                <el-icon v-if="status === 'RUNNING'" class="custom-icon is-loading">
+                    <Loading />
+                </el-icon>
+                <el-icon v-if="status === 'ABORTING'" class="custom-icon is-loading">
+                    <Loading />
+                </el-icon>
+                <el-icon v-if="status === 'PENDING'" class="custom-icon">
+                    <Clock />
+                </el-icon>
+                <el-icon v-if="status === 'ABORT'" class="custom-icon">
+                    <VideoPause />
+                </el-icon>
+            </template>
+            <el-dropdown v-if="showMenu" trigger="click" @command="handleCommand">
+                <el-icon class="node-option-more">
+                    <MoreFilled />
+                </el-icon>
+                <template #dropdown>
+                    <el-dropdown-menu>
+                        <el-dropdown-item command="node_log">日志</el-dropdown-item>
+                        <el-dropdown-item
+                            v-if="
+                                status === 'SUCCESS' &&
+                                ['SPARK_SQL', 'QUERY_JDBC', 'SPARK_CONTAINER_SQL', 'PRQL'].includes(
+                                    node.data.nodeConfigData.workType
+                                )
+                            "
+                            command="node_result"
+                        >
+                            运行结果
+                        </el-dropdown-item>
+                        <el-dropdown-item
+                            v-if="
+                                status === 'SUCCESS' && ['API', 'SPARK_JAR'].includes(node.data.nodeConfigData.workType)
+                            "
+                            command="json_result"
+                        >
+                            运行结果
+                        </el-dropdown-item>
+                        <el-dropdown-item
+                            v-if="
+                                [
+                                    'SPARK_SQL',
+                                    'FLINK_SQL',
+                                    'FLINK_JAR',
+                                    'SPARK_JAR',
+                                    'PY_SPARK',
+                                    'BASH',
+                                    'PYTHON',
+                                    'DATA_SYNC_JDBC',
+                                    'CURL'
+                                ].includes(node.data.nodeConfigData.workType)
+                            "
+                            command="node_yarnLog"
+                        >
+                            运行日志
+                        </el-dropdown-item>
+                        <el-dropdown-item command="node_runAfter">重跑下游</el-dropdown-item>
+                        <el-dropdown-item command="node_break">中断</el-dropdown-item>
+                        <el-dropdown-item command="node_reRun">重跑当前</el-dropdown-item>
+                    </el-dropdown-menu>
+                </template>
+            </el-dropdown>
+        </div>
     </div>
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -138,9 +107,7 @@ function dbclickToDetain() {
 onMounted(() => {
     node.value = Node = getNode()
     name.value = node.value.data.name
-    node.value.on('change:data', ({
- current 
-}) => {
+    node.value.on('change:data', ({ current }) => {
         status.value = current.status
         isRunning.value = current.isRunning
         showMenu.value = !!current.workInstanceId

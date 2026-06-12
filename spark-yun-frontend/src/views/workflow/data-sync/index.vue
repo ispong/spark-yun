@@ -1,76 +1,46 @@
 <template>
-  <div
-    class="data-sync-page"
-    :class="{ 'work-detail__disabled': disabled }"
-  >
-    <div
-      v-if="!disabled"
-      class="data-sync__option-container"
-    >
-      <div
-        class="btn-box"
-        @click="goBack"
-      >
-        <el-icon>
-          <RefreshLeft />
-        </el-icon>
-        <span class="btn-text">返回</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="saveData"
-      >
-        <el-icon v-if="!btnLoadingConfig.saveLoading">
-          <Finished />
-        </el-icon>
-        <el-icon
-          v-else
-          class="is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <span class="btn-text">保存</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="runWorkData"
-      >
-        <el-icon v-if="!btnLoadingConfig.runningLoading">
-          <VideoPlay />
-        </el-icon>
-        <el-icon
-          v-else
-          class="is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <span class="btn-text">运行</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="terWorkData"
-      >
-        <el-icon v-if="!btnLoadingConfig.stopWorkFlowLoading">
-          <Close />
-        </el-icon>
-        <el-icon
-          v-else
-          class="is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <span class="btn-text">中止</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="setConfigData"
-      >
-        <el-icon>
-          <Setting />
-        </el-icon>
-        <span class="btn-text">配置</span>
-      </div>
-      <!-- <div class="btn-box" @click="publishData">
+    <div class="data-sync-page" :class="{ 'work-detail__disabled': disabled }">
+        <div v-if="!disabled" class="data-sync__option-container">
+            <div class="btn-box" @click="goBack">
+                <el-icon>
+                    <RefreshLeft />
+                </el-icon>
+                <span class="btn-text">返回</span>
+            </div>
+            <div class="btn-box" @click="saveData">
+                <el-icon v-if="!btnLoadingConfig.saveLoading">
+                    <Finished />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">保存</span>
+            </div>
+            <div class="btn-box" @click="runWorkData">
+                <el-icon v-if="!btnLoadingConfig.runningLoading">
+                    <VideoPlay />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">运行</span>
+            </div>
+            <div class="btn-box" @click="terWorkData">
+                <el-icon v-if="!btnLoadingConfig.stopWorkFlowLoading">
+                    <Close />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">中止</span>
+            </div>
+            <div class="btn-box" @click="setConfigData">
+                <el-icon>
+                    <Setting />
+                </el-icon>
+                <span class="btn-text">配置</span>
+            </div>
+            <!-- <div class="btn-box" @click="publishData">
               <el-icon v-if="!btnLoadingConfig.publishLoading">
                 <Promotion />
               </el-icon>
@@ -88,355 +58,264 @@
               </el-icon>
               <span class="btn-text">下线</span>
             </div> -->
-      <div
-        class="btn-box"
-        @click="locationNode"
-      >
-        <el-icon>
-          <Position />
-        </el-icon>
-        <span class="btn-text">定位</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="emit('sortWorkList')"
-      >
-        <el-icon>
-          <Sort v-if="!props.orderType" />
-          <SortDown v-else-if="props.orderType === 'desc'" />
-          <SortUp v-else />
-        </el-icon>
-        <span class="btn-text">
-          {{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}
-        </span>
-      </div>
+            <div class="btn-box" @click="locationNode">
+                <el-icon>
+                    <Position />
+                </el-icon>
+                <span class="btn-text">定位</span>
+            </div>
+            <div class="btn-box" @click="emit('sortWorkList')">
+                <el-icon>
+                    <Sort v-if="!props.orderType" />
+                    <SortDown v-else-if="props.orderType === 'desc'" />
+                    <SortUp v-else />
+                </el-icon>
+                <span class="btn-text">
+                    {{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}
+                </span>
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="getDate">
+            <div id="data-sync" class="data-sync" :class="{ 'data-sync__log': !!instanceId }">
+                <div class="data-sync-top">
+                    <el-card class="box-card">
+                        <template #header>
+                            <div class="card-header">
+                                <span>数据来源</span>
+                            </div>
+                        </template>
+                        <el-form
+                            ref="form"
+                            label-position="left"
+                            label-width="70px"
+                            :model="formData"
+                            :rules="rules"
+                            :disabled="disabled"
+                        >
+                            <el-form-item prop="sourceDBType" label="类型">
+                                <el-select
+                                    v-model="formData.sourceDBType"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @change="dbTypeChange('source')"
+                                >
+                                    <el-option
+                                        v-for="item in typeList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item prop="sourceDBId" label="数据源">
+                                <el-tooltip
+                                    v-if="!disabled"
+                                    content="数据源网速直接影响同步速度,推荐使用内网ip"
+                                    placement="top"
+                                >
+                                    <el-icon style="left: -30px" class="tooltip-msg">
+                                        <QuestionFilled />
+                                    </el-icon>
+                                </el-tooltip>
+                                <el-select
+                                    v-model="formData.sourceDBId"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @visible-change="getDataSource($event, formData.sourceDBType, 'source')"
+                                    @change="dbIdChange('source')"
+                                >
+                                    <el-option
+                                        v-for="item in sourceList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item prop="sourceTable" label="表">
+                                <el-select
+                                    v-model="formData.sourceTable"
+                                    clearable
+                                    filterable
+                                    allow-create
+                                    default-first-option
+                                    placeholder="请选择或输入表名"
+                                    @visible-change="getDataSourceTable($event, formData.sourceDBId, 'source')"
+                                    @change="tableChangeEvent($event, formData.sourceDBId, 'source')"
+                                >
+                                    <el-option
+                                        v-for="item in sourceTablesList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                                <el-button v-if="!disabled" type="primary" link @click="showTableDetail">
+                                    数据预览
+                                </el-button>
+                            </el-form-item>
+                            <el-form-item label="分区键">
+                                <el-select
+                                    v-model="formData.partitionColumn"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @visible-change="
+                                        getTableColumnData($event, formData.sourceDBId, formData.sourceTable)
+                                    "
+                                    @change="pageChangeEvent"
+                                >
+                                    <el-option
+                                        v-for="item in partKeyList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item prop="queryCondition" label="过滤条件">
+                                <el-tooltip
+                                    v-if="!disabled"
+                                    content="例如：age > 12 and username = 'zhangsan'，不需要填写where"
+                                    placement="top"
+                                >
+                                    <el-icon style="left: -20px" class="tooltip-msg">
+                                        <QuestionFilled />
+                                    </el-icon>
+                                </el-tooltip>
+                                <code-mirror
+                                    v-model="formData.queryCondition"
+                                    basic
+                                    :lang="lang"
+                                    :disabled="disabled"
+                                    @change="pageChangeEvent"
+                                />
+                            </el-form-item>
+                        </el-form>
+                    </el-card>
+                    <el-card class="box-card">
+                        <template #header>
+                            <div class="card-header">
+                                <span>数据去向</span>
+                            </div>
+                        </template>
+                        <el-form
+                            ref="form"
+                            label-position="left"
+                            label-width="70px"
+                            :model="formData"
+                            :rules="rules"
+                            :disabled="disabled"
+                        >
+                            <el-form-item prop="targetDBType" label="类型">
+                                <el-select
+                                    v-model="formData.targetDBType"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @change="dbTypeChange('target')"
+                                >
+                                    <el-option
+                                        v-for="item in typeList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item prop="targetDBId" label="数据源">
+                                <el-select
+                                    v-model="formData.targetDBId"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @visible-change="getDataSource($event, formData.targetDBType, 'target')"
+                                    @change="dbIdChange('target')"
+                                >
+                                    <el-option
+                                        v-for="item in targetList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item prop="targetTable" label="表">
+                                <el-select
+                                    v-model="formData.targetTable"
+                                    clearable
+                                    filterable
+                                    allow-create
+                                    default-first-option
+                                    placeholder="请选择或输入表名"
+                                    @visible-change="getDataSourceTable($event, formData.targetDBId, 'target')"
+                                    @change="tableChangeEvent($event, formData.targetDBId, 'target')"
+                                >
+                                    <el-option
+                                        v-for="item in targetTablesList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                                <el-button type="primary" link @click="showCreateTableSql">建表语句</el-button>
+                            </el-form-item>
+                            <el-form-item prop="overMode" label="写入模式">
+                                <el-select
+                                    v-model="formData.overMode"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @change="pageChangeEvent"
+                                >
+                                    <el-option
+                                        v-for="item in filteredOverModeList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                        </el-form>
+                    </el-card>
+                </div>
+                <data-sync-table ref="dataSyncTableRef" :disabled="disabled" :form-data="formData" />
+            </div>
+        </LoadingPage>
+        <!-- 数据同步日志部分 -->
+        <el-collapse v-if="showLogPanel" ref="logCollapseRef" v-model="collapseActive" class="data-sync-log__collapse">
+            <div class="log-resize-handle" @mousedown="startResizeLogPanel" />
+            <el-collapse-item title="查看日志" :disabled="true" name="1">
+                <template #title>
+                    <el-tabs v-model="activeName" @tab-click="changeCollapseUp" @tab-change="tabChangeEvent">
+                        <template v-for="tab in tabList" :key="tab.code">
+                            <el-tab-pane v-if="!tab.hide" :label="tab.name" :name="tab.code" />
+                        </template>
+                    </el-tabs>
+                    <span class="log__collapse">
+                        <el-icon v-if="isCollapse" @click="changeCollapseDown"><ArrowDown /></el-icon>
+                        <el-icon v-else @click="changeCollapseUp"><ArrowUp /></el-icon>
+                    </span>
+                </template>
+                <div class="log-show log-show-datasync" :style="{ height: `${logPanelHeight}px` }">
+                    <component
+                        :is="currentTab"
+                        ref="containerInstanceRef"
+                        class="show-container"
+                        :style="{ height: `${logPanelHeight}px` }"
+                    />
+                </div>
+            </el-collapse-item>
+        </el-collapse>
+        <!-- 数据预览 -->
+        <table-detail ref="tableDetailRef" />
+        <!-- 配置 -->
+        <config-detail ref="configDetailRef" />
+        <!-- 建表语句 -->
+        <create-table-sql-dialog ref="createTableSqlDialogRef" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="getDate"
-    >
-      <div
-        id="data-sync"
-        class="data-sync"
-        :class="{ 'data-sync__log': !!instanceId }"
-      >
-        <div class="data-sync-top">
-          <el-card class="box-card">
-            <template #header>
-              <div class="card-header">
-                <span>数据来源</span>
-              </div>
-            </template>
-            <el-form
-              ref="form"
-              label-position="left"
-              label-width="70px"
-              :model="formData"
-              :rules="rules"
-              :disabled="disabled"
-            >
-              <el-form-item
-                prop="sourceDBType"
-                label="类型"
-              >
-                <el-select
-                  v-model="formData.sourceDBType"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @change="dbTypeChange('source')"
-                >
-                  <el-option
-                    v-for="item in typeList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                prop="sourceDBId"
-                label="数据源"
-              >
-                <el-tooltip
-                  v-if="!disabled"
-                  content="数据源网速直接影响同步速度,推荐使用内网ip"
-                  placement="top"
-                >
-                  <el-icon
-                    style="left: -30px"
-                    class="tooltip-msg"
-                  >
-                    <QuestionFilled />
-                  </el-icon>
-                </el-tooltip>
-                <el-select
-                  v-model="formData.sourceDBId"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @visible-change="getDataSource($event, formData.sourceDBType, 'source')"
-                  @change="dbIdChange('source')"
-                >
-                  <el-option
-                    v-for="item in sourceList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                prop="sourceTable"
-                label="表"
-              >
-                <el-select
-                  v-model="formData.sourceTable"
-                  clearable
-                  filterable
-                  allow-create
-                  default-first-option
-                  placeholder="请选择或输入表名"
-                  @visible-change="getDataSourceTable($event, formData.sourceDBId, 'source')"
-                  @change="tableChangeEvent($event, formData.sourceDBId, 'source')"
-                >
-                  <el-option
-                    v-for="item in sourceTablesList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-                <el-button
-                  v-if="!disabled"
-                  type="primary"
-                  link
-                  @click="showTableDetail"
-                >
-                  数据预览
-                </el-button>
-              </el-form-item>
-              <el-form-item label="分区键">
-                <el-select
-                  v-model="formData.partitionColumn"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @visible-change="
-                    getTableColumnData($event, formData.sourceDBId, formData.sourceTable)
-                  "
-                  @change="pageChangeEvent"
-                >
-                  <el-option
-                    v-for="item in partKeyList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                prop="queryCondition"
-                label="过滤条件"
-              >
-                <el-tooltip
-                  v-if="!disabled"
-                  content="例如：age > 12 and username = 'zhangsan'，不需要填写where"
-                  placement="top"
-                >
-                  <el-icon
-                    style="left: -20px"
-                    class="tooltip-msg"
-                  >
-                    <QuestionFilled />
-                  </el-icon>
-                </el-tooltip>
-                <code-mirror
-                  v-model="formData.queryCondition"
-                  basic
-                  :lang="lang"
-                  :disabled="disabled"
-                  @change="pageChangeEvent"
-                />
-              </el-form-item>
-            </el-form>
-          </el-card>
-          <el-card class="box-card">
-            <template #header>
-              <div class="card-header">
-                <span>数据去向</span>
-              </div>
-            </template>
-            <el-form
-              ref="form"
-              label-position="left"
-              label-width="70px"
-              :model="formData"
-              :rules="rules"
-              :disabled="disabled"
-            >
-              <el-form-item
-                prop="targetDBType"
-                label="类型"
-              >
-                <el-select
-                  v-model="formData.targetDBType"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @change="dbTypeChange('target')"
-                >
-                  <el-option
-                    v-for="item in typeList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                prop="targetDBId"
-                label="数据源"
-              >
-                <el-select
-                  v-model="formData.targetDBId"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @visible-change="getDataSource($event, formData.targetDBType, 'target')"
-                  @change="dbIdChange('target')"
-                >
-                  <el-option
-                    v-for="item in targetList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                prop="targetTable"
-                label="表"
-              >
-                <el-select
-                  v-model="formData.targetTable"
-                  clearable
-                  filterable
-                  allow-create
-                  default-first-option
-                  placeholder="请选择或输入表名"
-                  @visible-change="getDataSourceTable($event, formData.targetDBId, 'target')"
-                  @change="tableChangeEvent($event, formData.targetDBId, 'target')"
-                >
-                  <el-option
-                    v-for="item in targetTablesList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-                <el-button
-                  type="primary"
-                  link
-                  @click="showCreateTableSql"
-                >
-                  建表语句
-                </el-button>
-              </el-form-item>
-              <el-form-item
-                prop="overMode"
-                label="写入模式"
-              >
-                <el-select
-                  v-model="formData.overMode"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @change="pageChangeEvent"
-                >
-                  <el-option
-                    v-for="item in filteredOverModeList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-            </el-form>
-          </el-card>
-        </div>
-        <data-sync-table
-          ref="dataSyncTableRef"
-          :disabled="disabled"
-          :form-data="formData"
-        />
-      </div>
-    </LoadingPage>
-    <!-- 数据同步日志部分 -->
-    <el-collapse
-      v-if="showLogPanel"
-      ref="logCollapseRef"
-      v-model="collapseActive"
-      class="data-sync-log__collapse"
-    >
-      <div
-        class="log-resize-handle"
-        @mousedown="startResizeLogPanel"
-      />
-      <el-collapse-item
-        title="查看日志"
-        :disabled="true"
-        name="1"
-      >
-        <template #title>
-          <el-tabs
-            v-model="activeName"
-            @tab-click="changeCollapseUp"
-            @tab-change="tabChangeEvent"
-          >
-            <template
-              v-for="tab in tabList"
-              :key="tab.code"
-            >
-              <el-tab-pane
-                v-if="!tab.hide"
-                :label="tab.name"
-                :name="tab.code"
-              />
-            </template>
-          </el-tabs>
-          <span class="log__collapse">
-            <el-icon
-              v-if="isCollapse"
-              @click="changeCollapseDown"
-            ><ArrowDown /></el-icon>
-            <el-icon
-              v-else
-              @click="changeCollapseUp"
-            ><ArrowUp /></el-icon>
-          </span>
-        </template>
-        <div
-          class="log-show log-show-datasync"
-          :style="{ height: `${logPanelHeight}px` }"
-        >
-          <component
-            :is="currentTab"
-            ref="containerInstanceRef"
-            class="show-container"
-            :style="{ height: `${logPanelHeight}px` }"
-          />
-        </div>
-      </el-collapse-item>
-    </el-collapse>
-    <!-- 数据预览 -->
-    <table-detail ref="tableDetailRef" />
-    <!-- 配置 -->
-    <config-detail ref="configDetailRef" />
-    <!-- 建表语句 -->
-    <create-table-sql-dialog ref="createTableSqlDialogRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -446,19 +325,23 @@ import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { sql } from '@codemirror/lang-sql'
 import { DataSourceType, OverModeList } from './data.config.ts'
 import { GetDatasourceList } from '@/services/datasource.service'
-import { CreateTableWork,
+import {
+    CreateTableWork,
     GetDataSourceTables,
     GetTableColumnsByTableId,
-    SaveDataSync } from '@/services/data-sync.service'
+    SaveDataSync
+} from '@/services/data-sync.service'
 import TableDetail from './table-detail/index.vue'
 import DataSyncTable from './data-sync-table/index.vue'
 import ConfigDetail from '../workflow-page/config-detail/index.vue'
-import { DeleteWorkData,
+import {
+    DeleteWorkData,
     GetWorkItemConfig,
     PublishWorkData,
     RunWorkItemConfig,
     SaveWorkItemConfig,
-    TerWorkItemConfig } from '@/services/workflow.service'
+    TerWorkItemConfig
+} from '@/services/workflow.service'
 import PublishLog from '../work-item/publish-log.vue'
 import RunningLog from '../work-item/running-log.vue'
 import { Loading } from '@element-plus/icons-vue'
@@ -476,7 +359,7 @@ const props = defineProps<{
     orderType?: 'acs' | 'desc' | ''
 }>()
 
-const emit = defineEmits([ 'back', 'locationNode', 'sortWorkList' ])
+const emit = defineEmits(['back', 'locationNode', 'sortWorkList'])
 
 const changeStatus = ref(false)
 const configDetailRef = ref()
@@ -535,8 +418,7 @@ const formData = reactive({
     targetTable: '', // 目标数据库表名
     overMode: '' // 写入模式
 })
-const rules = reactive<FormRules>({
-})
+const rules = reactive<FormRules>({})
 const btnLoadingConfig = reactive({
     runningLoading: false,
     reRunLoading: false,
@@ -1118,14 +1000,30 @@ onUnmounted(() => {
 
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-tooltip-autocomplete {
@@ -1137,8 +1035,16 @@ onUnmounted(() => {
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         li[aria-selected] {

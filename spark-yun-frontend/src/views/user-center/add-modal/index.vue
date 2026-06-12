@@ -1,96 +1,54 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="账号"
-        prop="account"
-      >
-        <el-input
-          v-model="formData.account"
-          maxlength="100"
-          placeholder="请输入"
-          show-word-limit
-        />
-      </el-form-item>
-      <el-form-item
-        label="用户名"
-        prop="username"
-      >
-        <el-input
-          v-model="formData.username"
-          maxlength="100"
-          placeholder="请输入"
-          show-word-limit
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="renderSence === 'new'"
-        label="密码"
-        prop="passwd"
-      >
-        <el-input
-          v-model="formData.passwd"
-          maxlength="100"
-          type="password"
-          show-password
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="手机号"
-        prop="phone"
-      >
-        <el-input
-          v-model="formData.phone"
-          maxlength="11"
-          placeholder="请输入手机号"
-          show-word-limit
-        />
-      </el-form-item>
-      <el-form-item
-        label="邮箱"
-        prop="email"
-      >
-        <el-input
-          v-model="formData.email"
-          maxlength="100"
-          placeholder="请输入邮箱"
-          show-word-limit
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          show-word-limit
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-    <template #customLeft>
-      <div class="valid-time">
-        <el-date-picker
-          v-model="formData.validDateTime"
-          type="datetimerange"
-          format="YYYY-MM-DD HH:mm:ss"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          :unlink-panels="true"
-          range-separator="~"
-          start-placeholder="有效开始时间"
-          end-placeholder="有效结束时间"
-          :editable="false"
-        />
-      </div>
-    </template>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="账号" prop="account">
+                <el-input v-model="formData.account" maxlength="100" placeholder="请输入" show-word-limit />
+            </el-form-item>
+            <el-form-item label="用户名" prop="username">
+                <el-input v-model="formData.username" maxlength="100" placeholder="请输入" show-word-limit />
+            </el-form-item>
+            <el-form-item v-if="renderSence === 'new'" label="密码" prop="passwd">
+                <el-input
+                    v-model="formData.passwd"
+                    maxlength="100"
+                    type="password"
+                    show-password
+                    placeholder="请输入"
+                />
+            </el-form-item>
+            <el-form-item label="手机号" prop="phone">
+                <el-input v-model="formData.phone" maxlength="11" placeholder="请输入手机号" show-word-limit />
+            </el-form-item>
+            <el-form-item label="邮箱" prop="email">
+                <el-input v-model="formData.email" maxlength="100" placeholder="请输入邮箱" show-word-limit />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    show-word-limit
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+        <template #customLeft>
+            <div class="valid-time">
+                <el-date-picker
+                    v-model="formData.validDateTime"
+                    type="datetimerange"
+                    format="YYYY-MM-DD HH:mm:ss"
+                    value-format="YYYY-MM-DD HH:mm:ss"
+                    :unlink-panels="true"
+                    range-separator="~"
+                    start-placeholder="有效开始时间"
+                    end-placeholder="有效结束时间"
+                    :editable="false"
+                />
+            </div>
+        </template>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -166,33 +124,33 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入用户名',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     account: [
         {
             required: true,
             message: '请输入账号',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     passwd: [
         {
             required: true,
             message: '请输入密码',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ],
     phone: [
         {
             validator: validatePhone,
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     email: [
         {
             validator: validateEmail,
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })
@@ -207,7 +165,7 @@ function showModal(cb: () => void, data: any): void {
         formData.email = data.email
         formData.remark = data.remark
         if (data.validStartDateTime && data.validEndDateTime) {
-            formData.validDateTime = [ data.validStartDateTime, data.validEndDateTime ]
+            formData.validDateTime = [data.validStartDateTime, data.validEndDateTime]
         } else {
             formData.validDateTime = []
         }

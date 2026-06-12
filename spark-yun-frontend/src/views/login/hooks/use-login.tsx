@@ -16,26 +16,26 @@ export function useLogin(callback: (callback: LoginModel) => Promise<void>) {
             {
                 required: true,
                 message: '请输入账号/邮箱/手机号',
-                trigger: [ 'blur', 'change' ]
+                trigger: ['blur', 'change']
             }
         ],
         passwd: [
             {
                 required: true,
                 message: '请输入密码',
-                trigger: [ 'blur', 'change' ]
+                trigger: ['blur', 'change']
             }
         ]
     }
-    let btnLoading = ref(false)
-    let oauthUrlList = ref([])
-    let oauthLoaded = ref(false)
-    let loginModel = reactive<LoginModel>({
+    const btnLoading = ref(false)
+    const oauthUrlList = ref([])
+    const oauthLoaded = ref(false)
+    const loginModel = reactive<LoginModel>({
         account: '',
         passwd: ''
     })
 
-    const handleLogin = function() {
+    const handleLogin = function () {
         elFormRef.value?.validate((isValid) => {
             if (isValid) {
                 btnLoading.value = true
@@ -47,7 +47,7 @@ export function useLogin(callback: (callback: LoginModel) => Promise<void>) {
             }
         })
     }
-    const handleKeyup = function(e: any) {
+    const handleKeyup = function (e: any) {
         if (e.type === 'keyup' && e.key === 'Enter') {
             elFormRef.value?.validate((isValid) => {
                 if (isValid) {
@@ -62,7 +62,7 @@ export function useLogin(callback: (callback: LoginModel) => Promise<void>) {
         }
     }
 
-    const queryOauthList = function() {
+    const queryOauthList = function () {
         OauthUrlList()
             .then((res: any) => {
                 oauthUrlList.value = res.data
@@ -79,7 +79,7 @@ export function useLogin(callback: (callback: LoginModel) => Promise<void>) {
         queryOauthList()
     })
 
-    const handleRedirect = function(e: any) {
+    const handleRedirect = function (e: any) {
         location.href = e.invokeUrl
     }
 

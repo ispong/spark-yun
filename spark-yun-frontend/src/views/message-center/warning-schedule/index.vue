@@ -1,56 +1,50 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table message-notification">
-    <div class="zqy-table-top">
-      <div />
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入搜索条件 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.sendStatus" />
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group btn-group-msg">
-              <span @click="showMsg(scopeSlot.row.response)">响应</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="showMsg(scopeSlot.row.content)">
-                      内容
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table message-notification">
+        <div class="zqy-table-top">
+            <div />
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入搜索条件 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <MsgModal ref="msgModalRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.sendStatus" />
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group btn-group-msg">
+                            <span @click="showMsg(scopeSlot.row.response)">响应</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="showMsg(scopeSlot.row.content)">
+                                            内容
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <MsgModal ref="msgModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>

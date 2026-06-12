@@ -1,18 +1,12 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <div style="padding: 12px 20px">
-      <data-sync-table ref="dataSyncTableRef" />
-    </div>
-    <template #customLeft>
-      <el-button
-        type="primary"
-        style="margin-right: auto"
-        @click="refreshSourceFields"
-      >
-        刷新
-      </el-button>
-    </template>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <div style="padding: 12px 20px">
+            <data-sync-table ref="dataSyncTableRef" />
+        </div>
+        <template #customLeft>
+            <el-button type="primary" style="margin-right: auto" @click="refreshSourceFields">刷新</el-button>
+        </template>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -105,7 +99,7 @@ function okEvent() {
     const data = dataSyncTableRef.value.getConnect()
     formDataRef.value.outputEtl.fromColumnList = data.fromColumnList
     formDataRef.value.outputEtl.toColumnList = data.toColumnList
-    formDataRef.value.outputEtl.colMapping = data.columnMap.map((item: any) => [ item.source, item.target ])
+    formDataRef.value.outputEtl.colMapping = data.columnMap.map((item: any) => [item.source, item.target])
     modelConfig.visible = false
 }
 

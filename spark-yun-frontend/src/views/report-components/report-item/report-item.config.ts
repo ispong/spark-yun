@@ -46,25 +46,25 @@ export const BaseConfigRules = {
         {
             required: true,
             message: '请输入名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     datasourceId: [
         {
             required: true,
             message: '请选择数据源',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     sqls: [
         {
             validator: validateSqls,
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         },
         {
             required: true,
             message: '请输入聚合Sql',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 }

@@ -1,11 +1,7 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <monitor-chart
-      :monitor-data="monitorData"
-      :date-time-list="dateTimeList"
-      :hide-full="true"
-    />
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <monitor-chart :monitor-data="monitorData" :date-time-list="dateTimeList" :hide-full="true" />
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -14,7 +10,7 @@ import * as echarts from 'echarts'
 import MonitorChart from '../monitor-chart.vue'
 import { MonitorInfo } from '../hooks/useMonitor'
 
-let myChart: any = null
+const myChart: any = null
 const loading = ref<boolean>(false)
 
 const monitorData = ref<MonitorInfo>()

@@ -1,53 +1,29 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-tabs
-      v-model="activeName"
-      @tab-click="changeTypeEvent"
-    >
-      <el-tab-pane
-        label="基础信息"
-        name="basicInfo"
-      />
-      <el-tab-pane
-        label="字段信息"
-        name="codeInfo"
-      />
-      <el-tab-pane
-        label="数据预览"
-        name="dataPreview"
-      />
-    </el-tabs>
-    <div class="info-container">
-      <component
-        :is="tabComponent"
-        ref="preTabRef"
-        :datasource-id="infoData.datasourceId"
-        :table-name="infoData.tableName"
-        @edit-event="editEvent"
-      />
-    </div>
-    <template #customLeft>
-      <el-button @click="closeEvent">
-        关闭
-      </el-button>
-      <el-button
-        v-if="activeName === 'basicInfo'"
-        type="primary"
-        :loading="exportLoading"
-        @click="refreshEvent"
-      >
-        刷新
-      </el-button>
-      <el-button
-        v-if="activeName === 'dataPreview'"
-        type="primary"
-        :loading="exportLoading"
-        @click="exportEvent"
-      >
-        导出
-      </el-button>
-    </template>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-tabs v-model="activeName" @tab-click="changeTypeEvent">
+            <el-tab-pane label="基础信息" name="basicInfo" />
+            <el-tab-pane label="字段信息" name="codeInfo" />
+            <el-tab-pane label="数据预览" name="dataPreview" />
+        </el-tabs>
+        <div class="info-container">
+            <component
+                :is="tabComponent"
+                ref="preTabRef"
+                :datasource-id="infoData.datasourceId"
+                :table-name="infoData.tableName"
+                @edit-event="editEvent"
+            />
+        </div>
+        <template #customLeft>
+            <el-button @click="closeEvent">关闭</el-button>
+            <el-button v-if="activeName === 'basicInfo'" type="primary" :loading="exportLoading" @click="refreshEvent">
+                刷新
+            </el-button>
+            <el-button v-if="activeName === 'dataPreview'" type="primary" :loading="exportLoading" @click="exportEvent">
+                导出
+            </el-button>
+        </template>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -59,7 +35,7 @@ import dataPreview from './data-preview.vue'
 import { ExportTableDetailData, RefreshTableDetailData } from '@/services/metadata-page.service'
 import { ElMessage } from 'element-plus'
 
-const emit = defineEmits([ 'editEvent' ])
+const emit = defineEmits(['editEvent'])
 
 const activeName = ref<string>('basicInfo')
 const exportLoading = ref<boolean>(false)

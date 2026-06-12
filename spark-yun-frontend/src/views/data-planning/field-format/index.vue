@@ -1,75 +1,55 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table message-notification">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建标准
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入搜索条件 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="handleCurrentChange(1)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status" />
-          </template>
-          <template #nameSlot="scopeSlot">
-            <span
-              class="name-click"
-              @click="editData(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group btn-group-msg">
-              <span
-                v-if="['DISABLE'].includes(scopeSlot.row.status)"
-                @click="enableData(scopeSlot.row)"
-              >
-                启用
-              </span>
-              <span
-                v-if="['ENABLE'].includes(scopeSlot.row.status)"
-                @click="disableData(scopeSlot.row)"
-              >
-                禁用
-              </span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table message-notification">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建标准</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入搜索条件 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="handleCurrentChange(1)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #nameSlot="scopeSlot">
+                        <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group btn-group-msg">
+                            <span v-if="['DISABLE'].includes(scopeSlot.row.status)" @click="enableData(scopeSlot.row)">
+                                启用
+                            </span>
+                            <span v-if="['ENABLE'].includes(scopeSlot.row.status)" @click="disableData(scopeSlot.row)">
+                                禁用
+                            </span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -79,12 +59,14 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './list.config'
-import { GetFieldFormatList,
+import {
+    GetFieldFormatList,
     SaveFieldFormatData,
     UpdateFieldFormatData,
     DeleteFieldFormatData,
     EnableFieldFormatData,
-    DisabledFieldFormatData } from '@/services/field-format.service'
+    DisabledFieldFormatData
+} from '@/services/field-format.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 

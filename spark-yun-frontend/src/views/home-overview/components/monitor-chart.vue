@@ -1,21 +1,14 @@
 <template>
-  <div class="monitor-chart">
-    <div class="monitor-chart__header">
-      <span class="monitor-chart__title">{{ monitorData.name }}</span>
-      <span
-        v-if="!isEmpty"
-        class="monitor-chart__active"
-      >{{ monitorData.value + monitorData.unit }}</span>
+    <div class="monitor-chart">
+        <div class="monitor-chart__header">
+            <span class="monitor-chart__title">{{ monitorData.name }}</span>
+            <span v-if="!isEmpty" class="monitor-chart__active">{{ monitorData.value + monitorData.unit }}</span>
+        </div>
+        <div class="monitor-chart__body">
+            <div v-if="!isEmpty" ref="chartContainerRef" class="monitor-chart__container" />
+            <empty-page v-else />
+        </div>
     </div>
-    <div class="monitor-chart__body">
-      <div
-        v-if="!isEmpty"
-        ref="chartContainerRef"
-        class="monitor-chart__container"
-      />
-      <empty-page v-else />
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -29,7 +22,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 
 import allScreen from '@/assets/imgs/fullScreen.svg'
 
-echarts.use([ TooltipComponent, GridComponent, LineChart, CanvasRenderer, UniversalTransition ])
+echarts.use([TooltipComponent, GridComponent, LineChart, CanvasRenderer, UniversalTransition])
 
 type EChartsOption = echarts.ComposeOption<TooltipComponentOption | GridComponentOption | LineSeriesOption>
 
@@ -39,14 +32,13 @@ const props = withDefaults(
         dateTimeList: Array<string>
         hideFull: boolean
     }>(),
-    {
-}
+    {}
 )
 
 const chartVm = ref<echarts.ECharts>()
 const chartContainerRef = ref<HTMLDivElement>()
 
-const emit = defineEmits([ 'showDetailEvent' ])
+const emit = defineEmits(['showDetailEvent'])
 
 const isEmpty = computed(() => {
     return props.monitorData.data.length === 0
@@ -110,8 +102,7 @@ const options = computed<EChartsOption>(() => {
             {
                 name: props.monitorData?.type,
                 type: 'line',
-                areaStyle: {
-},
+                areaStyle: {},
                 smooth: true,
                 color: props.monitorData?.color,
                 data: props.monitorData?.data

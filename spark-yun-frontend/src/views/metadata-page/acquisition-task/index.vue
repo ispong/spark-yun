@@ -1,82 +1,64 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table message-notification">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建采集
-      </el-button>
-      <el-button @click="goAcquisitionInstance">
-        采集实例
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入搜索条件 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #name="scopeSlot">
-            <span
-              class="name-click"
-              @click="editData(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status" />
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group btn-group-msg">
-              <span @click="triggerData(scopeSlot.row)">采集</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="['DISABLE'].includes(scopeSlot.row.status)"
-                      @click="enableData(scopeSlot.row)"
-                    >
-                      启用
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="['ENABLE'].includes(scopeSlot.row.status)"
-                      @click="disableData(scopeSlot.row)"
-                    >
-                      禁用
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table message-notification">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建采集</el-button>
+            <el-button @click="goAcquisitionInstance">采集实例</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入搜索条件 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #name="scopeSlot">
+                        <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group btn-group-msg">
+                            <span @click="triggerData(scopeSlot.row)">采集</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="['DISABLE'].includes(scopeSlot.row.status)"
+                                            @click="enableData(scopeSlot.row)"
+                                        >
+                                            启用
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="['ENABLE'].includes(scopeSlot.row.status)"
+                                            @click="disableData(scopeSlot.row)"
+                                        >
+                                            禁用
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -87,13 +69,15 @@ import AddModal from './add-modal/index.vue'
 import { useRouter } from 'vue-router'
 
 import { BreadCrumbList, TableConfig } from './list.config'
-import { GetMetadataTaskList,
+import {
+    GetMetadataTaskList,
     AddMetadataTaskData,
     UpdateMetadataTaskData,
     DeleteMetadataTaskData,
     TriggerMetadataTaskData,
     EnableMetadataTaskData,
-    DisableMetadataTaskData } from '@/services/metadata-page.service'
+    DisableMetadataTaskData
+} from '@/services/metadata-page.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const breadCrumbList = reactive(BreadCrumbList)

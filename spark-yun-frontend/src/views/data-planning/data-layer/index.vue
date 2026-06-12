@@ -1,118 +1,74 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table data-layer">
-    <div class="zqy-table-top">
-      <div class="btn-container">
-        <el-button
-          type="primary"
-          @click="addData"
-        >
-          新建分层
-        </el-button>
-      </div>
-      <div class="zqy-seach">
-        <el-radio-group
-          v-model="tableType"
-          @change="changeTypeEvent"
-        >
-          <el-radio-button label="all">
-            全局搜索
-          </el-radio-button>
-          <el-radio-button label="layer">
-            分层搜索
-          </el-radio-button>
-        </el-radio-group>
-        <el-input
-          v-model="keyword"
-          placeholder="请输入搜索条件 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="handleCurrentChange(1)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #nameSlot="scopeSlot">
-            <span
-              v-if="tableType === 'layer'"
-              class="name-click"
-              @click="showDetail(scopeSlot.row)"
-            >
-              {{ scopeSlot.row.name }}
-            </span>
-            <span
-              v-else
-              class="name-click"
-              @click="dataModelPage(scopeSlot.row)"
-            >
-              {{ scopeSlot.row.name }}
-            </span>
-          </template>
-          <template #parentNameSlot="scopeSlot">
-            <span>{{ scopeSlot.row.parentNameList ?? '-' }}</span>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group btn-group-msg">
-              <span
-                v-if="tableType === 'layer'"
-                @click="dataModelPage(scopeSlot.row)"
-              >模型</span>
-              <span
-                v-else
-                @click="layerAreaView(scopeSlot.row)"
-              >领域</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="tableType === 'layer'"
-                      @click="layerAreaView(scopeSlot.row)"
-                    >
-                      领域
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table data-layer">
+        <div class="zqy-table-top">
+            <div class="btn-container">
+                <el-button type="primary" @click="addData">新建分层</el-button>
             </div>
-          </template>
-        </BlockTable>
-        <div
-          v-if="parentLayerId && tableType === 'layer'"
-          class="back-btn-group"
-        >
-          <el-button @click="backHomeLayer">
-            返回首页分层
-          </el-button>
-          <el-button
-            class="back-up"
-            @click="showParentDetail"
-          >
-            返回上一分层
-          </el-button>
+            <div class="zqy-seach">
+                <el-radio-group v-model="tableType" @change="changeTypeEvent">
+                    <el-radio-button label="all">全局搜索</el-radio-button>
+                    <el-radio-button label="layer">分层搜索</el-radio-button>
+                </el-radio-group>
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入搜索条件 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="handleCurrentChange(1)"
+                />
+            </div>
         </div>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <DataModelDetail ref="dataModelDetailRef" />
-  </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #nameSlot="scopeSlot">
+                        <span v-if="tableType === 'layer'" class="name-click" @click="showDetail(scopeSlot.row)">
+                            {{ scopeSlot.row.name }}
+                        </span>
+                        <span v-else class="name-click" @click="dataModelPage(scopeSlot.row)">
+                            {{ scopeSlot.row.name }}
+                        </span>
+                    </template>
+                    <template #parentNameSlot="scopeSlot">
+                        <span>{{ scopeSlot.row.parentNameList ?? '-' }}</span>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group btn-group-msg">
+                            <span v-if="tableType === 'layer'" @click="dataModelPage(scopeSlot.row)">模型</span>
+                            <span v-else @click="layerAreaView(scopeSlot.row)">领域</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="tableType === 'layer'"
+                                            @click="layerAreaView(scopeSlot.row)"
+                                        >
+                                            领域
+                                        </el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+                <div v-if="parentLayerId && tableType === 'layer'" class="back-btn-group">
+                    <el-button @click="backHomeLayer">返回首页分层</el-button>
+                    <el-button class="back-up" @click="showParentDetail">返回上一分层</el-button>
+                </div>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <DataModelDetail ref="dataModelDetailRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -122,12 +78,14 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 import DataModelDetail from './layer-area/data-model-detail/index.vue'
 import { BreadCrumbList, TableConfig } from './list.config'
-import { DeleteDataLayerData,
+import {
+    DeleteDataLayerData,
     GetDataLayerTreeData,
     GetDataLayerList,
     SaveDataLayerData,
     UpdateDataLayerData,
-    GetParentLayerNode } from '@/services/data-layer.service'
+    GetParentLayerNode
+} from '@/services/data-layer.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 

@@ -1,137 +1,80 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        添加成员
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入用户名/手机号/邮箱 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">添加成员</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入用户名/手机号/邮箱 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #roleCode="scopeSlot">
+                        <div class="btn-group">
+                            <el-tag v-if="scopeSlot.row.roleCode === 'ROLE_TENANT_ADMIN'" class="ml-2" type="success">
+                                租户管理员
+                            </el-tag>
+                            <el-tag v-else-if="scopeSlot.row.normalAdmin" type="warning">普通管理员</el-tag>
+                            <el-tag v-else type="info">成员</el-tag>
+                        </div>
+                    </template>
+                    <template #status="scopeSlot">
+                        <el-tag :type="scopeSlot.row.status === 'ENABLE' ? 'success' : 'danger'">
+                            {{ scopeSlot.row.status === 'ENABLE' ? '启用' : '禁用' }}
+                        </el-tag>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div v-if="scopeSlot.row.roleCode !== 'ROLE_TENANT_ADMIN'" class="btn-group">
+                            <template v-if="!scopeSlot.row.normalAdmin">
+                                <span v-if="!scopeSlot.row.authLoading" @click="giveAuth(scopeSlot.row)">管理授权</span>
+                                <el-icon v-else class="is-loading">
+                                    <Loading />
+                                </el-icon>
+                            </template>
+                            <template v-else>
+                                <span v-if="!scopeSlot.row.authLoading" @click="removeAuth(scopeSlot.row)">
+                                    取消授权
+                                </span>
+                                <el-icon v-else class="is-loading">
+                                    <Loading />
+                                </el-icon>
+                            </template>
+                            <span @click="openRoleDialog(scopeSlot.row)">业务角色</span>
+                            <span @click="changeMemberStatus(scopeSlot.row)">
+                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                            </span>
+                            <span @click="deleteData(scopeSlot.row)">移除</span>
+                        </div>
+                        <span v-else class="tenant-admin-tip">平台管理维护</span>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <el-dialog v-model="roleDialogVisible" title="分配业务角色" width="480px">
+            <el-checkbox-group v-model="selectedRoleIds">
+                <el-checkbox v-for="role in availableRoles" :key="role.id" :label="role.id">
+                    {{ role.name }}
+                </el-checkbox>
+            </el-checkbox-group>
+            <template #footer>
+                <el-button @click="roleDialogVisible = false">取消</el-button>
+                <el-button type="primary" :loading="roleSaving" @click="saveMemberRoles">保存</el-button>
+            </template>
+        </el-dialog>
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #roleCode="scopeSlot">
-            <div class="btn-group">
-              <el-tag
-                v-if="scopeSlot.row.roleCode === 'ROLE_TENANT_ADMIN'"
-                class="ml-2"
-                type="success"
-              >
-                租户管理员
-              </el-tag>
-              <el-tag
-                v-else-if="scopeSlot.row.normalAdmin"
-                type="warning"
-              >
-                普通管理员
-              </el-tag>
-              <el-tag
-                v-else
-                type="info"
-              >
-                成员
-              </el-tag>
-            </div>
-          </template>
-          <template #status="scopeSlot">
-            <el-tag :type="scopeSlot.row.status === 'ENABLE' ? 'success' : 'danger'">
-              {{ scopeSlot.row.status === 'ENABLE' ? '启用' : '禁用' }}
-            </el-tag>
-          </template>
-          <template #options="scopeSlot">
-            <div
-              v-if="scopeSlot.row.roleCode !== 'ROLE_TENANT_ADMIN'"
-              class="btn-group"
-            >
-              <template v-if="!scopeSlot.row.normalAdmin">
-                <span
-                  v-if="!scopeSlot.row.authLoading"
-                  @click="giveAuth(scopeSlot.row)"
-                >管理授权</span>
-                <el-icon
-                  v-else
-                  class="is-loading"
-                >
-                  <Loading />
-                </el-icon>
-              </template>
-              <template v-else>
-                <span
-                  v-if="!scopeSlot.row.authLoading"
-                  @click="removeAuth(scopeSlot.row)"
-                >
-                  取消授权
-                </span>
-                <el-icon
-                  v-else
-                  class="is-loading"
-                >
-                  <Loading />
-                </el-icon>
-              </template>
-              <span @click="openRoleDialog(scopeSlot.row)">业务角色</span>
-              <span @click="changeMemberStatus(scopeSlot.row)">
-                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
-              </span>
-              <span @click="deleteData(scopeSlot.row)">移除</span>
-            </div>
-            <span
-              v-else
-              class="tenant-admin-tip"
-            >平台管理维护</span>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <el-dialog
-      v-model="roleDialogVisible"
-      title="分配业务角色"
-      width="480px"
-    >
-      <el-checkbox-group v-model="selectedRoleIds">
-        <el-checkbox
-          v-for="role in availableRoles"
-          :key="role.id"
-          :label="role.id"
-        >
-          {{ role.name }}
-        </el-checkbox>
-      </el-checkbox-group>
-      <template #footer>
-        <el-button @click="roleDialogVisible = false">
-          取消
-        </el-button>
-        <el-button
-          type="primary"
-          :loading="roleSaving"
-          @click="saveMemberRoles"
-        >
-          保存
-        </el-button>
-      </template>
-    </el-dialog>
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -142,13 +85,15 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './tenant-user.config'
-import { GetUserList,
+import {
+    GetUserList,
     AddTenantUserData,
     DeleteTenantUser,
     GiveAuth,
     RemoveAuth,
     SetMemberRoles,
-    SetTenantMemberStatus } from '@/services/tenant-user.service'
+    SetTenantMemberStatus
+} from '@/services/tenant-user.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { useSwitchTenant } from '@/hooks/switch-tenant'
@@ -173,9 +118,7 @@ const selectedRoleIds = ref<string[]>([])
 const selectedMember = ref<any>()
 const availableRoles = ref<any[]>([])
 
-const {
- currentTenant, tenantList, initSwitchTenant, onTenantChange 
-} = useSwitchTenant()
+const { currentTenant, tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
 
 function initData(tableLoading?: boolean) {
     if (!currentTenant.value.id) {
@@ -298,7 +241,7 @@ function changeMemberStatus(data: any) {
 
 function openRoleDialog(data: any) {
     selectedMember.value = data
-    selectedRoleIds.value = [ ...(data.roleIds || []) ]
+    selectedRoleIds.value = [...(data.roleIds || [])]
     roleDialogVisible.value = true
 }
 

@@ -1,24 +1,24 @@
 <template>
-  <div class="z-charts-engine">
-    <ChartsChoose
-      v-if="renderSence !== 'readonly'"
-      :charts-list="chartsList"
-      :show-report-components-btn="showReportComponentsBtn"
-      @start-move-event="startMoveEvent"
-      @end-move-event="endMoveEvent"
-      @get-chart-list-event="getChartListEvent"
-      @preview-chat-event="previewChatEvent"
-      @go-report-components-event="goReportComponentsEvent"
-    />
-    <ChartsComponents
-      ref="chartComponentsRef"
-      class="charts-edit-container"
-      :render-sence="renderSence"
-      :chart-list="componentList"
-      :get-preview-option="getPreviewOption"
-      :get-real-data-option="getRealDataOption"
-    />
-  </div>
+    <div class="z-charts-engine">
+        <ChartsChoose
+            v-if="renderSence !== 'readonly'"
+            :charts-list="chartsList"
+            :show-report-components-btn="showReportComponentsBtn"
+            @start-move-event="startMoveEvent"
+            @end-move-event="endMoveEvent"
+            @get-chart-list-event="getChartListEvent"
+            @preview-chat-event="previewChatEvent"
+            @go-report-components-event="goReportComponentsEvent"
+        />
+        <ChartsComponents
+            ref="chartComponentsRef"
+            class="charts-edit-container"
+            :render-sence="renderSence"
+            :chart-list="componentList"
+            :get-preview-option="getPreviewOption"
+            :get-real-data-option="getRealDataOption"
+        />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -34,7 +34,7 @@ const props = defineProps([
     'getRealDataOption',
     'showReportComponentsBtn'
 ])
-const emit = defineEmits([ 'getChartListEvent', 'previewChatEvent', 'goReportComponentsEvent' ])
+const emit = defineEmits(['getChartListEvent', 'previewChatEvent', 'goReportComponentsEvent'])
 
 const chartComponentsRef = ref()
 
@@ -63,7 +63,7 @@ function goReportComponentsEvent() {
 
 function downloadLog() {
     const logStr = ''
-    const blob = new Blob([ logStr ], {
+    const blob = new Blob([logStr], {
         type: 'text/plain;charset=utf-8'
     })
     const objectURL = URL.createObjectURL(blob)

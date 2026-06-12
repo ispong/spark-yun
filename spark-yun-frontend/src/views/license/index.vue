@@ -1,91 +1,58 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        上传证书
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">上传证书</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #statusTag="scopeSlot">
+                        <div class="btn-group">
+                            <el-tag v-if="scopeSlot.row.status === 'ENABLE'" class="ml-2" type="success">启用</el-tag>
+                            <el-tag v-if="scopeSlot.row.status === 'DISABLE'" class="ml-2" type="danger">禁用</el-tag>
+                        </div>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <template v-if="scopeSlot.row.status === 'ENABLE'">
+                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, false)">
+                                    禁用
+                                </span>
+                                <el-icon v-else class="is-loading">
+                                    <Loading />
+                                </el-icon>
+                            </template>
+                            <template v-else>
+                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, true)">
+                                    启用
+                                </span>
+                                <el-icon v-else class="is-loading">
+                                    <Loading />
+                                </el-icon>
+                            </template>
+                            <span @click="deleteData(scopeSlot.row)">删除</span>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #statusTag="scopeSlot">
-            <div class="btn-group">
-              <el-tag
-                v-if="scopeSlot.row.status === 'ENABLE'"
-                class="ml-2"
-                type="success"
-              >
-                启用
-              </el-tag>
-              <el-tag
-                v-if="scopeSlot.row.status === 'DISABLE'"
-                class="ml-2"
-                type="danger"
-              >
-                禁用
-              </el-tag>
-            </div>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <template v-if="scopeSlot.row.status === 'ENABLE'">
-                <span
-                  v-if="!scopeSlot.row.statusLoading"
-                  @click="changeStatus(scopeSlot.row, false)"
-                >
-                  禁用
-                </span>
-                <el-icon
-                  v-else
-                  class="is-loading"
-                >
-                  <Loading />
-                </el-icon>
-              </template>
-              <template v-else>
-                <span
-                  v-if="!scopeSlot.row.statusLoading"
-                  @click="changeStatus(scopeSlot.row, true)"
-                >
-                  启用
-                </span>
-                <el-icon
-                  v-else
-                  class="is-loading"
-                >
-                  <Loading />
-                </el-icon>
-              </template>
-              <span @click="deleteData(scopeSlot.row)">删除</span>
-            </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -96,12 +63,14 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './license.config'
-import { GetLicenseList,
+import {
+    GetLicenseList,
     UploadLicenseFile,
     DisableLicense,
     EnableLicense,
     DeleteLicense,
-    CheckLicenseStatus } from '@/services/license.service'
+    CheckLicenseStatus
+} from '@/services/license.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 

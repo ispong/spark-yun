@@ -1,16 +1,13 @@
 <template>
-  <BlockTable :table-config="tableConfig">
-    <template #options="scopeSlot">
-      <div class="btn-group">
-        <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
-        <span @click="editEvent(scopeSlot.row)">备注</span>
-      </div>
-    </template>
-  </BlockTable>
-  <DataLineage
-    ref="dataLineageRef"
-    :is-code="true"
-  />
+    <BlockTable :table-config="tableConfig">
+        <template #options="scopeSlot">
+            <div class="btn-group">
+                <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
+                <span @click="editEvent(scopeSlot.row)">备注</span>
+            </div>
+        </template>
+    </BlockTable>
+    <DataLineage ref="dataLineageRef" :is-code="true" />
 </template>
 
 <script lang="ts" setup>
@@ -36,7 +33,7 @@ interface TableConfig {
     loading?: boolean // 表格loading
 }
 
-const guid = function() {
+const guid = function () {
     function S4() {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
@@ -48,7 +45,7 @@ const props = defineProps<{
     tableName: string
 }>()
 
-const emit = defineEmits([ 'editEvent' ])
+const emit = defineEmits(['editEvent'])
 
 const normalCol = [
     {
@@ -153,7 +150,7 @@ function dataLineageEvent(data: any) {
         data,
         (params?: any) => {
             return new Promise((resolve: any, reject: any) => {
-                let requestParams = {
+                const requestParams = {
                     dbId: data.datasourceId,
                     tableName: data.tableName,
                     columnName: data.columnName,
@@ -161,9 +158,9 @@ function dataLineageEvent(data: any) {
                 }
                 if (params) {
                     requestParams.dbId = params.data.dbId
-                    ;(requestParams.tableName = params.data.tableName),
+                    ;((requestParams.tableName = params.data.tableName),
                         (requestParams.columnName = params.data.columnName),
-                        (requestParams.lineageType = params.lineageType)
+                        (requestParams.lineageType = params.lineageType))
                 }
                 GetDataLineageByCode(requestParams)
                     .then((res: any) => {

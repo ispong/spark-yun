@@ -1,31 +1,27 @@
 <template>
-  <div class="z-share-form">
-    <Header />
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="getFormConfigById"
-    >
-      <div class="share-form-button">
-        <el-button
-          :disabled="renderSence === 'readonly'"
-          :loading="saveLoading"
-          type="primary"
-          @click="saveData"
-        >
-          保存
-        </el-button>
-      </div>
-      <div class="share-form-container">
-        <z-form-engine
-          ref="formEngineRef"
-          v-model="formData"
-          :render-sence="renderSence"
-          :form-config-list="formConfigList"
-        />
-      </div>
-    </LoadingPage>
-  </div>
+    <div class="z-share-form">
+        <Header />
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="getFormConfigById">
+            <div class="share-form-button">
+                <el-button
+                    :disabled="renderSence === 'readonly'"
+                    :loading="saveLoading"
+                    type="primary"
+                    @click="saveData"
+                >
+                    保存
+                </el-button>
+            </div>
+            <div class="share-form-container">
+                <z-form-engine
+                    ref="formEngineRef"
+                    v-model="formData"
+                    :render-sence="renderSence"
+                    :form-config-list="formConfigList"
+                />
+            </div>
+        </LoadingPage>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -36,10 +32,12 @@ import { useRoute } from 'vue-router'
 import Header from '@/layout/header/index.vue'
 import ZFormEngine from '@/lib/packages/z-form-engine/index.vue'
 import { ElMessage } from 'element-plus'
-import { AddFormData,
+import {
+    AddFormData,
     GetFormLinkInfoConfig,
     ShareFormGetCustomToken,
-    ShareFormGetFormConfig } from '@/services/custom-form.service'
+    ShareFormGetFormConfig
+} from '@/services/custom-form.service'
 
 interface baseParam {
     formId: string
@@ -72,8 +70,7 @@ const shareFormConfig = ref<baseParam>({
 })
 const token = ref('')
 
-const formData = ref<Record<string, any>>({
-})
+const formData = ref<Record<string, any>>({})
 
 function toMillisecondNumber(value: any): number | null {
     if (typeof value === 'number' && !Number.isNaN(value)) {
@@ -86,7 +83,7 @@ function toMillisecondNumber(value: any): number | null {
         return Number(value)
     }
     if (/^\d{2}:\d{2}:\d{2}$/.test(value)) {
-        const [ hour, minute, second ] = value.split(':').map(Number)
+        const [hour, minute, second] = value.split(':').map(Number)
         return hour * 3600000 + minute * 60000 + second * 1000
     }
     if (value.includes('T')) {
@@ -100,8 +97,7 @@ function toMillisecondNumber(value: any): number | null {
 
 function normalizeTimeFieldData(data: Record<string, any>) {
     const result: Record<string, any> = {
-        ...(data || {
-})
+        ...(data || {})
     }
     const timeFieldKeys = (formConfigList.value || [])
         .filter((item: any) => item?.componentType === 'FormInputTime')

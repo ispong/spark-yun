@@ -1,150 +1,116 @@
 <template>
-  <div class="zqy-seach-table costom-form">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建表单
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入表单名称 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
+    <div class="zqy-seach-table costom-form">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建表单</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入表单名称 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="form-card-container">
+                <template v-if="formList?.length">
+                    <el-scrollbar max-height="calc(100vh - 146px)" class="form-card-list">
+                        <template v-for="card in formList" :key="card.id">
+                            <el-tooltip
+                                :disabled="!card.remark"
+                                :content="card.remark"
+                                placement="top"
+                                :show-after="600"
+                            >
+                                <div class="form-card-item" @click="redirectQuery(card)">
+                                    <div class="card-title">
+                                        <EllipsisTooltip class="card-title-name" :label="card.name" />
+                                    </div>
+                                    <div class="card-item">
+                                        <span class="name name_3">数据源：</span>
+                                        <EllipsisTooltip
+                                            class="card-item-name card-item-name_3"
+                                            :label="card.datasourceName"
+                                        />
+                                    </div>
+                                    <div class="card-item">
+                                        <span class="name">表名：</span>
+                                        <EllipsisTooltip class="card-item-name" :label="card.mainTable" />
+                                    </div>
+                                    <div class="card-item">
+                                        <span class="name name_4">创建时间：</span>
+                                        <EllipsisTooltip
+                                            class="card-item-name card-item-name_4"
+                                            :label="card.createDateTime"
+                                        />
+                                    </div>
+                                    <div class="card-item">
+                                        状态：{{ card.status === 'UNPUBLISHED' ? '未发布' : '已发布' }}
+                                    </div>
+                                    <div class="card-actions">
+                                        <span
+                                            v-if="card.status === 'UNPUBLISHED'"
+                                            class="card-action"
+                                            @click.stop="editData(card)"
+                                        >
+                                            配置
+                                        </span>
+                                        <span class="card-action" @click.stop="updateData(card)">编辑</span>
+                                        <span
+                                            v-if="card.status === 'UNPUBLISHED'"
+                                            class="card-action card-action__danger"
+                                            @click.stop="deleteData(card)"
+                                        >
+                                            删除
+                                        </span>
+                                        <span
+                                            v-if="card.status !== 'UNPUBLISHED'"
+                                            class="card-action"
+                                            @click.stop="shareForm(card)"
+                                        >
+                                            分享
+                                        </span>
+                                        <span
+                                            v-if="card.status !== 'UNPUBLISHED'"
+                                            class="card-action"
+                                            @click.stop="underlineForm(card)"
+                                        >
+                                            下线
+                                        </span>
+                                        <span v-else class="card-action" @click.stop="publishForm(card)">发布</span>
+                                    </div>
+                                </div>
+                            </el-tooltip>
+                        </template>
+                        <template v-for="(_, index) in emptyBox" :key="index">
+                            <div class="form-card-item form-card-item__empty" />
+                        </template>
+                    </el-scrollbar>
+                    <el-pagination
+                        v-if="pagination"
+                        class="pagination"
+                        popper-class="pagination-popper"
+                        background
+                        layout="prev, pager, next, sizes, total, jumper"
+                        :hide-on-single-page="false"
+                        :total="pagination.total"
+                        :page-size="pagination.pageSize"
+                        :current-page="pagination.currentPage"
+                        :page-sizes="[10, 20]"
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                    />
+                </template>
+                <template v-else>
+                    <empty-page />
+                </template>
+            </div>
+        </LoadingPage>
+        <add-form ref="addFormRef" />
+        <ShareForm ref="shareFormRef" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="form-card-container">
-        <template v-if="formList?.length">
-          <el-scrollbar
-            max-height="calc(100vh - 146px)"
-            class="form-card-list"
-          >
-            <template
-              v-for="card in formList"
-              :key="card.id"
-            >
-              <el-tooltip
-                :disabled="!card.remark"
-                :content="card.remark"
-                placement="top"
-                :show-after="600"
-              >
-                <div
-                  class="form-card-item"
-                  @click="redirectQuery(card)"
-                >
-                  <div class="card-title">
-                    <EllipsisTooltip
-                      class="card-title-name"
-                      :label="card.name"
-                    />
-                  </div>
-                  <div class="card-item">
-                    <span class="name name_3">数据源：</span>
-                    <EllipsisTooltip
-                      class="card-item-name card-item-name_3"
-                      :label="card.datasourceName"
-                    />
-                  </div>
-                  <div class="card-item">
-                    <span class="name">表名：</span>
-                    <EllipsisTooltip
-                      class="card-item-name"
-                      :label="card.mainTable"
-                    />
-                  </div>
-                  <div class="card-item">
-                    <span class="name name_4">创建时间：</span>
-                    <EllipsisTooltip
-                      class="card-item-name card-item-name_4"
-                      :label="card.createDateTime"
-                    />
-                  </div>
-                  <div class="card-item">
-                    状态：{{ card.status === 'UNPUBLISHED' ? '未发布' : '已发布' }}
-                  </div>
-                  <div class="card-actions">
-                    <span
-                      v-if="card.status === 'UNPUBLISHED'"
-                      class="card-action"
-                      @click.stop="editData(card)"
-                    >
-                      配置
-                    </span>
-                    <span
-                      class="card-action"
-                      @click.stop="updateData(card)"
-                    >编辑</span>
-                    <span
-                      v-if="card.status === 'UNPUBLISHED'"
-                      class="card-action card-action__danger"
-                      @click.stop="deleteData(card)"
-                    >
-                      删除
-                    </span>
-                    <span
-                      v-if="card.status !== 'UNPUBLISHED'"
-                      class="card-action"
-                      @click.stop="shareForm(card)"
-                    >
-                      分享
-                    </span>
-                    <span
-                      v-if="card.status !== 'UNPUBLISHED'"
-                      class="card-action"
-                      @click.stop="underlineForm(card)"
-                    >
-                      下线
-                    </span>
-                    <span
-                      v-else
-                      class="card-action"
-                      @click.stop="publishForm(card)"
-                    >发布</span>
-                  </div>
-                </div>
-              </el-tooltip>
-            </template>
-            <template
-              v-for="(_, index) in emptyBox"
-              :key="index"
-            >
-              <div class="form-card-item form-card-item__empty" />
-            </template>
-          </el-scrollbar>
-          <el-pagination
-            v-if="pagination"
-            class="pagination"
-            popper-class="pagination-popper"
-            background
-            layout="prev, pager, next, sizes, total, jumper"
-            :hide-on-single-page="false"
-            :total="pagination.total"
-            :page-size="pagination.pageSize"
-            :current-page="pagination.currentPage"
-            :page-sizes="[10, 20]"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-          />
-        </template>
-        <template v-else>
-          <empty-page />
-        </template>
-      </div>
-    </LoadingPage>
-    <add-form ref="addFormRef" />
-    <ShareForm ref="shareFormRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -157,12 +123,14 @@ import AddForm from './add-form/index.vue'
 import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ShareForm from './share-form-modal/index.vue'
-import { CreateCustomFormData,
+import {
+    CreateCustomFormData,
     DeleteCustomFormData,
     DeployCustomFormData,
     OfflineCustomFormData,
     QueryCustomFormList,
-    UpdateCustomFormData } from '@/services/custom-form.service'
+    UpdateCustomFormData
+} from '@/services/custom-form.service'
 
 interface formDataParam {
     name: string

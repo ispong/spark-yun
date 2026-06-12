@@ -1,142 +1,88 @@
 <template>
-  <div class="config-components data-add-col">
-    <el-form-item class="form-item-top">
-      <div
-        v-for="(element, index) in formData.addColEtl"
-        :key="index"
-        class="form-options__list"
-        :style="getGroupStyle(index)"
-      >
-        <el-icon
-          class="remove-block-btn"
-          @click="removeItem(index)"
-        >
-          <CircleClose />
-        </el-icon>
-        <el-form-item
-          :prop="`addColEtl[${index}].addType`"
-          :rules="rules.addType"
-          label="字段类型"
-        >
-          <el-select
-            v-model="element.addType"
-            placeholder="请选择"
-            @change="onAddTypeChange(element)"
-          >
-            <el-option
-              label="来源表"
-              value="SOURCE_TABLE"
-            />
-            <el-option
-              label="手动添加"
-              value="MANUAL"
-            />
-          </el-select>
-        </el-form-item>
-        <template v-if="element.addType === 'SOURCE_TABLE'">
-          <el-form-item
-            :prop="`addColEtl[${index}].fromAliaCode`"
-            :rules="rules.fromAliaCode"
-            label="来源表"
-          >
-            <el-select
-              v-model="element.fromAliaCode"
-              filterable
-              clearable
-              placeholder="请选择"
-              @change="onSourceChange(element)"
+    <div class="config-components data-add-col">
+        <el-form-item class="form-item-top">
+            <div
+                v-for="(element, index) in formData.addColEtl"
+                :key="index"
+                class="form-options__list"
+                :style="getGroupStyle(index)"
             >
-              <el-option
-                v-for="opt in tableNameList"
-                :key="opt.value"
-                :label="opt.label"
-                :value="opt.value"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item
-            :prop="`addColEtl[${index}].fromColName`"
-            :rules="rules.fromColName"
-            label="关联字段名"
-          >
-            <el-select
-              v-model="element.fromColName"
-              filterable
-              clearable
-              placeholder="请选择"
-              @visible-change="getTableFields($event, element)"
-              @change="onFieldChange($event, element)"
-            >
-              <el-option
-                v-for="item in tableFields"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
-        </template>
-        <el-form-item
-          :prop="`addColEtl[${index}].colName`"
-          :rules="rules.colName"
-          label="字段名"
-        >
-          <el-input
-            v-model="element.colName"
-            clearable
-            placeholder="请输入字段名"
-          />
+                <el-icon class="remove-block-btn" @click="removeItem(index)">
+                    <CircleClose />
+                </el-icon>
+                <el-form-item :prop="`addColEtl[${index}].addType`" :rules="rules.addType" label="字段类型">
+                    <el-select v-model="element.addType" placeholder="请选择" @change="onAddTypeChange(element)">
+                        <el-option label="来源表" value="SOURCE_TABLE" />
+                        <el-option label="手动添加" value="MANUAL" />
+                    </el-select>
+                </el-form-item>
+                <template v-if="element.addType === 'SOURCE_TABLE'">
+                    <el-form-item :prop="`addColEtl[${index}].fromAliaCode`" :rules="rules.fromAliaCode" label="来源表">
+                        <el-select
+                            v-model="element.fromAliaCode"
+                            filterable
+                            clearable
+                            placeholder="请选择"
+                            @change="onSourceChange(element)"
+                        >
+                            <el-option
+                                v-for="opt in tableNameList"
+                                :key="opt.value"
+                                :label="opt.label"
+                                :value="opt.value"
+                            />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item
+                        :prop="`addColEtl[${index}].fromColName`"
+                        :rules="rules.fromColName"
+                        label="关联字段名"
+                    >
+                        <el-select
+                            v-model="element.fromColName"
+                            filterable
+                            clearable
+                            placeholder="请选择"
+                            @visible-change="getTableFields($event, element)"
+                            @change="onFieldChange($event, element)"
+                        >
+                            <el-option
+                                v-for="item in tableFields"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                            />
+                        </el-select>
+                    </el-form-item>
+                </template>
+                <el-form-item :prop="`addColEtl[${index}].colName`" :rules="rules.colName" label="字段名">
+                    <el-input v-model="element.colName" clearable placeholder="请输入字段名" />
+                </el-form-item>
+                <el-form-item :prop="`addColEtl[${index}].colType`" :rules="rules.colType" label="类型">
+                    <el-select v-model="element.colType" clearable filterable placeholder="请选择类型">
+                        <el-option
+                            v-for="item in sparkTypeList"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                        />
+                    </el-select>
+                </el-form-item>
+                <el-form-item v-if="element.addType === 'MANUAL'" label="返回值">
+                    <el-input v-model="element.defaultValue" clearable placeholder="返回值" />
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input v-model="element.remark" clearable placeholder="请输入备注" />
+                </el-form-item>
+            </div>
+            <div class="transform-condition-actions">
+                <el-button link type="primary" size="small" @click="addNewField">
+                    <el-icon><Plus /></el-icon>
+                    字段
+                </el-button>
+            </div>
         </el-form-item>
-        <el-form-item
-          :prop="`addColEtl[${index}].colType`"
-          :rules="rules.colType"
-          label="类型"
-        >
-          <el-select
-            v-model="element.colType"
-            clearable
-            filterable
-            placeholder="请选择类型"
-          >
-            <el-option
-              v-for="item in sparkTypeList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          v-if="element.addType === 'MANUAL'"
-          label="返回值"
-        >
-          <el-input
-            v-model="element.defaultValue"
-            clearable
-            placeholder="返回值"
-          />
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input
-            v-model="element.remark"
-            clearable
-            placeholder="请输入备注"
-          />
-        </el-form-item>
-      </div>
-      <div class="transform-condition-actions">
-        <el-button
-          link
-          type="primary"
-          size="small"
-          @click="addNewField"
-        >
-          <el-icon><Plus /></el-icon>
-          字段
-        </el-button>
-      </div>
-    </el-form-item>
-  </div>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -179,7 +125,7 @@ const props = defineProps<{
     modelValue: any
     incomeNodes: any
 }>()
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 
 const tableFields = ref<any[]>([])
 
@@ -188,35 +134,35 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请选择字段类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     colName: [
         {
             required: true,
             message: '字段名不能为空',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     colType: [
         {
             required: true,
             message: '类型不能为空',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     fromAliaCode: [
         {
             required: true,
             message: '请选择来源表',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     fromColName: [
         {
             required: true,
             message: '请选择关联字段名',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

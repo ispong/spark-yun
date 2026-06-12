@@ -1,96 +1,53 @@
 <template>
-  <div class="config-components">
-    <el-form-item
-      label="类型"
-      prop="outputEtl.dbType"
-      :rules="rules.dbType"
-    >
-      <el-select
-        v-model="formData.dbType"
-        filterable
-        clearable
-        placeholder="请选择"
-        @change="changeEvent($event, 'dbType')"
-      >
-        <el-option
-          v-for="item in typeList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-    </el-form-item>
-    <el-form-item
-      label="数据源"
-      prop="outputEtl.datasourceId"
-      :rules="rules.datasourceId"
-    >
-      <el-select
-        v-model="formData.datasourceId"
-        filterable
-        clearable
-        placeholder="请选择"
-        @change="changeEvent($event, 'datasourceId')"
-        @visible-change="getDataSource($event, formData.dbType)"
-      >
-        <el-option
-          v-for="item in dataSourceList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-    </el-form-item>
-    <el-form-item
-      label="表"
-      prop="outputEtl.tableName"
-      :rules="rules.tableName"
-      class="table-select-row"
-    >
-      <el-select
-        v-model="formData.tableName"
-        filterable
-        clearable
-        placeholder="请选择"
-        @change="changeEvent($event, 'tableName')"
-        @visible-change="getDataSourceTable($event, formData.datasourceId)"
-      >
-        <el-option
-          v-for="item in sourceTablesList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-      <el-button
-        type="primary"
-        link
-        @click="showTableDetail"
-      >
-        数据预览
-      </el-button>
-    </el-form-item>
-    <el-form-item
-      prop="outputEtl.writeMode"
-      label="写入模式"
-      :rules="rules.writeMode"
-    >
-      <el-select
-        v-model="formData.writeMode"
-        clearable
-        filterable
-        placeholder="请选择"
-      >
-        <el-option
-          v-for="item in filteredOverModeList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-    </el-form-item>
-    <TableDetail ref="tableDetailRef" />
-  </div>
+    <div class="config-components">
+        <el-form-item label="类型" prop="outputEtl.dbType" :rules="rules.dbType">
+            <el-select
+                v-model="formData.dbType"
+                filterable
+                clearable
+                placeholder="请选择"
+                @change="changeEvent($event, 'dbType')"
+            >
+                <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+        </el-form-item>
+        <el-form-item label="数据源" prop="outputEtl.datasourceId" :rules="rules.datasourceId">
+            <el-select
+                v-model="formData.datasourceId"
+                filterable
+                clearable
+                placeholder="请选择"
+                @change="changeEvent($event, 'datasourceId')"
+                @visible-change="getDataSource($event, formData.dbType)"
+            >
+                <el-option v-for="item in dataSourceList" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+        </el-form-item>
+        <el-form-item label="表" prop="outputEtl.tableName" :rules="rules.tableName" class="table-select-row">
+            <el-select
+                v-model="formData.tableName"
+                filterable
+                clearable
+                placeholder="请选择"
+                @change="changeEvent($event, 'tableName')"
+                @visible-change="getDataSourceTable($event, formData.datasourceId)"
+            >
+                <el-option v-for="item in sourceTablesList" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+            <el-button type="primary" link @click="showTableDetail">数据预览</el-button>
+        </el-form-item>
+        <el-form-item prop="outputEtl.writeMode" label="写入模式" :rules="rules.writeMode">
+            <el-select v-model="formData.writeMode" clearable filterable placeholder="请选择">
+                <el-option
+                    v-for="item in filteredOverModeList"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                />
+            </el-select>
+        </el-form-item>
+        <TableDetail ref="tableDetailRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -110,7 +67,7 @@ const props = defineProps<{
     modelValue: any
     incomeNodes: any
 }>()
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 
 const typeList = ref(TypeList)
 const dataSourceList = ref<Option[]>([])
@@ -125,8 +82,7 @@ const rules = reactive<FormRules>(ConfigRules)
 watch(
     () => props.incomeNodes,
     (v: any) => {
-        preNodeConfig.value = v.length ? v[0].data : {
-}
+        preNodeConfig.value = v.length ? v[0].data : {}
     },
     {
         immediate: true,
@@ -199,7 +155,7 @@ function getDataSource(e: boolean, searchType?: string) {
 // 获取数据源表
 function getDataSourceTable(e: boolean, dataSourceId: string) {
     if (e && dataSourceId) {
-        let options = []
+        const options = []
         GetDataSourceTables({
             dataSourceId: dataSourceId,
             tablePattern: ''

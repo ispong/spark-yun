@@ -1,32 +1,22 @@
 <template>
-  <div class="task-list-etl">
-    <el-scrollbar>
-      <div class="list-box">
-        <template
-          v-for="task in taskList"
-          :key="task.id"
-        >
-          <div
-            class="list-item"
-            :draggable="true"
-            @dragstart="handleDragEnd($event, task)"
-          >
-            <el-icon class="item-icon">
-              <component :is="task.icon" />
-            </el-icon>
-            <div class="item-right">
-              <span class="label-type">
-                <EllipsisTooltip
-                  class="label-name-text"
-                  :label="task.typeName"
-                />
-              </span>
+    <div class="task-list-etl">
+        <el-scrollbar>
+            <div class="list-box">
+                <template v-for="task in taskList" :key="task.id">
+                    <div class="list-item" :draggable="true" @dragstart="handleDragEnd($event, task)">
+                        <el-icon class="item-icon">
+                            <component :is="task.icon" />
+                        </el-icon>
+                        <div class="item-right">
+                            <span class="label-type">
+                                <EllipsisTooltip class="label-name-text" :label="task.typeName" />
+                            </span>
+                        </div>
+                    </div>
+                </template>
             </div>
-          </div>
-        </template>
-      </div>
-    </el-scrollbar>
-  </div>
+        </el-scrollbar>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -39,7 +29,7 @@ interface Task {
     icon: string
 }
 
-const emit = defineEmits([ 'handleDragEnd' ])
+const emit = defineEmits(['handleDragEnd'])
 const taskList = ref<Task[]>([
     {
         type: 'DATA_INPUT',

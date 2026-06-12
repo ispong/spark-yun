@@ -1,42 +1,24 @@
 <template>
-  <div class="form-setting-button">
-    <el-button @click="redirectQuery">
-      返回
-    </el-button>
-    <!-- <el-button @click="showSetting">高级设置</el-button> -->
-    <el-button
-      type="primary"
-      :loading="saveLoading"
-      @click="publishForm"
-    >
-      发布
-    </el-button>
-    <el-button
-      type="primary"
-      :loading="saveLoading"
-      @click="saveData"
-    >
-      保存
-    </el-button>
-  </div>
-  <LoadingPage
-    :visible="loading"
-    :network-error="networkError"
-    @loading-refresh="initData(false)"
-  >
-    <z-form-engine
-      ref="zFormEnginRef"
-      v-model="formData"
-      class="costom-form-engine"
-      render-sence="new"
-      :is-auto-create-table="isAutoCreateTable"
-      :is-dragger="true"
-      :form-config-list="formConfigList"
-      :get-table-codes-method="getTableCodesMethod"
-    />
-  </LoadingPage>
-  <!-- 高级设置 -->
-  <more-setting ref="moreSettingRef" />
+    <div class="form-setting-button">
+        <el-button @click="redirectQuery">返回</el-button>
+        <!-- <el-button @click="showSetting">高级设置</el-button> -->
+        <el-button type="primary" :loading="saveLoading" @click="publishForm">发布</el-button>
+        <el-button type="primary" :loading="saveLoading" @click="saveData">保存</el-button>
+    </div>
+    <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+        <z-form-engine
+            ref="zFormEnginRef"
+            v-model="formData"
+            class="costom-form-engine"
+            render-sence="new"
+            :is-auto-create-table="isAutoCreateTable"
+            :is-dragger="true"
+            :form-config-list="formConfigList"
+            :get-table-codes-method="getTableCodesMethod"
+        />
+    </LoadingPage>
+    <!-- 高级设置 -->
+    <more-setting ref="moreSettingRef" />
 </template>
 
 <script lang="ts" setup>
@@ -52,8 +34,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 const router = useRouter()
 const route = useRoute()
 
-const formData = ref({
-})
+const formData = ref({})
 const zFormEnginRef = ref()
 const moreSettingRef = ref()
 const formConfigList = ref()

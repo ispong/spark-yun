@@ -1,24 +1,22 @@
 <template>
-  <BlockModal
-    :model-config="modelConfig"
-    top="10vh"
-    @close="closeEvent"
-  >
-    <div class="zqy-dag-modal__dag">
-      <ZqyFlow ref="zqyFlowRef" />
-    </div>
-  </BlockModal>
-  <zqyLog ref="zqyLogRef" />
+    <BlockModal :model-config="modelConfig" top="10vh" @close="closeEvent">
+        <div class="zqy-dag-modal__dag">
+            <ZqyFlow ref="zqyFlowRef" />
+        </div>
+    </BlockModal>
+    <zqyLog ref="zqyLogRef" />
 </template>
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick, onUnmounted } from 'vue'
 import ZqyFlow from '@/lib/packages/zqy-flow/flow.vue'
 import { GetScheduleDetail } from '@/services/schedule.service'
-import { BreakFlowData,
+import {
+    BreakFlowData,
     QueryRunWorkInstances,
     RerunCurrentNodeFlowData,
-    RunAfterFlowData } from '@/services/workflow.service'
+    RunAfterFlowData
+} from '@/services/workflow.service'
 import eventBus from '@/utils/eventBus'
 import zqyLog from '@/components/zqy-log/index.vue'
 import { ElMessage } from 'element-plus'
@@ -108,7 +106,7 @@ function queryRunWorkInstancesEvent() {
             workflowInstanceId: workflowInstanceId.value
         })
             .then((res: any) => {
-                const statusList = [ 'SUCCESS', 'FAIL', 'ABORT' ]
+                const statusList = ['SUCCESS', 'FAIL', 'ABORT']
                 if (statusList.includes(res.data.flowStatus)) {
                     clearInterval(timer.value)
                     timer.value = null

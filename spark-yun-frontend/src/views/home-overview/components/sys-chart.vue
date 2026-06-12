@@ -1,21 +1,14 @@
 <template>
-  <div class="sys-chart">
-    <span class="sys-chart__title">{{ chartData.title }}</span>
-    <div class="sys-chart__body">
-      <div
-        v-if="!isEmpty"
-        ref="bodyContainer"
-        class="sys-chart__container"
-      />
-      <empty-page v-else />
+    <div class="sys-chart">
+        <span class="sys-chart__title">{{ chartData.title }}</span>
+        <div class="sys-chart__body">
+            <div v-if="!isEmpty" ref="bodyContainer" class="sys-chart__container" />
+            <empty-page v-else />
+        </div>
+        <div v-if="!isEmpty" class="sys-chart__footer">
+            <span class="sys-chart__mix">{{ chartData.mix }}/{{ chartData.total }}</span>
+        </div>
     </div>
-    <div
-      v-if="!isEmpty"
-      class="sys-chart__footer"
-    >
-      <span class="sys-chart__mix">{{ chartData.mix }}/{{ chartData.total }}</span>
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -26,15 +19,14 @@ import { GaugeChart } from 'echarts/charts'
 import { CanvasRenderer } from 'echarts/renderers'
 import { EChartsOption } from 'echarts'
 
-echarts.use([ GaugeChart, CanvasRenderer ])
+echarts.use([GaugeChart, CanvasRenderer])
 
 const props = withDefaults(
     defineProps<{
         chartData: ChartInfo
     }>(),
     {
-        chartData: () => ({
-} as ChartInfo)
+        chartData: () => ({}) as ChartInfo
     }
 )
 
@@ -83,7 +75,7 @@ const options = computed<EChartsOption>(() => {
                     show: false,
                     lineStyle: {
                         width: 4,
-                        color: [ [ 1, props.chartData.color ] ]
+                        color: [[1, props.chartData.color]]
                     }
                 },
                 splitLine: {
@@ -111,7 +103,7 @@ const options = computed<EChartsOption>(() => {
                     height: 80,
                     lineHeight: 80,
                     width: 68,
-                    offsetCenter: [ 0, 0 ],
+                    offsetCenter: [0, 0],
                     borderRadius: 1000,
                     borderColor: props.chartData.color,
                     borderWidth: 2,

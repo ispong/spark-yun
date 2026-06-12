@@ -108,7 +108,7 @@ const globalIcons = {
     ZoomOut
 }
 
-for (const [ key, component ] of Object.entries(globalIcons)) {
+for (const [key, component] of Object.entries(globalIcons)) {
     app.component(key, component)
 }
 

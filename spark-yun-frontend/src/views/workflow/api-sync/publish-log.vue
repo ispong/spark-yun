@@ -1,20 +1,9 @@
 <template>
-  <div
-    id="content"
-    class="publish-log"
-  >
-    <LogContainer
-      v-if="logMsg || loading"
-      :log-msg="logMsg || ''"
-      :status="status"
-    />
-    <EmptyPage v-else />
-    <span
-      v-if="runId"
-      class="zqy-log-refrash"
-      @click="refrashEvent"
-    >刷新</span>
-  </div>
+    <div id="content" class="publish-log">
+        <LogContainer v-if="logMsg || loading" :log-msg="logMsg || ''" :status="status" />
+        <EmptyPage v-else />
+        <span v-if="runId" class="zqy-log-refrash" @click="refrashEvent">刷新</span>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -74,7 +63,7 @@ function getLogData(id: string) {
         id: id
     })
         .then((res: any) => {
-            status.value = [ 'FAIL', 'STOP' ].includes(res.data.status) ? true : false
+            status.value = ['FAIL', 'STOP'].includes(res.data.status) ? true : false
             logMsg.value = res.data.submitLog
             isRequest.value = false
             // 只有在有日志数据或任务完成时才关闭 loading

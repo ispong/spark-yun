@@ -16,9 +16,7 @@ export function useColony() {
     }
 
     function queryColonyData() {
-        return queryAllClusterInfo().then(({
- data 
-}) => {
+        return queryAllClusterInfo().then(({ data }) => {
             colonyList.value = data
 
             const defaultCluster = data.find((item) => item.defaultCluster) || data[0]

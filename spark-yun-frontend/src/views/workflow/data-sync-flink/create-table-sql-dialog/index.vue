@@ -1,35 +1,20 @@
 <template>
-  <BlockModal
-    :model-config="modelConfig"
-    @close="closeEvent"
-  >
-    <div class="create-table-sql-content">
-      <div class="sql-body">
-        <el-scrollbar
-          v-if="!loading && sqlContent"
-          height="400px"
-        >
-          <pre class="sql-pre">{{ sqlContent }}</pre>
-        </el-scrollbar>
-        <div
-          v-else-if="loading"
-          class="loading-container"
-        >
-          <el-icon
-            class="is-loading"
-            :size="40"
-          >
-            <Loading />
-          </el-icon>
-          <p>正在生成建表语句...</p>
+    <BlockModal :model-config="modelConfig" @close="closeEvent">
+        <div class="create-table-sql-content">
+            <div class="sql-body">
+                <el-scrollbar v-if="!loading && sqlContent" height="400px">
+                    <pre class="sql-pre">{{ sqlContent }}</pre>
+                </el-scrollbar>
+                <div v-else-if="loading" class="loading-container">
+                    <el-icon class="is-loading" :size="40">
+                        <Loading />
+                    </el-icon>
+                    <p>正在生成建表语句...</p>
+                </div>
+                <el-empty v-else description="暂无数据" />
+            </div>
         </div>
-        <el-empty
-          v-else
-          description="暂无数据"
-        />
-      </div>
-    </div>
-  </BlockModal>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>

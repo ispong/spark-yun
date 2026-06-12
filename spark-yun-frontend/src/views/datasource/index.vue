@@ -1,116 +1,95 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        v-if="canDatasource('create')"
-        type="primary"
-        @click="addData"
-      >
-        新建数据源
-      </el-button>
-      <el-button @click="goDriverManagement">
-        驱动管理
-      </el-button>
-      <div class="zqy-tenant__select">
-        <el-select
-          v-model="datasourceType"
-          placeholder="请选择数据源类型"
-          filterable
-          clearable
-          @change="handleChnage"
-        >
-          <el-option
-            v-for="item in datasourceTypeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </div>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入名称/类型/连接信息/用户名/备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #nameSlot="scopeSlot">
-            <span
-              :class="{ 'name-click': canDatasource('edit') }"
-              @click="canDatasource('edit') && editData(scopeSlot.row)"
-            >
-              {{ scopeSlot.row.name }}
-            </span>
-          </template>
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status" />
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span
-                v-if="canDatasource('execute') && !scopeSlot.row.checkLoading"
-                @click="checkData(scopeSlot.row)"
-              >
-                检测
-              </span>
-              <el-icon
-                v-else-if="canDatasource('execute')"
-                class="is-loading"
-              >
-                <Loading />
-              </el-icon>
-              <el-dropdown
-                v-if="canDatasource('view') || canDatasource('edit') || canDatasource('delete')"
-                trigger="click"
-              >
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item
-                      v-if="canDatasource('view')"
-                      @click="showLog(scopeSlot.row)"
-                    >
-                      日志
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="canDatasource('edit')"
-                      @click="editData(scopeSlot.row)"
-                    >
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="canDatasource('delete')"
-                      @click="deleteData(scopeSlot.row)"
-                    >
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button v-if="canDatasource('create')" type="primary" @click="addData">新建数据源</el-button>
+            <el-button @click="goDriverManagement">驱动管理</el-button>
+            <div class="zqy-tenant__select">
+                <el-select
+                    v-model="datasourceType"
+                    placeholder="请选择数据源类型"
+                    filterable
+                    clearable
+                    @change="handleChnage"
+                >
+                    <el-option
+                        v-for="item in datasourceTypeList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <ShowLog ref="showLogRef" />
-  </div>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入名称/类型/连接信息/用户名/备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #nameSlot="scopeSlot">
+                        <span
+                            :class="{ 'name-click': canDatasource('edit') }"
+                            @click="canDatasource('edit') && editData(scopeSlot.row)"
+                        >
+                            {{ scopeSlot.row.name }}
+                        </span>
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span
+                                v-if="canDatasource('execute') && !scopeSlot.row.checkLoading"
+                                @click="checkData(scopeSlot.row)"
+                            >
+                                检测
+                            </span>
+                            <el-icon v-else-if="canDatasource('execute')" class="is-loading">
+                                <Loading />
+                            </el-icon>
+                            <el-dropdown
+                                v-if="canDatasource('view') || canDatasource('edit') || canDatasource('delete')"
+                                trigger="click"
+                            >
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item v-if="canDatasource('view')" @click="showLog(scopeSlot.row)">
+                                            日志
+                                        </el-dropdown-item>
+                                        <el-dropdown-item v-if="canDatasource('edit')" @click="editData(scopeSlot.row)">
+                                            编辑
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="canDatasource('delete')"
+                                            @click="deleteData(scopeSlot.row)"
+                                        >
+                                            删除
+                                        </el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <ShowLog ref="showLogRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -124,11 +103,13 @@ import AddModal from './add-modal/index.vue'
 import ShowLog from '../computer-group/computer-pointer/show-log/index.vue'
 
 import { BreadCrumbList, TableConfig, FormData, typeList } from './datasource.config'
-import { GetDatasourceList,
+import {
+    GetDatasourceList,
     AddDatasourceData,
     UpdateDatasourceData,
     CheckDatasourceData,
-    DeleteDatasourceData } from '@/services/datasource.service'
+    DeleteDatasourceData
+} from '@/services/datasource.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 

@@ -1,38 +1,26 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="formRef"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-      class="user-password-form"
-    >
-      <el-form-item
-        label="新密码"
-        prop="newPassword"
-      >
-        <el-input
-          v-model="formData.newPassword"
-          type="password"
-          show-password
-          maxlength="100"
-          placeholder="请输入新密码"
-        />
-      </el-form-item>
-      <el-form-item
-        label="确认新密码"
-        prop="confirmPassword"
-      >
-        <el-input
-          v-model="formData.confirmPassword"
-          type="password"
-          show-password
-          maxlength="100"
-          placeholder="请再次输入新密码"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="formRef" label-position="top" :model="formData" :rules="rules" class="user-password-form">
+            <el-form-item label="新密码" prop="newPassword">
+                <el-input
+                    v-model="formData.newPassword"
+                    type="password"
+                    show-password
+                    maxlength="100"
+                    placeholder="请输入新密码"
+                />
+            </el-form-item>
+            <el-form-item label="确认新密码" prop="confirmPassword">
+                <el-input
+                    v-model="formData.confirmPassword"
+                    type="password"
+                    show-password
+                    maxlength="100"
+                    placeholder="请再次输入新密码"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -88,13 +76,13 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入新密码',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     confirmPassword: [
         {
             validator: validateConfirmPassword,
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

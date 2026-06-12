@@ -1,15 +1,9 @@
 <template>
-  <BlockModal
-    :model-config="modelConfig"
-    @close="closeEvent"
-  >
-    <div
-      id="content"
-      class="content-box"
-    >
-      <BlockTable :table-config="tableConfig" />
-    </div>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig" @close="closeEvent">
+        <div id="content" class="content-box">
+            <BlockTable :table-config="tableConfig" />
+        </div>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -91,8 +85,7 @@ function renderTable(columns: string[], rows: Array<Array<string | null>>) {
     })
     tableConfig.tableData = []
     rows.forEach((rowData: any) => {
-        const columnData = {
-}
+        const columnData = {}
         columns.forEach((column: any, index: number) => {
             columnData[column] = rowData?.[index]
         })

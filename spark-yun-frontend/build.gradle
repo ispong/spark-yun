@@ -6,10 +6,30 @@ def requiredPnpmVersion = packageMetadata.packageManager.toString().split('@').l
 def requiredNodeVersion = packageMetadata.engines.node.toString()
 def frontendDist = layout.projectDirectory.dir('dist')
 
-def readCommandVersion = { String command ->
+def shellQuote = { String value ->
+    "'${value.replace("'", "'\"'\"'")}'"
+}
+
+def frontendRuntimeScript = { String script ->
+    def nodeVersionArg = shellQuote(requiredNodeVersion)
+    def commandArg = shellQuote(script)
+    """
+      set -e
+      if command -v node >/dev/null 2>&1 && [ "\$(node --version | sed 's/^v//')" = ${nodeVersionArg} ]; then
+        sh -lc ${commandArg}
+      elif command -v fnm >/dev/null 2>&1; then
+        fnm exec --using ${nodeVersionArg} sh -lc ${commandArg}
+      else
+        sh -lc ${commandArg}
+      fi
+    """
+}
+
+def readFrontendCommandVersion = { String command ->
     def output = new ByteArrayOutputStream()
     exec {
-        commandLine command, '--version'
+        workingDir projectDir
+        commandLine 'sh', '-c', frontendRuntimeScript("${command} --version")
         standardOutput = output
     }
     output.toString('UTF-8').trim()
@@ -21,8 +41,8 @@ tasks.register('validateFrontendRuntime') {
     outputs.upToDateWhen { false }
 
     doLast {
-        def nodeVersion = readCommandVersion('node')
-        def pnpmVersion = readCommandVersion('pnpm')
+        def nodeVersion = readFrontendCommandVersion('node')
+        def pnpmVersion = readFrontendCommandVersion('pnpm')
 
         if (nodeVersion.replaceFirst('^v', '') != requiredNodeVersion) {
             throw new GradleException(
@@ -51,7 +71,8 @@ tasks.register('pnpmInstall', Exec) {
     )
     outputs.upToDateWhen { false }
 
-    commandLine 'pnpm', 'install', '--frozen-lockfile', '--prefer-offline'
+    workingDir projectDir
+    commandLine 'sh', '-c', frontendRuntimeScript('pnpm install --frozen-lockfile --prefer-offline')
 }
 
 // Format and check frontend code.
@@ -59,12 +80,12 @@ tasks.register('format_frontend', Exec) {
 
     dependsOn('pnpmInstall')
 
-    commandLine 'sh', '-c', '''
-      set -e
+    workingDir projectDir
+    commandLine 'sh', '-c', frontendRuntimeScript('''
       pnpm run format
       pnpm run lint
       pnpm run type-check
-    '''
+    ''')
 }
 
 // Build frontend assets with Gradle input and output tracking.
@@ -90,7 +111,8 @@ tasks.register('npmBuild', Exec) {
     )
     outputs.dir(frontendDist)
 
-    commandLine 'pnpm', 'run', 'build'
+    workingDir projectDir
+    commandLine 'sh', '-c', frontendRuntimeScript('pnpm run build')
 }
 
 // Aggregate task used by the distribution build.

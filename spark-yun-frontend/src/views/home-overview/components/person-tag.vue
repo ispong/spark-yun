@@ -1,7 +1,7 @@
 <template>
-  <div class="person-tag">
-    {{ personName }}
-  </div>
+    <div class="person-tag">
+        {{ personName }}
+    </div>
 </template>
 
 <script setup lang="ts">

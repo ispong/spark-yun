@@ -1,42 +1,29 @@
 <template>
-  <BlockModal
-    :model-config="modelConfig"
-    @close="closeEvent"
-  >
-    <LoadingPage
-      class="log-loading"
-      :visible="loading"
-    >
-      <div
-        id="content"
-        class="content-box"
-      >
-        <!-- 日志展示 -->
-        <template v-if="['log', 'yarnLog'].includes(modalType)">
-          <LogContainer
-            v-if="logMsg"
-            :log-msg="logMsg"
-            :status="true"
-          />
-          <template v-else>
-            <empty-page label="暂无日志" />
-          </template>
-        </template>
-        <!-- 结果展示 -->
-        <template v-else-if="modalType === 'result'">
-          <LogContainer
-            v-if="strData || jsonData"
-            :log-msg="strData || jsonData"
-            :show-result="true"
-            :status="true"
-          />
-          <template v-else>
-            <BlockTable :table-config="tableConfig" />
-          </template>
-        </template>
-      </div>
-    </LoadingPage>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig" @close="closeEvent">
+        <LoadingPage class="log-loading" :visible="loading">
+            <div id="content" class="content-box">
+                <!-- 日志展示 -->
+                <template v-if="['log', 'yarnLog'].includes(modalType)">
+                    <LogContainer v-if="logMsg" :log-msg="logMsg" :status="true" />
+                    <template v-else>
+                        <empty-page label="暂无日志" />
+                    </template>
+                </template>
+                <!-- 结果展示 -->
+                <template v-else-if="modalType === 'result'">
+                    <LogContainer
+                        v-if="strData || jsonData"
+                        :log-msg="strData || jsonData"
+                        :show-result="true"
+                        :status="true"
+                    />
+                    <template v-else>
+                        <BlockTable :table-config="tableConfig" />
+                    </template>
+                </template>
+            </div>
+        </LoadingPage>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -164,8 +151,7 @@ function getResultDatalist() {
                 }
             })
             tableConfig.tableData = tableData.map((columnData: any) => {
-                const dataObj: any = {
-}
+                const dataObj: any = {}
                 col.forEach((c: any, index: number) => {
                     dataObj[c] = columnData[index]
                 })

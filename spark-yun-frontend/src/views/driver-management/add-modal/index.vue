@@ -1,76 +1,51 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-driver-modal"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="200"
-          placeholder="请输入"
-          :disabled="renderSence === 'edit'"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="renderSence === 'new'"
-        label="类型"
-        prop="dbType"
-      >
-        <el-select
-          v-model="formData.dbType"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="renderSence === 'new'"
-        label="驱动"
-        prop="driver"
-      >
-        <el-upload
-          ref="uploadRef"
-          class="license-upload"
-          action=""
-          :limit="1"
-          :multiple="false"
-          :drag="true"
-          :auto-upload="false"
-          :on-change="handleChange"
-          :on-remove="removeChange"
-        >
-          <el-icon class="el-icon--upload">
-            <upload-filled />
-          </el-icon>
-          <div class="el-upload__text">
-            上传驱动
-            <em>点击上传</em>
-          </div>
-        </el-upload>
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-driver-modal" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="名称" prop="name">
+                <el-input
+                    v-model="formData.name"
+                    maxlength="200"
+                    placeholder="请输入"
+                    :disabled="renderSence === 'edit'"
+                />
+            </el-form-item>
+            <el-form-item v-if="renderSence === 'new'" label="类型" prop="dbType">
+                <el-select v-model="formData.dbType" placeholder="请选择">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+            <el-form-item v-if="renderSence === 'new'" label="驱动" prop="driver">
+                <el-upload
+                    ref="uploadRef"
+                    class="license-upload"
+                    action=""
+                    :limit="1"
+                    :multiple="false"
+                    :drag="true"
+                    :auto-upload="false"
+                    :on-change="handleChange"
+                    :on-remove="removeChange"
+                >
+                    <el-icon class="el-icon--upload">
+                        <upload-filled />
+                    </el-icon>
+                    <div class="el-upload__text">
+                        上传驱动
+                        <em>点击上传</em>
+                    </div>
+                </el-upload>
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -215,14 +190,14 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入驱动名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     dbType: [
         {
             required: true,
             message: '请选择类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     driver: [

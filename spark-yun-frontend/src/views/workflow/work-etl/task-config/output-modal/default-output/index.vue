@@ -1,55 +1,39 @@
 <template>
-  <div class="default-output">
-    <div style="max-height: 444px">
-      <BlockTable
-        :table-config="tableConfig"
-        @row-dragend-event="onRowDragend"
-      >
-        <template #checkboxHeaderSlot>
-          <el-checkbox
-            :model-value="isAllChecked"
-            @change="toggleSelectAll"
-          />
-        </template>
-        <template #checkboxSlot="scopeSlot">
-          <el-checkbox
-            v-model="scopeSlot.row.checked"
-            @change="updateAllChecked"
-          />
-        </template>
-        <template #fromSource="scopeSlot">
-          <span>【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}</span>
-        </template>
-        <template #options="scopeSlot">
-          <div class="btn-group">
-            <el-dropdown trigger="click">
-              <el-icon
-                class="option-more"
-                @click.stop
-              >
-                <MoreFilled />
-              </el-icon>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="addNewCode">
-                    添加
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">
-                    编辑
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="removeCode(scopeSlot)">
-                    删除
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-        </template>
-      </BlockTable>
+    <div class="default-output">
+        <div style="max-height: 444px">
+            <BlockTable :table-config="tableConfig" @row-dragend-event="onRowDragend">
+                <template #checkboxHeaderSlot>
+                    <el-checkbox :model-value="isAllChecked" @change="toggleSelectAll" />
+                </template>
+                <template #checkboxSlot="scopeSlot">
+                    <el-checkbox v-model="scopeSlot.row.checked" @change="updateAllChecked" />
+                </template>
+                <template #fromSource="scopeSlot">
+                    <span>【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}</span>
+                </template>
+                <template #options="scopeSlot">
+                    <div class="btn-group">
+                        <el-dropdown trigger="click">
+                            <el-icon class="option-more" @click.stop>
+                                <MoreFilled />
+                            </el-icon>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item @click="addNewCode">添加</el-dropdown-item>
+                                    <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">
+                                        编辑
+                                    </el-dropdown-item>
+                                    <el-dropdown-item @click="removeCode(scopeSlot)">删除</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </div>
+                </template>
+            </BlockTable>
+        </div>
+        <!-- 添加字段 -->
+        <add-code ref="addCodeRef" />
     </div>
-    <!-- 添加字段 -->
-    <add-code ref="addCodeRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -63,10 +47,10 @@ const props = defineProps<{
     preNodes: any
     nodeFormData?: any
 }>()
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 
 const addCodeRef = ref()
-const hideOperations = computed(() => [ 'DATA_INPUT', 'DATA_UNION' ].includes(props.nodeFormData?.type))
+const hideOperations = computed(() => ['DATA_INPUT', 'DATA_UNION'].includes(props.nodeFormData?.type))
 
 const baseColConfigs = [
     {

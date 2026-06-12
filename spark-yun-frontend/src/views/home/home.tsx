@@ -21,9 +21,7 @@ export default defineComponent({
             }
             return workspaceMenuListData
         })
-        const {
- renderHomeMenu, isCollapse 
-} = useRouterMenu(menuListData)
+        const { renderHomeMenu, isCollapse } = useRouterMenu(menuListData)
 
         const homeClass = computed<Record<string, boolean>>(() => ({
             'zqy-home': true,

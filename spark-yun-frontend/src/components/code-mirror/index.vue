@@ -1,22 +1,22 @@
 <template>
-  <code-mirror
-    ref="codeMirrorRef"
-    v-model="formData"
-    basic
-    :lang="lang"
-    v-bind="$attrs"
-    :disabled="disabled"
-    :placeholder="disabled ? '' : placeholder || '请输入'"
-    @change="changEvent"
-  />
+    <code-mirror
+        ref="codeMirrorRef"
+        v-model="formData"
+        basic
+        :lang="lang"
+        v-bind="$attrs"
+        :disabled="disabled"
+        :placeholder="disabled ? '' : placeholder || '请输入'"
+        @change="changEvent"
+    />
 </template>
 
 <script lang="ts" setup>
 import CodeMirror from 'vue-codemirror6'
 import { defineProps, defineEmits, computed, ref, onMounted, nextTick } from 'vue'
 
-const props = defineProps([ 'modelValue', 'lang', 'placeholder', 'disabled' ])
-const emit = defineEmits([ 'update:modelValue', 'change' ])
+const props = defineProps(['modelValue', 'lang', 'placeholder', 'disabled'])
+const emit = defineEmits(['update:modelValue', 'change'])
 
 const formData = computed({
     get() {

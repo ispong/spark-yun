@@ -1,21 +1,9 @@
 <template>
-  <div
-    id="content"
-    class="publish-log"
-  >
-    <LogContainer
-      v-if="logMsg || loading"
-      :log-msg="logMsg || ''"
-      :status="status"
-      :show-result="false"
-    />
-    <EmptyPage v-else />
-    <span
-      v-if="runId"
-      class="zqy-log-refrash"
-      @click="refrashEvent"
-    >刷新</span>
-  </div>
+    <div id="content" class="publish-log">
+        <LogContainer v-if="logMsg || loading" :log-msg="logMsg || ''" :status="status" :show-result="false" />
+        <EmptyPage v-else />
+        <span v-if="runId" class="zqy-log-refrash" @click="refrashEvent">刷新</span>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -68,7 +56,7 @@ function getLogData(id: string) {
     })
         .then((res: any) => {
             logMsg.value = res.data.log
-            status.value = [ 'FAIL', 'SUCCESS', 'ABORT' ].includes(res.data.status) ? true : false
+            status.value = ['FAIL', 'SUCCESS', 'ABORT'].includes(res.data.status) ? true : false
             if (status.value && callback.value) {
                 callback.value(res.data.status)
                 if (timer.value) {
@@ -76,7 +64,7 @@ function getLogData(id: string) {
                 }
                 timer.value = null
             }
-            if ([ 'SUCCESS', 'FAIL' ].includes(res.data.status)) {
+            if (['SUCCESS', 'FAIL'].includes(res.data.status)) {
                 if (timer.value) {
                     clearInterval(timer.value)
                 }

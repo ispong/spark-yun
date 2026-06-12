@@ -1,57 +1,41 @@
 <template>
-  <div class="data-add-col-output">
-    <div style="max-height: 444px">
-      <BlockTable
-        :table-config="tableConfig"
-        @row-dragend-event="onRowDragend"
-      >
-        <template #checkboxHeaderSlot>
-          <el-checkbox
-            :model-value="isAllChecked"
-            @change="toggleSelectAll"
-          />
-        </template>
-        <template #checkboxSlot="scopeSlot">
-          <el-checkbox
-            v-model="scopeSlot.row.checked"
-            @change="updateAllChecked"
-          />
-        </template>
-        <template #fromSource="scopeSlot">
-          <span v-if="scopeSlot.row.fromAliaCode">
-            【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}
-          </span>
-          <span v-else>【手动添加】{{ scopeSlot.row.colName }}</span>
-        </template>
-        <template #options="scopeSlot">
-          <div class="btn-group">
-            <el-dropdown trigger="click">
-              <el-icon
-                class="option-more"
-                @click.stop
-              >
-                <MoreFilled />
-              </el-icon>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="addNewCode">
-                    添加
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">
-                    编辑
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="removeCode(scopeSlot)">
-                    删除
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-        </template>
-      </BlockTable>
+    <div class="data-add-col-output">
+        <div style="max-height: 444px">
+            <BlockTable :table-config="tableConfig" @row-dragend-event="onRowDragend">
+                <template #checkboxHeaderSlot>
+                    <el-checkbox :model-value="isAllChecked" @change="toggleSelectAll" />
+                </template>
+                <template #checkboxSlot="scopeSlot">
+                    <el-checkbox v-model="scopeSlot.row.checked" @change="updateAllChecked" />
+                </template>
+                <template #fromSource="scopeSlot">
+                    <span v-if="scopeSlot.row.fromAliaCode">
+                        【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}
+                    </span>
+                    <span v-else>【手动添加】{{ scopeSlot.row.colName }}</span>
+                </template>
+                <template #options="scopeSlot">
+                    <div class="btn-group">
+                        <el-dropdown trigger="click">
+                            <el-icon class="option-more" @click.stop>
+                                <MoreFilled />
+                            </el-icon>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item @click="addNewCode">添加</el-dropdown-item>
+                                    <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">
+                                        编辑
+                                    </el-dropdown-item>
+                                    <el-dropdown-item @click="removeCode(scopeSlot)">删除</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </div>
+                </template>
+            </BlockTable>
+        </div>
+        <add-code ref="addCodeRef" />
     </div>
-    <add-code ref="addCodeRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -64,7 +48,7 @@ const props = defineProps<{
     preNodes: any
     nodeFormData?: any
 }>()
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 
 const addCodeRef = ref()
 const tableConfig = reactive({
@@ -183,7 +167,7 @@ function buildAddColFields() {
 }
 
 function mergeFields(baseFields: any[], appendFields: any[]) {
-    const merged = [ ...baseFields ]
+    const merged = [...baseFields]
     const existingNames = new Set(merged.map((item: any) => item.colName))
     appendFields.forEach((field: any) => {
         if (!existingNames.has(field.colName)) {

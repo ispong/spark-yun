@@ -1,92 +1,67 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table metadata-management">
-    <div class="zqy-table-top">
-      <el-radio-group
-        v-model="tableType"
-        @change="changeTypeEvent"
-      >
-        <el-radio-button label="db">
-          数据源
-        </el-radio-button>
-        <el-radio-button label="table">
-          表
-        </el-radio-button>
-        <el-radio-button label="code">
-          字段
-        </el-radio-button>
-      </el-radio-group>
-      <div
-        v-if="tableType === 'table'"
-        class="zqy-tenant__select"
-      >
-        <el-select
-          v-model="datasourceId"
-          placeholder="请选择数据源"
-          filterable
-          clearable
-          @change="datasourceIdChangeEvent"
-        >
-          <el-option
-            v-for="item in dataSourceList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </div>
-      <div class="zqy-seach meta-list-search">
-        <el-button
-          v-if="tableType === 'db'"
-          type="primary"
-          :loading="refreshLoading"
-          @click="refreshDataEvent"
-        >
-          刷新数据
-        </el-button>
-        <el-button
-          v-if="tableType === 'table'"
-          type="primary"
-          :loading="refreshLoading"
-          @click="acquisetionTriggerEvent"
-        >
-          立即采集
-        </el-button>
-        <el-input
-          v-model="keyword"
-          placeholder="请输入搜索条件 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table metadata-management">
+        <div class="zqy-table-top">
+            <el-radio-group v-model="tableType" @change="changeTypeEvent">
+                <el-radio-button label="db">数据源</el-radio-button>
+                <el-radio-button label="table">表</el-radio-button>
+                <el-radio-button label="code">字段</el-radio-button>
+            </el-radio-group>
+            <div v-if="tableType === 'table'" class="zqy-tenant__select">
+                <el-select
+                    v-model="datasourceId"
+                    placeholder="请选择数据源"
+                    filterable
+                    clearable
+                    @change="datasourceIdChangeEvent"
+                >
+                    <el-option
+                        v-for="item in dataSourceList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </div>
+            <div class="zqy-seach meta-list-search">
+                <el-button v-if="tableType === 'db'" type="primary" :loading="refreshLoading" @click="refreshDataEvent">
+                    刷新数据
+                </el-button>
+                <el-button
+                    v-if="tableType === 'table'"
+                    type="primary"
+                    :loading="refreshLoading"
+                    @click="acquisetionTriggerEvent"
+                >
+                    立即采集
+                </el-button>
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入搜索条件 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <component
+                    :is="tabComponent"
+                    ref="currentTabRef"
+                    :keyword="keyword"
+                    :exact-table-name="exactTableName"
+                    @redirect-to-table="redirectToTable"
+                    @edit-event="editEvent"
+                    @data-lineage-event="dataLineageEvent"
+                />
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <RemarkModal ref="remarkModalRef" />
+        <DataLineage ref="dataLineageRef" :is-code="false" @show-detail="showDetail" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <component
-          :is="tabComponent"
-          ref="currentTabRef"
-          :keyword="keyword"
-          :exact-table-name="exactTableName"
-          @redirect-to-table="redirectToTable"
-          @edit-event="editEvent"
-          @data-lineage-event="dataLineageEvent"
-        />
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <RemarkModal ref="remarkModalRef" />
-    <DataLineage
-      ref="dataLineageRef"
-      :is-code="false"
-      @show-detail="showDetail"
-    />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -97,7 +72,8 @@ import { BreadCrumbList } from './list.config'
 import datasourceList from './datasource-list.vue'
 import tableList from './table-list.vue'
 import codeList from './code-list.vue'
-import { AddMetadataTaskData,
+import {
+    AddMetadataTaskData,
     CodeRemarkEdit,
     DatasourceRemarkEdit,
     FastTriggerMetadataTaskData,
@@ -106,14 +82,15 @@ import { AddMetadataTaskData,
     TableRemarkEdit,
     GetDataLineageByDatasource,
     GetDataLineageByTable,
-    GetDataLineageByCode } from '@/services/metadata-page.service'
+    GetDataLineageByCode
+} from '@/services/metadata-page.service'
 import { ElMessage } from 'element-plus'
 import AddModal from './add-modal/index.vue'
 import RemarkModal from './remark-modal/index.vue'
 import DataLineage from './data-lineage/index.vue'
 import { useRoute } from 'vue-router'
 
-const guid = function() {
+const guid = function () {
     function S4() {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
@@ -340,7 +317,7 @@ function dataLineageEvent(data: any) {
         data,
         (params?: any) => {
             return new Promise((resolve: any, reject: any) => {
-                let requestParams = {
+                const requestParams = {
                     dbId: data.datasourceId,
                     tableName: data.tableName,
                     columnName: data.columnName,
@@ -361,8 +338,8 @@ function dataLineageEvent(data: any) {
                 } else if (data.pageType === 'table') {
                     if (params) {
                         requestParams.dbId = params.data.dbId
-                        ;(requestParams.tableName = params.data.tableName),
-                            (requestParams.lineageType = params.lineageType)
+                        ;((requestParams.tableName = params.data.tableName),
+                            (requestParams.lineageType = params.lineageType))
                     }
                     GetDataLineageByTable(requestParams)
                         .then((res: any) => {
@@ -374,9 +351,9 @@ function dataLineageEvent(data: any) {
                 } else if (data.pageType === 'code') {
                     if (params) {
                         requestParams.dbId = params.data.dbId
-                        ;(requestParams.tableName = params.data.tableName),
+                        ;((requestParams.tableName = params.data.tableName),
                             (requestParams.columnName = params.data.columnName),
-                            (requestParams.lineageType = params.lineageType)
+                            (requestParams.lineageType = params.lineageType))
                     }
                     GetDataLineageByCode(requestParams)
                         .then((res: any) => {

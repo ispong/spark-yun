@@ -1,106 +1,57 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="spark-container-modal"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="集群"
-        prop="clusterId"
-      >
-        <el-select
-          v-model="formData.clusterId"
-          placeholder="请选择"
-          @visible-change="getClusterList"
-        >
-          <el-option
-            v-for="item in clusterList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="数据源"
-        :prop="'datasourceId'"
-      >
-        <el-select
-          v-model="formData.datasourceId"
-          placeholder="请选择"
-          @visible-change="getDataSourceList($event, 'HIVE')"
-        >
-          <el-option
-            v-for="item in dataSourceList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="资源类型"
-        prop="resourceLevel"
-      >
-        <el-select
-          v-model="formData.resourceLevel"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        v-if="formData.resourceLevel === 'CUSTOM'"
-        label="Spark配置"
-        prop="sparkConfig"
-        :class="{ 'show-screen__full': fullStatus }"
-      >
-        <span
-          class="format-json"
-          @click="formatterJsonEvent(formData, 'sparkConfig')"
-        >格式化JSON</span>
-        <el-icon
-          class="modal-full-screen"
-          @click="fullScreenEvent"
-        >
-          <FullScreen v-if="!fullStatus" />
-          <Close v-else />
-        </el-icon>
-        <code-mirror
-          v-model="formData.sparkConfig"
-          basic
-          :lang="lang"
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="spark-container-modal" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="集群" prop="clusterId">
+                <el-select v-model="formData.clusterId" placeholder="请选择" @visible-change="getClusterList">
+                    <el-option v-for="item in clusterList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="数据源" :prop="'datasourceId'">
+                <el-select
+                    v-model="formData.datasourceId"
+                    placeholder="请选择"
+                    @visible-change="getDataSourceList($event, 'HIVE')"
+                >
+                    <el-option
+                        v-for="item in dataSourceList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="资源类型" prop="resourceLevel">
+                <el-select v-model="formData.resourceLevel" placeholder="请选择">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item
+                v-if="formData.resourceLevel === 'CUSTOM'"
+                label="Spark配置"
+                prop="sparkConfig"
+                :class="{ 'show-screen__full': fullStatus }"
+            >
+                <span class="format-json" @click="formatterJsonEvent(formData, 'sparkConfig')">格式化JSON</span>
+                <el-icon class="modal-full-screen" @click="fullScreenEvent">
+                    <FullScreen v-if="!fullStatus" />
+                    <Close v-else />
+                </el-icon>
+                <code-mirror v-model="formData.sparkConfig" basic :lang="lang" />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -168,35 +119,35 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入数据源名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     clusterId: [
         {
             required: true,
             message: '请选择集群',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     datasourceId: [
         {
             required: true,
             message: '请选择数据源',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     resourceLevel: [
         {
             required: true,
             message: '请选择资源类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     sparkConfig: [
         {
             required: true,
             message: '请输入sparkConfig',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })
@@ -392,14 +343,30 @@ defineExpose({
 
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-tooltip-autocomplete {
@@ -410,8 +377,16 @@ defineExpose({
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         li[aria-selected] {

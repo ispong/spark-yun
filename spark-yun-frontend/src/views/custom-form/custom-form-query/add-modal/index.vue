@@ -1,14 +1,14 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <LoadingPage :visible="loading">
-      <z-form-engine
-        ref="formEngineRef"
-        v-model="formData"
-        :render-sence="renderSence"
-        :form-config-list="formConfigList"
-      />
-    </LoadingPage>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <LoadingPage :visible="loading">
+            <z-form-engine
+                ref="formEngineRef"
+                v-model="formData"
+                :render-sence="renderSence"
+                :form-config-list="formConfigList"
+            />
+        </LoadingPage>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -23,8 +23,7 @@ const route = useRoute()
 
 const callback = ref<any>()
 const formEngineRef = ref()
-const formData = ref({
-})
+const formData = ref({})
 const formConfigList = ref([])
 
 const loading = ref(false)
@@ -54,8 +53,7 @@ const modelConfig = reactive({
 
 function showModal(cb: () => void, data?: any): void {
     callback.value = cb
-    formData.value = {
-}
+    formData.value = {}
     getFormConfigById()
     if (data) {
         formData.value = {

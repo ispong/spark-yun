@@ -1,37 +1,23 @@
 <template>
-  <div class="zqy-loading">
-    <template v-if="displayVisable">
-      <div
-        class="zqy-loading-img__another"
-        style="opacity: 0.7"
-      >
-        <div class="loader" />
-      </div>
-      <span class="loading-text">
-        正在加载中
-        <span style="font-size: 18px">{{ points }}</span>
-      </span>
-    </template>
-    <div
-      v-else-if="networkError"
-      class="zqy-loading-network-error"
-    >
-      <img
-        src="./error-page.png"
-        class="network-error"
-        alt="服务器不稳定，请稍后重试"
-      >
-      <span class="zqy-loading-error-text">
-        服务器不稳定，请稍后
-        <el-button
-          class="zqy-loading-refresh-btn"
-          type="text"
-          @click="handleReflesh"
-        >重试</el-button>
-      </span>
+    <div class="zqy-loading">
+        <template v-if="displayVisable">
+            <div class="zqy-loading-img__another" style="opacity: 0.7">
+                <div class="loader" />
+            </div>
+            <span class="loading-text">
+                正在加载中
+                <span style="font-size: 18px">{{ points }}</span>
+            </span>
+        </template>
+        <div v-else-if="networkError" class="zqy-loading-network-error">
+            <img src="./error-page.png" class="network-error" alt="服务器不稳定，请稍后重试" />
+            <span class="zqy-loading-error-text">
+                服务器不稳定，请稍后
+                <el-button class="zqy-loading-refresh-btn" type="text" @click="handleReflesh">重试</el-button>
+            </span>
+        </div>
+        <slot />
     </div>
-    <slot />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -54,7 +40,7 @@ const timestamp = ref(0)
 const points = ref('.')
 const timeCode = ref(0)
 
-const emit = defineEmits([ 'loading-done', 'loading-refresh' ])
+const emit = defineEmits(['loading-done', 'loading-refresh'])
 
 watch(
     () => props.visible,
@@ -203,122 +189,274 @@ function handleReflesh() {
 @keyframes load4 {
     0%,
     100% {
-        box-shadow: 0 -3em 0 0.2em, 2em -2em 0 0em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em,
-            -3em 0 0 -1em, -2em -2em 0 0;
+        box-shadow:
+            0 -3em 0 0.2em,
+            2em -2em 0 0em,
+            3em 0 0 -1em,
+            2em 2em 0 -1em,
+            0 3em 0 -1em,
+            -2em 2em 0 -1em,
+            -3em 0 0 -1em,
+            -2em -2em 0 0;
     }
     12.5% {
-        box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em,
-            -3em 0 0 -1em, -2em -2em 0 -1em;
+        box-shadow:
+            0 -3em 0 0,
+            2em -2em 0 0.2em,
+            3em 0 0 0,
+            2em 2em 0 -1em,
+            0 3em 0 -1em,
+            -2em 2em 0 -1em,
+            -3em 0 0 -1em,
+            -2em -2em 0 -1em;
     }
     25% {
-        box-shadow: 0 -3em 0 -0.5em, 2em -2em 0 0, 3em 0 0 0.2em, 2em 2em 0 0, 0 3em 0 -1em, -2em 2em 0 -1em,
-            -3em 0 0 -1em, -2em -2em 0 -1em;
+        box-shadow:
+            0 -3em 0 -0.5em,
+            2em -2em 0 0,
+            3em 0 0 0.2em,
+            2em 2em 0 0,
+            0 3em 0 -1em,
+            -2em 2em 0 -1em,
+            -3em 0 0 -1em,
+            -2em -2em 0 -1em;
     }
     37.5% {
-        box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, -2em 2em 0 -1em,
-            -3em 0em 0 -1em, -2em -2em 0 -1em;
+        box-shadow:
+            0 -3em 0 -1em,
+            2em -2em 0 -1em,
+            3em 0em 0 0,
+            2em 2em 0 0.2em,
+            0 3em 0 0em,
+            -2em 2em 0 -1em,
+            -3em 0em 0 -1em,
+            -2em -2em 0 -1em;
     }
     50% {
-        box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, -2em 2em 0 0,
-            -3em 0em 0 -1em, -2em -2em 0 -1em;
+        box-shadow:
+            0 -3em 0 -1em,
+            2em -2em 0 -1em,
+            3em 0 0 -1em,
+            2em 2em 0 0em,
+            0 3em 0 0.2em,
+            -2em 2em 0 0,
+            -3em 0em 0 -1em,
+            -2em -2em 0 -1em;
     }
     62.5% {
-        box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, -2em 2em 0 0.2em,
-            -3em 0 0 0, -2em -2em 0 -1em;
+        box-shadow:
+            0 -3em 0 -1em,
+            2em -2em 0 -1em,
+            3em 0 0 -1em,
+            2em 2em 0 -1em,
+            0 3em 0 0,
+            -2em 2em 0 0.2em,
+            -3em 0 0 0,
+            -2em -2em 0 -1em;
     }
     75% {
-        box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0,
-            -3em 0em 0 0.2em, -2em -2em 0 0;
+        box-shadow:
+            0em -3em 0 -1em,
+            2em -2em 0 -1em,
+            3em 0em 0 -1em,
+            2em 2em 0 -1em,
+            0 3em 0 -1em,
+            -2em 2em 0 0,
+            -3em 0em 0 0.2em,
+            -2em -2em 0 0;
     }
     87.5% {
-        box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0,
-            -3em 0em 0 0, -2em -2em 0 0.2em;
+        box-shadow:
+            0em -3em 0 0,
+            2em -2em 0 -1em,
+            3em 0 0 -1em,
+            2em 2em 0 -1em,
+            0 3em 0 -1em,
+            -2em 2em 0 0,
+            -3em 0em 0 0,
+            -2em -2em 0 0.2em;
     }
 }
 
 @-webkit-keyframes load5 {
     0%,
     100% {
-        box-shadow: 0em -2.6em 0em 0em #ffffff, 1.8em -1.8em 0 0em #efefef, 2.5em 0em 0 0em #efefef,
-            1.75em 1.75em 0 0em #efefef, 0em 2.5em 0 0em #efefef, -1.8em 1.8em 0 0em #efefef, -2.6em 0em 0 0em #97c1ff,
+        box-shadow:
+            0em -2.6em 0em 0em #ffffff,
+            1.8em -1.8em 0 0em #efefef,
+            2.5em 0em 0 0em #efefef,
+            1.75em 1.75em 0 0em #efefef,
+            0em 2.5em 0 0em #efefef,
+            -1.8em 1.8em 0 0em #efefef,
+            -2.6em 0em 0 0em #97c1ff,
             -1.8em -1.8em 0 0em #5794f2;
     }
     12.5% {
-        box-shadow: 0em -2.6em 0em 0em #5794f2, 1.8em -1.8em 0 0em #ffffff, 2.5em 0em 0 0em #efefef,
-            1.75em 1.75em 0 0em #efefef, 0em 2.5em 0 0em #efefef, -1.8em 1.8em 0 0em #efefef, -2.6em 0em 0 0em #efefef,
+        box-shadow:
+            0em -2.6em 0em 0em #5794f2,
+            1.8em -1.8em 0 0em #ffffff,
+            2.5em 0em 0 0em #efefef,
+            1.75em 1.75em 0 0em #efefef,
+            0em 2.5em 0 0em #efefef,
+            -1.8em 1.8em 0 0em #efefef,
+            -2.6em 0em 0 0em #efefef,
             -1.8em -1.8em 0 0em #97c1ff;
     }
     25% {
-        box-shadow: 0em -2.6em 0em 0em #97c1ff, 1.8em -1.8em 0 0em #5794f2, 2.5em 0em 0 0em #ffffff,
-            1.75em 1.75em 0 0em #efefef, 0em 2.5em 0 0em #efefef, -1.8em 1.8em 0 0em #efefef, -2.6em 0em 0 0em #efefef,
+        box-shadow:
+            0em -2.6em 0em 0em #97c1ff,
+            1.8em -1.8em 0 0em #5794f2,
+            2.5em 0em 0 0em #ffffff,
+            1.75em 1.75em 0 0em #efefef,
+            0em 2.5em 0 0em #efefef,
+            -1.8em 1.8em 0 0em #efefef,
+            -2.6em 0em 0 0em #efefef,
             -1.8em -1.8em 0 0em #efefef;
     }
     37.5% {
-        box-shadow: 0em -2.6em 0em 0em #efefef, 1.8em -1.8em 0 0em #97c1ff, 2.5em 0em 0 0em #5794f2,
-            1.75em 1.75em 0 0em #ffffff, 0em 2.5em 0 0em #efefef, -1.8em 1.8em 0 0em #efefef, -2.6em 0em 0 0em #efefef,
+        box-shadow:
+            0em -2.6em 0em 0em #efefef,
+            1.8em -1.8em 0 0em #97c1ff,
+            2.5em 0em 0 0em #5794f2,
+            1.75em 1.75em 0 0em #ffffff,
+            0em 2.5em 0 0em #efefef,
+            -1.8em 1.8em 0 0em #efefef,
+            -2.6em 0em 0 0em #efefef,
             -1.8em -1.8em 0 0em #efefef;
     }
     50% {
-        box-shadow: 0em -2.6em 0em 0em #efefef, 1.8em -1.8em 0 0em #efefef, 2.5em 0em 0 0em #97c1ff,
-            1.75em 1.75em 0 0em #5794f2, 0em 2.5em 0 0em #ffffff, -1.8em 1.8em 0 0em #efefef, -2.6em 0em 0 0em #efefef,
+        box-shadow:
+            0em -2.6em 0em 0em #efefef,
+            1.8em -1.8em 0 0em #efefef,
+            2.5em 0em 0 0em #97c1ff,
+            1.75em 1.75em 0 0em #5794f2,
+            0em 2.5em 0 0em #ffffff,
+            -1.8em 1.8em 0 0em #efefef,
+            -2.6em 0em 0 0em #efefef,
             -1.8em -1.8em 0 0em #efefef;
     }
     62.5% {
-        box-shadow: 0em -2.6em 0em 0em #efefef, 1.8em -1.8em 0 0em #efefef, 2.5em 0em 0 0em #efefef,
-            1.75em 1.75em 0 0em #97c1ff, 0em 2.5em 0 0em #5794f2, -1.8em 1.8em 0 0em #ffffff, -2.6em 0em 0 0em #efefef,
+        box-shadow:
+            0em -2.6em 0em 0em #efefef,
+            1.8em -1.8em 0 0em #efefef,
+            2.5em 0em 0 0em #efefef,
+            1.75em 1.75em 0 0em #97c1ff,
+            0em 2.5em 0 0em #5794f2,
+            -1.8em 1.8em 0 0em #ffffff,
+            -2.6em 0em 0 0em #efefef,
             -1.8em -1.8em 0 0em #efefef;
     }
     75% {
-        box-shadow: 0em -2.6em 0em 0em #efefef, 1.8em -1.8em 0 0em #efefef, 2.5em 0em 0 0em #efefef,
-            1.75em 1.75em 0 0em #efefef, 0em 2.5em 0 0em #97c1ff, -1.8em 1.8em 0 0em #5794f2, -2.6em 0em 0 0em #ffffff,
+        box-shadow:
+            0em -2.6em 0em 0em #efefef,
+            1.8em -1.8em 0 0em #efefef,
+            2.5em 0em 0 0em #efefef,
+            1.75em 1.75em 0 0em #efefef,
+            0em 2.5em 0 0em #97c1ff,
+            -1.8em 1.8em 0 0em #5794f2,
+            -2.6em 0em 0 0em #ffffff,
             -1.8em -1.8em 0 0em #efefef;
     }
     87.5% {
-        box-shadow: 0em -2.6em 0em 0em #efefef, 1.8em -1.8em 0 0em #efefef, 2.5em 0em 0 0em #efefef,
-            1.75em 1.75em 0 0em #efefef, 0em 2.5em 0 0em #efefef, -1.8em 1.8em 0 0em #97c1ff, -2.6em 0em 0 0em #5794f2,
+        box-shadow:
+            0em -2.6em 0em 0em #efefef,
+            1.8em -1.8em 0 0em #efefef,
+            2.5em 0em 0 0em #efefef,
+            1.75em 1.75em 0 0em #efefef,
+            0em 2.5em 0 0em #efefef,
+            -1.8em 1.8em 0 0em #97c1ff,
+            -2.6em 0em 0 0em #5794f2,
             -1.8em -1.8em 0 0em #ffffff;
     }
 }
 @keyframes load5 {
     0%,
     100% {
-        box-shadow: 0em -2.6em 0em 0em #ffffff, 1.8em -1.8em 0 0em #efefef, 2.5em 0em 0 0em #efefef,
-            1.75em 1.75em 0 0em #efefef, 0em 2.5em 0 0em #efefef, -1.8em 1.8em 0 0em #efefef, -2.6em 0em 0 0em #97c1ff,
+        box-shadow:
+            0em -2.6em 0em 0em #ffffff,
+            1.8em -1.8em 0 0em #efefef,
+            2.5em 0em 0 0em #efefef,
+            1.75em 1.75em 0 0em #efefef,
+            0em 2.5em 0 0em #efefef,
+            -1.8em 1.8em 0 0em #efefef,
+            -2.6em 0em 0 0em #97c1ff,
             -1.8em -1.8em 0 0em #5794f2;
     }
     12.5% {
-        box-shadow: 0em -2.6em 0em 0em #5794f2, 1.8em -1.8em 0 0em #ffffff, 2.5em 0em 0 0em #efefef,
-            1.75em 1.75em 0 0em #efefef, 0em 2.5em 0 0em #efefef, -1.8em 1.8em 0 0em #efefef, -2.6em 0em 0 0em #efefef,
+        box-shadow:
+            0em -2.6em 0em 0em #5794f2,
+            1.8em -1.8em 0 0em #ffffff,
+            2.5em 0em 0 0em #efefef,
+            1.75em 1.75em 0 0em #efefef,
+            0em 2.5em 0 0em #efefef,
+            -1.8em 1.8em 0 0em #efefef,
+            -2.6em 0em 0 0em #efefef,
             -1.8em -1.8em 0 0em #97c1ff;
     }
     25% {
-        box-shadow: 0em -2.6em 0em 0em #97c1ff, 1.8em -1.8em 0 0em #7094c9, 2.5em 0em 0 0em #ffffff,
-            1.75em 1.75em 0 0em #efefef, 0em 2.5em 0 0em #efefef, -1.8em 1.8em 0 0em #efefef, -2.6em 0em 0 0em #efefef,
+        box-shadow:
+            0em -2.6em 0em 0em #97c1ff,
+            1.8em -1.8em 0 0em #7094c9,
+            2.5em 0em 0 0em #ffffff,
+            1.75em 1.75em 0 0em #efefef,
+            0em 2.5em 0 0em #efefef,
+            -1.8em 1.8em 0 0em #efefef,
+            -2.6em 0em 0 0em #efefef,
             -1.8em -1.8em 0 0em #efefef;
     }
     37.5% {
-        box-shadow: 0em -2.6em 0em 0em #efefef, 1.8em -1.8em 0 0em #97c1ff, 2.5em 0em 0 0em #5794f2,
-            1.75em 1.75em 0 0em #ffffff, 0em 2.5em 0 0em #efefef, -1.8em 1.8em 0 0em #efefef, -2.6em 0em 0 0em #efefef,
+        box-shadow:
+            0em -2.6em 0em 0em #efefef,
+            1.8em -1.8em 0 0em #97c1ff,
+            2.5em 0em 0 0em #5794f2,
+            1.75em 1.75em 0 0em #ffffff,
+            0em 2.5em 0 0em #efefef,
+            -1.8em 1.8em 0 0em #efefef,
+            -2.6em 0em 0 0em #efefef,
             -1.8em -1.8em 0 0em #efefef;
     }
     50% {
-        box-shadow: 0em -2.6em 0em 0em #efefef, 1.8em -1.8em 0 0em #efefef, 2.5em 0em 0 0em #97c1ff,
-            1.75em 1.75em 0 0em #5794f2, 0em 2.5em 0 0em #ffffff, -1.8em 1.8em 0 0em #efefef, -2.6em 0em 0 0em #efefef,
+        box-shadow:
+            0em -2.6em 0em 0em #efefef,
+            1.8em -1.8em 0 0em #efefef,
+            2.5em 0em 0 0em #97c1ff,
+            1.75em 1.75em 0 0em #5794f2,
+            0em 2.5em 0 0em #ffffff,
+            -1.8em 1.8em 0 0em #efefef,
+            -2.6em 0em 0 0em #efefef,
             -1.8em -1.8em 0 0em #efefef;
     }
     62.5% {
-        box-shadow: 0em -2.6em 0em 0em #efefef, 1.8em -1.8em 0 0em #efefef, 2.5em 0em 0 0em #efefef,
-            1.75em 1.75em 0 0em #97c1ff, 0em 2.5em 0 0em #5794f2, -1.8em 1.8em 0 0em #ffffff, -2.6em 0em 0 0em #efefef,
+        box-shadow:
+            0em -2.6em 0em 0em #efefef,
+            1.8em -1.8em 0 0em #efefef,
+            2.5em 0em 0 0em #efefef,
+            1.75em 1.75em 0 0em #97c1ff,
+            0em 2.5em 0 0em #5794f2,
+            -1.8em 1.8em 0 0em #ffffff,
+            -2.6em 0em 0 0em #efefef,
             -1.8em -1.8em 0 0em #efefef;
     }
     75% {
-        box-shadow: 0em -2.6em 0em 0em #efefef, 1.8em -1.8em 0 0em #efefef, 2.5em 0em 0 0em #efefef,
-            1.75em 1.75em 0 0em #efefef, 0em 2.5em 0 0em #97c1ff, -1.8em 1.8em 0 0em #5794f2, -2.6em 0em 0 0em #ffffff,
+        box-shadow:
+            0em -2.6em 0em 0em #efefef,
+            1.8em -1.8em 0 0em #efefef,
+            2.5em 0em 0 0em #efefef,
+            1.75em 1.75em 0 0em #efefef,
+            0em 2.5em 0 0em #97c1ff,
+            -1.8em 1.8em 0 0em #5794f2,
+            -2.6em 0em 0 0em #ffffff,
             -1.8em -1.8em 0 0em #efefef;
     }
     87.5% {
-        box-shadow: 0em -2.6em 0em 0em #efefef, 1.8em -1.8em 0 0em #efefef, 2.5em 0em 0 0em #efefef,
-            1.75em 1.75em 0 0em #efefef, 0em 2.5em 0 0em #efefef, -1.8em 1.8em 0 0em #97c1ff, -2.6em 0em 0 0em #5794f2,
+        box-shadow:
+            0em -2.6em 0em 0em #efefef,
+            1.8em -1.8em 0 0em #efefef,
+            2.5em 0em 0 0em #efefef,
+            1.75em 1.75em 0 0em #efefef,
+            0em 2.5em 0 0em #efefef,
+            -1.8em 1.8em 0 0em #97c1ff,
+            -2.6em 0em 0 0em #5794f2,
             -1.8em -1.8em 0 0em #ffffff;
     }
 }

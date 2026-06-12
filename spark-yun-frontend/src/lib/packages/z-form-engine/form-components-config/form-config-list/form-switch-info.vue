@@ -1,37 +1,21 @@
 <template>
-  <el-form-item
-    ref="elFormItemRef"
-    class="form-config-switch-info"
-    label="文字描述"
-    prop="switchInfo"
-    :rules="rules"
-  >
-    <div class="info-item">
-      <span class="info-item__label">开启</span>
-      <el-input
-        v-model="formData.open"
-        :clearable="true"
-        maxlength="2000"
-        placeholder="请输入"
-      />
-    </div>
-    <div class="info-item item-last">
-      <span class="info-item__label">关闭</span>
-      <el-input
-        v-model="formData.close"
-        :clearable="true"
-        maxlength="2000"
-        placeholder="请输入"
-      />
-    </div>
-  </el-form-item>
+    <el-form-item ref="elFormItemRef" class="form-config-switch-info" label="文字描述" prop="switchInfo" :rules="rules">
+        <div class="info-item">
+            <span class="info-item__label">开启</span>
+            <el-input v-model="formData.open" :clearable="true" maxlength="2000" placeholder="请输入" />
+        </div>
+        <div class="info-item item-last">
+            <span class="info-item__label">关闭</span>
+            <el-input v-model="formData.close" :clearable="true" maxlength="2000" placeholder="请输入" />
+        </div>
+    </el-form-item>
 </template>
 
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed, ref, watch, nextTick } from 'vue'
 
-const props = defineProps([ 'renderSence', 'modelValue', 'formConfig' ])
-const emit = defineEmits([ 'update:modelValue' ])
+const props = defineProps(['renderSence', 'modelValue', 'formConfig'])
+const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {
         return props.modelValue
@@ -53,7 +37,7 @@ const elFormItemRef = ref()
 const rules = ref([
     {
         validator: configRule,
-        trigger: [ 'blur', 'change' ]
+        trigger: ['blur', 'change']
     }
 ])
 watch(

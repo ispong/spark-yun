@@ -1,26 +1,18 @@
 <template>
-  <div class="charts-item">
-    <el-icon
-      v-if="renderSence !== 'readonly'"
-      class="draggable-options__remove"
-      @click="removeChart"
-    >
-      <DeleteFilled />
-    </el-icon>
-    <div
-      :id="currentChartId"
-      class="charts-container"
-      :class="{ 'moving-container': config.i === 'drop' }"
-    />
-  </div>
+    <div class="charts-item">
+        <el-icon v-if="renderSence !== 'readonly'" class="draggable-options__remove" @click="removeChart">
+            <DeleteFilled />
+        </el-icon>
+        <div :id="currentChartId" class="charts-container" :class="{ 'moving-container': config.i === 'drop' }" />
+    </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, defineProps, onMounted, computed, onUnmounted, defineEmits, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
 
-const props = defineProps([ 'config', 'renderSence', 'getPreviewOption', 'getRealDataOption' ])
-const emit = defineEmits([ 'removeChart' ])
+const props = defineProps(['config', 'renderSence', 'getPreviewOption', 'getRealDataOption'])
+const emit = defineEmits(['removeChart'])
 let myChart: any = null
 
 const timer = ref()
@@ -37,7 +29,7 @@ function removeChart() {
     emit('removeChart', props.config)
 }
 
-onMounted(async() => {
+onMounted(async () => {
     if (props.config.i !== 'drop') {
         myChart = echarts.init(document.getElementById(currentChartId.value))
 

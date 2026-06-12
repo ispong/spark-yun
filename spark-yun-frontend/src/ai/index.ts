@@ -17,13 +17,9 @@ async function resolveHeaders(headers: ChatTransportOptions<UIMessage>['headers'
 }
 
 export function createAiChat<UI_MESSAGE extends UIMessage = UIMessage>(
-    options: CreateAiChatOptions<UI_MESSAGE> = {
-}
+    options: CreateAiChatOptions<UI_MESSAGE> = {}
 ): Chat<UI_MESSAGE> {
-    const {
- chat, transport = {
-} 
-} = options
+    const { chat, transport = {} } = options
 
     return new Chat<UI_MESSAGE>({
         ...chat,
@@ -31,7 +27,7 @@ export function createAiChat<UI_MESSAGE extends UIMessage = UIMessage>(
             ...transport,
             api: transport.api ?? '/api/ai/chat',
             credentials: transport.credentials ?? 'same-origin',
-            headers: async() => {
+            headers: async () => {
                 const headers = await resolveHeaders(transport.headers)
                 const authStore = useAuthStore()
 

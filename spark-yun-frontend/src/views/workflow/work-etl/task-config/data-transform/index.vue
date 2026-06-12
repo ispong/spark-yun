@@ -1,117 +1,72 @@
 <template>
-  <div class="config-components">
-    <el-form-item
-      class="form-item-top"
-      label-width="0"
-    >
-      <div class="form-options__list">
-        <div
-          v-for="(element, index) in formData.transformEtl"
-          :key="element.id || index"
-          class="form-options__item"
-        >
-          <el-form-item
-            :prop="`transformEtl[${index}].colName`"
-            :rules="rules.colName"
-          >
-            <el-select
-              v-model="element.colName"
-              filterable
-              clearable
-              placeholder="请选择字段"
-            >
-              <el-option
-                v-for="item in colNameOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item
-            :prop="`transformEtl[${index}].transformWay`"
-            :rules="rules.transformWay"
-          >
-            <el-select
-              v-model="element.transformWay"
-              @change="transformChangeEvent($event, element)"
-            >
-              <el-option
-                label="函数转换"
-                value="FUNCTION_TRANSFORM"
-              />
-              <el-option
-                label="自定义转换"
-                value="CUSTOM_TRANSFORM"
-              />
-            </el-select>
-          </el-form-item>
-          <template v-if="element.transformWay === 'FUNCTION_TRANSFORM'">
-            <el-form-item
-              :prop="`transformEtl[${index}].transformFunc`"
-              :rules="rules.transformFunc"
-            >
-              <el-select
-                v-model="element.transformFunc"
-                filterable
-                clearable
-                placeholder="请选择函数"
-                @change="functionSelectEvent($event, element)"
-              >
-                <el-option
-                  v-for="item in funcOptions"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item
-              v-for="(inputV, inputIndex) in element.inputValue"
-              :key="inputIndex"
-            >
-              <el-input
-                v-model="element.inputValue[inputIndex]"
-                placeholder="请输入"
-              />
-            </el-form-item>
-          </template>
-          <el-form-item
-            v-if="element.transformWay === 'CUSTOM_TRANSFORM'"
-            :prop="`transformEtl[${index}].transformSql`"
-            :rules="rules.transformSql"
-          >
-            <el-input
-              v-model="element.transformSql"
-              clearable
-              placeholder="请输入"
-            />
-          </el-form-item>
-          <!-- --------------- -->
-          <div class="option-btn">
-            <el-icon
-              v-if="formData.transformEtl.length > 1"
-              class="remove"
-              @click="removeItem(index)"
-            >
-              <CircleClose />
-            </el-icon>
-          </div>
-        </div>
-      </div>
-      <div class="transform-condition-actions">
-        <el-button
-          link
-          type="primary"
-          size="small"
-          @click="addNewOption"
-        >
-          <el-icon><Plus /></el-icon>
-          转换
-        </el-button>
-      </div>
-    </el-form-item>
-  </div>
+    <div class="config-components">
+        <el-form-item class="form-item-top" label-width="0">
+            <div class="form-options__list">
+                <div
+                    v-for="(element, index) in formData.transformEtl"
+                    :key="element.id || index"
+                    class="form-options__item"
+                >
+                    <el-form-item :prop="`transformEtl[${index}].colName`" :rules="rules.colName">
+                        <el-select v-model="element.colName" filterable clearable placeholder="请选择字段">
+                            <el-option
+                                v-for="item in colNameOptions"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                            />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item :prop="`transformEtl[${index}].transformWay`" :rules="rules.transformWay">
+                        <el-select v-model="element.transformWay" @change="transformChangeEvent($event, element)">
+                            <el-option label="函数转换" value="FUNCTION_TRANSFORM" />
+                            <el-option label="自定义转换" value="CUSTOM_TRANSFORM" />
+                        </el-select>
+                    </el-form-item>
+                    <template v-if="element.transformWay === 'FUNCTION_TRANSFORM'">
+                        <el-form-item :prop="`transformEtl[${index}].transformFunc`" :rules="rules.transformFunc">
+                            <el-select
+                                v-model="element.transformFunc"
+                                filterable
+                                clearable
+                                placeholder="请选择函数"
+                                @change="functionSelectEvent($event, element)"
+                            >
+                                <el-option
+                                    v-for="item in funcOptions"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value"
+                                />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item v-for="(inputV, inputIndex) in element.inputValue" :key="inputIndex">
+                            <el-input v-model="element.inputValue[inputIndex]" placeholder="请输入" />
+                        </el-form-item>
+                    </template>
+                    <el-form-item
+                        v-if="element.transformWay === 'CUSTOM_TRANSFORM'"
+                        :prop="`transformEtl[${index}].transformSql`"
+                        :rules="rules.transformSql"
+                    >
+                        <el-input v-model="element.transformSql" clearable placeholder="请输入" />
+                    </el-form-item>
+                    <!-- --------------- -->
+                    <div class="option-btn">
+                        <el-icon v-if="formData.transformEtl.length > 1" class="remove" @click="removeItem(index)">
+                            <CircleClose />
+                        </el-icon>
+                    </div>
+                </div>
+            </div>
+            <div class="transform-condition-actions">
+                <el-button link type="primary" size="small" @click="addNewOption">
+                    <el-icon><Plus /></el-icon>
+                    转换
+                </el-button>
+            </div>
+        </el-form-item>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -129,7 +84,7 @@ const props = defineProps<{
     modelValue: any
     incomeNodes: any
 }>()
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 
 const colNameOptions = ref<Option[]>([])
 const funcOptions = ref<Option[]>([])
@@ -139,28 +94,28 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '字段不能为空',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     transformWay: [
         {
             required: true,
             message: '转换方式不能为空',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     transformFunc: [
         {
             required: true,
             message: '函数不能为空',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     transformSql: [
         {
             required: true,
             message: '自定义sql不能为空',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

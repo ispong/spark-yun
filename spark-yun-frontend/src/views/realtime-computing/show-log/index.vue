@@ -1,24 +1,11 @@
 <template>
-  <BlockModal
-    :model-config="modelConfig"
-    @close="closeEvent"
-  >
-    <LoadingPage
-      class="log-loading"
-      :visible="loading"
-    >
-      <div
-        id="content"
-        class="content-box"
-      >
-        <LogContainer
-          v-if="logMsg"
-          :log-msg="logMsg"
-          :status="status"
-        />
-      </div>
-    </LoadingPage>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig" @close="closeEvent">
+        <LoadingPage class="log-loading" :visible="loading">
+            <div id="content" class="content-box">
+                <LogContainer v-if="logMsg" :log-msg="logMsg" :status="status" />
+            </div>
+        </LoadingPage>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -75,7 +62,7 @@ function getLogData(id: string, type?: string) {
         })
             .then((res: any) => {
                 loading.value = false
-                status.value = [ 'FAIL', 'STOP' ].includes(res.data.status) ? true : false
+                status.value = ['FAIL', 'STOP'].includes(res.data.status) ? true : false
                 logMsg.value = res.data.runningLog
                 isRequest.value = false
             })
@@ -91,7 +78,7 @@ function getLogData(id: string, type?: string) {
         })
             .then((res: any) => {
                 loading.value = false
-                status.value = [ 'FAIL', 'STOP' ].includes(res.data.status) ? true : false
+                status.value = ['FAIL', 'STOP'].includes(res.data.status) ? true : false
                 logMsg.value = res.data.submitLog
                 isRequest.value = false
             })

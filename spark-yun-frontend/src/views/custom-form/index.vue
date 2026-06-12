@@ -1,6 +1,6 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <router-view />
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <router-view />
 </template>
 
 <script lang="ts" setup>

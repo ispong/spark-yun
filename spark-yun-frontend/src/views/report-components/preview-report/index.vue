@@ -1,15 +1,9 @@
 <template>
-  <BlockModal
-    :model-config="modelConfig"
-    @close="closeEvent"
-  >
-    <div
-      id="content"
-      class="content-box"
-    >
-      <BlockTable :table-config="tableConfig" />
-    </div>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig" @close="closeEvent">
+        <div id="content" class="content-box">
+            <BlockTable :table-config="tableConfig" />
+        </div>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -58,7 +52,7 @@ function getResultDatalist() {
     tableConfig.loading = true
     PreviewReportSingleComponentData(info.value)
         .then((res: any) => {
-            const col = [ 'name', 'value' ]
+            const col = ['name', 'value']
             const tableData = res.data.rows
             tableConfig.colConfigs = col.map((colunm: any) => {
                 return {
@@ -71,8 +65,7 @@ function getResultDatalist() {
             })
             tableConfig.tableData = []
             res.data.rows.forEach((rowData) => {
-                const columnData = {
-}
+                const columnData = {}
                 col.forEach((cl, index) => {
                     columnData[cl] = rowData[index]
                 })

@@ -1,80 +1,40 @@
 <template>
-  <div class="work-etl">
-    <LoadingPage :visible="loading">
-      <OptionsContainer
-        ref="optionsContainerRef"
-        :order-type="props.orderType"
-        @options-event="optionsEvent"
-      />
-      <div class="work-etl-main">
-        <TaskList @handle-drag-end="handleDragEnd" />
-        <ZEtlFlow
-          ref="zEtlFlowRef"
-          @refresh="initFlowData"
-          @node-dropped="handleNodeDropped"
-        />
-      </div>
-    </LoadingPage>
-    <!-- 数据同步日志部分 -->
-    <el-collapse
-      v-if="showLogPanel"
-      ref="logCollapseRef"
-      v-model="collapseActive"
-      class="data-sync-log__collapse"
-    >
-      <div
-        class="log-resize-handle"
-        @mousedown="startResizeLogPanel"
-      />
-      <el-collapse-item
-        title="查看日志"
-        :disabled="true"
-        name="1"
-      >
-        <template #title>
-          <el-tabs
-            v-model="activeName"
-            @tab-click="changeCollapseUp"
-            @tab-change="tabChangeEvent"
-          >
-            <template
-              v-for="tab in tabList"
-              :key="tab.code"
-            >
-              <el-tab-pane
-                v-if="!tab.hide"
-                :label="tab.name"
-                :name="tab.code"
-              />
-            </template>
-          </el-tabs>
-          <span class="log__collapse">
-            <el-icon
-              v-if="isCollapse"
-              @click="changeCollapseDown"
-            ><ArrowDown /></el-icon>
-            <el-icon
-              v-else
-              @click="changeCollapseUp"
-            ><ArrowUp /></el-icon>
-          </span>
-        </template>
-        <div
-          class="log-show log-show-datasync"
-          :style="{ height: `${logPanelHeight}px` }"
-        >
-          <component
-            :is="currentTab"
-            ref="containerInstanceRef"
-            class="show-container"
-            :style="{ height: `${logPanelHeight}px` }"
-          />
-        </div>
-      </el-collapse-item>
-    </el-collapse>
-    <AddTaskModal ref="addTaskModalRef" />
-    <TaskConfig ref="taskConfigRef" />
-  </div>
+    <div class="work-etl">
+        <LoadingPage :visible="loading">
+            <OptionsContainer ref="optionsContainerRef" :order-type="props.orderType" @options-event="optionsEvent" />
+            <div class="work-etl-main">
+                <TaskList @handle-drag-end="handleDragEnd" />
+                <ZEtlFlow ref="zEtlFlowRef" @refresh="initFlowData" @node-dropped="handleNodeDropped" />
+            </div>
+        </LoadingPage>
+        <!-- 数据同步日志部分 -->
+        <el-collapse v-if="showLogPanel" ref="logCollapseRef" v-model="collapseActive" class="data-sync-log__collapse">
+            <div class="log-resize-handle" @mousedown="startResizeLogPanel" />
+            <el-collapse-item title="查看日志" :disabled="true" name="1">
+                <template #title>
+                    <el-tabs v-model="activeName" @tab-click="changeCollapseUp" @tab-change="tabChangeEvent">
+                        <template v-for="tab in tabList" :key="tab.code">
+                            <el-tab-pane v-if="!tab.hide" :label="tab.name" :name="tab.code" />
+                        </template>
+                    </el-tabs>
+                    <span class="log__collapse">
+                        <el-icon v-if="isCollapse" @click="changeCollapseDown"><ArrowDown /></el-icon>
+                        <el-icon v-else @click="changeCollapseUp"><ArrowUp /></el-icon>
+                    </span>
+                </template>
+                <div class="log-show log-show-datasync" :style="{ height: `${logPanelHeight}px` }">
+                    <component
+                        :is="currentTab"
+                        ref="containerInstanceRef"
+                        class="show-container"
+                        :style="{ height: `${logPanelHeight}px` }"
+                    />
+                </div>
+            </el-collapse-item>
+        </el-collapse>
+        <AddTaskModal ref="addTaskModalRef" />
+        <TaskConfig ref="taskConfigRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -87,24 +47,26 @@ import ZEtlFlow from './z-etl-flow/flow.vue'
 import AddTaskModal from './add-task-modal/index.vue'
 import TaskConfig from './task-config/index.vue'
 import eventBus from '@/utils/eventBus'
-import { GetWorkItemConfig,
+import {
+    GetWorkItemConfig,
     PublishWorkData,
     RunWorkItemConfig,
     SaveWorkItemConfig,
-    TerWorkItemConfig } from '@/services/workflow.service'
+    TerWorkItemConfig
+} from '@/services/workflow.service'
 import { TaskParams } from './task-params.ts'
 import { cloneDeep } from 'lodash-es'
 import PublishLog from '../work-item/publish-log.vue'
 import RunningLog from '../work-item/running-log.vue'
 
-const guid = function() {
+const guid = function () {
     function S4() {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
     return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4()
 }
 
-const emit = defineEmits([ 'back', 'locationNode', 'sortWorkList' ])
+const emit = defineEmits(['back', 'locationNode', 'sortWorkList'])
 const props = defineProps<{
     workItemConfig: any
     orderType?: 'acs' | 'desc' | ''
@@ -289,9 +251,7 @@ function saveData() {
                         'DATA_ADD_COL'
                     ]
                     if (noInputEtlTypes.includes(nodeConfigData.type)) {
-                        const {
- inputEtl, ...rest 
-} = nodeConfigData
+                        const { inputEtl, ...rest } = nodeConfigData
                         return rest
                     }
                     return nodeConfigData
@@ -299,7 +259,7 @@ function saveData() {
             nodeMapping: allCellData
                 .filter((node: any) => node.shape === 'dag-edge')
                 .map((edge: any) => {
-                    return [ edge.source.cell, edge.target.cell ]
+                    return [edge.source.cell, edge.target.cell]
                 })
         }
     }
@@ -425,7 +385,7 @@ onMounted(() => {
                 // 点开编辑的时候，直接获取上级流转的参数
                 const incomeNodes = zEtlFlowRef.value?.getIncomeNodes(e.data.nodeConfigData)
                 if (incomeNodes) {
-                    if ((incomeNodes && incomeNodes.length) || [ 'DATA_INPUT' ].includes(e.data.nodeConfigData.type)) {
+                    if ((incomeNodes && incomeNodes.length) || ['DATA_INPUT'].includes(e.data.nodeConfigData.type)) {
                         taskConfigRef.value?.showModal(
                             incomeNodes,
                             (formData: any) => {

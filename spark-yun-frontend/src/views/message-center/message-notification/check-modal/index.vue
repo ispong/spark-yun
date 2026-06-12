@@ -1,86 +1,49 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group message-check-form"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item label="名称">
-        <el-input
-          v-model="formData.name"
-          :disabled="true"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item label="类型">
-        <el-select
-          v-model="formData.msgType"
-          :disabled="true"
-          placeholder="请选择"
+    <BlockModal :model-config="modelConfig">
+        <el-form
+            ref="form"
+            class="add-computer-group message-check-form"
+            label-position="top"
+            :model="formData"
+            :rules="rules"
         >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="通知内容模板">
-        <el-input
-          v-model="formData.contentTemplate"
-          :disabled="true"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="通知对象"
-        prop="receiver"
-      >
-        <el-select
-          v-model="formData.receiver"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in userList"
-            :key="item.userId"
-            :label="item.username"
-            :value="item.userId"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="通知内容"
-        prop="content"
-        :class="{ 'show-screen__full': fullStatus }"
-      >
-        <span
-          v-if="formData.msgType === 'ALI_SMS'"
-          class="format-json"
-          @click="formatterJsonEvent(formData, 'content')"
-        >
-          格式化JSON
-        </span>
-        <el-icon
-          class="modal-full-screen"
-          @click="fullScreenEvent()"
-        >
-          <FullScreen v-if="!fullStatus" />
-          <Close v-else />
-        </el-icon>
-        <code-mirror
-          ref="responseBodyRef"
-          v-model="formData.content"
-          basic
-          :lang="jsonLang"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+            <el-form-item label="名称">
+                <el-input v-model="formData.name" :disabled="true" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="类型">
+                <el-select v-model="formData.msgType" :disabled="true" placeholder="请选择">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="通知内容模板">
+                <el-input v-model="formData.contentTemplate" :disabled="true" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="通知对象" prop="receiver">
+                <el-select v-model="formData.receiver" placeholder="请选择">
+                    <el-option
+                        v-for="item in userList"
+                        :key="item.userId"
+                        :label="item.username"
+                        :value="item.userId"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="通知内容" prop="content" :class="{ 'show-screen__full': fullStatus }">
+                <span
+                    v-if="formData.msgType === 'ALI_SMS'"
+                    class="format-json"
+                    @click="formatterJsonEvent(formData, 'content')"
+                >
+                    格式化JSON
+                </span>
+                <el-icon class="modal-full-screen" @click="fullScreenEvent()">
+                    <FullScreen v-if="!fullStatus" />
+                    <Close v-else />
+                </el-icon>
+                <code-mirror ref="responseBodyRef" v-model="formData.content" basic :lang="jsonLang" />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -138,14 +101,14 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请选择通知对象',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     content: [
         {
             required: true,
             message: '请输入通知内容',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })
@@ -185,7 +148,7 @@ function okEvent() {
     form.value?.validate((valid) => {
         if (valid) {
             modelConfig.okConfig.loading = true
-            let formDataParams = {
+            const formDataParams = {
                 receiver: formData.receiver,
                 content: formData.content,
                 id: formData.id
@@ -298,14 +261,30 @@ defineExpose({
 
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
 
                 .cm-tooltip-autocomplete {
@@ -316,8 +295,16 @@ defineExpose({
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         li[aria-selected] {

@@ -1,219 +1,161 @@
 <template>
-  <div
-    class="data-sync-page computing-detail"
-    :class="{ 'work-detail__disabled': props.disabled }"
-  >
-    <div
-      v-if="!props.disabled"
-      class="data-sync__option-container"
-    >
-      <div
-        class="btn-box"
-        @click="goBack"
-      >
-        <el-icon>
-          <RefreshLeft />
-        </el-icon>
-        <span class="btn-text">返回</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="saveData"
-      >
-        <el-icon v-if="!btnLoadingConfig.saveLoading">
-          <Finished />
-        </el-icon>
-        <el-icon
-          v-else
-          class="is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <span class="btn-text">保存</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="startComputing"
-      >
-        <el-icon v-if="!btnLoadingConfig.runningLoading">
-          <VideoPlay />
-        </el-icon>
-        <el-icon
-          v-else
-          class="is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <span class="btn-text">运行</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="stopData"
-      >
-        <el-icon v-if="!btnLoadingConfig.stopLoading">
-          <Close />
-        </el-icon>
-        <el-icon
-          v-else
-          class="is-loading"
-        >
-          <Loading />
-        </el-icon>
-        <span class="btn-text">中止</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="setConfigData"
-      >
-        <el-icon>
-          <Setting />
-        </el-icon>
-        <span class="btn-text">配置</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="locationNode"
-      >
-        <el-icon>
-          <Position />
-        </el-icon>
-        <span class="btn-text">定位</span>
-      </div>
-      <div
-        class="btn-box"
-        @click="emit('sortWorkList')"
-      >
-        <el-icon>
-          <Sort v-if="!props.orderType" />
-          <SortDown v-else-if="props.orderType === 'desc'" />
-          <SortUp v-else />
-        </el-icon>
-        <span class="btn-text">
-          {{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}
-        </span>
-      </div>
-    </div>
-    <div
-      id="data-sync"
-      class="data-sync"
-      :class="{ 'data-sync__log': !!instanceId }"
-    >
-      <div class="data-sync-top">
-        <el-card class="box-card">
-          <template #header>
-            <div class="card-header">
-              <span>数据来源</span>
+    <div class="data-sync-page computing-detail" :class="{ 'work-detail__disabled': props.disabled }">
+        <div v-if="!props.disabled" class="data-sync__option-container">
+            <div class="btn-box" @click="goBack">
+                <el-icon>
+                    <RefreshLeft />
+                </el-icon>
+                <span class="btn-text">返回</span>
             </div>
-          </template>
-          <el-form
-            ref="form"
-            label-position="left"
-            label-width="88px"
-            :model="formData"
-            :rules="rules"
-            :disabled="props.disabled"
-          >
-            <el-form-item
-              prop="sourceDBType"
-              label="类型"
-            >
-              <el-select
-                v-model="formData.sourceDBType"
-                placeholder="请选择"
-                @change="sourceDBTypeChangeEvent"
-              >
-                <el-option
-                  v-for="item in sourceTypeList"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </el-form-item>
-            <template v-if="formData.sourceDBType === 'API'">
-              <el-form-item prop="requestUrl">
-                <template #label>
-                  <span class="request-body-label">
-                    <span>接口</span>
-                    <el-tooltip
-                      placement="right"
-                      effect="dark"
-                    >
-                      <template #content>
-                        <div class="request-body-tip__content">
-                          <div>POST分页请求案例：</div>
-                          <div>{</div>
-                          <div>&nbsp;&nbsp;"custom_page": "${page}",</div>
-                          <div>&nbsp;&nbsp;"custom_pageSize": "${pageSize}"</div>
-                          <div>}</div>
-                          <div>GET分页请求案例：</div>
-                          <div>?custom_page=${page}&custom_pageSize=${pageSize}</div>
+            <div class="btn-box" @click="saveData">
+                <el-icon v-if="!btnLoadingConfig.saveLoading">
+                    <Finished />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">保存</span>
+            </div>
+            <div class="btn-box" @click="startComputing">
+                <el-icon v-if="!btnLoadingConfig.runningLoading">
+                    <VideoPlay />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">运行</span>
+            </div>
+            <div class="btn-box" @click="stopData">
+                <el-icon v-if="!btnLoadingConfig.stopLoading">
+                    <Close />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">中止</span>
+            </div>
+            <div class="btn-box" @click="setConfigData">
+                <el-icon>
+                    <Setting />
+                </el-icon>
+                <span class="btn-text">配置</span>
+            </div>
+            <div class="btn-box" @click="locationNode">
+                <el-icon>
+                    <Position />
+                </el-icon>
+                <span class="btn-text">定位</span>
+            </div>
+            <div class="btn-box" @click="emit('sortWorkList')">
+                <el-icon>
+                    <Sort v-if="!props.orderType" />
+                    <SortDown v-else-if="props.orderType === 'desc'" />
+                    <SortUp v-else />
+                </el-icon>
+                <span class="btn-text">
+                    {{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}
+                </span>
+            </div>
+        </div>
+        <div id="data-sync" class="data-sync" :class="{ 'data-sync__log': !!instanceId }">
+            <div class="data-sync-top">
+                <el-card class="box-card">
+                    <template #header>
+                        <div class="card-header">
+                            <span>数据来源</span>
                         </div>
-                      </template>
-                      <el-icon class="tooltip-msg"><QuestionFilled /></el-icon>
-                    </el-tooltip>
-                  </span>
-                </template>
-                <div class="api-request-line">
-                  <el-select
-                    v-model="formData.requestType"
-                    class="api-request-line__method"
-                    placeholder="请求方式"
-                    @change="sourceRequestTypeChangeEvent"
-                  >
-                    <el-option
-                      label="GET"
-                      value="GET"
-                    />
-                    <el-option
-                      label="POST"
-                      value="POST"
-                    />
-                  </el-select>
-                  <el-input
-                    v-model="formData.requestUrl"
-                    class="api-request-line__url"
-                    clearable
-                    placeholder="请输入接口"
-                    maxlength="1000"
-                  />
-                </div>
-              </el-form-item>
-              <el-form-item
-                label="配置"
-                class="api-config-row"
-              >
-                <div class="api-request-line__actions">
-                  <el-button
-                    type="primary"
-                    link
-                    size="small"
-                    @click="openRequestHeaderConfig('source')"
-                  >
-                    请求头
-                  </el-button>
-                  <el-button
-                    type="primary"
-                    link
-                    size="small"
-                    @click="openResponseBodyTemplateConfig('source')"
-                  >
-                    响应体模版
-                  </el-button>
-                </div>
-              </el-form-item>
-              <el-form-item
-                v-if="formData.requestType === 'POST'"
-                label="请求体"
-              >
-                <code-mirror
-                  v-model="formData.requestBody"
-                  basic
-                  :lang="jsonLang"
-                  @change="pageChangeEvent"
-                />
-              </el-form-item>
-              <!-- <el-form-item prop="kafkaConfig.topic" label="topic">
+                    </template>
+                    <el-form
+                        ref="form"
+                        label-position="left"
+                        label-width="88px"
+                        :model="formData"
+                        :rules="rules"
+                        :disabled="props.disabled"
+                    >
+                        <el-form-item prop="sourceDBType" label="类型">
+                            <el-select
+                                v-model="formData.sourceDBType"
+                                placeholder="请选择"
+                                @change="sourceDBTypeChangeEvent"
+                            >
+                                <el-option
+                                    v-for="item in sourceTypeList"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value"
+                                />
+                            </el-select>
+                        </el-form-item>
+                        <template v-if="formData.sourceDBType === 'API'">
+                            <el-form-item prop="requestUrl">
+                                <template #label>
+                                    <span class="request-body-label">
+                                        <span>接口</span>
+                                        <el-tooltip placement="right" effect="dark">
+                                            <template #content>
+                                                <div class="request-body-tip__content">
+                                                    <div>POST分页请求案例：</div>
+                                                    <div>{</div>
+                                                    <div>&nbsp;&nbsp;"custom_page": "${page}",</div>
+                                                    <div>&nbsp;&nbsp;"custom_pageSize": "${pageSize}"</div>
+                                                    <div>}</div>
+                                                    <div>GET分页请求案例：</div>
+                                                    <div>?custom_page=${page}&custom_pageSize=${pageSize}</div>
+                                                </div>
+                                            </template>
+                                            <el-icon class="tooltip-msg"><QuestionFilled /></el-icon>
+                                        </el-tooltip>
+                                    </span>
+                                </template>
+                                <div class="api-request-line">
+                                    <el-select
+                                        v-model="formData.requestType"
+                                        class="api-request-line__method"
+                                        placeholder="请求方式"
+                                        @change="sourceRequestTypeChangeEvent"
+                                    >
+                                        <el-option label="GET" value="GET" />
+                                        <el-option label="POST" value="POST" />
+                                    </el-select>
+                                    <el-input
+                                        v-model="formData.requestUrl"
+                                        class="api-request-line__url"
+                                        clearable
+                                        placeholder="请输入接口"
+                                        maxlength="1000"
+                                    />
+                                </div>
+                            </el-form-item>
+                            <el-form-item label="配置" class="api-config-row">
+                                <div class="api-request-line__actions">
+                                    <el-button
+                                        type="primary"
+                                        link
+                                        size="small"
+                                        @click="openRequestHeaderConfig('source')"
+                                    >
+                                        请求头
+                                    </el-button>
+                                    <el-button
+                                        type="primary"
+                                        link
+                                        size="small"
+                                        @click="openResponseBodyTemplateConfig('source')"
+                                    >
+                                        响应体模版
+                                    </el-button>
+                                </div>
+                            </el-form-item>
+                            <el-form-item v-if="formData.requestType === 'POST'" label="请求体">
+                                <code-mirror
+                                    v-model="formData.requestBody"
+                                    basic
+                                    :lang="jsonLang"
+                                    @change="pageChangeEvent"
+                                />
+                            </el-form-item>
+                            <!-- <el-form-item prop="kafkaConfig.topic" label="topic">
                                 <el-select v-model="formData.kafkaConfig.topic" clearable filterable placeholder="请选择" @change="pageChangeEvent"
                                     @visible-change="getTopicList($event, formData.sourceDBId)"
                                 >
@@ -221,544 +163,382 @@
                                         :value="item.value" />
                                 </el-select>
                             </el-form-item> -->
-              <el-form-item
-                prop="jsonDataType"
-                label="解析类型"
-              >
-                <div class="parse-type-line">
-                  <el-select
-                    v-model="formData.jsonDataType"
-                    clearable
-                    filterable
-                    placeholder="请选择"
-                    @change="getCurrentTableColumn"
-                  >
-                    <el-option
-                      label="数组节点"
-                      value="LIST"
-                    />
-                    <el-option
-                      label="对象节点"
-                      value="OBJECT"
-                    />
-                  </el-select>
-                  <el-button
-                    type="primary"
-                    link
-                    size="small"
-                    @click="previewDataEvent"
-                  >
-                    数据预览
-                  </el-button>
-                </div>
-              </el-form-item>
-              <el-form-item
-                v-if="formData.jsonDataType === 'LIST'"
-                prop="rootJsonPath"
-                label="节点"
-              >
-                <el-select
-                  v-model="formData.rootJsonPath"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @change="rootJsonPathBlur"
-                  @visible-change="getJsonNodeArray"
-                >
-                  <el-option
-                    v-for="item in nodeArrayList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item label="每页">
-                <div class="paging-line">
-                  <el-input-number
-                    v-model="formData.pageSize"
-                    :min="1"
-                    :max="100000"
-                    controls-position="right"
-                    @change="pageChangeEvent"
-                  />
-                  <span class="paging-line__text">第</span>
-                  <el-input-number
-                    v-model="formData.pageStart"
-                    :min="0"
-                    :max="100000"
-                    controls-position="right"
-                    :disabled="formData.pageAll"
-                    @change="pageChangeEvent"
-                  />
-                  <span class="paging-line__text">到</span>
-                  <el-input-number
-                    v-model="formData.pageEnd"
-                    :min="0"
-                    :max="100000"
-                    controls-position="right"
-                    :disabled="formData.pageAll"
-                    @change="pageChangeEvent"
-                  />
-                  <span class="paging-line__text">页</span>
-                  <el-checkbox
-                    v-model="formData.pageAll"
-                    @change="pageChangeEvent"
-                  >
-                    <span class="paging-line__checkbox-text">全部</span>
-                  </el-checkbox>
-                </div>
-              </el-form-item>
-              <el-form-item
-                prop="queryCondition"
-                label="过滤条件"
-              >
-                <code-mirror
-                  v-model="formData.queryCondition"
-                  basic
-                  :lang="lang"
-                  @change="pageChangeEvent"
-                />
-              </el-form-item>
-            </template>
-            <template v-else>
-              <el-form-item
-                prop="sourceDBId"
-                label="数据源"
-              >
-                <el-select
-                  v-model="formData.sourceDBId"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @visible-change="getDataSource($event, formData.sourceDBType, 'source')"
-                  @change="dbIdChange('source')"
-                >
-                  <el-option
-                    v-for="item in sourceList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                prop="sourceTable"
-                label="表"
-              >
-                <el-select
-                  v-model="formData.sourceTable"
-                  clearable
-                  filterable
-                  allow-create
-                  default-first-option
-                  placeholder="请选择或输入表名"
-                  @visible-change="getDataSourceTable($event, formData.sourceDBId, 'source')"
-                  @change="tableChangeEvent($event, formData.sourceDBId, 'source')"
-                >
-                  <el-option
-                    v-for="item in sourceTablesList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-                <el-button
-                  v-if="!props.disabled"
-                  type="primary"
-                  link
-                  @click="showSourceTableDetail"
-                >
-                  数据预览
-                </el-button>
-              </el-form-item>
-              <el-form-item label="分区键">
-                <el-select
-                  v-model="formData.partitionColumn"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @visible-change="
-                    getTableColumnData($event, formData.sourceDBId, formData.sourceTable)
-                  "
-                  @change="pageChangeEvent"
-                >
-                  <el-option
-                    v-for="item in partKeyList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                prop="queryCondition"
-                label="过滤条件"
-              >
-                <code-mirror
-                  v-model="formData.queryCondition"
-                  basic
-                  :lang="lang"
-                  @change="pageChangeEvent"
-                />
-              </el-form-item>
-            </template>
-          </el-form>
-        </el-card>
-        <el-card class="box-card">
-          <template #header>
-            <div class="card-header">
-              <span>数据去向</span>
+                            <el-form-item prop="jsonDataType" label="解析类型">
+                                <div class="parse-type-line">
+                                    <el-select
+                                        v-model="formData.jsonDataType"
+                                        clearable
+                                        filterable
+                                        placeholder="请选择"
+                                        @change="getCurrentTableColumn"
+                                    >
+                                        <el-option label="数组节点" value="LIST" />
+                                        <el-option label="对象节点" value="OBJECT" />
+                                    </el-select>
+                                    <el-button type="primary" link size="small" @click="previewDataEvent">
+                                        数据预览
+                                    </el-button>
+                                </div>
+                            </el-form-item>
+                            <el-form-item v-if="formData.jsonDataType === 'LIST'" prop="rootJsonPath" label="节点">
+                                <el-select
+                                    v-model="formData.rootJsonPath"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @change="rootJsonPathBlur"
+                                    @visible-change="getJsonNodeArray"
+                                >
+                                    <el-option
+                                        v-for="item in nodeArrayList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="每页">
+                                <div class="paging-line">
+                                    <el-input-number
+                                        v-model="formData.pageSize"
+                                        :min="1"
+                                        :max="100000"
+                                        controls-position="right"
+                                        @change="pageChangeEvent"
+                                    />
+                                    <span class="paging-line__text">第</span>
+                                    <el-input-number
+                                        v-model="formData.pageStart"
+                                        :min="0"
+                                        :max="100000"
+                                        controls-position="right"
+                                        :disabled="formData.pageAll"
+                                        @change="pageChangeEvent"
+                                    />
+                                    <span class="paging-line__text">到</span>
+                                    <el-input-number
+                                        v-model="formData.pageEnd"
+                                        :min="0"
+                                        :max="100000"
+                                        controls-position="right"
+                                        :disabled="formData.pageAll"
+                                        @change="pageChangeEvent"
+                                    />
+                                    <span class="paging-line__text">页</span>
+                                    <el-checkbox v-model="formData.pageAll" @change="pageChangeEvent">
+                                        <span class="paging-line__checkbox-text">全部</span>
+                                    </el-checkbox>
+                                </div>
+                            </el-form-item>
+                            <el-form-item prop="queryCondition" label="过滤条件">
+                                <code-mirror
+                                    v-model="formData.queryCondition"
+                                    basic
+                                    :lang="lang"
+                                    @change="pageChangeEvent"
+                                />
+                            </el-form-item>
+                        </template>
+                        <template v-else>
+                            <el-form-item prop="sourceDBId" label="数据源">
+                                <el-select
+                                    v-model="formData.sourceDBId"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @visible-change="getDataSource($event, formData.sourceDBType, 'source')"
+                                    @change="dbIdChange('source')"
+                                >
+                                    <el-option
+                                        v-for="item in sourceList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item prop="sourceTable" label="表">
+                                <el-select
+                                    v-model="formData.sourceTable"
+                                    clearable
+                                    filterable
+                                    allow-create
+                                    default-first-option
+                                    placeholder="请选择或输入表名"
+                                    @visible-change="getDataSourceTable($event, formData.sourceDBId, 'source')"
+                                    @change="tableChangeEvent($event, formData.sourceDBId, 'source')"
+                                >
+                                    <el-option
+                                        v-for="item in sourceTablesList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                                <el-button v-if="!props.disabled" type="primary" link @click="showSourceTableDetail">
+                                    数据预览
+                                </el-button>
+                            </el-form-item>
+                            <el-form-item label="分区键">
+                                <el-select
+                                    v-model="formData.partitionColumn"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @visible-change="
+                                        getTableColumnData($event, formData.sourceDBId, formData.sourceTable)
+                                    "
+                                    @change="pageChangeEvent"
+                                >
+                                    <el-option
+                                        v-for="item in partKeyList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item prop="queryCondition" label="过滤条件">
+                                <code-mirror
+                                    v-model="formData.queryCondition"
+                                    basic
+                                    :lang="lang"
+                                    @change="pageChangeEvent"
+                                />
+                            </el-form-item>
+                        </template>
+                    </el-form>
+                </el-card>
+                <el-card class="box-card">
+                    <template #header>
+                        <div class="card-header">
+                            <span>数据去向</span>
+                        </div>
+                    </template>
+                    <el-form
+                        ref="form"
+                        label-position="left"
+                        label-width="70px"
+                        :model="formData"
+                        :rules="rules"
+                        :disabled="props.disabled"
+                    >
+                        <el-form-item prop="targetDBType" label="类型">
+                            <el-select v-model="formData.targetDBType" placeholder="请选择" @change="dbTypeChange">
+                                <el-option
+                                    v-for="item in typeList"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value"
+                                />
+                            </el-select>
+                        </el-form-item>
+                        <template v-if="formData.targetDBType === 'API'">
+                            <el-form-item label="接口">
+                                <div class="api-request-line">
+                                    <el-select
+                                        v-model="formData.targetRequestType"
+                                        class="api-request-line__method"
+                                        placeholder="请求方式"
+                                        @change="targetRequestTypeChangeEvent"
+                                    >
+                                        <el-option label="GET" value="GET" />
+                                        <el-option label="POST" value="POST" />
+                                    </el-select>
+                                    <el-input
+                                        v-model="formData.targetRequestUrl"
+                                        class="api-request-line__url"
+                                        clearable
+                                        placeholder="请输入接口"
+                                        maxlength="1000"
+                                    />
+                                </div>
+                            </el-form-item>
+                            <el-form-item label="配置" class="api-config-row">
+                                <div class="api-request-line__actions">
+                                    <el-button
+                                        type="primary"
+                                        link
+                                        size="small"
+                                        @click="openRequestHeaderConfig('target')"
+                                    >
+                                        请求头
+                                    </el-button>
+                                </div>
+                            </el-form-item>
+                            <el-form-item v-if="formData.targetRequestType === 'POST'" label="请求体">
+                                <code-mirror
+                                    v-model="formData.targetRequestBody"
+                                    basic
+                                    :lang="jsonLang"
+                                    @change="pageChangeEvent"
+                                />
+                            </el-form-item>
+                        </template>
+                        <template v-else>
+                            <el-form-item prop="targetDBId" label="数据源">
+                                <el-select
+                                    v-model="formData.targetDBId"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @visible-change="getDataSource($event, formData.targetDBType, 'target')"
+                                    @change="dbIdChange('target')"
+                                >
+                                    <el-option
+                                        v-for="item in targetList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item prop="targetTable" label="表">
+                                <el-select
+                                    v-model="formData.targetTable"
+                                    clearable
+                                    filterable
+                                    placeholder="请选择"
+                                    @visible-change="getDataSourceTable($event, formData.targetDBId, 'target')"
+                                    @change="tableChangeEvent($event, formData.targetDBId, 'target')"
+                                >
+                                    <el-option
+                                        v-for="item in targetTablesList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                        </template>
+                        <el-form-item prop="overMode">
+                            <template #label>
+                                <span class="request-body-label">
+                                    <span>写入模式</span>
+                                    <el-tooltip
+                                        placement="right"
+                                        effect="dark"
+                                        content="覆写模式会修改目标表的字段结构"
+                                    >
+                                        <el-icon class="tooltip-msg"><QuestionFilled /></el-icon>
+                                    </el-tooltip>
+                                </span>
+                            </template>
+                            <el-select
+                                v-model="formData.overMode"
+                                clearable
+                                filterable
+                                placeholder="请选择"
+                                @change="pageChangeEvent"
+                            >
+                                <el-option
+                                    v-for="item in filteredOverModeList"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value"
+                                />
+                            </el-select>
+                        </el-form-item>
+                    </el-form>
+                </el-card>
             </div>
-          </template>
-          <el-form
-            ref="form"
-            label-position="left"
-            label-width="70px"
-            :model="formData"
-            :rules="rules"
-            :disabled="props.disabled"
-          >
-            <el-form-item
-              prop="targetDBType"
-              label="类型"
-            >
-              <el-select
-                v-model="formData.targetDBType"
-                placeholder="请选择"
-                @change="dbTypeChange"
-              >
-                <el-option
-                  v-for="item in typeList"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </el-form-item>
-            <template v-if="formData.targetDBType === 'API'">
-              <el-form-item label="接口">
-                <div class="api-request-line">
-                  <el-select
-                    v-model="formData.targetRequestType"
-                    class="api-request-line__method"
-                    placeholder="请求方式"
-                    @change="targetRequestTypeChangeEvent"
-                  >
-                    <el-option
-                      label="GET"
-                      value="GET"
+            <data-sync-table ref="dataSyncTableRef" :form-data="formData" :disabled="props.disabled" />
+        </div>
+        <!-- 数据同步日志部分 -->
+        <el-collapse v-if="showLogPanel" ref="logCollapseRef" v-model="collapseActive" class="data-sync-log__collapse">
+            <div class="log-resize-handle" @mousedown="startResizeLogPanel" />
+            <el-collapse-item title="查看日志" :disabled="true" name="1">
+                <template #title>
+                    <el-tabs v-model="activeName" @tab-click="changeCollapseUp" @tab-change="tabChangeEvent">
+                        <template v-for="tab in tabList" :key="tab.code">
+                            <el-tab-pane v-if="!tab.hide" :label="tab.name" :name="tab.code" />
+                        </template>
+                    </el-tabs>
+                    <span class="log__collapse">
+                        <el-icon v-if="isCollapse" @click="changeCollapseDown"><ArrowDown /></el-icon>
+                        <el-icon v-else @click="changeCollapseUp"><ArrowUp /></el-icon>
+                    </span>
+                </template>
+                <div class="log-show log-show-download" :style="{ height: `${logPanelHeight}px` }">
+                    <component
+                        :is="currentTab"
+                        ref="containerInstanceRef"
+                        class="show-container"
+                        :style="{ height: `${logPanelHeight}px` }"
                     />
-                    <el-option
-                      label="POST"
-                      value="POST"
-                    />
-                  </el-select>
-                  <el-input
-                    v-model="formData.targetRequestUrl"
-                    class="api-request-line__url"
-                    clearable
-                    placeholder="请输入接口"
-                    maxlength="1000"
-                  />
                 </div>
-              </el-form-item>
-              <el-form-item
-                label="配置"
-                class="api-config-row"
-              >
-                <div class="api-request-line__actions">
-                  <el-button
-                    type="primary"
-                    link
-                    size="small"
-                    @click="openRequestHeaderConfig('target')"
-                  >
-                    请求头
-                  </el-button>
+            </el-collapse-item>
+        </el-collapse>
+        <!-- 数据预览 -->
+        <table-detail ref="tableDetailRef" />
+        <!-- 配置 -->
+        <config-detail ref="configDetailRef" />
+        <el-dialog
+            v-model="requestHeaderVisible"
+            title="请求头配置"
+            width="520px"
+            :close-on-click-modal="false"
+            append-to-body
+            class="advanced-config-dialog"
+        >
+            <div class="advanced-config-content">
+                <div v-for="(item, index) in requestHeaderConfigList" :key="index" class="advanced-config-row">
+                    <el-input v-model="item.label" placeholder="Key" style="flex: 1" />
+                    <el-input v-model="item.value" placeholder="Value" style="flex: 1; margin-left: 8px" />
+                    <el-button type="danger" link style="margin-left: 8px" @click="removeRequestHeader(index)">
+                        <el-icon><Delete /></el-icon>
+                    </el-button>
                 </div>
-              </el-form-item>
-              <el-form-item
-                v-if="formData.targetRequestType === 'POST'"
-                label="请求体"
-              >
-                <code-mirror
-                  v-model="formData.targetRequestBody"
-                  basic
-                  :lang="jsonLang"
-                  @change="pageChangeEvent"
-                />
-              </el-form-item>
+            </div>
+            <template #footer>
+                <div class="advanced-config-footer">
+                    <el-button type="primary" link @click="addRequestHeader">添加请求头</el-button>
+                    <div>
+                        <el-button @click="requestHeaderVisible = false">取消</el-button>
+                        <el-button type="primary" @click="saveRequestHeaderConfig">确定</el-button>
+                    </div>
+                </div>
             </template>
-            <template v-else>
-              <el-form-item
-                prop="targetDBId"
-                label="数据源"
-              >
-                <el-select
-                  v-model="formData.targetDBId"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @visible-change="getDataSource($event, formData.targetDBType, 'target')"
-                  @change="dbIdChange('target')"
-                >
-                  <el-option
-                    v-for="item in targetList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item
-                prop="targetTable"
-                label="表"
-              >
-                <el-select
-                  v-model="formData.targetTable"
-                  clearable
-                  filterable
-                  placeholder="请选择"
-                  @visible-change="getDataSourceTable($event, formData.targetDBId, 'target')"
-                  @change="tableChangeEvent($event, formData.targetDBId, 'target')"
-                >
-                  <el-option
-                    v-for="item in targetTablesList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
+        </el-dialog>
+        <el-dialog
+            v-model="requestBodyTemplateVisible"
+            title="请求体模版"
+            width="720px"
+            :close-on-click-modal="false"
+            append-to-body
+        >
+            <div class="template-json-body">
+                <code-mirror v-model="requestBodyTemplateText" class="template-json-editor" basic :lang="jsonLang" />
+            </div>
+            <template #footer>
+                <div class="template-config-footer template-config-footer--between">
+                    <el-button type="primary" @click="formatTemplateJson('request')">格式化JSON</el-button>
+                    <div class="template-config-footer__right">
+                        <el-button @click="requestBodyTemplateVisible = false">取消</el-button>
+                        <el-button type="primary" @click="saveRequestBodyTemplateConfig">确定</el-button>
+                    </div>
+                </div>
             </template>
-            <el-form-item prop="overMode">
-              <template #label>
-                <span class="request-body-label">
-                  <span>写入模式</span>
-                  <el-tooltip
-                    placement="right"
-                    effect="dark"
-                    content="覆写模式会修改目标表的字段结构"
-                  >
-                    <el-icon class="tooltip-msg"><QuestionFilled /></el-icon>
-                  </el-tooltip>
-                </span>
-              </template>
-              <el-select
-                v-model="formData.overMode"
-                clearable
-                filterable
-                placeholder="请选择"
-                @change="pageChangeEvent"
-              >
-                <el-option
-                  v-for="item in filteredOverModeList"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </el-form-item>
-          </el-form>
-        </el-card>
-      </div>
-      <data-sync-table
-        ref="dataSyncTableRef"
-        :form-data="formData"
-        :disabled="props.disabled"
-      />
+        </el-dialog>
+        <el-dialog
+            v-model="responseBodyTemplateVisible"
+            title="响应体模版"
+            width="720px"
+            :close-on-click-modal="false"
+            append-to-body
+        >
+            <code-mirror v-model="responseBodyTemplateText" basic :lang="jsonLang" />
+            <template #footer>
+                <div class="template-config-footer template-config-footer--between">
+                    <el-button type="primary" @click="formatTemplateJson('response')">格式化JSON</el-button>
+                    <div class="template-config-footer__right">
+                        <el-button @click="responseBodyTemplateVisible = false">取消</el-button>
+                        <el-button type="primary" @click="saveResponseBodyTemplateConfig">确定</el-button>
+                    </div>
+                </div>
+            </template>
+        </el-dialog>
     </div>
-    <!-- 数据同步日志部分 -->
-    <el-collapse
-      v-if="showLogPanel"
-      ref="logCollapseRef"
-      v-model="collapseActive"
-      class="data-sync-log__collapse"
-    >
-      <div
-        class="log-resize-handle"
-        @mousedown="startResizeLogPanel"
-      />
-      <el-collapse-item
-        title="查看日志"
-        :disabled="true"
-        name="1"
-      >
-        <template #title>
-          <el-tabs
-            v-model="activeName"
-            @tab-click="changeCollapseUp"
-            @tab-change="tabChangeEvent"
-          >
-            <template
-              v-for="tab in tabList"
-              :key="tab.code"
-            >
-              <el-tab-pane
-                v-if="!tab.hide"
-                :label="tab.name"
-                :name="tab.code"
-              />
-            </template>
-          </el-tabs>
-          <span class="log__collapse">
-            <el-icon
-              v-if="isCollapse"
-              @click="changeCollapseDown"
-            ><ArrowDown /></el-icon>
-            <el-icon
-              v-else
-              @click="changeCollapseUp"
-            ><ArrowUp /></el-icon>
-          </span>
-        </template>
-        <div
-          class="log-show log-show-download"
-          :style="{ height: `${logPanelHeight}px` }"
-        >
-          <component
-            :is="currentTab"
-            ref="containerInstanceRef"
-            class="show-container"
-            :style="{ height: `${logPanelHeight}px` }"
-          />
-        </div>
-      </el-collapse-item>
-    </el-collapse>
-    <!-- 数据预览 -->
-    <table-detail ref="tableDetailRef" />
-    <!-- 配置 -->
-    <config-detail ref="configDetailRef" />
-    <el-dialog
-      v-model="requestHeaderVisible"
-      title="请求头配置"
-      width="520px"
-      :close-on-click-modal="false"
-      append-to-body
-      class="advanced-config-dialog"
-    >
-      <div class="advanced-config-content">
-        <div
-          v-for="(item, index) in requestHeaderConfigList"
-          :key="index"
-          class="advanced-config-row"
-        >
-          <el-input
-            v-model="item.label"
-            placeholder="Key"
-            style="flex: 1"
-          />
-          <el-input
-            v-model="item.value"
-            placeholder="Value"
-            style="flex: 1; margin-left: 8px"
-          />
-          <el-button
-            type="danger"
-            link
-            style="margin-left: 8px"
-            @click="removeRequestHeader(index)"
-          >
-            <el-icon><Delete /></el-icon>
-          </el-button>
-        </div>
-      </div>
-      <template #footer>
-        <div class="advanced-config-footer">
-          <el-button
-            type="primary"
-            link
-            @click="addRequestHeader"
-          >
-            添加请求头
-          </el-button>
-          <div>
-            <el-button @click="requestHeaderVisible = false">
-              取消
-            </el-button>
-            <el-button
-              type="primary"
-              @click="saveRequestHeaderConfig"
-            >
-              确定
-            </el-button>
-          </div>
-        </div>
-      </template>
-    </el-dialog>
-    <el-dialog
-      v-model="requestBodyTemplateVisible"
-      title="请求体模版"
-      width="720px"
-      :close-on-click-modal="false"
-      append-to-body
-    >
-      <div class="template-json-body">
-        <code-mirror
-          v-model="requestBodyTemplateText"
-          class="template-json-editor"
-          basic
-          :lang="jsonLang"
-        />
-      </div>
-      <template #footer>
-        <div class="template-config-footer template-config-footer--between">
-          <el-button
-            type="primary"
-            @click="formatTemplateJson('request')"
-          >
-            格式化JSON
-          </el-button>
-          <div class="template-config-footer__right">
-            <el-button @click="requestBodyTemplateVisible = false">
-              取消
-            </el-button>
-            <el-button
-              type="primary"
-              @click="saveRequestBodyTemplateConfig"
-            >
-              确定
-            </el-button>
-          </div>
-        </div>
-      </template>
-    </el-dialog>
-    <el-dialog
-      v-model="responseBodyTemplateVisible"
-      title="响应体模版"
-      width="720px"
-      :close-on-click-modal="false"
-      append-to-body
-    >
-      <code-mirror
-        v-model="responseBodyTemplateText"
-        basic
-        :lang="jsonLang"
-      />
-      <template #footer>
-        <div class="template-config-footer template-config-footer--between">
-          <el-button
-            type="primary"
-            @click="formatTemplateJson('response')"
-          >
-            格式化JSON
-          </el-button>
-          <div class="template-config-footer__right">
-            <el-button @click="responseBodyTemplateVisible = false">
-              取消
-            </el-button>
-            <el-button
-              type="primary"
-              @click="saveResponseBodyTemplateConfig"
-            >
-              确定
-            </el-button>
-          </div>
-        </div>
-      </template>
-    </el-dialog>
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -774,12 +554,14 @@ import TableDetail from './table-detail/index.vue'
 import DataSyncTable from './data-sync-table/index.vue'
 import ConfigDetail from '../workflow-page/config-detail/index.vue'
 import { GetJsonArrayNodeList, GetTopicDataList } from '@/services/realtime-computing.service.ts'
-import { GetApiDataPreview,
+import {
+    GetApiDataPreview,
     GetLineageWorkItemConfig,
     GetWorkItemConfig,
     RunWorkItemConfig,
     SaveWorkItemConfig,
-    TerWorkItemConfig } from '@/services/workflow.service'
+    TerWorkItemConfig
+} from '@/services/workflow.service'
 import PublishLog from '../work-item/publish-log.vue'
 import RunningLog from '../work-item/running-log.vue'
 import { Delete, Loading, QuestionFilled } from '@element-plus/icons-vue'
@@ -794,7 +576,7 @@ const props = defineProps<{
     disabled?: boolean
     orderType?: 'acs' | 'desc' | ''
 }>()
-const emit = defineEmits([ 'back', 'locationNode', 'sortWorkList' ])
+const emit = defineEmits(['back', 'locationNode', 'sortWorkList'])
 
 const changeStatus = ref(false)
 const configDetailRef = ref()
@@ -906,8 +688,7 @@ const formData = reactive({
     targetJsonTemplate: '',
     overMode: 'INTO' // 写入模式
 })
-const rules = reactive<FormRules>({
-})
+const rules = reactive<FormRules>({})
 const btnLoadingConfig = reactive({
     saveLoading: false,
     publishLoading: false,
@@ -967,8 +748,7 @@ function tabChangeEvent(e: string) {
 }
 
 function convertHeaderListToMap(headerList: Array<{ label: string; value: string }> = []) {
-    const headerMap: Record<string, string> = {
-}
+    const headerMap: Record<string, string> = {}
     headerList.forEach((item: any) => {
         const key = item?.label?.trim?.()
         if (key) {
@@ -1230,7 +1010,7 @@ function getDataSource(e: boolean, sourceType: string, type: string) {
     if (e && sourceType) {
         let options = []
         let searchKeyWord = sourceType || ''
-        if ([ 'API', 'DATASOURCE' ].includes(sourceType)) {
+        if (['API', 'DATASOURCE'].includes(sourceType)) {
             searchKeyWord = ''
         }
         GetDatasourceList({

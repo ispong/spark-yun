@@ -7,16 +7,10 @@
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
 <template>
-  <BlockModal
-    :model-config="modelConfig"
-    top="4vh"
-  >
-    <div
-      id="containerDataLineage"
-      class="containerDataLineage"
-    />
-    <WorkDetail ref="workDetailRef" />
-  </BlockModal>
+    <BlockModal :model-config="modelConfig" top="4vh">
+        <div id="containerDataLineage" class="containerDataLineage" />
+        <WorkDetail ref="workDetailRef" />
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -29,14 +23,14 @@ import WorkDetail from './work-detail.vue'
 
 let graph: any
 
-const guid = function() {
+const guid = function () {
     function S4() {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
     return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4()
 }
 
-const emit = defineEmits([ 'showDetail' ])
+const emit = defineEmits(['showDetail'])
 const props = defineProps<{
     isCode: boolean
 }>()
@@ -136,7 +130,7 @@ function initGraph(data: any) {
                         placement: 'right'
                     }
                 ],
-                size: [ 150, obj[pageType.value] ]
+                size: [150, obj[pageType.value]]
             }
         },
         edge: {
@@ -179,7 +173,7 @@ function initGraph(data: any) {
                 }
             }
         }),
-        behaviors: [ 'drag-canvas', 'zoom-canvas', 'drag-element' ]
+        behaviors: ['drag-canvas', 'zoom-canvas', 'drag-element']
     })
     renderGraph()
 }
@@ -205,7 +199,7 @@ async function renderGraph() {
 function getParentNode(data: any) {
     data.lineageType = 'PARENT'
     initData(data)
-        .then(async(res: any) => {
+        .then(async (res: any) => {
             const parentData = res.parent || []
             if (parentData && parentData.length) {
                 const allData = graph.getData()
@@ -251,7 +245,7 @@ function getParentNode(data: any) {
 function getChildNode(data: any) {
     data.lineageType = 'SON'
     initData(data)
-        .then(async(res: any) => {
+        .then(async (res: any) => {
             if (res.children && res.children.length) {
                 graph.addNodeData(
                     res.children.map((node: any, index: number) => {

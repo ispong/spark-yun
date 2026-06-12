@@ -1,33 +1,30 @@
 <template>
-  <div class="form-components-config">
-    <el-scrollbar>
-      <el-form
-        v-if="formData"
-        ref="formConfigRef"
-        class="form-config"
-        :model="formData"
-        :label-position="'top'"
-        @validate="validateChange"
-      >
-        <template
-          v-for="(config, index) in configListComp"
-          :key="index"
-        >
-          <component
-            :is="getConfigComponentName(config)"
-            v-model="formData[getConfigComponentKey(config)]"
-            :form-config="formConfig"
-            :is-auto-create-table="isAutoCreateTable"
-            :get-table-codes-method="getTableCodesMethod"
-            @form-config-change="formConfigChange"
-          />
-        </template>
-      </el-form>
-      <template v-else>
-        <empty-page />
-      </template>
-    </el-scrollbar>
-  </div>
+    <div class="form-components-config">
+        <el-scrollbar>
+            <el-form
+                v-if="formData"
+                ref="formConfigRef"
+                class="form-config"
+                :model="formData"
+                :label-position="'top'"
+                @validate="validateChange"
+            >
+                <template v-for="(config, index) in configListComp" :key="index">
+                    <component
+                        :is="getConfigComponentName(config)"
+                        v-model="formData[getConfigComponentKey(config)]"
+                        :form-config="formConfig"
+                        :is-auto-create-table="isAutoCreateTable"
+                        :get-table-codes-method="getTableCodesMethod"
+                        @form-config-change="formConfigChange"
+                    />
+                </template>
+            </el-form>
+            <template v-else>
+                <empty-page />
+            </template>
+        </el-scrollbar>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -35,8 +32,8 @@ import { defineProps, defineEmits, computed, ref, shallowRef, markRaw } from 'vu
 import FormSetConfig from './form-set-config'
 import FormConfigConmponents from './form-config-components'
 
-const props = defineProps([ 'modelValue', 'configList', 'formConfig', 'getTableCodesMethod', 'isAutoCreateTable' ])
-const emit = defineEmits([ 'update:modelValue', 'componentListChange', 'formConfigChange' ])
+const props = defineProps(['modelValue', 'configList', 'formConfig', 'getTableCodesMethod', 'isAutoCreateTable'])
+const emit = defineEmits(['update:modelValue', 'componentListChange', 'formConfigChange'])
 const formData = computed({
     get() {
         return props.modelValue

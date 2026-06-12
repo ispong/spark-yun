@@ -1,54 +1,39 @@
 <template>
-  <div class="zqy-seach-table custom-form-query">
-    <div class="zqy-table-top">
-      <div class="btn-container">
-        <el-button
-          type="primary"
-          @click="addData"
-        >
-          添加数据
-        </el-button>
-        <el-button
-          v-if="status !== 'PUBLISHED'"
-          type="default"
-          @click="editFormConfigEvent"
-        >
-          配置
-        </el-button>
-      </div>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="handleCurrentChange(1)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span @click="editData(scopeSlot.row)">编辑</span>
-              <span @click="deleteData(scopeSlot.row)">删除</span>
+    <div class="zqy-seach-table custom-form-query">
+        <div class="zqy-table-top">
+            <div class="btn-container">
+                <el-button type="primary" @click="addData">添加数据</el-button>
+                <el-button v-if="status !== 'PUBLISHED'" type="default" @click="editFormConfigEvent">配置</el-button>
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-  </div>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="handleCurrentChange(1)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span @click="editData(scopeSlot.row)">编辑</span>
+                            <span @click="deleteData(scopeSlot.row)">删除</span>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -57,11 +42,13 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { BreadCrumbList, TableConfig } from './form-query.config'
-import { AddFormData,
+import {
+    AddFormData,
     DeleteFormData,
     QueryFormConfigById,
     QueryFormDataList,
-    UpdateFormData } from '@/services/custom-form.service'
+    UpdateFormData
+} from '@/services/custom-form.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { cloneDeep, clone } from 'lodash-es'
 
@@ -95,7 +82,7 @@ function toMillisecondNumber(value: any): number | null {
         return Number(value)
     }
     if (/^\d{2}:\d{2}:\d{2}$/.test(value)) {
-        const [ hour, minute, second ] = value.split(':').map(Number)
+        const [hour, minute, second] = value.split(':').map(Number)
         return hour * 3600000 + minute * 60000 + second * 1000
     }
     if (value.includes('T')) {
@@ -134,8 +121,7 @@ function toRequestTimeValue(value: any): any {
 }
 
 function normalizeTimeFieldData(data: Record<string, any>) {
-    const result = cloneDeep(data || {
-})
+    const result = cloneDeep(data || {})
     const timeFieldKeys = getTimeFieldKeys()
 
     timeFieldKeys.forEach((key: string) => {
@@ -206,12 +192,9 @@ function initData(tableLoading?: boolean) {
         .then((res: any) => {
             const timeFieldKeySet = new Set(getTimeFieldKeys())
             tableConfig.tableData = (res.data.data || []).map((item: any) => {
-                let columnData: any = {
-}
-                let formDetailData: any = {
-}
-                let formRawDetailData: any = {
-}
+                const columnData: any = {}
+                const formDetailData: any = {}
+                const formRawDetailData: any = {}
                 Object.keys(item).forEach((k: string) => {
                     if (item[k] && item[k] instanceof Array && item[k].length > 0) {
                         columnData[k] = item[k].map((d) => d.label).join('，')

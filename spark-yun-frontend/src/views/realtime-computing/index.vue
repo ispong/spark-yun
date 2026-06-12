@@ -1,86 +1,66 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建实时
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入名称/备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #nameSlot="scopeSlot">
-            <span
-              class="name-click"
-              @click="showDetail(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status === 'STOP' ? 'STOP_S' : scopeSlot.row.status" />
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span @click="checkData(scopeSlot.row)">检测</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item
-                      v-if="scopeSlot.row.status !== 'NEW'"
-                      @click="showLog(scopeSlot.row)"
-                    >
-                      提交日志
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="scopeSlot.row.status === 'RUNNING'"
-                      @click="showRunningLog(scopeSlot.row)"
-                    >
-                      运行日志
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="startComputing(scopeSlot.row)">
-                      运行
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="stopComputing(scopeSlot.row)">
-                      停止
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建实时</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入名称/备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <ShowLog ref="showLogRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #nameSlot="scopeSlot">
+                        <span class="name-click" @click="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status === 'STOP' ? 'STOP_S' : scopeSlot.row.status" />
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span @click="checkData(scopeSlot.row)">检测</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status !== 'NEW'"
+                                            @click="showLog(scopeSlot.row)"
+                                        >
+                                            提交日志
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status === 'RUNNING'"
+                                            @click="showRunningLog(scopeSlot.row)"
+                                        >
+                                            运行日志
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item @click="startComputing(scopeSlot.row)">运行</el-dropdown-item>
+                                        <el-dropdown-item @click="stopComputing(scopeSlot.row)">停止</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <ShowLog ref="showLogRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -90,13 +70,15 @@ import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 import { BreadCrumbList, TableConfig, FormData } from './realtime-computing.config.ts'
-import { SaveTimeComputingData,
+import {
+    SaveTimeComputingData,
     GetTimeComputingList,
     UpdateTimeComputingData,
     DeleteTimeComputingData,
     RunTimeComputingData,
     CheckComputingStatus,
-    StopTimeComputingData } from '@/services/realtime-computing.service.ts'
+    StopTimeComputingData
+} from '@/services/realtime-computing.service.ts'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import ShowLog from './show-log/index.vue'

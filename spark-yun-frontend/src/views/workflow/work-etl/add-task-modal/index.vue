@@ -1,50 +1,28 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="form-container"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="100"
-          placeholder="请输入"
-          show-word-limit
-        />
-      </el-form-item>
-      <el-form-item
-        label="编码"
-        prop="aliaCode"
-      >
-        <el-input
-          v-model="formData.aliaCode"
-          maxlength="100"
-          placeholder="请输入"
-          show-word-limit
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          show-word-limit
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <!-- <el-form-item>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="form-container" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="100" placeholder="请输入" show-word-limit />
+            </el-form-item>
+            <el-form-item label="编码" prop="aliaCode">
+                <el-input v-model="formData.aliaCode" maxlength="100" placeholder="请输入" show-word-limit />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    show-word-limit
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+            <!-- <el-form-item>
                 <el-button type="primary" @click="showConfigEvent">任务配置</el-button>
             </el-form-item> -->
-    </el-form>
-    <TaskConfig ref="taskConfigRef" />
-  </BlockModal>
+        </el-form>
+        <TaskConfig ref="taskConfigRef" />
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -95,14 +73,14 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     aliaCode: [
         {
             required: true,
             message: '请输入编码',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

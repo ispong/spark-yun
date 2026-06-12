@@ -1,92 +1,57 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <div class="config-lib-package">
-      <div class="search-box">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入依赖文件名或者备注 回车进行搜索"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="resetAndLoad"
-        />
-      </div>
-
-      <div
-        ref="tableScrollRef"
-        v-loading="tableConfig.loading"
-        class="file-table"
-        @scroll="handleScroll"
-      >
-        <div
-          v-for="file in tableConfig.tableData"
-          :key="file.id"
-          class="file-item"
-          @click="toggleFile(file)"
-        >
-          <el-checkbox
-            :model-value="isSelected(file.id)"
-            @change="handleCheckboxChange(file, $event)"
-            @click.stop
-          />
-          <div class="file-info">
-            <div class="file-name">
-              {{ file.fileName }}
+    <BlockModal :model-config="modelConfig">
+        <div class="config-lib-package">
+            <div class="search-box">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入依赖文件名或者备注 回车进行搜索"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="resetAndLoad"
+                />
             </div>
-            <div class="file-remark">
-              {{ file.remark || '暂无备注' }}
+
+            <div ref="tableScrollRef" v-loading="tableConfig.loading" class="file-table" @scroll="handleScroll">
+                <div v-for="file in tableConfig.tableData" :key="file.id" class="file-item" @click="toggleFile(file)">
+                    <el-checkbox
+                        :model-value="isSelected(file.id)"
+                        @change="handleCheckboxChange(file, $event)"
+                        @click.stop
+                    />
+                    <div class="file-info">
+                        <div class="file-name">
+                            {{ file.fileName }}
+                        </div>
+                        <div class="file-remark">
+                            {{ file.remark || '暂无备注' }}
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="tableConfig.tableData.length === 0 && !tableConfig.loading" class="empty-list">暂无数据</div>
+
+                <div v-if="loadingMore" class="loading-more">加载中...</div>
             </div>
-          </div>
-        </div>
 
-        <div
-          v-if="tableConfig.tableData.length === 0 && !tableConfig.loading"
-          class="empty-list"
-        >
-          暂无数据
-        </div>
-
-        <div
-          v-if="loadingMore"
-          class="loading-more"
-        >
-          加载中...
-        </div>
-      </div>
-
-      <div class="selected-section">
-        <div class="section-title">
-          已选择的依赖文件
-          <span class="count">({{ selectedFiles.length }})</span>
-        </div>
-        <div class="selected-list">
-          <div
-            v-if="selectedFiles.length === 0"
-            class="empty-text"
-          >
-            暂无选择的依赖文件，请从上方添加
-          </div>
-          <div
-            v-else
-            class="selected-items"
-          >
-            <div
-              v-for="file in selectedFiles"
-              :key="file.id"
-              class="selected-item"
-            >
-              <span class="file-name">{{ file.fileName }}</span>
-              <el-icon
-                class="remove-icon"
-                @click="removeFromSelected(file.id)"
-              >
-                <Close />
-              </el-icon>
+            <div class="selected-section">
+                <div class="section-title">
+                    已选择的依赖文件
+                    <span class="count">({{ selectedFiles.length }})</span>
+                </div>
+                <div class="selected-list">
+                    <div v-if="selectedFiles.length === 0" class="empty-text">暂无选择的依赖文件，请从上方添加</div>
+                    <div v-else class="selected-items">
+                        <div v-for="file in selectedFiles" :key="file.id" class="selected-item">
+                            <span class="file-name">{{ file.fileName }}</span>
+                            <el-icon class="remove-icon" @click="removeFromSelected(file.id)">
+                                <Close />
+                            </el-icon>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  </BlockModal>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -190,7 +155,7 @@ function loadFileList(isLoadMore = false) {
             const newData = res.data.content || []
 
             if (isLoadMore) {
-                tableConfig.tableData = [ ...tableConfig.tableData, ...newData ]
+                tableConfig.tableData = [...tableConfig.tableData, ...newData]
             } else {
                 tableConfig.tableData = newData
             }
@@ -226,9 +191,7 @@ function resetAndLoad() {
 
 // 滚动加载
 function handleScroll(e: any) {
-    const {
- scrollTop, scrollHeight, clientHeight 
-} = e.target
+    const { scrollTop, scrollHeight, clientHeight } = e.target
 
     // 滚动到底部且还有更多数据且不在加载中
     if (scrollTop + clientHeight >= scrollHeight - 10 && hasMore.value && !loadingMore.value && !tableConfig.loading) {

@@ -1,91 +1,43 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="funcName"
-      >
-        <el-input
-          v-model="formData.funcName"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="类型"
-        prop="type"
-      >
-        <el-select
-          v-model="formData.type"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="资源文件"
-        prop="fileId"
-      >
-        <el-select
-          v-model="formData.fileId"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in fileIdList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="类名"
-        prop="className"
-      >
-        <el-input
-          v-model="formData.className"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="结果类型"
-        prop="resultType"
-      >
-        <el-select
-          v-model="formData.resultType"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in resultTypeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="名称" prop="funcName">
+                <el-input v-model="formData.funcName" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="类型" prop="type">
+                <el-select v-model="formData.type" placeholder="请选择">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="资源文件" prop="fileId">
+                <el-select v-model="formData.fileId" placeholder="请选择">
+                    <el-option v-for="item in fileIdList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="类名" prop="className">
+                <el-input v-model="formData.className" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="结果类型" prop="resultType">
+                <el-select v-model="formData.resultType" placeholder="请选择">
+                    <el-option
+                        v-for="item in resultTypeList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -169,35 +121,35 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入函数名',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     type: [
         {
             required: true,
             message: '请选择类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     fileId: [
         {
             required: true,
             message: '请选择资源文件',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     className: [
         {
             required: true,
             message: '请输入类名',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     resultType: [
         {
             required: true,
             message: '请选择结果返回类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

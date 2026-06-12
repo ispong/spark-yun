@@ -1,19 +1,11 @@
 <template>
-  <div class="ellipsis-tooltip">
-    <el-tooltip
-      :visible="visible"
-      :content="labelStr"
-      :placement="placement"
-    >
-      <div
-        class="ellipsis-tooltip__wrap"
-        @mouseenter="handleMouseenter"
-        @mouseleave="handleMouseleave"
-      >
-        <span class="ellipsis-tooltip__text">{{ labelStr }}</span>
-      </div>
-    </el-tooltip>
-  </div>
+    <div class="ellipsis-tooltip">
+        <el-tooltip :visible="visible" :content="labelStr" :placement="placement">
+            <div class="ellipsis-tooltip__wrap" @mouseenter="handleMouseenter" @mouseleave="handleMouseleave">
+                <span class="ellipsis-tooltip__text">{{ labelStr }}</span>
+            </div>
+        </el-tooltip>
+    </div>
 </template>
 
 <script setup lang="ts">

@@ -1,61 +1,39 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <template #customLeft>
-      <el-button
-        id="share-url"
-        class="footer-share-copy-btn"
-        :disabled="!url"
-        :data-clipboard-text="url"
-        @click="copyUrlEvent('share-url')"
-      >
-        一键复制
-      </el-button>
-      <el-button
-        class="footer-share-generate-btn"
-        :loading="loading"
-        type="primary"
-        @click="getShareFormUrl"
-      >
-        生成链接
-      </el-button>
-    </template>
-    <div class="share-form-container">
-      <!-- <div class="img-code">
+    <BlockModal :model-config="modelConfig">
+        <template #customLeft>
+            <el-button
+                id="share-url"
+                class="footer-share-copy-btn"
+                :disabled="!url"
+                :data-clipboard-text="url"
+                @click="copyUrlEvent('share-url')"
+            >
+                一键复制
+            </el-button>
+            <el-button class="footer-share-generate-btn" :loading="loading" type="primary" @click="getShareFormUrl">
+                生成链接
+            </el-button>
+        </template>
+        <div class="share-form-container">
+            <!-- <div class="img-code">
 
             </div> -->
-      <div class="share-form">
-        <span class="url">
-          <a
-            v-if="url"
-            class="url-link"
-            :href="url"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <EllipsisTooltip
-              class="url-show"
-              :label="url"
-            />
-          </a>
-          <EllipsisTooltip
-            v-else
-            class="url-show"
-            label="暂无链接"
-          />
-        </span>
-      </div>
-    </div>
-    <div class="share-option-container">
-      <div class="valid-day-input">
-        <span>有效时间（天）</span>
-        <el-input-number
-          v-model="validDay"
-          :min="1"
-          controls-position="right"
-        />
-      </div>
-    </div>
-  </BlockModal>
+            <div class="share-form">
+                <span class="url">
+                    <a v-if="url" class="url-link" :href="url" target="_blank" rel="noopener noreferrer">
+                        <EllipsisTooltip class="url-show" :label="url" />
+                    </a>
+                    <EllipsisTooltip v-else class="url-show" label="暂无链接" />
+                </span>
+            </div>
+        </div>
+        <div class="share-option-container">
+            <div class="valid-day-input">
+                <span>有效时间（天）</span>
+                <el-input-number v-model="validDay" :min="1" controls-position="right" />
+            </div>
+        </div>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -116,7 +94,7 @@ function getShareFormUrl() {
 }
 
 function copyUrlEvent(id: string) {
-    let clipboard = new Clipboard('#' + id)
+    const clipboard = new Clipboard('#' + id)
     clipboard.on('success', () => {
         ElMessage.success('复制成功')
         clipboard.destroy()

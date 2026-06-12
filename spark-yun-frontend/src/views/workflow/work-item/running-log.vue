@@ -1,16 +1,8 @@
 <template>
-  <div
-    id="content"
-    class="running-log"
-  >
-    <LogContainer
-      v-if="logMsg || loading"
-      :log-msg="logMsg || ''"
-      :status="true"
-      :show-result="false"
-    />
-    <EmptyPage v-else />
-  </div>
+    <div id="content" class="running-log">
+        <LogContainer v-if="logMsg || loading" :log-msg="logMsg || ''" :status="true" :show-result="false" />
+        <EmptyPage v-else />
+    </div>
 </template>
 
 <script lang="ts" setup>

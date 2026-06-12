@@ -192,10 +192,10 @@ const router = createRouter({
     routes
 })
 
-router.beforeEach(async(to) => {
+router.beforeEach(async (to) => {
     const authStore = useAuthStore()
     const routeName = typeof to.name === 'string' ? to.name : ''
-    const openRouteName = new Set([ 'login', 'ssoauth', 'share', 'share-report' ])
+    const openRouteName = new Set(['login', 'ssoauth', 'share', 'share-report'])
     if (openRouteName.has(routeName)) {
         return true
     }

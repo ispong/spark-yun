@@ -1,44 +1,31 @@
 <template>
-  <div
-    class="etl-flow-node"
-    :class="status"
-    @mousedown="onMouseDown"
-    @click="onClick"
-  >
-    <div
-      ref="content"
-      class="flow-node-container"
-    >
-      <el-tooltip
-        placement="top"
-        :show-after="300"
-      >
-        <template #content>
-          <div>名称：{{ nodeConfigData?.name || '-' }}</div>
-          <div>编码：{{ nodeConfigData?.aliaCode || '-' }}</div>
-          <div>备注：{{ nodeConfigData?.remark || '暂无备注' }}</div>
-        </template>
-        <div class="info-container">
-          <el-icon class="node-icon">
-            <component :is="nodeIcon" />
-          </el-icon>
-          <span class="node-name">{{ nodeConfigData?.name || '-' }}</span>
+    <div class="etl-flow-node" :class="status" @mousedown="onMouseDown" @click="onClick">
+        <div ref="content" class="flow-node-container">
+            <el-tooltip placement="top" :show-after="300">
+                <template #content>
+                    <div>名称：{{ nodeConfigData?.name || '-' }}</div>
+                    <div>编码：{{ nodeConfigData?.aliaCode || '-' }}</div>
+                    <div>备注：{{ nodeConfigData?.remark || '暂无备注' }}</div>
+                </template>
+                <div class="info-container">
+                    <el-icon class="node-icon">
+                        <component :is="nodeIcon" />
+                    </el-icon>
+                    <span class="node-name">{{ nodeConfigData?.name || '-' }}</span>
+                </div>
+            </el-tooltip>
+            <el-icon class="node-edit-icon" @click.stop="handleCommand('task_edit')">
+                <component :is="EditIcon" />
+            </el-icon>
         </div>
-      </el-tooltip>
-      <el-icon
-        class="node-edit-icon"
-        @click.stop="handleCommand('task_edit')"
-      >
-        <component :is="EditIcon" />
-      </el-icon>
     </div>
-  </div>
 </template>
 
 <script lang="ts" setup>
 import { inject, onMounted, ref, computed, markRaw, type Component } from 'vue'
 import { ElIcon } from 'element-plus'
-import { Download,
+import {
+    Download,
     Upload,
     Link,
     CopyDocument,
@@ -47,7 +34,8 @@ import { Download,
     CirclePlus,
     SetUp,
     Document,
-    Edit } from '@element-plus/icons-vue'
+    Edit
+} from '@element-plus/icons-vue'
 
 const EditIcon = markRaw(Edit)
 import { RunAfterFlowData } from '@/services/workflow.service'
@@ -61,8 +49,7 @@ const node = ref()
 const status = ref('')
 const isRunning = ref(false)
 const showMenu = ref(false)
-const nodeConfigData = ref({
-})
+const nodeConfigData = ref({})
 
 const nodeIconMap: Record<string, Component> = {
     DATA_INPUT: markRaw(Download),
@@ -112,9 +99,7 @@ onMounted(() => {
     node.value = Node = getNode()
     name.value = node.value.data.name
     nodeConfigData.value = node.value.data.nodeConfigData
-    node.value.on('change:data', ({
- current 
-}) => {
+    node.value.on('change:data', ({ current }) => {
         nodeConfigData.value = current.nodeConfigData
     })
 })

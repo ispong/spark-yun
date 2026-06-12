@@ -1,134 +1,88 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="租户名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="100"
-          placeholder="请输入"
-          show-word-limit
-        />
-      </el-form-item>
-      <el-form-item label="成员数">
-        <el-input-number
-          v-model="formData.maxMemberNum"
-          placeholder="请输入"
-          :min="0"
-          :max="100000"
-          :step="1"
-          controls-position="right"
-        />
-      </el-form-item>
-      <el-form-item label="作业流数">
-        <el-input-number
-          v-model="formData.maxWorkflowNum"
-          placeholder="请输入"
-          :min="0"
-          :max="100000"
-          :step="1"
-          controls-position="right"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="renderSence === 'new'"
-        label="租户管理员来源"
-      >
-        <el-radio-group v-model="adminUserMode">
-          <el-radio label="existing">
-            选择已有用户
-          </el-radio>
-          <el-radio label="new">
-            新建用户
-          </el-radio>
-        </el-radio-group>
-      </el-form-item>
-      <el-form-item
-        v-if="renderSence === 'new' && adminUserMode === 'existing'"
-        label="租户管理员"
-        prop="adminUserId"
-      >
-        <el-select
-          v-model="formData.adminUserId"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in userList"
-            :key="item.id"
-            :label="item.username"
-            :value="item.id"
-          />
-        </el-select>
-      </el-form-item>
-      <template v-if="renderSence === 'new' && adminUserMode === 'new'">
-        <el-form-item label="用户名">
-          <el-input
-            v-model="formData.adminUsername"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item label="登录账号">
-          <el-input
-            v-model="formData.adminAccount"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item label="初始密码">
-          <el-input
-            v-model="formData.adminPassword"
-            type="password"
-            show-password
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item label="手机号">
-          <el-input
-            v-model="formData.adminPhone"
-            placeholder="请输入"
-          />
-        </el-form-item>
-        <el-form-item label="邮箱">
-          <el-input
-            v-model="formData.adminEmail"
-            placeholder="请输入"
-          />
-        </el-form-item>
-      </template>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          show-word-limit
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-    <template #customLeft>
-      <div class="valid-time">
-        <el-date-picker
-          v-model="formData.validDateTime"
-          type="datetimerange"
-          format="YYYY-MM-DD HH:mm:ss"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          :unlink-panels="true"
-          range-separator="~"
-          start-placeholder="有效开始时间"
-          end-placeholder="有效结束时间"
-          :editable="false"
-        />
-      </div>
-    </template>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="租户名称" prop="name">
+                <el-input v-model="formData.name" maxlength="100" placeholder="请输入" show-word-limit />
+            </el-form-item>
+            <el-form-item label="成员数">
+                <el-input-number
+                    v-model="formData.maxMemberNum"
+                    placeholder="请输入"
+                    :min="0"
+                    :max="100000"
+                    :step="1"
+                    controls-position="right"
+                />
+            </el-form-item>
+            <el-form-item label="作业流数">
+                <el-input-number
+                    v-model="formData.maxWorkflowNum"
+                    placeholder="请输入"
+                    :min="0"
+                    :max="100000"
+                    :step="1"
+                    controls-position="right"
+                />
+            </el-form-item>
+            <el-form-item v-if="renderSence === 'new'" label="租户管理员来源">
+                <el-radio-group v-model="adminUserMode">
+                    <el-radio label="existing">选择已有用户</el-radio>
+                    <el-radio label="new">新建用户</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item
+                v-if="renderSence === 'new' && adminUserMode === 'existing'"
+                label="租户管理员"
+                prop="adminUserId"
+            >
+                <el-select v-model="formData.adminUserId" placeholder="请选择">
+                    <el-option v-for="item in userList" :key="item.id" :label="item.username" :value="item.id" />
+                </el-select>
+            </el-form-item>
+            <template v-if="renderSence === 'new' && adminUserMode === 'new'">
+                <el-form-item label="用户名">
+                    <el-input v-model="formData.adminUsername" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="登录账号">
+                    <el-input v-model="formData.adminAccount" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="初始密码">
+                    <el-input v-model="formData.adminPassword" type="password" show-password placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="手机号">
+                    <el-input v-model="formData.adminPhone" placeholder="请输入" />
+                </el-form-item>
+                <el-form-item label="邮箱">
+                    <el-input v-model="formData.adminEmail" placeholder="请输入" />
+                </el-form-item>
+            </template>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    show-word-limit
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+        <template #customLeft>
+            <div class="valid-time">
+                <el-date-picker
+                    v-model="formData.validDateTime"
+                    type="datetimerange"
+                    format="YYYY-MM-DD HH:mm:ss"
+                    value-format="YYYY-MM-DD HH:mm:ss"
+                    :unlink-panels="true"
+                    range-separator="~"
+                    start-placeholder="有效开始时间"
+                    end-placeholder="有效结束时间"
+                    :editable="false"
+                />
+            </div>
+        </template>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -182,14 +136,14 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入租户名称',
-            trigger: [ 'change', 'blur' ]
+            trigger: ['change', 'blur']
         }
     ],
     adminUserId: [
         {
             required: true,
             message: '请选择管理员',
-            trigger: [ 'change', 'blur' ]
+            trigger: ['change', 'blur']
         }
     ]
 })
@@ -204,7 +158,7 @@ function showModal(cb: () => void, data: any): void {
         formData.maxWorkflowNum = data.maxWorkflowNum
         formData.remark = data.remark
         if (data.validStartDateTime && data.validEndDateTime) {
-            formData.validDateTime = [ data.validStartDateTime, data.validEndDateTime ]
+            formData.validDateTime = [data.validStartDateTime, data.validEndDateTime]
         } else {
             formData.validDateTime = []
         }

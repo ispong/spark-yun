@@ -21,8 +21,7 @@ public class SparkYunApplication {
         SpringApplication.run(SparkYunApplication.class, args);
     }
 
-    @GetMapping(
-        value = {"/", "/auth", "/ssoauth", "/home/**", "/platform/**", "/admin/**", "/workspace/**",
+    @GetMapping(value = {"/", "/auth", "/ssoauth", "/home/**", "/platform/**", "/admin/**", "/workspace/**",
             "/personal-info", "/403", "/no-tenant", "/share/**", "/dashboard/**"})
     public ResponseEntity<Resource> index() {
 

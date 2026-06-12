@@ -1,37 +1,37 @@
 <template>
-  <div class="zqy-form-engine">
-    <!-- 左侧组件选择 -->
-    <form-widget
-      v-if="isDragger"
-      v-model="movingInstance"
-      @add-form-item="addFormItem"
-      @dbclick-add="dbclickAddItem"
-      @remove-instance="removeInstance"
-    />
-    <!-- 中间表单组件拖拽 -->
-    <form-components
-      ref="formComponentRef"
-      v-model="formData"
-      :component-list="componentList"
-      :current-instance="instanceConfig.chooseItemData"
-      :is-dragger="isDragger"
-      :render-sence="renderSence"
-      :moving-instance="movingInstance"
-      @component-list-change="componentListChange"
-      @choose-item="chooseItem"
-      @remove-instance="removeInstance"
-    />
-    <!-- 右侧组件配置 -->
-    <form-components-config
-      v-if="isDragger"
-      v-model="instanceConfig.chooseItemData"
-      :form-config="instanceConfig.chooseItemData"
-      :config-list="instanceConfig.chooseItemConfigList"
-      :is-auto-create-table="isAutoCreateTable"
-      :get-table-codes-method="getTableCodesMethod"
-      @form-config-change="formConfigChange"
-    />
-  </div>
+    <div class="zqy-form-engine">
+        <!-- 左侧组件选择 -->
+        <form-widget
+            v-if="isDragger"
+            v-model="movingInstance"
+            @add-form-item="addFormItem"
+            @dbclick-add="dbclickAddItem"
+            @remove-instance="removeInstance"
+        />
+        <!-- 中间表单组件拖拽 -->
+        <form-components
+            ref="formComponentRef"
+            v-model="formData"
+            :component-list="componentList"
+            :current-instance="instanceConfig.chooseItemData"
+            :is-dragger="isDragger"
+            :render-sence="renderSence"
+            :moving-instance="movingInstance"
+            @component-list-change="componentListChange"
+            @choose-item="chooseItem"
+            @remove-instance="removeInstance"
+        />
+        <!-- 右侧组件配置 -->
+        <form-components-config
+            v-if="isDragger"
+            v-model="instanceConfig.chooseItemData"
+            :form-config="instanceConfig.chooseItemData"
+            :config-list="instanceConfig.chooseItemConfigList"
+            :is-auto-create-table="isAutoCreateTable"
+            :get-table-codes-method="getTableCodesMethod"
+            @form-config-change="formConfigChange"
+        />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -65,7 +65,7 @@ const props = withDefaults(
         formConfigList: () => []
     }
 )
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 const componentList = ref<ComponentInstance[]>([])
 const formComponentRef = ref()
 const formComps = reactive(FormComps)

@@ -1,191 +1,132 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建租户
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入租户名 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建租户</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入租户名 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(true)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #name="scopeSlot">
+                        <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #memberProgress="scopeSlot">
+                        <div class="resource-progress">
+                            <el-progress
+                                :percentage="
+                                    getUsagePercentage(scopeSlot.row.usedMemberNum, scopeSlot.row.maxMemberNum)
+                                "
+                                :color="getPercentColor()"
+                                :show-text="false"
+                                :stroke-width="12"
+                            />
+                            <span class="resource-progress__value">
+                                {{ getUsageText(scopeSlot.row.usedMemberNum, scopeSlot.row.maxMemberNum) }}
+                            </span>
+                        </div>
+                    </template>
+                    <template #workflowProgress="scopeSlot">
+                        <div class="resource-progress">
+                            <el-progress
+                                :percentage="
+                                    getUsagePercentage(scopeSlot.row.usedWorkflowNum, scopeSlot.row.maxWorkflowNum)
+                                "
+                                :color="getPercentColor()"
+                                :show-text="false"
+                                :stroke-width="12"
+                            />
+                            <span class="resource-progress__value">
+                                {{ getUsageText(scopeSlot.row.usedWorkflowNum, scopeSlot.row.maxWorkflowNum) }}
+                            </span>
+                        </div>
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <div class="btn-group">
+                            <el-tag v-if="scopeSlot.row.status === 'ENABLE'" class="ml-2" type="success">启用</el-tag>
+                            <el-tag v-if="scopeSlot.row.status === 'DISABLE'" class="ml-2" type="danger">禁用</el-tag>
+                        </div>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <template v-if="scopeSlot.row.status === 'ENABLE'">
+                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, false)">
+                                    禁用
+                                </span>
+                                <el-icon v-else class="is-loading">
+                                    <Loading />
+                                </el-icon>
+                            </template>
+                            <template v-else>
+                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, true)">
+                                    启用
+                                </span>
+                                <el-icon v-else class="is-loading">
+                                    <Loading />
+                                </el-icon>
+                            </template>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item @click="openReplaceAdmin(scopeSlot.row)">
+                                            替换租户管理员
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="!scopeSlot.row.checkLoding"
+                                            @click="checkTenant(scopeSlot.row)"
+                                        >
+                                            检测
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <el-dialog v-model="replaceAdminVisible" title="替换租户管理员" width="480px">
+            <el-form label-position="top">
+                <el-form-item label="新租户管理员">
+                    <el-select v-model="replaceAdminForm.newAdminUserId" filterable>
+                        <el-option
+                            v-for="user in enabledUsers"
+                            :key="user.id"
+                            :label="`${user.username} (${user.account})`"
+                            :value="user.id"
+                        />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="旧租户管理员处理方式">
+                    <el-radio-group v-model="replaceAdminForm.oldAdminAction">
+                        <el-radio label="KEEP">保留为普通成员</el-radio>
+                        <el-radio label="REMOVE">移出租户</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="replaceAdminVisible = false">取消</el-button>
+                <el-button type="primary" :loading="replaceAdminLoading" @click="replaceAdmin">确认替换</el-button>
+            </template>
+        </el-dialog>
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(true)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #name="scopeSlot">
-            <span
-              class="name-click"
-              @click="editData(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #memberProgress="scopeSlot">
-            <div class="resource-progress">
-              <el-progress
-                :percentage="
-                  getUsagePercentage(scopeSlot.row.usedMemberNum, scopeSlot.row.maxMemberNum)
-                "
-                :color="getPercentColor()"
-                :show-text="false"
-                :stroke-width="12"
-              />
-              <span class="resource-progress__value">
-                {{ getUsageText(scopeSlot.row.usedMemberNum, scopeSlot.row.maxMemberNum) }}
-              </span>
-            </div>
-          </template>
-          <template #workflowProgress="scopeSlot">
-            <div class="resource-progress">
-              <el-progress
-                :percentage="
-                  getUsagePercentage(scopeSlot.row.usedWorkflowNum, scopeSlot.row.maxWorkflowNum)
-                "
-                :color="getPercentColor()"
-                :show-text="false"
-                :stroke-width="12"
-              />
-              <span class="resource-progress__value">
-                {{ getUsageText(scopeSlot.row.usedWorkflowNum, scopeSlot.row.maxWorkflowNum) }}
-              </span>
-            </div>
-          </template>
-          <template #statusTag="scopeSlot">
-            <div class="btn-group">
-              <el-tag
-                v-if="scopeSlot.row.status === 'ENABLE'"
-                class="ml-2"
-                type="success"
-              >
-                启用
-              </el-tag>
-              <el-tag
-                v-if="scopeSlot.row.status === 'DISABLE'"
-                class="ml-2"
-                type="danger"
-              >
-                禁用
-              </el-tag>
-            </div>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <template v-if="scopeSlot.row.status === 'ENABLE'">
-                <span
-                  v-if="!scopeSlot.row.statusLoading"
-                  @click="changeStatus(scopeSlot.row, false)"
-                >
-                  禁用
-                </span>
-                <el-icon
-                  v-else
-                  class="is-loading"
-                >
-                  <Loading />
-                </el-icon>
-              </template>
-              <template v-else>
-                <span
-                  v-if="!scopeSlot.row.statusLoading"
-                  @click="changeStatus(scopeSlot.row, true)"
-                >
-                  启用
-                </span>
-                <el-icon
-                  v-else
-                  class="is-loading"
-                >
-                  <Loading />
-                </el-icon>
-              </template>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="openReplaceAdmin(scopeSlot.row)">
-                      替换租户管理员
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="!scopeSlot.row.checkLoding"
-                      @click="checkTenant(scopeSlot.row)"
-                    >
-                      检测
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <el-dialog
-      v-model="replaceAdminVisible"
-      title="替换租户管理员"
-      width="480px"
-    >
-      <el-form label-position="top">
-        <el-form-item label="新租户管理员">
-          <el-select
-            v-model="replaceAdminForm.newAdminUserId"
-            filterable
-          >
-            <el-option
-              v-for="user in enabledUsers"
-              :key="user.id"
-              :label="`${user.username} (${user.account})`"
-              :value="user.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="旧租户管理员处理方式">
-          <el-radio-group v-model="replaceAdminForm.oldAdminAction">
-            <el-radio label="KEEP">
-              保留为普通成员
-            </el-radio>
-            <el-radio label="REMOVE">
-              移出租户
-            </el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="replaceAdminVisible = false">
-          取消
-        </el-button>
-        <el-button
-          type="primary"
-          :loading="replaceAdminLoading"
-          @click="replaceAdmin"
-        >
-          确认替换
-        </el-button>
-      </template>
-    </el-dialog>
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -196,14 +137,16 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './tenant-list.config'
-import { GetTenantList,
+import {
+    GetTenantList,
     AddTenantData,
     DeleteTenantData,
     CheckTenantData,
     DisableTenantData,
     EnableTenantData,
     UpdateTenantData,
-    ReplaceTenantAdminData } from '@/services/tenant-list.service'
+    ReplaceTenantAdminData
+} from '@/services/tenant-list.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 import eventBus from '@/utils/eventBus'
@@ -385,9 +328,7 @@ function deleteData(data: any) {
         inputPattern: new RegExp(`^${data.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`),
         inputErrorMessage: '租户名称不一致',
         type: 'warning'
-    }).then(({
- value 
-}) => {
+    }).then(({ value }) => {
         DeleteTenantData({
             tenantId: data.id,
             tenantName: value

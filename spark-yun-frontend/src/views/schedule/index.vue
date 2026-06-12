@@ -1,210 +1,179 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table zqy-schedule">
-    <div class="zqy-table-top">
-      <el-radio-group
-        v-model="tableType"
-        @change="changeTypeEvent"
-      >
-        <el-radio-button label="workflow">
-          作业流
-        </el-radio-button>
-        <el-radio-button label="work">
-          作业
-        </el-radio-button>
-      </el-radio-group>
-      <div class="zqy-tenant__select">
-        <el-select
-          v-model="executeStatus"
-          clearable
-          placeholder="请选择状态进行搜索"
-          @change="initPageTable"
-        >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-        <el-select
-          v-if="tableType === 'workflow'"
-          v-model="workflowId"
-          class="workflow-search"
-          clearable
-          placeholder="请选择工作流进行搜索"
-          @change="initPageTable"
-        >
-          <el-option
-            v-for="item in workFlowList"
-            :key="item.id"
-            :label="item.name"
-            :value="item.id"
-          />
-        </el-select>
-      </div>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入实例编码/作业 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initPageTable"
-        />
-      </div>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table zqy-schedule">
+        <div class="zqy-table-top">
+            <el-radio-group v-model="tableType" @change="changeTypeEvent">
+                <el-radio-button label="workflow">作业流</el-radio-button>
+                <el-radio-button label="work">作业</el-radio-button>
+            </el-radio-group>
+            <div class="zqy-tenant__select">
+                <el-select v-model="executeStatus" clearable placeholder="请选择状态进行搜索" @change="initPageTable">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+                <el-select
+                    v-if="tableType === 'workflow'"
+                    v-model="workflowId"
+                    class="workflow-search"
+                    clearable
+                    placeholder="请选择工作流进行搜索"
+                    @change="initPageTable"
+                >
+                    <el-option v-for="item in workFlowList" :key="item.id" :label="item.name" :value="item.id" />
+                </el-select>
+            </div>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入实例编码/作业 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initPageTable"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initPageTable">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableType === 'work' ? tableConfig : tableConfigWorkFlow"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #nameSlot="scopeSlot">
+                        <span class="name-click" @click="redirectWork(scopeSlot.row)">
+                            {{ scopeSlot.row.workflowInstanceId }}
+                        </span>
+                    </template>
+                    <template #instanceTypeTag="scopeSlot">
+                        <div class="btn-group">
+                            <el-tag
+                                v-if="scopeSlot.row.instanceType === 'MANUAL' || scopeSlot.row.type === 'MANUAL'"
+                                class="ml-2"
+                                type="info"
+                            >
+                                手动执行
+                            </el-tag>
+                            <el-tag
+                                v-if="scopeSlot.row.instanceType === 'AUTO' || scopeSlot.row.type === 'AUTO'"
+                                class="ml-2"
+                                type="info"
+                            >
+                                调度执行
+                            </el-tag>
+                            <el-tag
+                                v-if="scopeSlot.row.instanceType === 'INVOKE' || scopeSlot.row.type === 'INVOKE'"
+                                class="ml-2"
+                                type="info"
+                            >
+                                外部调用
+                            </el-tag>
+                        </div>
+                    </template>
+                    <template #typeSlot="scopeSlot">
+                        {{ getTypeData(scopeSlot.row.workType) }}
+                    </template>
+                    <template #duration="scopeSlot">
+                        {{
+                            scopeSlot.row.duration !== undefined && scopeSlot.row.duration !== null
+                                ? formatSeconds(scopeSlot.row.duration)
+                                : '-'
+                        }}
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span @click="showDetailModal(scopeSlot.row, 'log')">日志</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item
+                                            v-if="
+                                                [
+                                                    'SPARK_SQL',
+                                                    'FLINK_SQL',
+                                                    'DATA_SYNC_JDBC',
+                                                    'BASH',
+                                                    'PYTHON',
+                                                    'EXCEL_SYNC_JDBC',
+                                                    'CURL',
+                                                    'SPARK_JAR',
+                                                    'PY_SPARK',
+                                                    'DB_MIGRATE',
+                                                    'FLINK_JAR'
+                                                ].includes(scopeSlot.row.workType)
+                                            "
+                                            @click="showDetailModal(scopeSlot.row, 'yarnLog')"
+                                        >
+                                            运行日志
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="
+                                                scopeSlot.row.status === 'SUCCESS' &&
+                                                scopeSlot.row.workType !== 'EXE_JDBC' &&
+                                                scopeSlot.row.workType !== 'FLINK_SQL' &&
+                                                scopeSlot.row.workType !== 'DATA_SYNC_JDBC' &&
+                                                scopeSlot.row.workType !== 'EXCEL_SYNC_JDBC' &&
+                                                scopeSlot.row.workType !== 'DB_MIGRATE' &&
+                                                scopeSlot.row.workType !== 'FLINK_JAR'
+                                            "
+                                            @click="showDetailModal(scopeSlot.row, 'result')"
+                                        >
+                                            运行结果
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status === 'RUNNING'"
+                                            @click="stopWork(scopeSlot.row)"
+                                        >
+                                            中止
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status !== 'RUNNING'"
+                                            @click="retry(scopeSlot.row)"
+                                        >
+                                            重跑
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="deleteSchedule(scopeSlot.row)">删除</el-dropdown-item>
+                                        <el-dropdown-item @click="backToWorkflowIns(scopeSlot.row)">
+                                            跳转实例
+                                        </el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                    <template #workFlowOptions="scopeSlot">
+                        <div class="btn-group">
+                            <span @click="showDagDetail(scopeSlot.row)">DAG</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="reRunWorkFlowDataEvent(scopeSlot.row)">
+                                            重跑
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="!['SUCCESS', 'FAIL', 'ABORT'].includes(scopeSlot.row.status)"
+                                            @click="stopWorkFlow(scopeSlot.row)"
+                                        >
+                                            中止
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="deleteWorkflowSchedule(scopeSlot.row)">
+                                            删除
+                                        </el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <DetailModal ref="detailModalRef" />
+        <dag-detail ref="dagDetailRef" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initPageTable"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableType === 'work' ? tableConfig : tableConfigWorkFlow"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #nameSlot="scopeSlot">
-            <span
-              class="name-click"
-              @click="redirectWork(scopeSlot.row)"
-            >
-              {{ scopeSlot.row.workflowInstanceId }}
-            </span>
-          </template>
-          <template #instanceTypeTag="scopeSlot">
-            <div class="btn-group">
-              <el-tag
-                v-if="scopeSlot.row.instanceType === 'MANUAL' || scopeSlot.row.type === 'MANUAL'"
-                class="ml-2"
-                type="info"
-              >
-                手动执行
-              </el-tag>
-              <el-tag
-                v-if="scopeSlot.row.instanceType === 'AUTO' || scopeSlot.row.type === 'AUTO'"
-                class="ml-2"
-                type="info"
-              >
-                调度执行
-              </el-tag>
-              <el-tag
-                v-if="scopeSlot.row.instanceType === 'INVOKE' || scopeSlot.row.type === 'INVOKE'"
-                class="ml-2"
-                type="info"
-              >
-                外部调用
-              </el-tag>
-            </div>
-          </template>
-          <template #typeSlot="scopeSlot">
-            {{ getTypeData(scopeSlot.row.workType) }}
-          </template>
-          <template #duration="scopeSlot">
-            {{
-              scopeSlot.row.duration !== undefined && scopeSlot.row.duration !== null
-                ? formatSeconds(scopeSlot.row.duration)
-                : '-'
-            }}
-          </template>
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status" />
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span @click="showDetailModal(scopeSlot.row, 'log')">日志</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item
-                      v-if="
-                        [
-                          'SPARK_SQL',
-                          'FLINK_SQL',
-                          'DATA_SYNC_JDBC',
-                          'BASH',
-                          'PYTHON',
-                          'EXCEL_SYNC_JDBC',
-                          'CURL',
-                          'SPARK_JAR',
-                          'PY_SPARK',
-                          'DB_MIGRATE',
-                          'FLINK_JAR'
-                        ].includes(scopeSlot.row.workType)
-                      "
-                      @click="showDetailModal(scopeSlot.row, 'yarnLog')"
-                    >
-                      运行日志
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="
-                        scopeSlot.row.status === 'SUCCESS' &&
-                          scopeSlot.row.workType !== 'EXE_JDBC' &&
-                          scopeSlot.row.workType !== 'FLINK_SQL' &&
-                          scopeSlot.row.workType !== 'DATA_SYNC_JDBC' &&
-                          scopeSlot.row.workType !== 'EXCEL_SYNC_JDBC' &&
-                          scopeSlot.row.workType !== 'DB_MIGRATE' &&
-                          scopeSlot.row.workType !== 'FLINK_JAR'
-                      "
-                      @click="showDetailModal(scopeSlot.row, 'result')"
-                    >
-                      运行结果
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="scopeSlot.row.status === 'RUNNING'"
-                      @click="stopWork(scopeSlot.row)"
-                    >
-                      中止
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="scopeSlot.row.status !== 'RUNNING'"
-                      @click="retry(scopeSlot.row)"
-                    >
-                      重跑
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteSchedule(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="backToWorkflowIns(scopeSlot.row)">
-                      跳转实例
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </template>
-          <template #workFlowOptions="scopeSlot">
-            <div class="btn-group">
-              <span @click="showDagDetail(scopeSlot.row)">DAG</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="reRunWorkFlowDataEvent(scopeSlot.row)">
-                      重跑
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="!['SUCCESS', 'FAIL', 'ABORT'].includes(scopeSlot.row.status)"
-                      @click="stopWorkFlow(scopeSlot.row)"
-                    >
-                      中止
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteWorkflowSchedule(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <DetailModal ref="detailModalRef" />
-    <dag-detail ref="dagDetailRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -216,11 +185,13 @@ import DetailModal from './detail-modal/index.vue'
 import DagDetail from './dag-detail/index.vue'
 
 import { BreadCrumbList, TableConfig, TableConfigWorkFlow } from './schedule.config'
-import { GetScheduleList,
+import {
+    GetScheduleList,
     DeleteScheduleLog,
     ReStartRunning,
     GetScheduleWorkFlowList,
-    DeleteWorkFlowScheduleLog } from '@/services/schedule.service'
+    DeleteWorkFlowScheduleLog
+} from '@/services/schedule.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { GetWorkflowList, ReRunWorkflow, StopWorkflowData, TerWorkItemConfig } from '@/services/workflow.service'
 import { TypeList } from '../workflow/workflow.config'
@@ -453,7 +424,7 @@ function getTypeData(e: string) {
     if (!e) {
         return
     }
-    const typeList = [ ...TypeList ]
+    const typeList = [...TypeList]
     return typeList.find((itme) => itme.value === e)?.label
 }
 

@@ -1,166 +1,108 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="100"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item prop="host">
-        <template #label>
-          <div class="host-label">
-            <span>Host</span>
-            <el-popover
-              :visible="showPortEdit"
-              placement="top"
-              :width="200"
-              :teleported="false"
-            >
-              <div class="port-popover">
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="100" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item prop="host">
+                <template #label>
+                    <div class="host-label">
+                        <span>Host</span>
+                        <el-popover :visible="showPortEdit" placement="top" :width="200" :teleported="false">
+                            <div class="port-popover">
+                                <el-input
+                                    v-model="formData.port"
+                                    maxlength="5"
+                                    size="small"
+                                    placeholder="请输入端口号"
+                                />
+                                <div class="port-popover__footer">
+                                    <el-button size="small" @click="showPortEdit = false">取消</el-button>
+                                    <el-button size="small" type="primary" @click="showPortEdit = false">
+                                        确定
+                                    </el-button>
+                                </div>
+                            </div>
+                            <template #reference>
+                                <span class="port-btn" @click="showPortEdit = !showPortEdit">端口号</span>
+                            </template>
+                        </el-popover>
+                    </div>
+                </template>
+                <el-input v-model="formData.host" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="用户名" prop="username">
+                <el-input v-model="formData.username" maxlength="100" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item>
+                <template #label>
+                    <div class="host-label">
+                        <span>{{ pwdType === 'pwd' ? '密码' : '令牌' }}</span>
+                        <span class="port-btn" @click="togglePwdType">切换认证</span>
+                    </div>
+                </template>
                 <el-input
-                  v-model="formData.port"
-                  maxlength="5"
-                  size="small"
-                  placeholder="请输入端口号"
+                    v-if="pwdType === 'pwd'"
+                    v-model="formData.passwd"
+                    type="password"
+                    show-password
+                    placeholder="请输入"
                 />
-                <div class="port-popover__footer">
-                  <el-button
-                    size="small"
-                    @click="showPortEdit = false"
-                  >
-                    取消
-                  </el-button>
-                  <el-button
-                    size="small"
-                    type="primary"
-                    @click="showPortEdit = false"
-                  >
-                    确定
-                  </el-button>
+                <el-input
+                    v-else
+                    v-model="formData.passwd"
+                    show-word-limit
+                    type="textarea"
+                    :autosize="{ minRows: 2, maxRows: 2 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+            <el-form-item v-if="clusterType === 'standalone'" label="安装服务">
+                <div class="install-service-row">
+                    <div class="install-service-item">
+                        <span>Spark</span>
+                        <el-switch v-model="formData.installSparkLocal" />
+                    </div>
+                    <div class="install-service-item">
+                        <span>Flink</span>
+                        <el-switch v-model="formData.installFlinkLocal" />
+                    </div>
                 </div>
-              </div>
-              <template #reference>
-                <span
-                  class="port-btn"
-                  @click="showPortEdit = !showPortEdit"
-                >端口号</span>
-              </template>
-            </el-popover>
-          </div>
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+        <template #customLeft>
+            <div class="test-button">
+                <el-button :loading="testLoading" type="primary" @click="testFun">链接测试</el-button>
+                <el-popover
+                    placement="right"
+                    title="测试结果"
+                    :width="400"
+                    trigger="hover"
+                    popper-class="message-error-tooltip"
+                    :content="testResult?.log"
+                    :disabled="testResult?.status === 'SUCCESS'"
+                >
+                    <template #reference>
+                        <el-icon v-if="testResult?.status === 'FAIL'" class="hover-tooltip">
+                            <WarningFilled />
+                        </el-icon>
+                        <el-icon v-else-if="testResult?.status === 'SUCCESS'" class="hover-tooltip success">
+                            <SuccessFilled />
+                        </el-icon>
+                    </template>
+                </el-popover>
+            </div>
         </template>
-        <el-input
-          v-model="formData.host"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="用户名"
-        prop="username"
-      >
-        <el-input
-          v-model="formData.username"
-          maxlength="100"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item>
-        <template #label>
-          <div class="host-label">
-            <span>{{ pwdType === 'pwd' ? '密码' : '令牌' }}</span>
-            <span
-              class="port-btn"
-              @click="togglePwdType"
-            >切换认证</span>
-          </div>
-        </template>
-        <el-input
-          v-if="pwdType === 'pwd'"
-          v-model="formData.passwd"
-          type="password"
-          show-password
-          placeholder="请输入"
-        />
-        <el-input
-          v-else
-          v-model="formData.passwd"
-          show-word-limit
-          type="textarea"
-          :autosize="{ minRows: 2, maxRows: 2 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="clusterType === 'standalone'"
-        label="安装服务"
-      >
-        <div class="install-service-row">
-          <div class="install-service-item">
-            <span>Spark</span>
-            <el-switch v-model="formData.installSparkLocal" />
-          </div>
-          <div class="install-service-item">
-            <span>Flink</span>
-            <el-switch v-model="formData.installFlinkLocal" />
-          </div>
-        </div>
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-    <template #customLeft>
-      <div class="test-button">
-        <el-button
-          :loading="testLoading"
-          type="primary"
-          @click="testFun"
-        >
-          链接测试
-        </el-button>
-        <el-popover
-          placement="right"
-          title="测试结果"
-          :width="400"
-          trigger="hover"
-          popper-class="message-error-tooltip"
-          :content="testResult?.log"
-          :disabled="testResult?.status === 'SUCCESS'"
-        >
-          <template #reference>
-            <el-icon
-              v-if="testResult?.status === 'FAIL'"
-              class="hover-tooltip"
-            >
-              <WarningFilled />
-            </el-icon>
-            <el-icon
-              v-else-if="testResult?.status === 'SUCCESS'"
-              class="hover-tooltip success"
-            >
-              <SuccessFilled />
-            </el-icon>
-          </template>
-        </el-popover>
-      </div>
-    </template>
-  </BlockModal>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -219,14 +161,14 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入节点名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     host: [
         {
             required: true,
             message: '请输入Host',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
         // {
         //   validator: Validator.HostValidator('请输入正确的host'),
@@ -237,11 +179,11 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入port',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         },
         {
             validator: Validator.PortValidator('请输入正确的端口号'),
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

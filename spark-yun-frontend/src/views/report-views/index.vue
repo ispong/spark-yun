@@ -1,100 +1,83 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建大屏
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入名称 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(true)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #nameSlot="scopeSlot">
-            <span
-              class="name-click"
-              @click="showDetail(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status" />
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span
-                v-if="['NEW', 'OFFLINE'].includes(scopeSlot.row.status)"
-                @click="showDetail(scopeSlot.row)"
-              >
-                配置
-              </span>
-              <span
-                v-if="['PUBLISHED'].includes(scopeSlot.row.status)"
-                @click="previewReport(scopeSlot.row)"
-              >
-                预览
-              </span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editReport(scopeSlot.row)">
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="['NEW', 'OFFLINE'].includes(scopeSlot.row.status)"
-                      @click="publishReport(scopeSlot.row)"
-                    >
-                      发布
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-else
-                      @click="underlineReport(scopeSlot.row)"
-                    >
-                      下线
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="['PUBLISHED'].includes(scopeSlot.row.status)"
-                      @click="shareReport(scopeSlot.row)"
-                    >
-                      分享
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="['NEW', 'OFFLINE'].includes(scopeSlot.row.status)"
-                      @click="deleteData(scopeSlot.row)"
-                    >
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建大屏</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入名称 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-    <ShareReportModal ref="shareReportModalRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(true)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #nameSlot="scopeSlot">
+                        <span class="name-click" @click="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span
+                                v-if="['NEW', 'OFFLINE'].includes(scopeSlot.row.status)"
+                                @click="showDetail(scopeSlot.row)"
+                            >
+                                配置
+                            </span>
+                            <span
+                                v-if="['PUBLISHED'].includes(scopeSlot.row.status)"
+                                @click="previewReport(scopeSlot.row)"
+                            >
+                                预览
+                            </span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editReport(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="['NEW', 'OFFLINE'].includes(scopeSlot.row.status)"
+                                            @click="publishReport(scopeSlot.row)"
+                                        >
+                                            发布
+                                        </el-dropdown-item>
+                                        <el-dropdown-item v-else @click="underlineReport(scopeSlot.row)">
+                                            下线
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="['PUBLISHED'].includes(scopeSlot.row.status)"
+                                            @click="shareReport(scopeSlot.row)"
+                                        >
+                                            分享
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="['NEW', 'OFFLINE'].includes(scopeSlot.row.status)"
+                                            @click="deleteData(scopeSlot.row)"
+                                        >
+                                            删除
+                                        </el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <ShareReportModal ref="shareReportModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -103,12 +86,14 @@ import Breadcrumb from '@/layout/bread-crumb/index.vue'
 import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
-import { QueryReportView,
+import {
+    QueryReportView,
     AddReportView,
     UnderlineReportViewData,
     PublishReportViewData,
     DeleteReportViewData,
-    EditReportView } from '@/services/report-echarts.service'
+    EditReportView
+} from '@/services/report-echarts.service'
 import ShareReportModal from './share-report-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './report-views.config'
@@ -141,8 +126,7 @@ function initData(tableLoading?: boolean) {
             networkError.value = false
         })
         .catch(() => {
-            tableConfig.tableData = [ {
-} ]
+            tableConfig.tableData = [{}]
             tableConfig.pagination.total = 0
             loading.value = false
             tableConfig.loading = false

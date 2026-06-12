@@ -1,96 +1,58 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <div
-      v-if="modalType === 'jsonPath'"
-      class="json-path-container"
-    >
-      <BlockTable :table-config="tableConfig">
-        <template #options="scopeSlot">
-          <div class="btn-group">
-            <span @click="copyParse(scopeSlot.row?.copyValue)">复制</span>
-          </div>
-        </template>
-      </BlockTable>
-    </div>
-    <div
-      v-if="modalType === 'tablePath'"
-      class="table-path-container"
-    >
-      <div class="input-table-index">
-        <span class="label">表行数</span>
-        <el-input-number
-          v-model="tableRow"
-          placeholder="请输入"
-          :min="0"
-          controls-position="right"
-        />
-        <span class="label">表列数</span>
-        <el-input-number
-          v-model="tableCol"
-          placeholder="请输入"
-          :min="0"
-          controls-position="right"
-        />
-      </div>
-      <div class="search-parser">
-        <span class="result-label">解析结果：</span>
-        <span class="result-text">{{ tableValue.value || '暂无解析结果' }}</span>
-      </div>
-      <div class="search-parser search-parser-btn">
-        <el-button
-          type="primary"
-          @click="getWorkTablePath"
-        >
-          获取结果
-        </el-button>
-        <el-button
-          v-if="tableValue.copyValue"
-          type="text"
-          @click="copyParse(tableValue.copyValue)"
-        >
-          复制表达式
-        </el-button>
-      </div>
-    </div>
-    <div
-      v-if="modalType === 'regexPath'"
-      class="regex-path-container"
-    >
-      <div class="input-table-index">
-        <span class="label">正则匹配规则</span>
-        <el-input
-          v-model="regexStr"
-          placeholder="请输入正则"
-        />
-      </div>
-      <div class="search-parser">
-        <span class="result-label">解析结果：</span>
-        <span class="result-text">{{ regexValue.value || '暂无解析结果' }}</span>
-      </div>
-      <div class="search-parser search-parser-btn">
-        <el-button
-          type="primary"
-          @click="getWorkRegexPath"
-        >
-          获取结果
-        </el-button>
-        <el-button
-          v-if="regexValue.copyValue"
-          type="text"
-          @click="copyParse(regexValue.copyValue)"
-        >
-          复制表达式
-        </el-button>
-      </div>
-    </div>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <div v-if="modalType === 'jsonPath'" class="json-path-container">
+            <BlockTable :table-config="tableConfig">
+                <template #options="scopeSlot">
+                    <div class="btn-group">
+                        <span @click="copyParse(scopeSlot.row?.copyValue)">复制</span>
+                    </div>
+                </template>
+            </BlockTable>
+        </div>
+        <div v-if="modalType === 'tablePath'" class="table-path-container">
+            <div class="input-table-index">
+                <span class="label">表行数</span>
+                <el-input-number v-model="tableRow" placeholder="请输入" :min="0" controls-position="right" />
+                <span class="label">表列数</span>
+                <el-input-number v-model="tableCol" placeholder="请输入" :min="0" controls-position="right" />
+            </div>
+            <div class="search-parser">
+                <span class="result-label">解析结果：</span>
+                <span class="result-text">{{ tableValue.value || '暂无解析结果' }}</span>
+            </div>
+            <div class="search-parser search-parser-btn">
+                <el-button type="primary" @click="getWorkTablePath">获取结果</el-button>
+                <el-button v-if="tableValue.copyValue" type="text" @click="copyParse(tableValue.copyValue)">
+                    复制表达式
+                </el-button>
+            </div>
+        </div>
+        <div v-if="modalType === 'regexPath'" class="regex-path-container">
+            <div class="input-table-index">
+                <span class="label">正则匹配规则</span>
+                <el-input v-model="regexStr" placeholder="请输入正则" />
+            </div>
+            <div class="search-parser">
+                <span class="result-label">解析结果：</span>
+                <span class="result-text">{{ regexValue.value || '暂无解析结果' }}</span>
+            </div>
+            <div class="search-parser search-parser-btn">
+                <el-button type="primary" @click="getWorkRegexPath">获取结果</el-button>
+                <el-button v-if="regexValue.copyValue" type="text" @click="copyParse(regexValue.copyValue)">
+                    复制表达式
+                </el-button>
+            </div>
+        </div>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
-import { GetWorkInstanceJsonPath,
+import {
+    GetWorkInstanceJsonPath,
     GetWorkInstanceRegexPath,
-    GetWorkInstanceTablePath } from '@/services/workflow.service'
+    GetWorkInstanceTablePath
+} from '@/services/workflow.service'
 import { ElMessage } from 'element-plus'
 
 const instanceId = ref<string>('')
@@ -98,12 +60,10 @@ const modalType = ref<string>('jsonPath') // jsonPath | tablePath | regexPath
 
 const tableRow = ref<number | null>(null)
 const tableCol = ref<number | null>(null)
-const tableValue = ref<any>({
-})
+const tableValue = ref<any>({})
 
 const regexStr = ref<string>('')
-const regexValue = ref<any>({
-})
+const regexValue = ref<any>({})
 
 const tableConfig = reactive({
     tableData: [],

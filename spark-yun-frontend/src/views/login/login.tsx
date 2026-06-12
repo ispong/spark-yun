@@ -34,9 +34,7 @@ export default defineComponent({
                 })
         }
 
-        const {
- renderLoginForm 
-} = useLogin(handleLogin)
+        const { renderLoginForm } = useLogin(handleLogin)
 
         return () => (
             <div class="zqy-login">

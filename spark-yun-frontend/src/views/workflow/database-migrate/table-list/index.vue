@@ -1,28 +1,12 @@
 <template>
-  <div
-    id="container"
-    v-loading="connectNodeLoading"
-    class="table-list-body"
-  >
-    <div class="merged-table-container">
-      <el-table
-        ref="mergedTableRef"
-        :data="mergedTableColumn"
-        row-key="code"
-      >
-        <el-table-column
-          type="index"
-          width="50"
-          :align="'center'"
-        />
-        <el-table-column
-          prop="code"
-          :show-overflow-tooltip="true"
-          label="表名"
-        />
-      </el-table>
+    <div id="container" v-loading="connectNodeLoading" class="table-list-body">
+        <div class="merged-table-container">
+            <el-table ref="mergedTableRef" :data="mergedTableColumn" row-key="code">
+                <el-table-column type="index" width="50" :align="'center'" />
+                <el-table-column prop="code" :show-overflow-tooltip="true" label="表名" />
+            </el-table>
+        </div>
     </div>
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -45,7 +29,7 @@ function mergeTableColumns() {
     const targetTableNames = targetTableColumn.value.map((item) => item.code)
 
     // 合并并去重
-    const allTableNames = [ ...new Set([ ...sourceTableNames, ...targetTableNames ]) ]
+    const allTableNames = [...new Set([...sourceTableNames, ...targetTableNames])]
 
     mergedTableColumn.value = allTableNames.map((tableName) => ({
         code: tableName

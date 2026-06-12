@@ -1,17 +1,9 @@
 <template>
-  <div class="config-components data-custom">
-    <el-form-item
-      prop="customSqlEtl.sql"
-      label-width="0"
-      :class="{ 'show-screen__full': fullStatus }"
-    >
-      <code-mirror
-        v-model="formData.customSqlEtl.sql"
-        basic
-        :lang="sqlLang"
-      />
-    </el-form-item>
-  </div>
+    <div class="config-components data-custom">
+        <el-form-item prop="customSqlEtl.sql" label-width="0" :class="{ 'show-screen__full': fullStatus }">
+            <code-mirror v-model="formData.customSqlEtl.sql" basic :lang="sqlLang" />
+        </el-form-item>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -22,7 +14,7 @@ const props = defineProps<{
     modelValue: any
     incomeNodes: any
 }>()
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 
 const sqlLang = ref<any>(sql())
 const fullStatus = ref<boolean>(false)
@@ -72,13 +64,29 @@ onMounted(() => {
                 }
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
                 }
                 .cm-tooltip-autocomplete {
                     ul {
@@ -88,8 +96,16 @@ onMounted(() => {
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
                         li[aria-selected] {
                             background: #409eff;

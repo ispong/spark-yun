@@ -1,53 +1,50 @@
 <template>
-  <div
-    id="chartsComponentsInstance"
-    class="charts-components"
-  >
-    <el-scrollbar>
-      <template v-if="componentList.length">
-        <grid-layout
-          ref="gridlayoutRef"
-          v-model:layout="componentList"
-          :col-num="colNum"
-          :row-height="10"
-          :is-draggable="renderSence !== 'readonly'"
-          :is-resizable="renderSence !== 'readonly'"
-          :is-mirrored="false"
-          :vertical-compact="true"
-          :margin="[12, 12]"
-          :use-css-transforms="true"
-          @layout-updated="layoutUpdatedEvent"
-        >
-          <grid-item
-            v-for="(item, index) in componentList"
-            :ref="(el) => (gridItemRef[index] = el)"
-            :key="item.i"
-            :x="item.x"
-            :y="item.y"
-            :w="item.w"
-            :h="item.h"
-            :i="item.i"
-            :min-w="30"
-            :min-h="15"
-            :static="false"
-            @resize="resizeEvent($event, index)"
-          >
-            <ChartsItem
-              :ref="(el) => (chartsItemRef[index] = el)"
-              :render-sence="renderSence"
-              :config="item"
-              :get-preview-option="getPreviewOption"
-              :get-real-data-option="getRealDataOption"
-              @remove-chart="removeChart"
-            />
-          </grid-item>
-        </grid-layout>
-      </template>
-      <template v-else>
-        <EmptyPage />
-      </template>
-    </el-scrollbar>
-  </div>
+    <div id="chartsComponentsInstance" class="charts-components">
+        <el-scrollbar>
+            <template v-if="componentList.length">
+                <grid-layout
+                    ref="gridlayoutRef"
+                    v-model:layout="componentList"
+                    :col-num="colNum"
+                    :row-height="10"
+                    :is-draggable="renderSence !== 'readonly'"
+                    :is-resizable="renderSence !== 'readonly'"
+                    :is-mirrored="false"
+                    :vertical-compact="true"
+                    :margin="[12, 12]"
+                    :use-css-transforms="true"
+                    @layout-updated="layoutUpdatedEvent"
+                >
+                    <grid-item
+                        v-for="(item, index) in componentList"
+                        :ref="(el) => (gridItemRef[index] = el)"
+                        :key="item.i"
+                        :x="item.x"
+                        :y="item.y"
+                        :w="item.w"
+                        :h="item.h"
+                        :i="item.i"
+                        :min-w="30"
+                        :min-h="15"
+                        :static="false"
+                        @resize="resizeEvent($event, index)"
+                    >
+                        <ChartsItem
+                            :ref="(el) => (chartsItemRef[index] = el)"
+                            :render-sence="renderSence"
+                            :config="item"
+                            :get-preview-option="getPreviewOption"
+                            :get-real-data-option="getRealDataOption"
+                            @remove-chart="removeChart"
+                        />
+                    </grid-item>
+                </grid-layout>
+            </template>
+            <template v-else>
+                <EmptyPage />
+            </template>
+        </el-scrollbar>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -82,9 +79,9 @@ interface DragPos {
     h: number
     i: string
 }
-const props = defineProps([ 'renderSence', 'chartList', 'getPreviewOption', 'getRealDataOption' ])
+const props = defineProps(['renderSence', 'chartList', 'getPreviewOption', 'getRealDataOption'])
 
-const emit = defineEmits([ 'update:modelValue', 'componentListChange', 'chooseItem', 'removeInstance' ])
+const emit = defineEmits(['update:modelValue', 'componentListChange', 'chooseItem', 'removeInstance'])
 const colNum = ref(300)
 const chartsItemRef = ref<any[]>([])
 const gridlayoutRef = ref()
@@ -101,11 +98,11 @@ watch(
     }
 )
 
-let mouseXY: MouseXY = {
+const mouseXY: MouseXY = {
     x: null,
     y: null
 }
-let DragPos: DragPos = {
+const DragPos: DragPos = {
     x: null,
     y: null,
     w: 1,
@@ -134,7 +131,7 @@ function resizeAllCharts() {
 }
 
 function startMoveEvent(e: any) {
-    let parentRect: any = document.getElementById('chartsComponentsInstance')?.getBoundingClientRect()
+    const parentRect: any = document.getElementById('chartsComponentsInstance')?.getBoundingClientRect()
     if (!parentRect) {
         return
     }
@@ -156,7 +153,7 @@ function startMoveEvent(e: any) {
         })
         console.log('这里塞值', componentList.value)
     }
-    let index = componentList.value.findIndex((item) => item.i === 'drop')
+    const index = componentList.value.findIndex((item) => item.i === 'drop')
     if (index !== -1) {
         nextTick(() => {
             try {
@@ -164,12 +161,12 @@ function startMoveEvent(e: any) {
             } catch (error) {
                 console.error('拖拽获取子图表报错', error)
             }
-            let el: any = gridItemRef.value[index]
+            const el: any = gridItemRef.value[index]
             el.dragging = {
                 top: mouseXY.y - parentRect.top,
                 left: mouseXY.x - parentRect.left
             }
-            let new_pos = el.calcXY(mouseXY.y - parentRect.top, mouseXY.x - parentRect.left)
+            const new_pos = el.calcXY(mouseXY.y - parentRect.top, mouseXY.x - parentRect.left)
             if (mouseInGrid === true) {
                 gridlayoutRef.value.dragEvent('dragstart', 'drop', new_pos.x, new_pos.y, 1, 1)
                 DragPos.i = String(index)
@@ -184,7 +181,7 @@ function startMoveEvent(e: any) {
     }
 }
 function endMoveEvent(e: any) {
-    let parentRect: any = document.getElementById('chartsComponentsInstance')?.getBoundingClientRect()
+    const parentRect: any = document.getElementById('chartsComponentsInstance')?.getBoundingClientRect()
     if (!parentRect) {
         return
     }
@@ -224,7 +221,7 @@ function getComponentList(): ChartLayout[] {
 onMounted(() => {
     document.addEventListener(
         'dragover',
-        function(e) {
+        function (e) {
             mouseXY.x = e.clientX
             mouseXY.y = e.clientY
         },

@@ -1,41 +1,24 @@
 <template>
-  <div class="config-components data-join data-filter">
-    <!-- 根分组 -->
-    <div class="filter-root-group">
-      <filter-group
-        :items="formData.filterEtl"
-        :col-name-options="colNameOptions"
-        prop-prefix="filterEtl"
-        :depth="0"
-      />
-      <div class="filter-group-actions">
-        <el-button
-          link
-          type="primary"
-          size="small"
-          @click="addCondition"
-        >
-          + 条件
-        </el-button>
-        <el-button
-          link
-          type="primary"
-          size="small"
-          @click="addGroup"
-        >
-          + 分组
-        </el-button>
-      </div>
+    <div class="config-components data-join data-filter">
+        <!-- 根分组 -->
+        <div class="filter-root-group">
+            <filter-group
+                :items="formData.filterEtl"
+                :col-name-options="colNameOptions"
+                prop-prefix="filterEtl"
+                :depth="0"
+            />
+            <div class="filter-group-actions">
+                <el-button link type="primary" size="small" @click="addCondition">+ 条件</el-button>
+                <el-button link type="primary" size="small" @click="addGroup">+ 分组</el-button>
+            </div>
+        </div>
+        <el-form-item v-show="false" label="输出字段">
+            <div style="max-height: 444px; width: 100%">
+                <BlockTable :table-config="tableConfig" />
+            </div>
+        </el-form-item>
     </div>
-    <el-form-item
-      v-show="false"
-      label="输出字段"
-    >
-      <div style="max-height: 444px; width: 100%">
-        <BlockTable :table-config="tableConfig" />
-      </div>
-    </el-form-item>
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -52,7 +35,7 @@ const props = defineProps<{
     modelValue: any
     incomeNodes: any
 }>()
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 
 const colNameOptions = ref<Option[]>([])
 const tableConfig = reactive(TableConfig)

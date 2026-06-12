@@ -14,15 +14,13 @@ export function useSwitchTenant() {
 
     const tenantList = ref<TenantInfo[]>([])
 
-    const initSwitchTenant = function() {
-        return QueryTenantList().then(({
- data 
-}: { data: TenantInfo[] }) => {
+    const initSwitchTenant = function () {
+        return QueryTenantList().then(({ data }: { data: TenantInfo[] }) => {
             tenantList.value = data
         })
     }
 
-    const onTenantChange = function(tenantId: TenantInfo['id']) {
+    const onTenantChange = function (tenantId: TenantInfo['id']) {
         currentTenant.value = tenantList.value.find((item) => item.id === tenantId) || {
             id: '',
             name: ''

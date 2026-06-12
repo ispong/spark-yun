@@ -1,83 +1,43 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <template v-if="workType === 'SPARK_SQL' || workType === 'FLINK_SQL'">
-        <el-form-item
-          label="计算引擎"
-          prop="clusterId"
-        >
-          <el-select
-            v-model="formData.clusterId"
-            placeholder="请选择"
-            :filterable="true"
-          >
-            <el-option
-              v-for="item in typeList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-      </template>
-      <template v-else>
-        <el-form-item
-          label="数据源"
-          prop="datasourceId"
-        >
-          <el-select
-            v-model="formData.datasourceId"
-            placeholder="请选择"
-            :filterable="true"
-          >
-            <el-option
-              v-for="item in typeList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-      </template>
-      <el-form-item
-        v-if="workType === 'SPARK_SQL'"
-        label="Spark配置"
-      >
-        <el-input
-          v-model="formData.sparkConfig"
-          show-word-limit
-          type="textarea"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="workType === 'FLINK_SQL'"
-        label="Flink配置"
-      >
-        <el-input
-          v-model="formData.flinkConfig"
-          show-word-limit
-          type="textarea"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item label="Corn表达式">
-        <el-input
-          v-model="formData.corn"
-          placeholder="请输入"
-          show-word-limit
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <template v-if="workType === 'SPARK_SQL' || workType === 'FLINK_SQL'">
+                <el-form-item label="计算引擎" prop="clusterId">
+                    <el-select v-model="formData.clusterId" placeholder="请选择" :filterable="true">
+                        <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                </el-form-item>
+            </template>
+            <template v-else>
+                <el-form-item label="数据源" prop="datasourceId">
+                    <el-select v-model="formData.datasourceId" placeholder="请选择" :filterable="true">
+                        <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                </el-form-item>
+            </template>
+            <el-form-item v-if="workType === 'SPARK_SQL'" label="Spark配置">
+                <el-input
+                    v-model="formData.sparkConfig"
+                    show-word-limit
+                    type="textarea"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+            <el-form-item v-if="workType === 'FLINK_SQL'" label="Flink配置">
+                <el-input
+                    v-model="formData.flinkConfig"
+                    show-word-limit
+                    type="textarea"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+            <el-form-item label="Corn表达式">
+                <el-input v-model="formData.corn" placeholder="请输入" show-word-limit />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -122,14 +82,14 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请选择数据源',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     clusterId: [
         {
             required: true,
             message: '请选择计算引擎',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

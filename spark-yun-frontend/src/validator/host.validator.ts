@@ -8,7 +8,7 @@
  */
 import RegexValidator from './regex.validator'
 
-const HostValidator = function(errorMsg: string) {
+const HostValidator = function (errorMsg: string) {
     // return RegexValidator(/^(d{1,2}|1dd|2[0-4]d|25[0-5]).(d{1,2}|1dd|2[0-4]d|25[0-5]).(d{1,2}|1dd|2[0-4]d|25[0-5]).(d{1,2}|1dd|2[0-4]d|25[0-5])$/, errorMsg)
     return RegexValidator(
         /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,

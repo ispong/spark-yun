@@ -1,61 +1,55 @@
 <template>
-  <div
-    class="form-components"
-    :class="{ 'form-components__dragger': isDragger }"
-  >
-    <el-scrollbar>
-      <el-form
-        ref="ZFormEngineRef"
-        class="form-component-container"
-        :model="formData"
-        :label-position="'top'"
-        :disabled="renderSence === 'readonly'"
-      >
-        <draggable
-          class="form-dragger-component"
-          item-key="uuid"
-          group="ZFormEngineConfig"
-          :ghost-class="ghostClass"
-          :animation="150"
-          :list="componentList"
-          :force-fallback="true"
-          :fallback-class="true"
-          :disabled="!isDragger"
-          :touch-start-threshold="2"
-          :scroll="false"
-          @start="startMoveEvent"
-          @end="endMoveEvent"
-        >
-          <template #item="{ element }">
-            <span
-              :class="{ 'form-item-container__error': !element.valid }"
-              class="form-item-container"
-              :style="{ width: componentWidth(element.width) }"
+    <div class="form-components" :class="{ 'form-components__dragger': isDragger }">
+        <el-scrollbar>
+            <el-form
+                ref="ZFormEngineRef"
+                class="form-component-container"
+                :model="formData"
+                :label-position="'top'"
+                :disabled="renderSence === 'readonly'"
             >
-              <component
-                :is="computedRenderSenceComponent(element.componentType)"
-                v-model="formData[element.uuid]"
-                :class="{
-                  'choose-item__active': chooseItemData.uuid === element.uuid && isDragger,
-                  'choose-item': isDragger
-                }"
-                :form-config="element"
-                :form-data="formData"
-                :is-dragger="isDragger"
-                :render-sence="renderSence"
-                @remove-instance="removeInstance"
-                @mousedown="mousedownEvent($event, element)"
-              />
-            </span>
-          </template>
-        </draggable>
-        <EmptyPage
-          v-if="!componentList.length"
-          class="form-component-container__empty"
-        />
-      </el-form>
-    </el-scrollbar>
-  </div>
+                <draggable
+                    class="form-dragger-component"
+                    item-key="uuid"
+                    group="ZFormEngineConfig"
+                    :ghost-class="ghostClass"
+                    :animation="150"
+                    :list="componentList"
+                    :force-fallback="true"
+                    :fallback-class="true"
+                    :disabled="!isDragger"
+                    :touch-start-threshold="2"
+                    :scroll="false"
+                    @start="startMoveEvent"
+                    @end="endMoveEvent"
+                >
+                    <template #item="{ element }">
+                        <span
+                            :class="{ 'form-item-container__error': !element.valid }"
+                            class="form-item-container"
+                            :style="{ width: componentWidth(element.width) }"
+                        >
+                            <component
+                                :is="computedRenderSenceComponent(element.componentType)"
+                                v-model="formData[element.uuid]"
+                                :class="{
+                                    'choose-item__active': chooseItemData.uuid === element.uuid && isDragger,
+                                    'choose-item': isDragger
+                                }"
+                                :form-config="element"
+                                :form-data="formData"
+                                :is-dragger="isDragger"
+                                :render-sence="renderSence"
+                                @remove-instance="removeInstance"
+                                @mousedown="mousedownEvent($event, element)"
+                            />
+                        </span>
+                    </template>
+                </draggable>
+                <EmptyPage v-if="!componentList.length" class="form-component-container__empty" />
+            </el-form>
+        </el-scrollbar>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -72,10 +66,9 @@ const props = defineProps([
     'renderSence',
     'movingInstance'
 ])
-const emit = defineEmits([ 'update:modelValue', 'componentListChange', 'chooseItem', 'removeInstance' ])
+const emit = defineEmits(['update:modelValue', 'componentListChange', 'chooseItem', 'removeInstance'])
 const formInstance = shallowRef<any>(FormInstance)
-const chooseItemData = ref<ComponentInstance>({
-})
+const chooseItemData = ref<ComponentInstance>({})
 
 const ZFormEngineRef = ref()
 const componentWidth = computed(() => {
@@ -122,7 +115,7 @@ const mousedownEvent = (e: EventListener, data: ComponentInstance) => {
 }
 
 function endMoveEvent(e: any) {
-    let path = e.originalEvent.path || (e.originalEvent.composedPath && e.originalEvent.composedPath())
+    const path = e.originalEvent.path || (e.originalEvent.composedPath && e.originalEvent.composedPath())
     if (path && !path.some((el) => el.className === 'form-dragger-component')) {
         emit('removeInstance', chooseItemData.value)
     }

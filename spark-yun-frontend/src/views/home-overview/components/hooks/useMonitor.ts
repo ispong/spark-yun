@@ -74,14 +74,12 @@ export function useMonitor(currentColony: Ref<ColonyInfo | undefined>, currentFr
         queryClusterMonitorInfo({
             clusterId: currentColony.value.id,
             timeType: currentFrequency.value.value
-        }).then(({
- data 
-}) => {
-            let timeList: string[] = []
-            let cpuPercentList: number[] = []
-            let usedMemorySizeList: number[] = []
-            let diskIoWriteSpeedList: number[] = []
-            let usedStorageSizeList: number[] = []
+        }).then(({ data }) => {
+            const timeList: string[] = []
+            const cpuPercentList: number[] = []
+            const usedMemorySizeList: number[] = []
+            const diskIoWriteSpeedList: number[] = []
+            const usedStorageSizeList: number[] = []
 
             data.line.forEach((clusterMonitorInfo) => {
                 timeList.push(clusterMonitorInfo.dateTime)

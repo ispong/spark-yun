@@ -1,86 +1,55 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table driver-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建驱动
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入名称/备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table driver-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建驱动</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入名称/备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #defaultTag="scopeSlot">
+                        <div class="btn-group">
+                            <el-tag v-if="scopeSlot.row.isDefaultDriver" class="ml-2" type="success">是</el-tag>
+                            <el-tag v-if="!scopeSlot.row.isDefaultDriver" class="ml-2" type="danger">否</el-tag>
+                        </div>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span v-if="!scopeSlot.row.isDefaultDriver" @click="setDefaultDriver(scopeSlot.row)">
+                                默认
+                            </span>
+                            <span v-else @click="setDefaultDriver(scopeSlot.row)">取消</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">备注</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                            <!-- <el-icon v-else class="is-loading"><Loading /></el-icon> -->
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #defaultTag="scopeSlot">
-            <div class="btn-group">
-              <el-tag
-                v-if="scopeSlot.row.isDefaultDriver"
-                class="ml-2"
-                type="success"
-              >
-                是
-              </el-tag>
-              <el-tag
-                v-if="!scopeSlot.row.isDefaultDriver"
-                class="ml-2"
-                type="danger"
-              >
-                否
-              </el-tag>
-            </div>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span
-                v-if="!scopeSlot.row.isDefaultDriver"
-                @click="setDefaultDriver(scopeSlot.row)"
-              >
-                默认
-              </span>
-              <span
-                v-else
-                @click="setDefaultDriver(scopeSlot.row)"
-              >取消</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
-                      备注
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-              <!-- <el-icon v-else class="is-loading"><Loading /></el-icon> -->
-            </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -92,12 +61,14 @@ import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 
 import { BreadCrumbList, TableConfig } from './driver.config'
-import { GetDefaultDriverData,
+import {
+    GetDefaultDriverData,
     GetDriverListData,
     DeleteDefaultDriverData,
     AddDefaultDriverData,
     SetDefaultDriverData,
-    UpdateDefaultDriverRemark } from '@/services/driver-management.service'
+    UpdateDefaultDriverRemark
+} from '@/services/driver-management.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/useAuth'

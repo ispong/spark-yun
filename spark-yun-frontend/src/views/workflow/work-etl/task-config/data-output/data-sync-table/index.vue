@@ -1,91 +1,43 @@
 <template>
-  <div class="select-link-type select-link-type__line">
-    <el-button
-      v-for="button in buttons"
-      :key="button.text"
-      :type="button.type"
-      link
-      @click="clickSelectLinkConnect(button.code)"
-    >
-      {{ button.text }}
-    </el-button>
-  </div>
-  <div
-    id="containerOutput"
-    v-loading="connectNodeLoading"
-    class="data-sync-body"
-  >
-    <div class="source-table-container">
-      <el-table
-        ref="sourceTableRef"
-        :data="sourceTableColumn"
-        row-key="colName"
-      >
-        <el-table-column
-          prop="colName"
-          :show-overflow-tooltip="true"
-          label="字段名"
-        />
-        <el-table-column
-          prop="colType"
-          :show-overflow-tooltip="true"
-          label="类型"
-        />
-        <el-table-column
-          prop="remark"
-          :show-overflow-tooltip="true"
-          label="备注"
-        />
-      </el-table>
-      <ul class="source-link-pointer">
-        <li
-          v-for="row in sourceTableColumn"
-          :key="row.colName"
+    <div class="select-link-type select-link-type__line">
+        <el-button
+            v-for="button in buttons"
+            :key="button.text"
+            :type="button.type"
+            link
+            @click="clickSelectLinkConnect(button.code)"
         >
-          <div
-            class="lint-pointer"
-            :class="`leftRowOutput code-source-${row.colName}`"
-          />
-        </li>
-      </ul>
+            {{ button.text }}
+        </el-button>
     </div>
-    <div class="target-link-line">
-      <ul class="target-link-pointer">
-        <li
-          v-for="row in targetTableColumn"
-          :key="row.colName"
-        >
-          <div
-            class="lint-pointer"
-            :class="`rightRowOutput code-target-${row.colName}`"
-          />
-        </li>
-      </ul>
+    <div id="containerOutput" v-loading="connectNodeLoading" class="data-sync-body">
+        <div class="source-table-container">
+            <el-table ref="sourceTableRef" :data="sourceTableColumn" row-key="colName">
+                <el-table-column prop="colName" :show-overflow-tooltip="true" label="字段名" />
+                <el-table-column prop="colType" :show-overflow-tooltip="true" label="类型" />
+                <el-table-column prop="remark" :show-overflow-tooltip="true" label="备注" />
+            </el-table>
+            <ul class="source-link-pointer">
+                <li v-for="row in sourceTableColumn" :key="row.colName">
+                    <div class="lint-pointer" :class="`leftRowOutput code-source-${row.colName}`" />
+                </li>
+            </ul>
+        </div>
+        <div class="target-link-line">
+            <ul class="target-link-pointer">
+                <li v-for="row in targetTableColumn" :key="row.colName">
+                    <div class="lint-pointer" :class="`rightRowOutput code-target-${row.colName}`" />
+                </li>
+            </ul>
+        </div>
+        <div class="target-table-container">
+            <el-table ref="targetTableRef" :data="targetTableColumn" row-key="colName">
+                <el-table-column prop="colName" :show-overflow-tooltip="true" label="字段名" />
+                <el-table-column prop="colType" :show-overflow-tooltip="true" label="类型" />
+                <el-table-column prop="remark" :show-overflow-tooltip="true" label="备注" />
+            </el-table>
+        </div>
     </div>
-    <div class="target-table-container">
-      <el-table
-        ref="targetTableRef"
-        :data="targetTableColumn"
-        row-key="colName"
-      >
-        <el-table-column
-          prop="colName"
-          :show-overflow-tooltip="true"
-          label="字段名"
-        />
-        <el-table-column
-          prop="colType"
-          :show-overflow-tooltip="true"
-          label="类型"
-        />
-        <el-table-column
-          prop="remark"
-          :show-overflow-tooltip="true"
-          label="备注"
-        />
-      </el-table>
-    </div>
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -153,11 +105,11 @@ function setSourceTableColumn(tableData: Column[]) {
     // setContainer()
     nextTick(() => {
         const leftElList = document.querySelectorAll('.leftRowOutput') // 左侧行元素集合
-        instance.batch(function() {
+        instance.batch(function () {
             leftElList.forEach((tr) => {
                 instance.makeSource(tr, {
                     allowLoopback: false,
-                    anchor: [ 'Right' ], // 设置端点位置
+                    anchor: ['Right'], // 设置端点位置
                     maxConnections: -1
                 })
             })
@@ -170,10 +122,10 @@ function setTargetTableColumn(tableData: Column[]) {
     // setContainer()
     nextTick(() => {
         const rightElList = document.querySelectorAll('.rightRowOutput')
-        instance.batch(function() {
+        instance.batch(function () {
             rightElList.forEach((tr) => {
                 instance.makeTarget(tr, {
-                    anchor: [ 'Left' ],
+                    anchor: ['Left'],
                     maxConnections: 1
                 })
             })
@@ -190,10 +142,10 @@ function updateTargetTableColumn(tableData: Column[]) {
     // setContainer()
     nextTick(() => {
         const rightElList = document.querySelectorAll('.rightRowOutput')
-        instance.batch(function() {
+        instance.batch(function () {
             rightElList.forEach((tr) => {
                 instance.makeTarget(tr, {
-                    anchor: [ 'Left' ],
+                    anchor: ['Left'],
                     maxConnections: 1
                 })
             })
@@ -268,19 +220,19 @@ function setContainer() {
     const leftElList = document.querySelectorAll('.leftRowOutput') // 左侧行元素集合
     const rightElList = document.querySelectorAll('.rightRowOutput') // 右侧行元素集合
     // 将dom元素设置为连线的起点或者终点 设置了起点的元素才能开始连线 设置为终点的元素才能为连线终点
-    instance.batch(function() {
-        ;[ leftElList, rightElList ].forEach((trList, index) => {
+    instance.batch(function () {
+        ;[leftElList, rightElList].forEach((trList, index) => {
             trList.forEach((tr) => {
                 if (index === 0) {
                     instance.makeSource(tr, {
                         allowLoopback: false,
-                        anchor: [ 'Right' ], // 设置端点位置
+                        anchor: ['Right'], // 设置端点位置
                         maxConnections: -1
                     })
                 } else {
                     // 判断是否有子项,若没有则设置为终点
                     instance.makeTarget(tr, {
-                        anchor: [ 'Left' ],
+                        anchor: ['Left'],
                         maxConnections: 1
                     })
                 }
@@ -293,7 +245,7 @@ const interceptId = (className: string) => {
     return className.slice(className.indexOf('-') + 1)
 }
 const initJsPlumb = () => {
-    jsPlumb.ready(function() {
+    jsPlumb.ready(function () {
         // 初始化jsPlumb 创建jsPlumb实例
         tableLinkInit()
         // 设置可以为连线起点和连线终点的元素
@@ -335,7 +287,7 @@ function getLinkData() {
 function clickSelectLinkConnect(type: string) {
     connectNodeList.value = []
     instance.deleteEveryConnection()
-    if ([ 'SameLine', 'SameName' ].includes(type)) {
+    if (['SameLine', 'SameName'].includes(type)) {
         sourceTableColumn.value.forEach((column: any, index: number) => {
             if (type === 'SameLine' && targetTableColumn.value[index]) {
                 connectNodeList.value.push({

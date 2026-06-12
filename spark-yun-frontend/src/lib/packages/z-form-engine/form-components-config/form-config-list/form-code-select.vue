@@ -1,65 +1,38 @@
 <template>
-  <el-form-item
-    ref="elFormItemRef"
-    class="form-code-select"
-    label="字段绑定"
-    prop="formValueCode"
-    :rules="formConfig.codeType === 'custom' ? rules : rulesSelect"
-  >
-    <div class="form-code-select__type">
-      <el-radio-group
-        v-model="formConfig.codeType"
-        class="ml-4"
-        @change="codeTypeChange"
-      >
-        <el-radio
-          label="table"
-          size="small"
-        >
-          表字段
-        </el-radio>
-        <el-radio
-          label="custom"
-          size="small"
-        >
-          字段编码
-        </el-radio>
-      </el-radio-group>
-    </div>
-    <template v-if="formConfig.codeType === 'custom'">
-      <el-input
-        v-model="formData"
-        :clearable="true"
-        maxlength="30"
-        placeholder="请输入"
-      />
-    </template>
-    <template v-else>
-      <el-select
-        v-model="formData"
-        clearable
-        filterable
-        placeholder="请选择"
-        @visible-change="visibleChange"
-        @change="changeEvent"
-      >
-        <el-option
-          v-for="item in tableCodeList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-      <div
-        v-if="loading"
-        class="select-loading"
-      >
-        <el-icon class="is-loading">
-          <Loading />
-        </el-icon>
-      </div>
-    </template>
-  </el-form-item>
+    <el-form-item
+        ref="elFormItemRef"
+        class="form-code-select"
+        label="字段绑定"
+        prop="formValueCode"
+        :rules="formConfig.codeType === 'custom' ? rules : rulesSelect"
+    >
+        <div class="form-code-select__type">
+            <el-radio-group v-model="formConfig.codeType" class="ml-4" @change="codeTypeChange">
+                <el-radio label="table" size="small">表字段</el-radio>
+                <el-radio label="custom" size="small">字段编码</el-radio>
+            </el-radio-group>
+        </div>
+        <template v-if="formConfig.codeType === 'custom'">
+            <el-input v-model="formData" :clearable="true" maxlength="30" placeholder="请输入" />
+        </template>
+        <template v-else>
+            <el-select
+                v-model="formData"
+                clearable
+                filterable
+                placeholder="请选择"
+                @visible-change="visibleChange"
+                @change="changeEvent"
+            >
+                <el-option v-for="item in tableCodeList" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+            <div v-if="loading" class="select-loading">
+                <el-icon class="is-loading">
+                    <Loading />
+                </el-icon>
+            </div>
+        </template>
+    </el-form-item>
 </template>
 
 <script lang="ts" setup>
@@ -72,8 +45,8 @@ interface Option {
     maxlength?: number
 }
 
-const props = defineProps([ 'renderSence', 'modelValue', 'formConfig', 'getTableCodesMethod' ])
-const emit = defineEmits([ 'update:modelValue', 'formConfigChange' ])
+const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'getTableCodesMethod'])
+const emit = defineEmits(['update:modelValue', 'formConfigChange'])
 const formData = computed({
     get() {
         return props.modelValue
@@ -86,14 +59,14 @@ const rules = ref([
     {
         required: true,
         message: '请输入字段编码',
-        trigger: [ 'blur', 'change' ]
+        trigger: ['blur', 'change']
     }
 ])
 const rulesSelect = ref([
     {
         required: true,
         message: '请选择表字段',
-        trigger: [ 'blur', 'change' ]
+        trigger: ['blur', 'change']
     }
 ])
 const tableCodeList = ref<any[]>([])

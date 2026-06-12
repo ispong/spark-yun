@@ -123,7 +123,7 @@ export const isElement = (val: unknown): val is Element => {
 
 // 是否为图片节点
 export function isImageDom(o: Element) {
-    return o && [ 'IMAGE', 'IMG' ].includes(o.tagName)
+    return o && ['IMAGE', 'IMG'].includes(o.tagName)
 }
 
 // 是否为完整的url
@@ -163,9 +163,7 @@ export function getUrlParam(url: string, key?: string): string | null {
     // return !key ? obj : obj[key];
 }
 
-export function deepMerge<T = any>(src: any = {
-}, target: any = {
-}): T {
+export function deepMerge<T = any>(src: any = {}, target: any = {}): T {
     let key: string
     for (key in target) {
         src[key] = isObject(src[key]) ? deepMerge(src[key], target[key]) : target[key]

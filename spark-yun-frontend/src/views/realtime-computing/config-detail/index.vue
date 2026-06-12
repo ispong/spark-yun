@@ -1,60 +1,45 @@
 <template>
-  <BlockDrawer :drawer-config="drawerConfig">
-    <el-scrollbar>
-      <div class="work-flow-config realtime-flow-config">
-        <!-- 资源配置 -->
-        <div class="config-item">
-          <div class="item-title">
-            资源配置
-          </div>
-          <el-form
-            ref="clusterConfigForm"
-            label-position="left"
-            label-width="120px"
-            :model="clusterConfig"
-            :rules="clusterConfigRules"
-          >
-            <!-- <el-form-item label="模式" v-if="!['BASH', 'PYTHON'].includes(workItemConfig.workType)">
+    <BlockDrawer :drawer-config="drawerConfig">
+        <el-scrollbar>
+            <div class="work-flow-config realtime-flow-config">
+                <!-- 资源配置 -->
+                <div class="config-item">
+                    <div class="item-title">资源配置</div>
+                    <el-form
+                        ref="clusterConfigForm"
+                        label-position="left"
+                        label-width="120px"
+                        :model="clusterConfig"
+                        :rules="clusterConfigRules"
+                    >
+                        <!-- <el-form-item label="模式" v-if="!['BASH', 'PYTHON'].includes(workItemConfig.workType)">
                 <el-radio-group v-model="clusterConfig.setMode" size="small">
                   <el-radio-button label="SIMPLE">简易</el-radio-button>
                   <el-radio-button label="ADVANCE">高级定义</el-radio-button>
                 </el-radio-group>
               </el-form-item> -->
-            <el-form-item
-              label="计算集群"
-              prop="clusterId"
-            >
-              <el-select
-                v-model="clusterConfig.clusterId"
-                placeholder="请选择"
-                @change="clusterIdChangeEvent"
-              >
-                <el-option
-                  v-for="item in clusterList"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item
-              label="sparkConfig"
-              :class="{ 'show-screen__full': sparkJsonFullStatus }"
-            >
-              <el-icon
-                class="modal-full-screen"
-                @click="fullScreenEvent('sparkJsonFullStatus')"
-              >
-                <FullScreen v-if="!sparkJsonFullStatus" />
-                <Close v-else />
-              </el-icon>
-              <code-mirror
-                v-model="clusterConfig.sparkConfigJson"
-                basic
-                :lang="lang"
-              />
-            </el-form-item>
-            <!-- <el-form-item label="sparkConfig" v-if="clusterConfig.setMode === 'ADVANCE'">
+                        <el-form-item label="计算集群" prop="clusterId">
+                            <el-select
+                                v-model="clusterConfig.clusterId"
+                                placeholder="请选择"
+                                @change="clusterIdChangeEvent"
+                            >
+                                <el-option
+                                    v-for="item in clusterList"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value"
+                                />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="sparkConfig" :class="{ 'show-screen__full': sparkJsonFullStatus }">
+                            <el-icon class="modal-full-screen" @click="fullScreenEvent('sparkJsonFullStatus')">
+                                <FullScreen v-if="!sparkJsonFullStatus" />
+                                <Close v-else />
+                            </el-icon>
+                            <code-mirror v-model="clusterConfig.sparkConfigJson" basic :lang="lang" />
+                        </el-form-item>
+                        <!-- <el-form-item label="sparkConfig" v-if="clusterConfig.setMode === 'ADVANCE'">
                 <code-mirror v-model="clusterConfig.sparkConfigJson" basic :lang="lang"/>
               </el-form-item>
               <el-form-item label="资源等级" v-else>
@@ -67,69 +52,57 @@
                   />
                 </el-select>
               </el-form-item> -->
-          </el-form>
-        </div>
-        <!-- 函数配置 -->
-        <div class="config-item">
-          <div class="item-title">
-            函数配置
-          </div>
-          <el-form
-            label-position="left"
-            label-width="120px"
-            :model="fileConfig"
-          >
-            <el-form-item label="函数">
-              <el-select
-                v-model="fileConfig.funcList"
-                collapse-tags
-                multiple
-                clearable
-                filterable
-                placeholder="请选择"
-              >
-                <el-option
-                  v-for="item in fileIdList"
-                  :key="item.id"
-                  :label="item.funcName"
-                  :value="item.id"
-                />
-              </el-select>
-            </el-form-item>
-          </el-form>
-        </div>
-        <!-- 依赖配置 -->
-        <div class="config-item">
-          <div class="item-title">
-            依赖配置
-          </div>
-          <el-form
-            label-position="left"
-            label-width="120px"
-            :model="fileConfig"
-          >
-            <el-form-item label="依赖">
-              <el-select
-                v-model="fileConfig.libList"
-                collapse-tags
-                multiple
-                clearable
-                filterable
-                placeholder="请选择"
-              >
-                <el-option
-                  v-for="item in libIdList"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </el-form-item>
-          </el-form>
-        </div>
-      </div>
-    </el-scrollbar>
-  </BlockDrawer>
+                    </el-form>
+                </div>
+                <!-- 函数配置 -->
+                <div class="config-item">
+                    <div class="item-title">函数配置</div>
+                    <el-form label-position="left" label-width="120px" :model="fileConfig">
+                        <el-form-item label="函数">
+                            <el-select
+                                v-model="fileConfig.funcList"
+                                collapse-tags
+                                multiple
+                                clearable
+                                filterable
+                                placeholder="请选择"
+                            >
+                                <el-option
+                                    v-for="item in fileIdList"
+                                    :key="item.id"
+                                    :label="item.funcName"
+                                    :value="item.id"
+                                />
+                            </el-select>
+                        </el-form-item>
+                    </el-form>
+                </div>
+                <!-- 依赖配置 -->
+                <div class="config-item">
+                    <div class="item-title">依赖配置</div>
+                    <el-form label-position="left" label-width="120px" :model="fileConfig">
+                        <el-form-item label="依赖">
+                            <el-select
+                                v-model="fileConfig.libList"
+                                collapse-tags
+                                multiple
+                                clearable
+                                filterable
+                                placeholder="请选择"
+                            >
+                                <el-option
+                                    v-for="item in libIdList"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value"
+                                />
+                            </el-select>
+                        </el-form-item>
+                    </el-form>
+                </div>
+            </div>
+        </el-scrollbar>
+    </BlockDrawer>
 </template>
 
 <script lang="ts" setup>
@@ -176,7 +149,7 @@ const drawerConfig = reactive({
     closeOnClickModal: false
 })
 // 集群设置
-let clusterConfig = reactive({
+const clusterConfig = reactive({
     setMode: '', // 模式
     resourceLevel: '', // 资源等级
     clusterId: '', // 计算集群
@@ -287,7 +260,7 @@ function getConfigDetailData() {
 
 function okEvent() {
     let status = true
-    const formArr = [ clusterConfigForm ]
+    const formArr = [clusterConfigForm]
     formArr.forEach((f) => {
         f.value?.validate((valid: boolean) => {
             if (!valid) {
@@ -399,14 +372,30 @@ defineExpose({
 
                         .cm-gutters {
                             font-size: 12px;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         .cm-content {
                             font-size: 12px;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
-                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
                         }
 
                         .cm-tooltip-autocomplete {
@@ -418,8 +407,16 @@ defineExpose({
                                     align-items: center;
                                     font-size: 12px;
                                     background-color: #ffffff;
-                                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-                                        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                                    font-family:
+                                        v-sans,
+                                        system-ui,
+                                        -apple-system,
+                                        BlinkMacSystemFont,
+                                        'Segoe UI',
+                                        sans-serif,
+                                        'Apple Color Emoji',
+                                        'Segoe UI Emoji',
+                                        'Segoe UI Symbol';
                                 }
 
                                 li[aria-selected] {

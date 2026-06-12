@@ -1,45 +1,26 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="report-views">
-    <div
-      v-if="renderSence === 'edit'"
-      class="report-button-container"
-    >
-      <el-button
-        type="primary"
-        :loading="saveLoading"
-        @click="saveData"
-      >
-        保存
-      </el-button>
-      <el-button
-        type="primary"
-        :loading="saveLoading"
-        @click="publishEvent"
-      >
-        发布
-      </el-button>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="report-views">
+        <div v-if="renderSence === 'edit'" class="report-button-container">
+            <el-button type="primary" :loading="saveLoading" @click="saveData">保存</el-button>
+            <el-button type="primary" :loading="saveLoading" @click="publishEvent">发布</el-button>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData">
+            <ZChartsEngine
+                ref="ZChartsEngineRef"
+                :charts-list="chartsList"
+                :render-sence="renderSence"
+                :component-list="componentList"
+                :get-preview-option="getPreviewOption"
+                :get-real-data-option="getRealDataOption"
+                :show-report-components-btn="true"
+                @get-chart-list-event="getChartListEvent"
+                @preview-chat-event="previewChatEvent"
+                @go-report-components-event="goReportComponents"
+            />
+        </LoadingPage>
+        <PreviewReport ref="previewReportRef" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData"
-    >
-      <ZChartsEngine
-        ref="ZChartsEngineRef"
-        :charts-list="chartsList"
-        :render-sence="renderSence"
-        :component-list="componentList"
-        :get-preview-option="getPreviewOption"
-        :get-real-data-option="getRealDataOption"
-        :show-report-components-btn="true"
-        @get-chart-list-event="getChartListEvent"
-        @preview-chat-event="previewChatEvent"
-        @go-report-components-event="goReportComponents"
-      />
-    </LoadingPage>
-    <PreviewReport ref="previewReportRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -51,12 +32,14 @@ import ZChartsEngine from '@/lib/packages/z-charts-engine/index.vue'
 import { useAuthStore } from '@/store/useAuth'
 import { ElMessage } from 'element-plus'
 import PreviewReport from '../preview-report/index.vue'
-import { QueryReportComponent,
+import {
+    QueryReportComponent,
     GetReportComponentData,
     GetReportViewDetail,
     RefreshReportViewItemData,
     SaveReportViewDetail,
-    PublishReportViewData } from '@/services/report-echarts.service'
+    PublishReportViewData
+} from '@/services/report-echarts.service'
 import { useRoute, useRouter } from 'vue-router'
 import { ChartTypeList } from '../../report-components/report-item/report-item.config'
 
@@ -64,7 +47,7 @@ const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
-const guid = function() {
+const guid = function () {
     function S4() {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
@@ -170,8 +153,7 @@ function getChartComponents(e: string) {
                         w: maxWidth,
                         h: 16,
                         i: guid(),
-                        option: {
-}
+                        option: {}
                     }
                 })
         })

@@ -7,20 +7,13 @@
  * @FilePath: /spark-yun/spark-yun-website/src/components/empty-page/index.vue
 -->
 <template>
-  <div class="empty-page">
-    <img
-      class="empty-icon"
-      src="./empty-page.png"
-      alt="暂无数据"
-    >
-    <template v-if="$slots.default">
-      <slot />
-    </template>
-    <span
-      v-else
-      class="empty-text"
-    >{{ label }}</span>
-  </div>
+    <div class="empty-page">
+        <img class="empty-icon" src="./empty-page.png" alt="暂无数据" />
+        <template v-if="$slots.default">
+            <slot />
+        </template>
+        <span v-else class="empty-text">{{ label }}</span>
+    </div>
 </template>
 
 <script lang="ts" setup>

@@ -1,33 +1,16 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="成员"
-        prop="userId"
-      >
-        <el-select
-          v-model="formData.userId"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in userList"
-            :key="item.id"
-            :label="item.username"
-            :value="item.id"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="普通管理员">
-        <el-switch v-model="formData.isTenantAdmin" />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="成员" prop="userId">
+                <el-select v-model="formData.userId" placeholder="请选择">
+                    <el-option v-for="item in userList" :key="item.id" :label="item.username" :value="item.id" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="普通管理员">
+                <el-switch v-model="formData.isTenantAdmin" />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -68,7 +51,7 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请选择成员',
-            trigger: [ 'change' ]
+            trigger: ['change']
         }
     ]
 })

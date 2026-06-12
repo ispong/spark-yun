@@ -1,89 +1,78 @@
 <template>
-  <vxe-table
-    ref="vxeTableRef"
-    class="block-table"
-    :class="{ 'block-table__empty': !tableConfig.tableData?.length }"
-    :row-config="{ isHover: true, drag: true }"
-    :data="tableConfig.tableData"
-    :seq-config="{ seqMethod }"
-    :header-cell-config="{ height: 44 }"
-    :cell-config="{ height: 40 }"
-    :loading="tableConfig.loading"
-    :max-height="'100%'"
-    :row-drag-config="rowDragConfig"
-    @row-dragend="rowDragendEvent"
-  >
-    <vxe-column
-      v-if="tableConfig.seqType"
-      :type="tableConfig.seqType"
-      align="center"
-      width="44"
-      fixed="left"
+    <vxe-table
+        ref="vxeTableRef"
+        class="block-table"
+        :class="{ 'block-table__empty': !tableConfig.tableData?.length }"
+        :row-config="{ isHover: true, drag: true }"
+        :data="tableConfig.tableData"
+        :seq-config="{ seqMethod }"
+        :header-cell-config="{ height: 44 }"
+        :cell-config="{ height: 40 }"
+        :loading="tableConfig.loading"
+        :max-height="'100%'"
+        :row-drag-config="rowDragConfig"
+        @row-dragend="rowDragendEvent"
     >
-      <template #header>
-        #
-      </template>
-    </vxe-column>
-    <template v-for="(colConfig, colIndex) in tableConfig.colConfigs">
-      <vxe-column
-        v-if="colConfig.customSlot"
-        :key="colConfig.prop"
-        :width="colConfig.width"
-        :field="colConfig.prop"
-        :fixed="colConfig.fixed"
-        :resizable="colIndex < tableConfig.colConfigs.length - 1"
-        :show-header-overflow="colConfig.showHeaderOverflow || false"
-        :show-overflow="colConfig.showOverflowTooltip || true"
-        :drag-sort="colConfig.dragSort"
-        v-bind="colConfig"
-      >
-        <template
-          v-if="colConfig.customHeaderSlot"
-          #header
-        >
-          <slot :name="colConfig.customHeaderSlot" />
+        <vxe-column v-if="tableConfig.seqType" :type="tableConfig.seqType" align="center" width="44" fixed="left">
+            <template #header>#</template>
+        </vxe-column>
+        <template v-for="(colConfig, colIndex) in tableConfig.colConfigs">
+            <vxe-column
+                v-if="colConfig.customSlot"
+                :key="colConfig.prop"
+                :width="colConfig.width"
+                :field="colConfig.prop"
+                :fixed="colConfig.fixed"
+                :resizable="colIndex < tableConfig.colConfigs.length - 1"
+                :show-header-overflow="colConfig.showHeaderOverflow || false"
+                :show-overflow="colConfig.showOverflowTooltip || true"
+                :drag-sort="colConfig.dragSort"
+                v-bind="colConfig"
+            >
+                <template v-if="colConfig.customHeaderSlot" #header>
+                    <slot :name="colConfig.customHeaderSlot" />
+                </template>
+                <template #default="{ row, rowIndex, column }">
+                    <slot
+                        :name="colConfig.customSlot"
+                        :row="row"
+                        :index="rowIndex"
+                        :column="columnSlotAdapter(column, colConfig)"
+                        :col-index="colIndex"
+                    />
+                </template>
+            </vxe-column>
+            <vxe-column
+                v-else
+                :key="colConfig.prop + 's'"
+                :show-header-overflow="colConfig.showHeaderOverflow || false"
+                :width="colConfig.width"
+                :field="colConfig.prop"
+                :resizable="colIndex < tableConfig.colConfigs.length - 1"
+                :show-overflow="colConfig.showOverflowTooltip || true"
+                :drag-sort="colConfig.dragSort"
+                v-bind="colConfig"
+            />
         </template>
-        <template #default="{ row, rowIndex, column }">
-          <slot
-            :name="colConfig.customSlot"
-            :row="row"
-            :index="rowIndex"
-            :column="columnSlotAdapter(column, colConfig)"
-            :col-index="colIndex"
-          />
+        <template #empty>
+            <!-- 空页面 -->
+            <EmptyPage />
         </template>
-      </vxe-column>
-      <vxe-column
-        v-else
-        :key="colConfig.prop + 's'"
-        :show-header-overflow="colConfig.showHeaderOverflow || false"
-        :width="colConfig.width"
-        :field="colConfig.prop"
-        :resizable="colIndex < tableConfig.colConfigs.length - 1"
-        :show-overflow="colConfig.showOverflowTooltip || true"
-        :drag-sort="colConfig.dragSort"
-        v-bind="colConfig"
-      />
-    </template>
-    <template #empty>
-      <!-- 空页面 -->
-      <EmptyPage />
-    </template>
-  </vxe-table>
-  <el-pagination
-    v-if="tableConfig.pagination"
-    class="pagination"
-    popper-class="pagination-popper"
-    background
-    layout="prev, pager, next, sizes, total, jumper"
-    :hide-on-single-page="false"
-    :total="tableConfig.pagination.total"
-    :page-size="tableConfig.pagination.pageSize"
-    :current-page="tableConfig.pagination.currentPage"
-    :page-sizes="[10, 20]"
-    @size-change="handleSizeChange"
-    @current-change="handleCurrentChange"
-  />
+    </vxe-table>
+    <el-pagination
+        v-if="tableConfig.pagination"
+        class="pagination"
+        popper-class="pagination-popper"
+        background
+        layout="prev, pager, next, sizes, total, jumper"
+        :hide-on-single-page="false"
+        :total="tableConfig.pagination.total"
+        :page-size="tableConfig.pagination.pageSize"
+        :current-page="tableConfig.pagination.currentPage"
+        :page-sizes="[10, 20]"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+    />
 </template>
 
 <script lang="ts" setup>
@@ -120,7 +109,7 @@ const props = defineProps<{
     tableConfig: TableConfig
 }>()
 
-const emit = defineEmits([ 'size-change', 'current-change', 'rowDragendEvent' ])
+const emit = defineEmits(['size-change', 'current-change', 'rowDragendEvent'])
 
 const vxeTableRef = ref<any>(null)
 
@@ -136,9 +125,7 @@ const handleCurrentChange = (e: number) => {
     emit('current-change', e)
 }
 
-function seqMethod({
- rowIndex 
-}): number {
+function seqMethod({ rowIndex }): number {
     if (props.tableConfig && props.tableConfig.pagination) {
         return (props.tableConfig?.pagination.currentPage - 1) * props.tableConfig.pagination.pageSize + rowIndex + 1
     } else {

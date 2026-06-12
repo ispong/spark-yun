@@ -1,24 +1,12 @@
 <template>
-  <div class="system-page">
-    <el-result
-      icon="warning"
-      title="暂无可访问租户"
-      sub-title="当前账号暂无可访问租户，请联系管理员。"
-    >
-      <template #extra>
-        <el-button
-          :loading="loading"
-          type="primary"
-          @click="recoverTenant"
-        >
-          重新检测
-        </el-button>
-        <el-button @click="logout">
-          退出登录
-        </el-button>
-      </template>
-    </el-result>
-  </div>
+    <div class="system-page">
+        <el-result icon="warning" title="暂无可访问租户" sub-title="当前账号暂无可访问租户，请联系管理员。">
+            <template #extra>
+                <el-button :loading="loading" type="primary" @click="recoverTenant">重新检测</el-button>
+                <el-button @click="logout">退出登录</el-button>
+            </template>
+        </el-result>
+    </div>
 </template>
 
 <script lang="ts" setup>

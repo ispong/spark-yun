@@ -1,5 +1,5 @@
 <template>
-  <BlockTable :table-config="tableConfig" />
+    <BlockTable :table-config="tableConfig" />
 </template>
 
 <script lang="ts" setup>
@@ -37,8 +37,7 @@ function initData() {
             nextTick(() => {
                 tableConfig.tableData = []
                 res.data.rows.forEach((rowData) => {
-                    const columnData = {
-}
+                    const columnData = {}
                     col.forEach((cl, index) => {
                         columnData[cl] = rowData[index]
                     })

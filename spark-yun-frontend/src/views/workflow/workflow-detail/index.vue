@@ -7,106 +7,74 @@
  * @FilePath: /spark-yun/spark-yun-website/src/views/workflow/workflow-detail/index.vue
 -->
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        添加作业
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入名称/类型/备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">添加作业</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入名称/类型/备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #nameSlot="scopeSlot">
+                        <span class="name-click" @click="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #typeSlot="scopeSlot">
+                        {{ getTypeData(scopeSlot.row.workType) }}
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <div class="btn-group">
+                            <el-tag v-if="scopeSlot.row.status === 'PUBLISHED'" class="ml-2" type="success">
+                                已发布
+                            </el-tag>
+                            <el-tag v-if="scopeSlot.row.status === 'STOP'" class="ml-2" type="danger">下线</el-tag>
+                            <el-tag v-if="scopeSlot.row.status === 'PAUSED'" class="ml-2" type="warning">已暂停</el-tag>
+                            <el-tag v-if="scopeSlot.row.status === 'UN_PUBLISHED'">未发布</el-tag>
+                        </div>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span @click="editData(scopeSlot.row)">编辑</span>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status !== 'PUBLISHED'"
+                                            @click="publishData(scopeSlot.row)"
+                                        >
+                                            发布
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status === 'PUBLISHED'"
+                                            @click="stopData(scopeSlot.row)"
+                                        >
+                                            下线
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #nameSlot="scopeSlot">
-            <span
-              class="name-click"
-              @click="showDetail(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #typeSlot="scopeSlot">
-            {{ getTypeData(scopeSlot.row.workType) }}
-          </template>
-          <template #statusTag="scopeSlot">
-            <div class="btn-group">
-              <el-tag
-                v-if="scopeSlot.row.status === 'PUBLISHED'"
-                class="ml-2"
-                type="success"
-              >
-                已发布
-              </el-tag>
-              <el-tag
-                v-if="scopeSlot.row.status === 'STOP'"
-                class="ml-2"
-                type="danger"
-              >
-                下线
-              </el-tag>
-              <el-tag
-                v-if="scopeSlot.row.status === 'PAUSED'"
-                class="ml-2"
-                type="warning"
-              >
-                已暂停
-              </el-tag>
-              <el-tag v-if="scopeSlot.row.status === 'UN_PUBLISHED'">
-                未发布
-              </el-tag>
-            </div>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span @click="editData(scopeSlot.row)">编辑</span>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item
-                      v-if="scopeSlot.row.status !== 'PUBLISHED'"
-                      @click="publishData(scopeSlot.row)"
-                    >
-                      发布
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      v-if="scopeSlot.row.status === 'PUBLISHED'"
-                      @click="stopData(scopeSlot.row)"
-                    >
-                      下线
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -117,12 +85,14 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { DetailTableConfig, FormData } from '../workflow.config'
-import { GetWorkflowDetailList,
+import {
+    GetWorkflowDetailList,
     AddWorkflowDetailList,
     UpdateWorkflowDetailList,
     DeleteWorkflowDetailList,
     PublishWorkData,
-    DeleteWorkData } from '@/services/workflow.service'
+    DeleteWorkData
+} from '@/services/workflow.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 

@@ -1,119 +1,83 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addGroup"
-      >
-        新建集群
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入集群名称/备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addGroup">新建集群</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入集群名称/备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #nameSlot="scopeSlot">
+                        <span class="name-click" @click="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #memorySlot="scopeSlot">
+                        <div class="resource-progress">
+                            <el-progress
+                                :percentage="getPercentFromRatio(scopeSlot.row.memory)"
+                                :color="getPercentColor()"
+                                :stroke-width="12"
+                                :show-text="false"
+                            />
+                            <span class="resource-progress__value">{{ getDisplayValue(scopeSlot.row.memory) }}</span>
+                        </div>
+                    </template>
+                    <template #storageSlot="scopeSlot">
+                        <div class="resource-progress">
+                            <el-progress
+                                :percentage="getPercentFromRatio(scopeSlot.row.storage)"
+                                :color="getPercentColor()"
+                                :stroke-width="12"
+                                :show-text="false"
+                            />
+                            <span class="resource-progress__value">{{ getDisplayValue(scopeSlot.row.storage) }}</span>
+                        </div>
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #defaultTag="scopeSlot">
+                        <div class="btn-group">
+                            <el-tag v-if="scopeSlot.row.defaultCluster" class="ml-2" type="success">是</el-tag>
+                            <el-tag v-if="!scopeSlot.row.defaultCluster" class="ml-2" type="danger">否</el-tag>
+                        </div>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span v-if="!scopeSlot.row.checkLoading" @click="checkData(scopeSlot.row)">检测</span>
+                            <el-icon v-else class="is-loading">
+                                <Loading />
+                            </el-icon>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item @click="setDefaultNode(scopeSlot.row)">默认</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
     </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #nameSlot="scopeSlot">
-            <span
-              class="name-click"
-              @click="showDetail(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #memorySlot="scopeSlot">
-            <div class="resource-progress">
-              <el-progress
-                :percentage="getPercentFromRatio(scopeSlot.row.memory)"
-                :color="getPercentColor()"
-                :stroke-width="12"
-                :show-text="false"
-              />
-              <span class="resource-progress__value">{{ getDisplayValue(scopeSlot.row.memory) }}</span>
-            </div>
-          </template>
-          <template #storageSlot="scopeSlot">
-            <div class="resource-progress">
-              <el-progress
-                :percentage="getPercentFromRatio(scopeSlot.row.storage)"
-                :color="getPercentColor()"
-                :stroke-width="12"
-                :show-text="false"
-              />
-              <span class="resource-progress__value">{{ getDisplayValue(scopeSlot.row.storage) }}</span>
-            </div>
-          </template>
-          <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status" />
-          </template>
-          <template #defaultTag="scopeSlot">
-            <div class="btn-group">
-              <el-tag
-                v-if="scopeSlot.row.defaultCluster"
-                class="ml-2"
-                type="success"
-              >
-                是
-              </el-tag>
-              <el-tag
-                v-if="!scopeSlot.row.defaultCluster"
-                class="ml-2"
-                type="danger"
-              >
-                否
-              </el-tag>
-            </div>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span
-                v-if="!scopeSlot.row.checkLoading"
-                @click="checkData(scopeSlot.row)"
-              >检测</span>
-              <el-icon
-                v-else
-                class="is-loading"
-              >
-                <Loading />
-              </el-icon>
-              <el-dropdown trigger="click">
-                <span class="click-show-more">更多</span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="editData(scopeSlot.row)">
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="setDefaultNode(scopeSlot.row)">
-                      默认
-                    </el-dropdown-item>
-                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -124,12 +88,14 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig, FormData } from './computer-group.config'
-import { GetComputerGroupList,
+import {
+    GetComputerGroupList,
     AddComputerGroupData,
     UpdateComputerGroupData,
     CheckComputerGroupData,
     DeleteComputerGroupData,
-    SetDefaultComputerGroup } from '@/services/computer-group.service'
+    SetDefaultComputerGroup
+} from '@/services/computer-group.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { Loading } from '@element-plus/icons-vue'

@@ -1,79 +1,59 @@
 <template>
-  <div class="monitor-info">
-    <div class="monitor-info__header">
-      <el-dropdown
-        class="monitor-info__dropdown"
-        trigger="click"
-        @command="handleColonyChange"
-      >
-        <span class="monitor-info__active">
-          {{ currentColony?.name }}
-          <el-icon class="el-icon--right">
-            <arrow-down />
-          </el-icon>
-        </span>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <template
-              v-for="colony in colonyList"
-              :key="colony.id"
-            >
-              <el-dropdown-item :command="colony.id">
-                {{ colony.name }}
-              </el-dropdown-item>
+    <div class="monitor-info">
+        <div class="monitor-info__header">
+            <el-dropdown class="monitor-info__dropdown" trigger="click" @command="handleColonyChange">
+                <span class="monitor-info__active">
+                    {{ currentColony?.name }}
+                    <el-icon class="el-icon--right">
+                        <arrow-down />
+                    </el-icon>
+                </span>
+                <template #dropdown>
+                    <el-dropdown-menu>
+                        <template v-for="colony in colonyList" :key="colony.id">
+                            <el-dropdown-item :command="colony.id">
+                                {{ colony.name }}
+                            </el-dropdown-item>
+                        </template>
+                    </el-dropdown-menu>
+                </template>
+            </el-dropdown>
+            <div class="monitor-info__ops">
+                <el-dropdown class="monitor-info__dropdown" trigger="click" @command="handleFrequencyChange">
+                    <span class="monitor-info__active">
+                        {{ currentFrequency?.name }}
+                        <el-icon class="el-icon--right">
+                            <arrow-down />
+                        </el-icon>
+                    </span>
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <template v-for="frequency in frequencyList" :key="frequency.value">
+                                <el-dropdown-item :command="frequency.value">
+                                    {{ frequency.name }}
+                                </el-dropdown-item>
+                            </template>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+                <el-icon class="sys-info__icon" @click="queryMonitorData">
+                    <RefreshRight />
+                </el-icon>
+                <!-- <el-icon class="sys-info__icon"><Setting /></el-icon> -->
+            </div>
+        </div>
+        <div class="monitor-info__body">
+            <template v-for="monitorData in monitorDataList" :key="monitorData.type">
+                <monitor-chart
+                    :monitor-data="monitorData"
+                    :date-time-list="dateTimeList"
+                    @show-detail-event="showDetailEvent(monitorData, dateTimeList)"
+                />
             </template>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-      <div class="monitor-info__ops">
-        <el-dropdown
-          class="monitor-info__dropdown"
-          trigger="click"
-          @command="handleFrequencyChange"
-        >
-          <span class="monitor-info__active">
-            {{ currentFrequency?.name }}
-            <el-icon class="el-icon--right">
-              <arrow-down />
-            </el-icon>
-          </span>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <template
-                v-for="frequency in frequencyList"
-                :key="frequency.value"
-              >
-                <el-dropdown-item :command="frequency.value">
-                  {{ frequency.name }}
-                </el-dropdown-item>
-              </template>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-icon
-          class="sys-info__icon"
-          @click="queryMonitorData"
-        >
-          <RefreshRight />
-        </el-icon>
-        <!-- <el-icon class="sys-info__icon"><Setting /></el-icon> -->
-      </div>
-    </div>
-    <div class="monitor-info__body">
-      <template
-        v-for="monitorData in monitorDataList"
-        :key="monitorData.type"
-      >
-        <monitor-chart
-          :monitor-data="monitorData"
-          :date-time-list="dateTimeList"
-          @show-detail-event="showDetailEvent(monitorData, dateTimeList)"
-        />
-      </template>
-    </div>
+        </div>
 
-    <PreviewReport ref="previewReportRef" />
-  </div>
+        <PreviewReport ref="previewReportRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -85,15 +65,9 @@ import { MonitorInfo } from './hooks/useMonitor'
 import MonitorChart from './monitor-chart.vue'
 import PreviewReport from './preview-report/index.vue'
 
-const {
- currentColony, colonyList, onColonyChange, queryColonyData 
-} = useColony()
-const {
- currentFrequency, frequencyList, onFrequencyChange 
-} = useFrequency()
-const {
- monitorDataList, dateTimeList, queryMonitorData 
-} = useMonitor(currentColony, currentFrequency)
+const { currentColony, colonyList, onColonyChange, queryColonyData } = useColony()
+const { currentFrequency, frequencyList, onFrequencyChange } = useFrequency()
+const { monitorDataList, dateTimeList, queryMonitorData } = useMonitor(currentColony, currentFrequency)
 
 const previewReportRef = ref<any>()
 
@@ -111,7 +85,7 @@ function showDetailEvent(monitorData: MonitorInfo, dateTimeList: string[]) {
     previewReportRef.value.showModal(monitorData, dateTimeList)
 }
 
-onMounted(async() => {
+onMounted(async () => {
     await queryColonyData()
     await queryMonitorData()
 })

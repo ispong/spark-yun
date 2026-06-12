@@ -1,26 +1,20 @@
 <template>
-  <div class="sys-info">
-    <div class="sys-info__header">
-      <span class="sys-info__title">系统监控</span>
-      <div class="sys-info__ops">
-        <el-icon
-          class="sys-info__icon"
-          @click="querySysInfoData"
-        >
-          <RefreshRight />
-        </el-icon>
-        <!-- <el-icon class="sys-info__icon"><Setting /></el-icon> -->
-      </div>
+    <div class="sys-info">
+        <div class="sys-info__header">
+            <span class="sys-info__title">系统监控</span>
+            <div class="sys-info__ops">
+                <el-icon class="sys-info__icon" @click="querySysInfoData">
+                    <RefreshRight />
+                </el-icon>
+                <!-- <el-icon class="sys-info__icon"><Setting /></el-icon> -->
+            </div>
+        </div>
+        <div class="sys-info__body">
+            <template v-for="sysInfo in sysInfoData" :key="sysInfo.type">
+                <sys-chart :chart-data="sysInfo" />
+            </template>
+        </div>
     </div>
-    <div class="sys-info__body">
-      <template
-        v-for="sysInfo in sysInfoData"
-        :key="sysInfo.type"
-      >
-        <sys-chart :chart-data="sysInfo" />
-      </template>
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -63,7 +57,7 @@ const sysInfoData = ref<Array<ChartInfo>>([
 function querySysInfoData() {
     querySystemBaseInfo().then((systemBaseInfo) => {
         sysInfoData.value = sysInfoData.value.map((info) => {
-            let baseInfo = systemBaseInfo.data[info.type]
+            const baseInfo = systemBaseInfo.data[info.type]
 
             if (baseInfo) {
                 info.mix = baseInfo.activeNum

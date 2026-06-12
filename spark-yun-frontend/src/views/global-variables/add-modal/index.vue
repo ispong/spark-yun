@@ -1,42 +1,23 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="变量名"
-        prop="keyName"
-      >
-        <el-input
-          v-model="formData.keyName"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="变量值"
-        prop="secretValue"
-      >
-        <el-input
-          v-model="formData.secretValue"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="变量名" prop="keyName">
+                <el-input v-model="formData.keyName" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="变量值" prop="secretValue">
+                <el-input v-model="formData.secretValue" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -74,14 +55,14 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入变量名',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     secretValue: [
         {
             required: true,
             message: '请输入变量值',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

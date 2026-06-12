@@ -18,8 +18,7 @@ interface AuthResponse {
 
 export const useAuthStore = defineStore('authStore', {
     state: (): AuthState => ({
-        userInfo: {
-},
+        userInfo: {},
         token: '',
         tenantId: '',
         role: '',

@@ -1,12 +1,9 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <div class="preview-report">
-      <div
-        id="currentChartId"
-        class="charts-container"
-      />
-    </div>
-  </BlockModal>
+    <BlockModal :model-config="modelConfig">
+        <div class="preview-report">
+            <div id="currentChartId" class="charts-container" />
+        </div>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>

@@ -1,23 +1,20 @@
 <template>
-  <el-form-item
-    label="颜色"
-    class="form-color-picker"
-  >
-    <el-color-picker
-      v-model="formData"
-      color-format="hex"
-      :popper-class="'form-color-picker__popper'"
-      :predefine="predefine"
-      :show-alpha="false"
-    />
-  </el-form-item>
+    <el-form-item label="颜色" class="form-color-picker">
+        <el-color-picker
+            v-model="formData"
+            color-format="hex"
+            :popper-class="'form-color-picker__popper'"
+            :predefine="predefine"
+            :show-alpha="false"
+        />
+    </el-form-item>
 </template>
 
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed, ref } from 'vue'
 
-const props = defineProps([ 'renderSence', 'modelValue', 'formConfig' ])
-const emit = defineEmits([ 'update:modelValue' ])
+const props = defineProps(['renderSence', 'modelValue', 'formConfig'])
+const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {
         return props.modelValue

@@ -1,60 +1,42 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="类型"
-        prop="type"
-      >
-        <el-select
-          v-model="formData.type"
-          placeholder="请选择"
-          :disabled="renderSence === 'edit'"
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="类型" prop="type">
+                <el-select v-model="formData.type" placeholder="请选择" :disabled="renderSence === 'edit'">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+        <el-upload
+            v-if="renderSence === 'new'"
+            class="license-upload"
+            action=""
+            :limit="100"
+            :multiple="true"
+            :drag="true"
+            :auto-upload="false"
+            :file-list="fileList"
+            :on-change="handleFileChange"
+            :on-remove="handleFileRemove"
         >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-    <el-upload
-      v-if="renderSence === 'new'"
-      class="license-upload"
-      action=""
-      :limit="100"
-      :multiple="true"
-      :drag="true"
-      :auto-upload="false"
-      :file-list="fileList"
-      :on-change="handleFileChange"
-      :on-remove="handleFileRemove"
-    >
-      <el-icon class="el-icon--upload">
-        <upload-filled />
-      </el-icon>
-      <div class="el-upload__text">
-        上传附件（支持多文件上传）
-        <em>点击上传</em>
-      </div>
-    </el-upload>
-  </BlockModal>
+            <el-icon class="el-icon--upload">
+                <upload-filled />
+            </el-icon>
+            <div class="el-upload__text">
+                上传附件（支持多文件上传）
+                <em>点击上传</em>
+            </div>
+        </el-upload>
+    </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -124,7 +106,7 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请选择类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })

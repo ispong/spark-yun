@@ -1,57 +1,45 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="zqy-seach-table">
-    <div class="zqy-table-top">
-      <el-button
-        type="primary"
-        @click="addData"
-      >
-        新建名单
-      </el-button>
-      <div class="zqy-seach">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入名称/IP地址/备注 回车进行搜索"
-          :maxlength="200"
-          clearable
-          @input="inputEvent"
-          @keyup.enter="initData(false)"
-        />
-      </div>
-    </div>
-    <LoadingPage
-      :visible="loading"
-      :network-error="networkError"
-      @loading-refresh="initData(false)"
-    >
-      <div class="zqy-table">
-        <BlockTable
-          :table-config="tableConfig"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-          <template #ruleName="scopeSlot">
-            <span
-              class="name-click"
-              @click="editData(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-          </template>
-          <template #ruleTypeTag="scopeSlot">
-            <el-tag :type="scopeSlot.row.ruleType === 'WHITELIST' ? 'success' : 'danger'">
-              {{ scopeSlot.row.ruleType === 'WHITELIST' ? '白名单' : '黑名单' }}
-            </el-tag>
-          </template>
-          <template #options="scopeSlot">
-            <div class="btn-group">
-              <span @click="editData(scopeSlot.row)">编辑</span>
-              <span @click="deleteData(scopeSlot.row)">删除</span>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建名单</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入名称/IP地址/备注 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
             </div>
-          </template>
-        </BlockTable>
-      </div>
-    </LoadingPage>
-    <AddModal ref="addModalRef" />
-  </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #ruleName="scopeSlot">
+                        <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #ruleTypeTag="scopeSlot">
+                        <el-tag :type="scopeSlot.row.ruleType === 'WHITELIST' ? 'success' : 'danger'">
+                            {{ scopeSlot.row.ruleType === 'WHITELIST' ? '白名单' : '黑名单' }}
+                        </el-tag>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <span @click="editData(scopeSlot.row)">编辑</span>
+                            <span @click="deleteData(scopeSlot.row)">删除</span>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -62,10 +50,12 @@ import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 
 import { BreadCrumbList, TableConfig } from './access-rule.config'
-import { QueryAccessRuleList,
+import {
+    QueryAccessRuleList,
     CreateAccessRule,
     UpdateAccessRule,
-    DeleteAccessRule } from '@/services/access-rule.service'
+    DeleteAccessRule
+} from '@/services/access-rule.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const breadCrumbList = reactive(BreadCrumbList)
@@ -91,8 +81,7 @@ function initData(tableLoading?: boolean) {
             networkError.value = false
         })
         .catch(() => {
-            tableConfig.tableData = [ {
-} ]
+            tableConfig.tableData = [{}]
             tableConfig.pagination.total = 0
             loading.value = false
             tableConfig.loading = false

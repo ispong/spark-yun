@@ -1,54 +1,33 @@
 <template>
-  <el-form-item
-    ref="elFormItemRef"
-    label="数据字典"
-    class="form-options"
-    prop="options"
-    :rules="rules"
-  >
-    <span class="add-btn">
-      <el-icon @click="addNewOption"><CirclePlus /></el-icon>
-    </span>
-    <div class="form-options__list">
-      <draggable
-        :list="formConfig.options"
-        :animation="150"
-        handle=".move"
-        item-key="label-value"
-      >
-        <template #item="{ element, index }">
-          <div class="form-options__item">
-            <div class="input-item">
-              <span class="item-label">键</span>
-              <el-input
-                v-model="element.label"
-                placeholder="请输入"
-              />
-            </div>
-            <div class="input-item">
-              <span class="item-label">值</span>
-              <el-input
-                v-model="element.value"
-                placeholder="请输入"
-              />
-            </div>
-            <div class="option-btn">
-              <el-icon
-                v-if="formConfig.options.length > 1"
-                class="remove"
-                @click="removeItem(index)"
-              >
-                <CircleClose />
-              </el-icon>
-              <el-icon class="move">
-                <Sort />
-              </el-icon>
-            </div>
-          </div>
-        </template>
-      </draggable>
-    </div>
-  </el-form-item>
+    <el-form-item ref="elFormItemRef" label="数据字典" class="form-options" prop="options" :rules="rules">
+        <span class="add-btn">
+            <el-icon @click="addNewOption"><CirclePlus /></el-icon>
+        </span>
+        <div class="form-options__list">
+            <draggable :list="formConfig.options" :animation="150" handle=".move" item-key="label-value">
+                <template #item="{ element, index }">
+                    <div class="form-options__item">
+                        <div class="input-item">
+                            <span class="item-label">键</span>
+                            <el-input v-model="element.label" placeholder="请输入" />
+                        </div>
+                        <div class="input-item">
+                            <span class="item-label">值</span>
+                            <el-input v-model="element.value" placeholder="请输入" />
+                        </div>
+                        <div class="option-btn">
+                            <el-icon v-if="formConfig.options.length > 1" class="remove" @click="removeItem(index)">
+                                <CircleClose />
+                            </el-icon>
+                            <el-icon class="move">
+                                <Sort />
+                            </el-icon>
+                        </div>
+                    </div>
+                </template>
+            </draggable>
+        </div>
+    </el-form-item>
 </template>
 
 <script lang="ts" setup>
@@ -74,11 +53,11 @@ const elFormItemRef = ref()
 const rules = ref([
     {
         validator: optionsRule,
-        trigger: [ 'blur', 'change' ]
+        trigger: ['blur', 'change']
     }
 ])
-const props = defineProps([ 'modelValue', 'formConfig' ])
-const emit = defineEmits([ 'update:modelValue' ])
+const props = defineProps(['modelValue', 'formConfig'])
+const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {
         return props.modelValue
@@ -117,7 +96,7 @@ function addNewOption() {
 }
 
 function removeItem(index: number) {
-    const options: Option[] = [ ...props.modelValue ]
+    const options: Option[] = [...props.modelValue]
     options.splice(index, 1)
     emit('update:modelValue', options)
 }

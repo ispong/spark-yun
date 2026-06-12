@@ -1,23 +1,13 @@
 <template>
-  <Breadcrumb :bread-crumb-list="breadCrumbList" />
-  <div class="layer-area">
-    <div class="layer-btn-container">
-      <el-button
-        class="reset-btn"
-        @click="resetView"
-      >
-        刷新领域
-      </el-button>
-      <el-button @click="backPage">
-        返回
-      </el-button>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="layer-area">
+        <div class="layer-btn-container">
+            <el-button class="reset-btn" @click="resetView">刷新领域</el-button>
+            <el-button @click="backPage">返回</el-button>
+        </div>
+        <div id="container" class="container-layout" />
+        <DataModelDetail ref="dataModelDetailRef" />
     </div>
-    <div
-      id="container"
-      class="container-layout"
-    />
-    <DataModelDetail ref="dataModelDetailRef" />
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -35,8 +25,7 @@ const router = useRouter()
 
 let graph: any
 
-const treeData = ref<any>({
-})
+const treeData = ref<any>({})
 const dataModelDetailRef = ref<any>(null)
 
 const breadCrumbList = reactive([
@@ -88,7 +77,7 @@ function initGraph() {
         node: {
             type: 'html',
             style: {
-                size: [ 140, 72 ],
+                size: [140, 72],
                 dx: -100,
                 dy: -40,
                 innerHTML: (e: any) => {
@@ -124,7 +113,7 @@ function initGraph() {
             nodesep: 20,
             ranksep: 60
         },
-        behaviors: [ 'drag-canvas', 'zoom-canvas', 'drag-element' ]
+        behaviors: ['drag-canvas', 'zoom-canvas', 'drag-element']
     })
 
     graph.on('node:click', (evt: any, nodeData: any) => {
@@ -222,7 +211,8 @@ onBeforeUnmount(() => {
     }
     .container-layout {
         height: 100%;
-        background-image: linear-gradient(to right, #f4f6fa 1px, transparent 1px),
+        background-image:
+            linear-gradient(to right, #f4f6fa 1px, transparent 1px),
             linear-gradient(to bottom, #f4f6fa 1px, transparent 1px);
         background-size: 20px 20px;
     }

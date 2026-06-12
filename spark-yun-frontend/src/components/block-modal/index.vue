@@ -1,43 +1,40 @@
 <template>
-  <el-dialog
-    v-model="visible"
-    :title="modelConfig.title"
-    :width="modelConfig.width"
-    :z-index="modelConfig.zIndex"
-    :class="modelConfig.customClass + ' zqy-block-modal'"
-    :close-on-press-escape="false"
-    :close-on-click-modal="false"
-    :append-to-body="true"
-    :destroy-on-close="true"
-    :center="true"
-    @close="close"
-  >
-    <div class="modal-content">
-      <slot />
-    </div>
-    <template
-      v-if="!modelConfig.footerHidden"
-      #footer
+    <el-dialog
+        v-model="visible"
+        :title="modelConfig.title"
+        :width="modelConfig.width"
+        :z-index="modelConfig.zIndex"
+        :class="modelConfig.customClass + ' zqy-block-modal'"
+        :close-on-press-escape="false"
+        :close-on-click-modal="false"
+        :append-to-body="true"
+        :destroy-on-close="true"
+        :center="true"
+        @close="close"
     >
-      <slot name="customLeft" />
-      <el-button
-        v-if="modelConfig.cancelConfig && !modelConfig.cancelConfig.hide"
-        :disabled="modelConfig.cancelConfig.disabled || false"
-        @click="clickToCancel"
-      >
-        {{ modelConfig.cancelConfig.title }}
-      </el-button>
-      <el-button
-        v-if="modelConfig.okConfig"
-        type="primary"
-        :loading="modelConfig.okConfig.loading"
-        :disabled="modelConfig.okConfig.disabled || false"
-        @click="clickToSave"
-      >
-        {{ modelConfig.okConfig.title }}
-      </el-button>
-    </template>
-  </el-dialog>
+        <div class="modal-content">
+            <slot />
+        </div>
+        <template v-if="!modelConfig.footerHidden" #footer>
+            <slot name="customLeft" />
+            <el-button
+                v-if="modelConfig.cancelConfig && !modelConfig.cancelConfig.hide"
+                :disabled="modelConfig.cancelConfig.disabled || false"
+                @click="clickToCancel"
+            >
+                {{ modelConfig.cancelConfig.title }}
+            </el-button>
+            <el-button
+                v-if="modelConfig.okConfig"
+                type="primary"
+                :loading="modelConfig.okConfig.loading"
+                :disabled="modelConfig.okConfig.disabled || false"
+                @click="clickToSave"
+            >
+                {{ modelConfig.okConfig.title }}
+            </el-button>
+        </template>
+    </el-dialog>
 </template>
 
 <script lang="ts" setup>

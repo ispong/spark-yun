@@ -1,291 +1,162 @@
 <template>
-  <BlockModal :model-config="modelConfig">
-    <el-form
-      ref="form"
-      class="add-computer-group"
-      label-position="top"
-      :model="formData"
-      :rules="rules"
-    >
-      <el-form-item
-        label="名称"
-        prop="name"
-      >
-        <el-input
-          v-model="formData.name"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        label="类型"
-        prop="dbType"
-      >
-        <template #label>
-          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%">
-            <span>类型</span>
-            <el-popover
-              placement="top"
-              :width="240"
-              trigger="click"
-              :visible="driverPopoverVisible"
-            >
-              <template #reference>
-                <el-button
-                  type="primary"
-                  link
-                  size="small"
-                  @click="openDriverPopover"
-                >
-                  更换驱动
-                </el-button>
-              </template>
-              <el-select
-                v-model="formData.driverId"
-                placeholder="请选择驱动"
-                style="width: 100%"
-                @visible-change="onDriverSelectVisibleChange"
-              >
-                <el-option
-                  v-for="item in driverIdList"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                />
-              </el-select>
-            </el-popover>
-          </div>
-        </template>
-        <el-select
-          v-model="formData.dbType"
-          placeholder="请选择"
-          @change="dbTypeChange"
-        >
-          <el-option
-            v-for="item in typeList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
+    <BlockModal :model-config="modelConfig">
+        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="类型" prop="dbType">
+                <template #label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%">
+                        <span>类型</span>
+                        <el-popover placement="top" :width="240" trigger="click" :visible="driverPopoverVisible">
+                            <template #reference>
+                                <el-button type="primary" link size="small" @click="openDriverPopover">
+                                    更换驱动
+                                </el-button>
+                            </template>
+                            <el-select
+                                v-model="formData.driverId"
+                                placeholder="请选择驱动"
+                                style="width: 100%"
+                                @visible-change="onDriverSelectVisibleChange"
+                            >
+                                <el-option
+                                    v-for="item in driverIdList"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id"
+                                />
+                            </el-select>
+                        </el-popover>
+                    </div>
+                </template>
+                <el-select v-model="formData.dbType" placeholder="请选择" @change="dbTypeChange">
+                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+            </el-form-item>
 
-      <el-form-item
-        label="连接信息"
-        prop="jdbcUrl"
-      >
-        <template #label>
-          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%">
-            <div style="display: flex; align-items: center">
-              <span>连接信息</span>
-              <el-tooltip
-                :content="jdbcTip"
-                placement="top"
-              >
-                <el-icon
-                  style="
+            <el-form-item label="连接信息" prop="jdbcUrl">
+                <template #label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%">
+                        <div style="display: flex; align-items: center">
+                            <span>连接信息</span>
+                            <el-tooltip :content="jdbcTip" placement="top">
+                                <el-icon
+                                    style="
                                         margin-left: 4px;
                                         color: var(--el-color-info);
                                         font-size: 16px;
                                         cursor: pointer;
                                     "
+                                >
+                                    <QuestionFilled />
+                                </el-icon>
+                            </el-tooltip>
+                        </div>
+                        <el-button type="primary" link size="small" @click="openAdvancedConfig">高级配置</el-button>
+                    </div>
+                </template>
+                <el-input v-model="formData.jdbcUrl" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item
+                v-if="formData.dbType === 'DORIS'"
+                label="FeNodes"
+                prop="feNodes"
+                :required="formData.dbType === 'DORIS'"
+            >
+                <el-input v-model="formData.feNodes" maxlength="500" placeholder="请输入，如 127.0.0.1:8030" />
+            </el-form-item>
+            <el-form-item v-if="formData.dbType === 'KAFKA'" label="topic" prop="kafkaConfig.topic">
+                <el-input v-model="formData.kafkaConfig.topic" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item v-if="formData.dbType === 'HIVE'" label="hive.metastore.uris">
+                <el-tooltip content="thrift://127.0.0.1:${port}，默认端口号9083" placement="top">
+                    <el-icon style="left: 104px" class="tooltip-msg">
+                        <QuestionFilled />
+                    </el-icon>
+                </el-tooltip>
+                <el-input v-model="formData.metastoreUris" maxlength="500" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item
+                v-if="formData.dbType !== 'KAFKA' && formData.dbType !== 'DUCK_DB'"
+                label="用户名"
+                prop="username"
+            >
+                <el-input v-model="formData.username" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item v-if="formData.dbType === 'KAFKA' || formData.dbType === 'DUCK_DB'" label="用户名">
+                <el-input v-model="formData.username" maxlength="200" placeholder="请输入" />
+            </el-form-item>
+            <el-form-item label="密码">
+                <el-input
+                    v-model="formData.passwd"
+                    maxlength="100"
+                    type="password"
+                    show-password
+                    placeholder="请输入"
+                />
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input
+                    v-model="formData.remark"
+                    type="textarea"
+                    maxlength="200"
+                    :autosize="{ minRows: 4, maxRows: 4 }"
+                    placeholder="请输入"
+                />
+            </el-form-item>
+        </el-form>
+        <template #customLeft>
+            <div class="test-button">
+                <el-button :loading="testLoading" type="primary" @click="testFun">连接测试</el-button>
+                <el-popover
+                    v-if="testResult?.connectLog"
+                    placement="right"
+                    title="测试结果"
+                    :width="400"
+                    trigger="hover"
+                    popper-class="message-error-tooltip"
+                    :content="testResult?.connectLog"
                 >
-                  <QuestionFilled />
-                </el-icon>
-              </el-tooltip>
+                    <template #reference>
+                        <el-icon v-if="!testResult?.canConnect" class="hover-tooltip">
+                            <WarningFilled />
+                        </el-icon>
+                        <el-icon v-else class="hover-tooltip success">
+                            <SuccessFilled />
+                        </el-icon>
+                    </template>
+                </el-popover>
             </div>
-            <el-button
-              type="primary"
-              link
-              size="small"
-              @click="openAdvancedConfig"
-            >
-              高级配置
-            </el-button>
-          </div>
         </template>
-        <el-input
-          v-model="formData.jdbcUrl"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="formData.dbType === 'DORIS'"
-        label="FeNodes"
-        prop="feNodes"
-        :required="formData.dbType === 'DORIS'"
-      >
-        <el-input
-          v-model="formData.feNodes"
-          maxlength="500"
-          placeholder="请输入，如 127.0.0.1:8030"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="formData.dbType === 'KAFKA'"
-        label="topic"
-        prop="kafkaConfig.topic"
-      >
-        <el-input
-          v-model="formData.kafkaConfig.topic"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="formData.dbType === 'HIVE'"
-        label="hive.metastore.uris"
-      >
-        <el-tooltip
-          content="thrift://127.0.0.1:${port}，默认端口号9083"
-          placement="top"
-        >
-          <el-icon
-            style="left: 104px"
-            class="tooltip-msg"
-          >
-            <QuestionFilled />
-          </el-icon>
-        </el-tooltip>
-        <el-input
-          v-model="formData.metastoreUris"
-          maxlength="500"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="formData.dbType !== 'KAFKA' && formData.dbType !== 'DUCK_DB'"
-        label="用户名"
-        prop="username"
-      >
-        <el-input
-          v-model="formData.username"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="formData.dbType === 'KAFKA' || formData.dbType === 'DUCK_DB'"
-        label="用户名"
-      >
-        <el-input
-          v-model="formData.username"
-          maxlength="200"
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item label="密码">
-        <el-input
-          v-model="formData.passwd"
-          maxlength="100"
-          type="password"
-          show-password
-          placeholder="请输入"
-        />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="formData.remark"
-          type="textarea"
-          maxlength="200"
-          :autosize="{ minRows: 4, maxRows: 4 }"
-          placeholder="请输入"
-        />
-      </el-form-item>
-    </el-form>
-    <template #customLeft>
-      <div class="test-button">
-        <el-button
-          :loading="testLoading"
-          type="primary"
-          @click="testFun"
-        >
-          连接测试
-        </el-button>
-        <el-popover
-          v-if="testResult?.connectLog"
-          placement="right"
-          title="测试结果"
-          :width="400"
-          trigger="hover"
-          popper-class="message-error-tooltip"
-          :content="testResult?.connectLog"
-        >
-          <template #reference>
-            <el-icon
-              v-if="!testResult?.canConnect"
-              class="hover-tooltip"
-            >
-              <WarningFilled />
-            </el-icon>
-            <el-icon
-              v-else
-              class="hover-tooltip success"
-            >
-              <SuccessFilled />
-            </el-icon>
-          </template>
-        </el-popover>
-      </div>
-    </template>
-  </BlockModal>
-  <el-dialog
-    v-model="advancedConfigVisible"
-    title="高级配置"
-    width="520px"
-    :close-on-click-modal="false"
-    append-to-body
-    class="advanced-config-dialog"
-  >
-    <div class="advanced-config-content">
-      <div
-        v-for="(item, index) in connectConfigList"
-        :key="index"
-        class="advanced-config-row"
-      >
-        <el-input
-          v-model="item.key"
-          placeholder="Key"
-          style="flex: 1"
-        />
-        <el-input
-          v-model="item.value"
-          placeholder="Value"
-          style="flex: 1; margin-left: 8px"
-        />
-        <el-button
-          type="danger"
-          link
-          style="margin-left: 8px"
-          @click="removeConfigItem(index)"
-        >
-          <el-icon><Delete /></el-icon>
-        </el-button>
-      </div>
-    </div>
-    <template #footer>
-      <div class="advanced-config-footer">
-        <el-button
-          type="primary"
-          link
-          @click="addConfigItem"
-        >
-          添加配置
-        </el-button>
-        <div>
-          <el-button @click="advancedConfigVisible = false">
-            取消
-          </el-button>
-          <el-button
-            type="primary"
-            @click="saveAdvancedConfig"
-          >
-            确定
-          </el-button>
+    </BlockModal>
+    <el-dialog
+        v-model="advancedConfigVisible"
+        title="高级配置"
+        width="520px"
+        :close-on-click-modal="false"
+        append-to-body
+        class="advanced-config-dialog"
+    >
+        <div class="advanced-config-content">
+            <div v-for="(item, index) in connectConfigList" :key="index" class="advanced-config-row">
+                <el-input v-model="item.key" placeholder="Key" style="flex: 1" />
+                <el-input v-model="item.value" placeholder="Value" style="flex: 1; margin-left: 8px" />
+                <el-button type="danger" link style="margin-left: 8px" @click="removeConfigItem(index)">
+                    <el-icon><Delete /></el-icon>
+                </el-button>
+            </div>
         </div>
-      </div>
-    </template>
-  </el-dialog>
+        <template #footer>
+            <div class="advanced-config-footer">
+                <el-button type="primary" link @click="addConfigItem">添加配置</el-button>
+                <div>
+                    <el-button @click="advancedConfigVisible = false">取消</el-button>
+                    <el-button type="primary" @click="saveAdvancedConfig">确定</el-button>
+                </div>
+            </div>
+        </template>
+    </el-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -340,8 +211,7 @@ const formData = reactive({
     username: '',
     passwd: '',
     remark: '',
-    connectConfig: {
-} as Record<string, string>,
+    connectConfig: {} as Record<string, string>,
     id: ''
 })
 const allTypeList = [
@@ -582,21 +452,21 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入数据源名称',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     dbType: [
         {
             required: true,
             message: '请选择数据库类型',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     jdbcUrl: [
         {
             required: true,
             message: '请输入jdbc连接信息',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     feNodes: [
@@ -608,28 +478,28 @@ const rules = reactive<FormRules>({
                 }
                 callback()
             },
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     'kafkaConfig.topic': [
         {
             required: true,
             message: '请输入topic',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     username: [
         {
             required: true,
             message: '请输入用户名',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ],
     passwd: [
         {
             required: true,
             message: '请输入密码',
-            trigger: [ 'blur', 'change' ]
+            trigger: ['blur', 'change']
         }
     ]
 })
@@ -657,12 +527,11 @@ async function showModal(cb: () => void, data: any): Promise<void> {
             topic: data?.kafkaConfig?.topic
         }
         formData.metastoreUris = data.metastoreUris
-        formData.connectConfig = data.connectConfig || {
-}
+        formData.connectConfig = data.connectConfig || {}
         formData.id = data.id
         modelConfig.title = '编辑数据源'
         // 回显高级配置
-        connectConfigList.value = Object.entries(formData.connectConfig).map(([ key, value ]) => ({
+        connectConfigList.value = Object.entries(formData.connectConfig).map(([key, value]) => ({
             key,
             value: value as string
         }))
@@ -679,8 +548,7 @@ async function showModal(cb: () => void, data: any): Promise<void> {
         }
         formData.driverId = ''
         formData.metastoreUris = ''
-        formData.connectConfig = {
-}
+        formData.connectConfig = {}
         formData.id = ''
         modelConfig.title = '新建数据源'
         connectConfigList.value = []
@@ -827,8 +695,7 @@ function saveAdvancedConfig() {
         return
     }
     // 转为对象
-    const config: Record<string, string> = {
-}
+    const config: Record<string, string> = {}
     validItems.forEach((item) => {
         config[item.key.trim()] = item.value.trim()
     })

@@ -1,124 +1,75 @@
 <template>
-  <div class="config-components">
-    <el-form-item
-      label="类型"
-      prop="inputEtl.dbType"
-      :rules="rules.dbType"
-    >
-      <el-select
-        v-model="formData.inputEtl.dbType"
-        filterable
-        clearable
-        placeholder="请选择"
-        @change="changeEvent($event, 'dbType')"
-      >
-        <el-option
-          v-for="item in typeList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-    </el-form-item>
-    <el-form-item
-      label="数据源"
-      prop="inputEtl.datasourceId"
-      :rules="rules.datasourceId"
-    >
-      <el-select
-        v-model="formData.inputEtl.datasourceId"
-        filterable
-        clearable
-        placeholder="请选择"
-        @change="changeEvent($event, 'datasourceId')"
-        @visible-change="getDataSource($event, formData.inputEtl.dbType)"
-      >
-        <el-option
-          v-for="item in dataSourceList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-    </el-form-item>
-    <el-form-item
-      label="表"
-      prop="inputEtl.tableName"
-      :rules="rules.tableName"
-      class="table-select-row"
-    >
-      <el-select
-        v-model="formData.inputEtl.tableName"
-        filterable
-        clearable
-        placeholder="请选择"
-        @change="changeEvent($event, 'tableName')"
-        @visible-change="getDataSourceTable($event, formData.inputEtl.datasourceId)"
-      >
-        <el-option
-          v-for="item in sourceTablesList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-      <el-button
-        type="primary"
-        link
-        @click="showTableDetail"
-      >
-        数据预览
-      </el-button>
-    </el-form-item>
-    <el-form-item
-      label="分区键"
-      prop="inputEtl.partitionColumn"
-      :rules="rules.partitionColumn"
-    >
-      <el-select
-        v-model="formData.inputEtl.partitionColumn"
-        filterable
-        clearable
-        placeholder="请选择"
-        @visible-change="
-          getTableColumnData($event, formData.inputEtl.datasourceId, formData.inputEtl.tableName)
-        "
-      >
-        <el-option
-          v-for="item in partKeyList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-    </el-form-item>
-    <el-form-item
-      label="分区数"
-      prop="inputEtl.numPartitions"
-    >
-      <el-input-number
-        v-model="formData.inputEtl.numPartitions"
-        placeholder="请输入"
-        :min="0"
-        controls-position="right"
-      />
-    </el-form-item>
-    <!-- 数据预览 -->
-    <table-detail ref="tableDetailRef" />
-    <div
-      v-show="false"
-      style="max-height: 444px"
-    >
-      <BlockTable :table-config="tableConfig">
-        <template #options="scopeSlot">
-          <div class="btn-group">
-            <span @click="editEvent(scopeSlot.row)">备注</span>
-          </div>
-        </template>
-      </BlockTable>
-      <RemarkModal ref="remarkModalRef" />
+    <div class="config-components">
+        <el-form-item label="类型" prop="inputEtl.dbType" :rules="rules.dbType">
+            <el-select
+                v-model="formData.inputEtl.dbType"
+                filterable
+                clearable
+                placeholder="请选择"
+                @change="changeEvent($event, 'dbType')"
+            >
+                <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+        </el-form-item>
+        <el-form-item label="数据源" prop="inputEtl.datasourceId" :rules="rules.datasourceId">
+            <el-select
+                v-model="formData.inputEtl.datasourceId"
+                filterable
+                clearable
+                placeholder="请选择"
+                @change="changeEvent($event, 'datasourceId')"
+                @visible-change="getDataSource($event, formData.inputEtl.dbType)"
+            >
+                <el-option v-for="item in dataSourceList" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+        </el-form-item>
+        <el-form-item label="表" prop="inputEtl.tableName" :rules="rules.tableName" class="table-select-row">
+            <el-select
+                v-model="formData.inputEtl.tableName"
+                filterable
+                clearable
+                placeholder="请选择"
+                @change="changeEvent($event, 'tableName')"
+                @visible-change="getDataSourceTable($event, formData.inputEtl.datasourceId)"
+            >
+                <el-option v-for="item in sourceTablesList" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+            <el-button type="primary" link @click="showTableDetail">数据预览</el-button>
+        </el-form-item>
+        <el-form-item label="分区键" prop="inputEtl.partitionColumn" :rules="rules.partitionColumn">
+            <el-select
+                v-model="formData.inputEtl.partitionColumn"
+                filterable
+                clearable
+                placeholder="请选择"
+                @visible-change="
+                    getTableColumnData($event, formData.inputEtl.datasourceId, formData.inputEtl.tableName)
+                "
+            >
+                <el-option v-for="item in partKeyList" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+        </el-form-item>
+        <el-form-item label="分区数" prop="inputEtl.numPartitions">
+            <el-input-number
+                v-model="formData.inputEtl.numPartitions"
+                placeholder="请输入"
+                :min="0"
+                controls-position="right"
+            />
+        </el-form-item>
+        <!-- 数据预览 -->
+        <table-detail ref="tableDetailRef" />
+        <div v-show="false" style="max-height: 444px">
+            <BlockTable :table-config="tableConfig">
+                <template #options="scopeSlot">
+                    <div class="btn-group">
+                        <span @click="editEvent(scopeSlot.row)">备注</span>
+                    </div>
+                </template>
+            </BlockTable>
+            <RemarkModal ref="remarkModalRef" />
+        </div>
     </div>
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -139,7 +90,7 @@ interface Option {
 const props = defineProps<{
     modelValue: any
 }>()
-const emit = defineEmits([ 'update:modelValue' ])
+const emit = defineEmits(['update:modelValue'])
 
 const typeList = ref(TypeList)
 const dataSourceList = ref<Option[]>([])
@@ -210,7 +161,7 @@ function getDataSource(e: boolean, searchType?: string) {
 // 获取数据源表
 function getDataSourceTable(e: boolean, dataSourceId: string) {
     if (e && dataSourceId) {
-        let options = []
+        const options = []
         GetDataSourceTables({
             dataSourceId: dataSourceId,
             tablePattern: ''
@@ -277,7 +228,7 @@ function getTableColumn() {
                     checked: true
                 }
             })
-            formData.value.outColumnList = [ ...tableConfig.tableData ]
+            formData.value.outColumnList = [...tableConfig.tableData]
         })
         .catch((err) => {
             console.error(err)
