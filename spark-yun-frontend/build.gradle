@@ -1,55 +1,60 @@
-// 清理后端的resources中的前端文件
-tasks.register('clean_backend_resources', Delete) {
+def nodeModulesMetadata = layout.projectDirectory.file('node_modules/.modules.yaml')
+def frontendDist = layout.projectDirectory.dir('dist')
 
-    delete '../spark-yun-backend/spark-yun-main/src/main/resources/templates'
-    delete '../spark-yun-backend/spark-yun-main/src/main/resources/static'
+tasks.register('pnpmInstall', Exec) {
+
+    inputs.files(
+        layout.projectDirectory.file('package.json'),
+        layout.projectDirectory.file('pnpm-lock.yaml'),
+        layout.projectDirectory.file('pnpm-workspace.yaml'),
+        layout.projectDirectory.file('.npmrc')
+    )
+    outputs.file(nodeModulesMetadata)
+
+    commandLine 'pnpm', 'install', '--frozen-lockfile'
 }
 
 // Format and check frontend code
 tasks.register('format_frontend', Exec) {
 
+    dependsOn('pnpmInstall')
+
     commandLine 'sh', '-c', '''
       set -e
-      pnpm install --frozen-lockfile
       pnpm run format
       pnpm run lint
       pnpm run type-check
     '''
 }
 
-// 打包前端项目
-tasks.register('npm_build', Exec) {
+// Build frontend assets with Gradle input and output tracking.
+tasks.register('npmBuild', Exec) {
 
-    mustRunAfter("clean_backend_resources")
+    dependsOn('pnpmInstall')
 
-    commandLine 'sh', '-c', '''
-      rm -rf node_modules
-      pnpm install
-      pnpm run build
-    '''
+    inputs.files(
+        fileTree('src'),
+        fileTree('public'),
+        fileTree(projectDir) {
+            include 'index.html'
+            include '.env*'
+            include 'components.d.ts'
+            include 'env.d.ts'
+            include 'package.json'
+            include 'pnpm-lock.yaml'
+            include 'pnpm-workspace.yaml'
+            include 'tsconfig*.json'
+            include 'vite.config.*'
+        },
+        rootProject.layout.projectDirectory.file('VERSION')
+    )
+    outputs.dir(frontendDist)
+
+    commandLine 'pnpm', 'run', 'build'
 }
 
-// 拷贝后端resources中的templates里
-tasks.register('copy_to_templates', Copy) {
+// Aggregate task used by the distribution build.
+tasks.register('make') {
 
-    mustRunAfter("npm_build")
-
-    from 'dist/index.html'
-    into '../spark-yun-backend/spark-yun-main/src/main/resources/templates/'
-}
-
-// 拷贝到static中
-tasks.register('copy_to_static', Copy) {
-
-    mustRunAfter("npm_build")
-
-    from 'dist/static'
-    into '../spark-yun-backend/spark-yun-main/src/main/resources/static/'
-}
-
-// 打包并安装前端项目
-tasks.register('make', GradleBuild) {
-
-    // 串行执行
-    tasks = ["clean_backend_resources", "npm_build", "copy_to_templates", "copy_to_static"]
+    dependsOn('npmBuild')
 }

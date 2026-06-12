@@ -22,8 +22,19 @@ bootJar {
 }
 
 processResources {
+
+    dependsOn(':spark-yun-frontend:npmBuild')
+
     from(rootDir.getAbsolutePath() + '/VERSION') {
         into '.'
+    }
+
+    from(rootProject.file('spark-yun-frontend/dist/index.html')) {
+        into 'templates'
+    }
+
+    from(rootProject.file('spark-yun-frontend/dist/static')) {
+        into 'static'
     }
 }
 

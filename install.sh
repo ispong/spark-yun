@@ -161,7 +161,7 @@ check_system_dependencies() {
     # 检查并下载 pnpm
     if ! command -v "pnpm" &>/dev/null; then
         echo "pnpm not detected, downloading..."
-        npm install pnpm@9.0.6 -g
+        npm install pnpm@10.34.3 -g
         echo "pnpm download completed"
     fi
 }

@@ -140,6 +140,12 @@ app:
     - /static/**
     - /home/**
     - /home*/**
+    - /platform/**
+    - /admin/**
+    - /workspace/**
+    - /personal-info
+    - /403
+    - /no-tenant
     - /favicon.ico
     - /login
     - /ssoauth
