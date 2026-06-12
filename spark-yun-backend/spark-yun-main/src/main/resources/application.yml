@@ -90,14 +90,17 @@ spring:
   cache:
     type: none
 
-  api-docs:
-    path: /swagger-ui/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-  packages-to-scan: com.isxcode.spark
-
   flyway:
     enabled: true
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /swagger-ui/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  packages-to-scan: com.isxcode.spark
 
 logging:
   level:
@@ -129,6 +132,7 @@ jasypt:
 
 app:
   admin-role-url:
+    - /swagger-ui.html
     - /swagger-ui/**
     - /v3/**
     - /h2-console/**
