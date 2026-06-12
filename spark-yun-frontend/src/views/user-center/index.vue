@@ -137,7 +137,7 @@ function initData(tableLoading?: boolean) {
     })
         .then((res: any) => {
             tableConfig.tableData = res.data.content
-            tableConfig.pagination.total = res.data.totalElements
+            tableConfig.pagination.total = res.data.totalElements ?? res.data.total ?? res.data.content?.length ?? 0
             loading.value = false
             tableConfig.loading = false
             networkError.value = false

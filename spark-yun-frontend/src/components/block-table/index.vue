@@ -64,12 +64,11 @@
         class="pagination"
         popper-class="pagination-popper"
         background
-        layout="prev, pager, next, sizes, total, jumper"
+        layout="prev, pager, next, total, jumper"
+        :default-page-size="tableConfig.pagination.pageSize"
+        :default-current-page="tableConfig.pagination.currentPage"
         :hide-on-single-page="false"
-        :total="tableConfig.pagination.total"
-        :page-size="tableConfig.pagination.pageSize"
-        :current-page="tableConfig.pagination.currentPage"
-        :page-sizes="[10, 20]"
+        :total="tableConfig.pagination.total || 0"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
     />

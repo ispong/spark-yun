@@ -93,12 +93,11 @@
                         class="pagination"
                         popper-class="pagination-popper"
                         background
-                        layout="prev, pager, next, sizes, total, jumper"
+                        layout="prev, pager, next, total, jumper"
+                        :default-page-size="pagination.pageSize"
+                        :default-current-page="pagination.currentPage"
                         :hide-on-single-page="false"
-                        :total="pagination.total"
-                        :page-size="pagination.pageSize"
-                        :current-page="pagination.currentPage"
-                        :page-sizes="[10, 20]"
+                        :total="pagination.total || 0"
                         @size-change="handleSizeChange"
                         @current-change="handleCurrentChange"
                     />

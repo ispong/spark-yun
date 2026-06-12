@@ -1,7 +1,7 @@
 import { useAuthStore } from '@/store/useAuth'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, OfficeBuilding, Search, Setting, Tools } from '@element-plus/icons-vue'
+import { Monitor, OfficeBuilding, Search, Setting, SwitchButton, Tools } from '@element-plus/icons-vue'
 import { useSwitchTenant, type TenantInfo } from '@/hooks/switch-tenant'
 import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { ChangeTenantData } from '@/services/login.service'
@@ -210,7 +210,7 @@ export function useMenuAvatar() {
                                 </div>
                                 <div class="zqy-home__menu-option" onClick={() => handleCommand('logout')}>
                                     <el-icon>
-                                        <switch-button />
+                                        <SwitchButton />
                                     </el-icon>
                                     退出登录
                                 </div>
