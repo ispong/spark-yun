@@ -4,7 +4,7 @@
             <template v-if="componentList.length">
                 <grid-layout
                     ref="gridlayoutRef"
-                    :layout.sync="componentList"
+                    v-model:layout="componentList"
                     :col-num="colNum"
                     :row-height="10"
                     :is-draggable="renderSence !== 'readonly'"

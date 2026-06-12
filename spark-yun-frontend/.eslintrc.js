@@ -6,6 +6,8 @@
  * @Description: In User Settings Edit
  * @FilePath: /spark-yun/spark-yun-website/.eslintrc.js
  */
+const isProduction = process.env.NODE_ENV === 'production' || process.env.VITE_NODE_ENV === 'production'
+
 module.exports = {
   root: true,
   env: {
@@ -22,9 +24,12 @@ module.exports = {
   },
   rules: {
     'vue/no-template-shadow': 'off',
-    'no-console': import.meta.env.VITE_NODE_ENV === 'production' ? 'warn' : 'off', // 只在开发环境下使用console
-    'no-debugger': import.meta.env.VITE_NODE_ENV === 'production' ? 'warn' : 'off', // 只在开发环境下使用debugger
-    'indent': [ 'warn', 4 ], // 缩进为4个空格
+    'vue/no-mutating-props': [ 'error', {
+      shallowOnly: true
+    } ],
+    'no-console': isProduction ? 'warn' : 'off', // 只在开发环境下使用console
+    'no-debugger': isProduction ? 'warn' : 'off', // 只在开发环境下使用debugger
+    'indent': 'off', // Prettier handles indentation
     'quotes': [ 'warn', 'single' ], // 单引号
     'semi': [ 'warn', 'never' ], // 添加结尾分号
     'comma-dangle': [ 'warn', 'never' ], // 去掉结尾逗号
@@ -65,4 +70,3 @@ module.exports = {
     'vue/multi-word-component-names': 'off'
   }
 }
-

@@ -24,7 +24,7 @@
                 </el-icon>
             </span>
         </div>
-        <div class="form-options__list" v-for="(unionItem, i) in formData.unionEtl" :style="getGroupStyle(i)">
+        <div class="form-options__list" v-for="(unionItem, i) in formData.unionEtl" :key="unionItem.id || i" :style="getGroupStyle(i)">
             <el-icon v-if="formData.unionEtl.length > 1" class="remove-block-btn" @click="removeItem(i)">
                 <CircleClose />
             </el-icon>

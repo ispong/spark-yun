@@ -85,7 +85,7 @@
                                 </el-icon>
                             </span>
                             <div class="form-options__list">
-                                <div class="form-options__item" v-for="(element, index) in apiWorkConfig.requestHeader">
+                                <div class="form-options__item" v-for="(element, index) in apiWorkConfig.requestHeader" :key="index">
                                     <div class="input-item">
                                         <span class="item-label">键</span>
                                         <el-input v-model="element.label" placeholder="请输入"></el-input>
@@ -110,7 +110,7 @@
                                 </el-icon>
                             </span>
                             <div class="form-options__list">
-                                <div class="form-options__item" v-for="(element, index) in apiWorkConfig.requestParam">
+                                <div class="form-options__item" v-for="(element, index) in apiWorkConfig.requestParam" :key="index">
                                     <div class="input-item">
                                         <span class="item-label">键</span>
                                         <el-input v-model="element.label" placeholder="请输入"></el-input>

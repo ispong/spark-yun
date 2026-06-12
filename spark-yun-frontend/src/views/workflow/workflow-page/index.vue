@@ -63,7 +63,7 @@
                 </div>
                 <el-scrollbar>
                     <div class="list-box">
-                        <template v-if="workListItem.length" v-for="work in workListItem" :key="work.id">
+                        <template v-for="work in workListItem" :key="work.id">
                             <div
                                 class="list-item"
                                 :class="{ 'choose-item': workConfig && workConfig.id === work.id }"
@@ -105,7 +105,7 @@
                                 </el-dropdown>
                             </div>
                         </template>
-                        <empty-page v-else></empty-page>
+                        <empty-page v-if="!workListItem.length"></empty-page>
                     </div>
                 </el-scrollbar>
             </div>

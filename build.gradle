@@ -200,7 +200,7 @@ spotless {
 }
 
 tasks.register("format") {
-    dependsOn(":spark-yun-dist:copy_version", ":spotlessApply")
+    dependsOn(":spark-yun-dist:copy_version", ":spotlessApply", ":spark-yun-frontend:format_frontend")
     dependsOn(subprojects.findAll { it.path != ':spark-yun-frontend' }.collect { "${it.path}:check" })
 }
 

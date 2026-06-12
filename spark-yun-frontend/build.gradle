@@ -5,6 +5,18 @@ tasks.register('clean_backend_resources', Delete) {
     delete '../spark-yun-backend/spark-yun-main/src/main/resources/static'
 }
 
+// Format and check frontend code
+tasks.register('format_frontend', Exec) {
+
+    commandLine 'sh', '-c', '''
+      set -e
+      pnpm install --frozen-lockfile
+      pnpm run format
+      pnpm run lint
+      pnpm run type-check
+    '''
+}
+
 // 打包前端项目
 tasks.register('npm_build', Exec) {
 

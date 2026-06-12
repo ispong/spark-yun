@@ -9,7 +9,7 @@
 import { computed, ref } from 'vue';
 import { VmData } from './component'
 
-const status = ref({
+const statusMap = ref({
   SUCCESS: '成功',
   FAIL: '失败',
   ABORT: '已中止',
@@ -34,7 +34,7 @@ const vmStatusClass = computed(() => {
 const vmStatus = computed<{ status: VmData['status'], name: string }>(() => {
   return {
     status: props.status,
-    name: status.value[props.status]
+    name: statusMap.value[props.status]
   }
 })
 

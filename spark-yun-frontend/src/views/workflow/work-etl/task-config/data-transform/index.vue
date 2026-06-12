@@ -2,7 +2,7 @@
     <div class="config-components">
         <el-form-item class="form-item-top" label-width="0">
             <div class="form-options__list">
-                <div class="form-options__item" v-for="(element, index) in formData.transformEtl">
+                <div class="form-options__item" v-for="(element, index) in formData.transformEtl" :key="element.id || index">
                     <el-form-item :prop="`transformEtl[${index}].colName`" :rules="rules.colName">
                         <el-select
                             v-model="element.colName"

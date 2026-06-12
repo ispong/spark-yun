@@ -60,7 +60,7 @@ const props = withDefaults(defineProps<{
     renderSence: 'new',
     isDragger: false,
     isAutoCreateTable: false,
-    formConfigList: []
+    formConfigList: () => []
 })
 const emit = defineEmits(['update:modelValue'])
 const componentList = ref<ComponentInstance[]>([])

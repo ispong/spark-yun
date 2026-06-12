@@ -15,7 +15,7 @@ interface ColonyInfo {
     defaultCluster: boolean
 }
 
-const status = ref<any>({
+const statusMap = ref<any>({
     SUCCESS: '成功',
     FAIL: '失败',
     ABORT: '已中止',
@@ -79,7 +79,7 @@ const vmStatus = computed<{ status: ColonyInfo['status'], name: string }>(() => 
     if (props.status) {
         return {
             status: props.status,
-            name: status.value[props.status]
+            name: statusMap.value[props.status]
         }
     } else {
         return {

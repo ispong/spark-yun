@@ -13,7 +13,7 @@
             <div class="form-card-container">
                 <template v-if="formList?.length">
                     <el-scrollbar max-height="calc(100vh - 146px)" class="form-card-list">
-                        <template v-for="card in formList">
+                        <template v-for="card in formList" :key="card.id">
                             <el-tooltip :disabled="!card.remark" :content="card.remark" placement="top" :show-after="600">
                                 <div class="form-card-item" @click="redirectQuery(card)">
                                     <div class="card-title">
@@ -43,7 +43,7 @@
                                 </div>
                             </el-tooltip>
                         </template>
-                        <template v-for="card in emptyBox">
+                        <template v-for="(_, index) in emptyBox" :key="index">
                             <div class="form-card-item form-card-item__empty"></div>
                         </template>
                     </el-scrollbar>

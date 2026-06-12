@@ -260,7 +260,7 @@
                       />
                     </el-form-item>
                     <el-form-item label="指定时间" prop="monthDay">
-                      <el-select v-model="cronConfig.monthDay":filterable="true" :disabled="!cronConfig.enable" placeholder="请选择">
+                      <el-select v-model="cronConfig.monthDay" :filterable="true" :disabled="!cronConfig.enable" placeholder="请选择">
                         <el-option
                           v-for="item in dayList"
                           :key="item.value"

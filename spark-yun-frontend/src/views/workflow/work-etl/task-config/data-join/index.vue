@@ -24,7 +24,7 @@
                 </el-icon>
             </span>
         </div>
-        <div class="form-options__list" v-for="(joinItem, i) in formData.joinEtl" :style="getGroupStyle(i)">
+        <div class="form-options__list" v-for="(joinItem, i) in formData.joinEtl" :key="joinItem.id || i" :style="getGroupStyle(i)">
             <el-icon v-if="formData.joinEtl.length > 1" class="remove-block-btn" @click="removeItem(i)">
                 <CircleClose />
             </el-icon>
@@ -55,7 +55,7 @@
             </div>
             <el-form-item class="form-item-top" label="条件">
                 <div class="form-options-ul__list" v-if="formData.joinEtl[i].joinConditions && formData.joinEtl[i].joinConditions.length">
-                    <div class="form-options__item" v-for="(element, index) in formData.joinEtl[i].joinConditions">
+                    <div class="form-options__item" v-for="(element, index) in formData.joinEtl[i].joinConditions" :key="element.id || index">
                         <el-form-item :prop="`joinEtl[${i}].joinConditions[${index}].joinType`" :rules="rules.joinType">
                             <el-select v-model="element.joinType" @change="transformChangeEvent($event, element)">
                                 <el-option label="字段关联" value="COLUMN_JOIN"/>
