@@ -42,18 +42,29 @@ const validateSqls = (rule: any, value: any, callback: any) => {
 }
 
 export const BaseConfigRules = {
-    name: [ {
- required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
-} ],
-    datasourceId: [ {
- required: true, message: '请选择数据源', trigger: [ 'blur', 'change' ] 
-} ],
+    name: [
+        {
+            required: true,
+            message: '请输入名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    datasourceId: [
+        {
+            required: true,
+            message: '请选择数据源',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
     sqls: [
         {
- validator: validateSqls, trigger: [ 'blur', 'change' ] 
-},
+            validator: validateSqls,
+            trigger: [ 'blur', 'change' ]
+        },
         {
- required: true, message: '请输入聚合Sql', trigger: [ 'blur', 'change' ] 
-}
+            required: true,
+            message: '请输入聚合Sql',
+            trigger: [ 'blur', 'change' ]
+        }
     ]
 }

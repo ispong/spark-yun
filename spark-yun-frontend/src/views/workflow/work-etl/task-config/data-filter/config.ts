@@ -48,58 +48,80 @@ export const TableConfig: TableConfig = {
 
 export const FilterConditionOptions = [
     {
- label: '等于(=)', value: 'equal' 
-},
+        label: '等于(=)',
+        value: 'equal'
+    },
     {
- label: '不等于(!=)', value: 'not_equal' 
-},
+        label: '不等于(!=)',
+        value: 'not_equal'
+    },
     {
- label: '大于(>)', value: 'greater' 
-},
+        label: '大于(>)',
+        value: 'greater'
+    },
     {
- label: '大于等于(>=)', value: 'greater_equal' 
-},
+        label: '大于等于(>=)',
+        value: 'greater_equal'
+    },
     {
- label: '小于(<)', value: 'less' 
-},
+        label: '小于(<)',
+        value: 'less'
+    },
     {
- label: '小于等于(<=)', value: 'less_equal' 
-},
+        label: '小于等于(<=)',
+        value: 'less_equal'
+    },
     {
- label: '包含(LIKE)', value: 'like' 
-},
+        label: '包含(LIKE)',
+        value: 'like'
+    },
     {
- label: '不包含(NOT LIKE)', value: 'not_like' 
-},
+        label: '不包含(NOT LIKE)',
+        value: 'not_like'
+    },
     {
- label: '为空(IS NULL)', value: 'is_null' 
-},
+        label: '为空(IS NULL)',
+        value: 'is_null'
+    },
     {
- label: '不为空(IS NOT NULL)', value: 'is_not_null' 
-},
+        label: '不为空(IS NOT NULL)',
+        value: 'is_not_null'
+    },
     {
- label: '在范围内(IN)', value: 'in' 
-},
+        label: '在范围内(IN)',
+        value: 'in'
+    },
     {
- label: '不在范围内(NOT IN)', value: 'not_in' 
-}
+        label: '不在范围内(NOT IN)',
+        value: 'not_in'
+    }
 ]
 
 // 分组背景色调色板
 export const groupColorPalette = [
     {
- border: '#67c23a', background: '#f9fff5', borderOuter: '#c2e7b0' 
-},
+        border: '#67c23a',
+        background: '#f9fff5',
+        borderOuter: '#c2e7b0'
+    },
     {
- border: '#9b59b6', background: '#faf5ff', borderOuter: '#d9b3e8' 
-},
+        border: '#9b59b6',
+        background: '#faf5ff',
+        borderOuter: '#d9b3e8'
+    },
     {
- border: '#e91e63', background: '#fff5f8', borderOuter: '#f4a0bd' 
-},
+        border: '#e91e63',
+        background: '#fff5f8',
+        borderOuter: '#f4a0bd'
+    },
     {
- border: '#00bcd4', background: '#f5fdfe', borderOuter: '#a0e5ed' 
-},
+        border: '#00bcd4',
+        background: '#f5fdfe',
+        borderOuter: '#a0e5ed'
+    },
     {
- border: '#607d8b', background: '#f7f9fa', borderOuter: '#b0bec5' 
-}
+        border: '#607d8b',
+        background: '#f7f9fa',
+        borderOuter: '#b0bec5'
+    }
 ]

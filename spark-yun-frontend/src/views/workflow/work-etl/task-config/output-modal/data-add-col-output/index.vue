@@ -137,7 +137,9 @@ function toggleSelectAll(val: boolean) {
 }
 
 function getNodeName(aliaCode: string): string {
-    if (!props.preNodes) { return '' }
+    if (!props.preNodes) {
+        return ''
+    }
     const node = props.preNodes.find((n: any) => n.data.nodeConfigData.aliaCode === aliaCode)
     return node ? node.data.nodeConfigData.name : ''
 }
@@ -211,8 +213,9 @@ function addNewCode() {
     addCodeRef.value.showModal(
         (params: any) => {
             tableConfig.tableData.push({
- ...params, checked: true 
-})
+                ...params,
+                checked: true
+            })
         },
         null,
         props.preNodes

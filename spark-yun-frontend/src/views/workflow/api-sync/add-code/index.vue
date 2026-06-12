@@ -118,35 +118,45 @@ const rules = reactive<FormRules>({
 
 const typeOptions = [
     {
- label: 'string', value: 'string' 
-},
+        label: 'string',
+        value: 'string'
+    },
     {
- label: 'int', value: 'int' 
-},
+        label: 'int',
+        value: 'int'
+    },
     {
- label: 'long', value: 'long' 
-},
+        label: 'long',
+        value: 'long'
+    },
     {
- label: 'double', value: 'double' 
-},
+        label: 'double',
+        value: 'double'
+    },
     {
- label: 'boolean', value: 'boolean' 
-},
+        label: 'boolean',
+        value: 'boolean'
+    },
     {
- label: 'date', value: 'date' 
-},
+        label: 'date',
+        value: 'date'
+    },
     {
- label: 'timestamp', value: 'timestamp' 
-},
+        label: 'timestamp',
+        value: 'timestamp'
+    },
     {
- label: 'object', value: 'object' 
-},
+        label: 'object',
+        value: 'object'
+    },
     {
- label: 'array', value: 'array' 
-},
+        label: 'array',
+        value: 'array'
+    },
     {
- label: 'bigDecimal', value: 'bigDecimal' 
-}
+        label: 'bigDecimal',
+        value: 'bigDecimal'
+    }
 ]
 
 function showModal(cb: () => void, data?: codeParam, mode: 'new' | 'edit' = 'new'): void {

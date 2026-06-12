@@ -986,9 +986,14 @@ function normalizeHeaderToList(headerData: any) {
                 label: item.label.trim(),
                 value: item?.value ?? ''
             }))
-        return validData.length ? validData : [ {
- label: '', value: '' 
-} ]
+        return validData.length
+            ? validData
+            : [
+                  {
+                      label: '',
+                      value: ''
+                  }
+              ]
     }
 
     if (headerData && typeof headerData === 'object') {
@@ -996,14 +1001,22 @@ function normalizeHeaderToList(headerData: any) {
             label: key,
             value: headerData[key] ?? ''
         }))
-        return data.length ? data : [ {
- label: '', value: '' 
-} ]
+        return data.length
+            ? data
+            : [
+                  {
+                      label: '',
+                      value: ''
+                  }
+              ]
     }
 
-    return [ {
- label: '', value: '' 
-} ]
+    return [
+        {
+            label: '',
+            value: ''
+        }
+    ]
 }
 
 // 保存数据
@@ -1056,13 +1069,13 @@ function saveData() {
 function getData() {
     let requestMethod = GetWorkItemConfig
     let requestParams: any = {
- workId: props.workItemConfig.id 
-}
+        workId: props.workItemConfig.id
+    }
     if (props.disabled) {
         requestMethod = GetLineageWorkItemConfig
         requestParams = {
- workVersionId: props.workItemConfig.id 
-}
+            workVersionId: props.workItemConfig.id
+        }
     }
 
     requestMethod(requestParams)
@@ -1571,11 +1584,15 @@ function openRequestHeaderConfig(scope: 'source' | 'target' = 'source') {
     const currentHeader = scope === 'source' ? formData.requestHeader : formData.targetRequestHeader
     requestHeaderConfigList.value = currentHeader?.length
         ? currentHeader.map((item: any) => ({
- label: item.label || '', value: item.value || '' 
-}))
-        : [ {
- label: '', value: '' 
-} ]
+              label: item.label || '',
+              value: item.value || ''
+          }))
+        : [
+              {
+                  label: '',
+                  value: ''
+              }
+          ]
     requestHeaderVisible.value = true
 }
 
@@ -1610,11 +1627,14 @@ function saveRequestHeaderConfig() {
     }
     requestHeaderConfigList.value = saveData.length
         ? saveData.map((item: any) => ({
- ...item 
-}))
-        : [ {
- label: '', value: '' 
-} ]
+              ...item
+          }))
+        : [
+              {
+                  label: '',
+                  value: ''
+              }
+          ]
     requestHeaderVisible.value = false
     pageChangeEvent()
 }

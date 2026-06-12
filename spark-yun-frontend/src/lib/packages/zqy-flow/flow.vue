@@ -101,11 +101,13 @@ function initGraph() {
             const control = Math.floor((deltaY / 3) * 2)
 
             const v1 = {
- x: s.x, y: s.y + offset + control 
-}
+                x: s.x,
+                y: s.y + offset + control
+            }
             const v2 = {
- x: e.x, y: e.y - offset - control 
-}
+                x: e.x,
+                y: e.y - offset - control
+            }
 
             return Path.normalize(
                 `M ${s.x} ${s.y}
@@ -203,12 +205,14 @@ function initGraph() {
     })
     dnd = new Addon.Dnd({
         target: _Graph,
-        getDragNode: (node: any) => node.clone({
- keepId: true 
-}),
-        getDropNode: (node: any) => node.clone({
- keepId: true 
-}),
+        getDragNode: (node: any) =>
+            node.clone({
+                keepId: true
+            }),
+        getDropNode: (node: any) =>
+            node.clone({
+                keepId: true
+            }),
         validateNode() {
             return true
         }
@@ -226,8 +230,9 @@ function initGraph() {
                     // y: 0,
                     // offset: { x: 15, y: 5 },
                     offset: {
- x: 10, y: 10 
-}
+                        x: 10,
+                        y: 10
+                    }
                 }
             })
         }
@@ -244,8 +249,8 @@ function initGraph() {
             edge.addTools({
                 name: 'button-remove',
                 args: {
- distance: '50%' 
-}
+                    distance: '50%'
+                }
             })
         }
     })

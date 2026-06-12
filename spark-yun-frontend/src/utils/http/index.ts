@@ -77,16 +77,20 @@ export const httpOption = {
                 if (status == 401) {
                     const authStore = useAuthStore()
                     const tenantUnavailable = [ '租户', '成员', '不在租户' ].some((keyword) => msg?.includes(keyword))
-                    router.push(tenantUnavailable && authStore.token ? {
- name: 'no-tenant' 
-} : {
- name: 'login' 
-})
+                    router.push(
+                        tenantUnavailable && authStore.token
+                            ? {
+                                  name: 'no-tenant'
+                              }
+                            : {
+                                  name: 'login'
+                              }
+                    )
                 } else if (status == 403) {
                     message.error(msg || '暂无权限')
                     router.push({
- name: 'forbidden' 
-})
+                        name: 'forbidden'
+                    })
                 } else if (status == 404) {
                     if (response.config.url.match('/vip/')) {
                         if (!whiteList.some((url) => response.config.url.match(url))) {

@@ -48,8 +48,8 @@ function getLogData(id: string) {
         return
     }
     GetYarnLogData({
- instanceId: id 
-})
+        instanceId: id
+    })
         .then((res: any) => {
             logMsg.value = res.data.yarnLog
             // 只有在有日志数据时才关闭 loading

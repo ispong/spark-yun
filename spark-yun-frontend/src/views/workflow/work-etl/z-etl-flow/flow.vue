@@ -115,11 +115,13 @@ function initGraph() {
             const control = Math.floor((deltaY / 3) * 2)
 
             const v1 = {
- x: s.x, y: s.y + offset + control 
-}
+                x: s.x,
+                y: s.y + offset + control
+            }
             const v2 = {
- x: e.x, y: e.y - offset - control 
-}
+                x: e.x,
+                y: e.y - offset - control
+            }
 
             return Path.normalize(
                 `M ${s.x} ${s.y}
@@ -239,12 +241,14 @@ function initGraph() {
     })
     dnd = new Addon.Dnd({
         target: _Graph,
-        getDragNode: (node: any) => node.clone({
- keepId: true 
-}),
-        getDropNode: (node: any) => node.clone({
- keepId: true 
-}),
+        getDragNode: (node: any) =>
+            node.clone({
+                keepId: true
+            }),
+        getDropNode: (node: any) =>
+            node.clone({
+                keepId: true
+            }),
         validateNode(droppingNode: any) {
             // 节点真正放到画布后，通知父组件
             nextTick(() => {
@@ -264,8 +268,9 @@ function initGraph() {
                     x: 175,
                     y: -5,
                     offset: {
- x: 10, y: 10 
-}
+                        x: 10,
+                        y: 10
+                    }
                 }
             })
         }
@@ -282,8 +287,8 @@ function initGraph() {
             edge.addTools({
                 name: 'button-remove',
                 args: {
- distance: '50%' 
-}
+                    distance: '50%'
+                }
             })
         }
     })
@@ -348,8 +353,8 @@ function updateNodeFn(item: any) {
         }
     }
     node.setData(params, {
- overwrite: true 
-})
+        overwrite: true
+    })
 }
 
 // 获取所有节点以及连线的数据
@@ -360,8 +365,8 @@ function getAllCellData() {
 // 获取上游的上一层节点
 function getIncomeNodes(cell: Cell) {
     return _Graph.getNeighbors(_Graph.getCellById(cell.id), {
- incoming: true 
-})
+        incoming: true
+    })
 }
 
 // 选中某一个边

@@ -193,24 +193,48 @@ const formData = reactive({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
-} ],
-    alarmType: [ {
- required: true, message: '请选择类型', trigger: [ 'blur', 'change' ] 
-} ],
-    alarmEvent: [ {
- required: true, message: '请选择告警事件', trigger: [ 'blur', 'change' ] 
-} ],
-    msgId: [ {
- required: true, message: '请选择消息通知', trigger: [ 'blur', 'change' ] 
-} ],
-    receiverList: [ {
- required: true, message: '请选择通知人', trigger: [ 'blur', 'change' ] 
-} ],
-    alarmTemplate: [ {
- required: true, message: '请输入通知内容', trigger: [ 'blur', 'change' ] 
-} ]
+    name: [
+        {
+            required: true,
+            message: '请输入名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    alarmType: [
+        {
+            required: true,
+            message: '请选择类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    alarmEvent: [
+        {
+            required: true,
+            message: '请选择告警事件',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    msgId: [
+        {
+            required: true,
+            message: '请选择消息通知',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    receiverList: [
+        {
+            required: true,
+            message: '请选择通知人',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    alarmTemplate: [
+        {
+            required: true,
+            message: '请输入通知内容',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {

@@ -452,71 +452,93 @@ const allTypeList = [
 ]
 const limitedTypeList = [
     {
- label: 'Clickhouse', value: 'CLICKHOUSE' 
-},
+        label: 'Clickhouse',
+        value: 'CLICKHOUSE'
+    },
     {
- label: 'Db2', value: 'DB2' 
-},
+        label: 'Db2',
+        value: 'DB2'
+    },
     {
- label: 'Dm', value: 'DM' 
-},
+        label: 'Dm',
+        value: 'DM'
+    },
     {
- label: 'Doris', value: 'DORIS' 
-},
+        label: 'Doris',
+        value: 'DORIS'
+    },
     {
- label: 'Gauss', value: 'GAUSS' 
-},
+        label: 'Gauss',
+        value: 'GAUSS'
+    },
     {
- label: 'Gbase', value: 'GBASE' 
-},
+        label: 'Gbase',
+        value: 'GBASE'
+    },
     {
- label: 'Greenplum', value: 'GREENPLUM' 
-},
+        label: 'Greenplum',
+        value: 'GREENPLUM'
+    },
     {
- label: 'H2', value: 'H2' 
-},
+        label: 'H2',
+        value: 'H2'
+    },
     {
- label: 'Hana', value: 'HANA_SAP' 
-},
+        label: 'Hana',
+        value: 'HANA_SAP'
+    },
     {
- label: 'Hive', value: 'HIVE' 
-},
+        label: 'Hive',
+        value: 'HIVE'
+    },
     {
- label: 'Impala', value: 'IMPALA' 
-},
+        label: 'Impala',
+        value: 'IMPALA'
+    },
     {
- label: 'Mysql', value: 'MYSQL' 
-},
+        label: 'Mysql',
+        value: 'MYSQL'
+    },
     {
- label: 'Oceanbase', value: 'OCEANBASE' 
-},
+        label: 'Oceanbase',
+        value: 'OCEANBASE'
+    },
     {
- label: 'OpenGauss', value: 'OPEN_GAUSS' 
-},
+        label: 'OpenGauss',
+        value: 'OPEN_GAUSS'
+    },
     {
- label: 'Oracle', value: 'ORACLE' 
-},
+        label: 'Oracle',
+        value: 'ORACLE'
+    },
     {
- label: 'Postgres', value: 'POSTGRE_SQL' 
-},
+        label: 'Postgres',
+        value: 'POSTGRE_SQL'
+    },
     {
- label: 'Presto', value: 'PRESTO' 
-},
+        label: 'Presto',
+        value: 'PRESTO'
+    },
     {
- label: 'SqlServer', value: 'SQL_SERVER' 
-},
+        label: 'SqlServer',
+        value: 'SQL_SERVER'
+    },
     {
- label: 'StarRocks', value: 'STAR_ROCKS' 
-},
+        label: 'StarRocks',
+        value: 'STAR_ROCKS'
+    },
     {
- label: 'Sybase', value: 'SYBASE' 
-},
+        label: 'Sybase',
+        value: 'SYBASE'
+    },
     {
- label: 'Tidb', value: 'TIDB' 
-},
+        label: 'Tidb',
+        value: 'TIDB'
+    },
     {
- label: 'Trino', value: 'TRINO' 
-}
+        label: 'Trino',
+        value: 'TRINO'
+    }
 ]
 const typeList = computed(() => {
     if (licenseEnabled.value || isEditMode.value) {
@@ -776,16 +798,18 @@ function okEvent() {
 function openAdvancedConfig() {
     if (connectConfigList.value.length === 0) {
         connectConfigList.value.push({
- key: '', value: '' 
-})
+            key: '',
+            value: ''
+        })
     }
     advancedConfigVisible.value = true
 }
 
 function addConfigItem() {
     connectConfigList.value.push({
- key: '', value: '' 
-})
+        key: '',
+        value: ''
+    })
 }
 
 function removeConfigItem(index: number) {

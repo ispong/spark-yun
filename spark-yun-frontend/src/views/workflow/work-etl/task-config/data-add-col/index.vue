@@ -146,26 +146,33 @@ import { groupColorPalette } from '../data-filter/config.ts'
 
 const sparkTypeList = [
     {
- label: 'string(字符串)', value: 'string' 
-},
+        label: 'string(字符串)',
+        value: 'string'
+    },
     {
- label: 'int(整数)', value: 'int' 
-},
+        label: 'int(整数)',
+        value: 'int'
+    },
     {
- label: 'long(长整数)', value: 'long' 
-},
+        label: 'long(长整数)',
+        value: 'long'
+    },
     {
- label: 'double(双精度浮点)', value: 'double' 
-},
+        label: 'double(双精度浮点)',
+        value: 'double'
+    },
     {
- label: 'boolean(布尔)', value: 'boolean' 
-},
+        label: 'boolean(布尔)',
+        value: 'boolean'
+    },
     {
- label: 'date(日期)', value: 'date' 
-},
+        label: 'date(日期)',
+        value: 'date'
+    },
     {
- label: 'timestamp(时间戳)', value: 'timestamp' 
-}
+        label: 'timestamp(时间戳)',
+        value: 'timestamp'
+    }
 ]
 
 const props = defineProps<{
@@ -177,21 +184,41 @@ const emit = defineEmits([ 'update:modelValue' ])
 const tableFields = ref<any[]>([])
 
 const rules = reactive<FormRules>({
-    addType: [ {
- required: true, message: '请选择字段类型', trigger: [ 'blur', 'change' ] 
-} ],
-    colName: [ {
- required: true, message: '字段名不能为空', trigger: [ 'blur', 'change' ] 
-} ],
-    colType: [ {
- required: true, message: '类型不能为空', trigger: [ 'blur', 'change' ] 
-} ],
-    fromAliaCode: [ {
- required: true, message: '请选择来源表', trigger: [ 'blur', 'change' ] 
-} ],
-    fromColName: [ {
- required: true, message: '请选择关联字段名', trigger: [ 'blur', 'change' ] 
-} ]
+    addType: [
+        {
+            required: true,
+            message: '请选择字段类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    colName: [
+        {
+            required: true,
+            message: '字段名不能为空',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    colType: [
+        {
+            required: true,
+            message: '类型不能为空',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    fromAliaCode: [
+        {
+            required: true,
+            message: '请选择来源表',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    fromColName: [
+        {
+            required: true,
+            message: '请选择关联字段名',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 const tableNameList = computed(() => {
@@ -243,7 +270,9 @@ function onSourceChange(element: any) {
 }
 
 function getTableFields(e: boolean, element: any) {
-    if (!e) { return }
+    if (!e) {
+        return
+    }
     const currentItem = tableNameList.value.find((dd: any) => dd.value === element.fromAliaCode)
     if (currentItem && currentItem.data.outColumnList) {
         tableFields.value = (currentItem.data.outColumnList || [])

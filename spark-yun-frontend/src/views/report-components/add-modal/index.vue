@@ -117,15 +117,27 @@ const formData = reactive<{
     remark: '' // 备注
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
-} ],
-    type: [ {
- required: true, message: '请选择图表类型', trigger: [ 'blur', 'change' ] 
-} ],
-    datasourceId: [ {
- required: true, message: '请选择数据源', trigger: [ 'blur', 'change' ] 
-} ]
+    name: [
+        {
+            required: true,
+            message: '请输入名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    type: [
+        {
+            required: true,
+            message: '请选择图表类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    datasourceId: [
+        {
+            required: true,
+            message: '请选择数据源',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {

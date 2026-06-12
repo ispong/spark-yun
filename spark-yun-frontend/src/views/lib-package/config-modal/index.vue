@@ -141,8 +141,8 @@ function showModal(data: any): void {
 
     // 获取依赖包信息，加载已配置的依赖文件详情
     GetLibPackage({
- id: data.id 
-})
+        id: data.id
+    })
         .then((res: any) => {
             const fileIdList = res.data.fileIdList || []
 

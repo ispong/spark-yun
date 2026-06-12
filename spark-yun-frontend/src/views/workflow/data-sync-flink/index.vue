@@ -1077,16 +1077,18 @@ function openAdvancedConfig(type: 'source' | 'target') {
     }))
     if (connectConfigList.value.length === 0) {
         connectConfigList.value.push({
- key: '', value: '' 
-})
+            key: '',
+            value: ''
+        })
     }
     advancedConfigVisible.value = true
 }
 
 function addConfigItem() {
     connectConfigList.value.push({
- key: '', value: '' 
-})
+        key: '',
+        value: ''
+    })
 }
 
 function removeConfigItem(index: number) {

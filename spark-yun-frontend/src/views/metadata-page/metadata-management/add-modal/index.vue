@@ -238,21 +238,41 @@ const formData = reactive({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入采集任务名称', trigger: [ 'blur', 'change' ] 
-} ],
-    dbType: [ {
- required: true, message: '请选择数据源类型', trigger: [ 'blur', 'change' ] 
-} ],
-    datasourceId: [ {
- required: true, message: '请选择数据源', trigger: [ 'blur', 'change' ] 
-} ],
-    collectType: [ {
- required: true, message: '请选择表', trigger: [ 'blur', 'change' ] 
-} ],
-    tablePattern: [ {
- required: true, message: '请输入正则表达式', trigger: [ 'blur', 'change' ] 
-} ]
+    name: [
+        {
+            required: true,
+            message: '请输入采集任务名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    dbType: [
+        {
+            required: true,
+            message: '请选择数据源类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    datasourceId: [
+        {
+            required: true,
+            message: '请选择数据源',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    collectType: [
+        {
+            required: true,
+            message: '请选择表',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    tablePattern: [
+        {
+            required: true,
+            message: '请输入正则表达式',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {

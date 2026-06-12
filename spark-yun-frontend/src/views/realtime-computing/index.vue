@@ -37,9 +37,7 @@
             >{{ scopeSlot.row.name }}</span>
           </template>
           <template #statusTag="scopeSlot">
-            <ZStatusTag
-              :status="scopeSlot.row.status === 'STOP' ? 'STOP_S' : scopeSlot.row.status"
-            />
+            <ZStatusTag :status="scopeSlot.row.status === 'STOP' ? 'STOP_S' : scopeSlot.row.status" />
           </template>
           <template #options="scopeSlot">
             <div class="btn-group">

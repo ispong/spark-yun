@@ -147,20 +147,25 @@ const readonly = ref<boolean>(false)
 const columnRuleMode = ref<ColumnRuleMode>('prefix')
 const columnRuleModeList: Option[] = [
     {
- label: '前缀匹配', value: 'prefix' 
-},
+        label: '前缀匹配',
+        value: 'prefix'
+    },
     {
- label: '后缀匹配', value: 'suffix' 
-},
+        label: '后缀匹配',
+        value: 'suffix'
+    },
     {
- label: '包含匹配', value: 'contains' 
-},
+        label: '包含匹配',
+        value: 'contains'
+    },
     {
- label: '精确匹配', value: 'exact' 
-},
+        label: '精确匹配',
+        value: 'exact'
+    },
     {
- label: '自定义正则', value: 'regex' 
-}
+        label: '自定义正则',
+        value: 'regex'
+    }
 ]
 const fieldTypeList = ref<Option[]>([
     {
@@ -227,15 +232,27 @@ const formData = reactive<any>({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
-} ],
-    columnTypeCode: [ {
- required: true, message: '请选择字段类型', trigger: [ 'blur', 'change' ] 
-} ],
-    columnType: [ {
- required: true, message: '请输入字段精度', trigger: [ 'blur', 'change' ] 
-} ],
+    name: [
+        {
+            required: true,
+            message: '请输入名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    columnTypeCode: [
+        {
+            required: true,
+            message: '请选择字段类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    columnType: [
+        {
+            required: true,
+            message: '请输入字段精度',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
     columnRuleInput: [
         {
             validator: (_rule, value, callback) => {
@@ -384,41 +401,47 @@ function buildColumnRule(mode: ColumnRuleMode, inputValue: string) {
 function parseColumnRule(value: string): { mode: ColumnRuleMode; input: string } {
     if (!value) {
         return {
- mode: 'prefix', input: '' 
-}
+            mode: 'prefix',
+            input: ''
+        }
     }
 
     const prefixMatch = value.match(/^\^(.+)\.\*$/)
     if (prefixMatch?.[1]) {
         return {
- mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) 
-}
+            mode: 'prefix',
+            input: unEscapeRegexChar(prefixMatch[1])
+        }
     }
 
     const suffixMatch = value.match(/^\.\*(.+)\$$/)
     if (suffixMatch?.[1]) {
         return {
- mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) 
-}
+            mode: 'suffix',
+            input: unEscapeRegexChar(suffixMatch[1])
+        }
     }
 
     const containsMatch = value.match(/^\.\*(.+)\.\*$/)
     if (containsMatch?.[1]) {
         return {
- mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) 
-}
+            mode: 'contains',
+            input: unEscapeRegexChar(containsMatch[1])
+        }
     }
 
     const exactMatch = value.match(/^\^(.+)\$$/)
     if (exactMatch?.[1]) {
         return {
- mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) 
-}
+            mode: 'exact',
+            input: unEscapeRegexChar(exactMatch[1])
+        }
     }
 
     return {
- mode: 'regex', input: value 
-}
+        mode: 'regex',
+        input: value
+    }
 }
 
 defineExpose({

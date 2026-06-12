@@ -56,8 +56,8 @@ export function useMenuAvatar() {
         })
         ElMessage.success('退出成功')
         router.push({
- name: 'login' 
-})
+            name: 'login'
+        })
     }
 
     const goPersonalInfo = function() {

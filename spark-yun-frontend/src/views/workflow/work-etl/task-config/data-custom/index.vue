@@ -39,8 +39,8 @@ const formData = computed({
 onMounted(() => {
     if (!formData.value.customSqlEtl) {
         formData.value.customSqlEtl = {
- sql: '' 
-}
+            sql: ''
+        }
     }
     if (!formData.value.outColumnList) {
         formData.value.outColumnList = []

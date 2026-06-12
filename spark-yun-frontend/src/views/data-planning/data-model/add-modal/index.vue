@@ -330,25 +330,47 @@ const currentLayerRule = reactive<{ mode: TableRuleMode; input: string; raw: str
     raw: ''
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入采集任务名称', trigger: [ 'blur', 'change' ] 
-} ],
-    layerId: [ {
- required: true, message: '请选择数据分层', trigger: [ 'blur', 'change' ] 
-} ],
-    modelType: [ {
- required: true, message: '请选择模型类型', trigger: [ 'blur', 'change' ] 
-} ],
-    dbType: [ {
- required: true, message: '请选择数据源类型', trigger: [ 'blur', 'change' ] 
-} ],
-    datasourceId: [ {
- required: true, message: '请选择数据源', trigger: [ 'blur', 'change' ] 
-} ],
+    name: [
+        {
+            required: true,
+            message: '请输入采集任务名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    layerId: [
+        {
+            required: true,
+            message: '请选择数据分层',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    modelType: [
+        {
+            required: true,
+            message: '请选择模型类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    dbType: [
+        {
+            required: true,
+            message: '请选择数据源类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    datasourceId: [
+        {
+            required: true,
+            message: '请选择数据源',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
     tableName: [
         {
- required: true, message: '请选择表名', trigger: [ 'blur', 'change' ] 
-},
+            required: true,
+            message: '请选择表名',
+            trigger: [ 'blur', 'change' ]
+        },
         {
             validator: (_rule, value, callback) => {
                 if (formData.modelType !== 'ORIGIN_MODEL') {
@@ -579,41 +601,47 @@ function fillDefaultTableNameByLayerRule(force: boolean, resetInput?: boolean) {
 function parseTableRule(value: string): { mode: TableRuleMode; input: string } {
     if (!value) {
         return {
- mode: 'none', input: '' 
-}
+            mode: 'none',
+            input: ''
+        }
     }
 
     const prefixMatch = value.match(/^\^(.+)\.\*$/)
     if (prefixMatch?.[1]) {
         return {
- mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) 
-}
+            mode: 'prefix',
+            input: unEscapeRegexChar(prefixMatch[1])
+        }
     }
 
     const suffixMatch = value.match(/^\.\*(.+)\$$/)
     if (suffixMatch?.[1]) {
         return {
- mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) 
-}
+            mode: 'suffix',
+            input: unEscapeRegexChar(suffixMatch[1])
+        }
     }
 
     const containsMatch = value.match(/^\.\*(.+)\.\*$/)
     if (containsMatch?.[1]) {
         return {
- mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) 
-}
+            mode: 'contains',
+            input: unEscapeRegexChar(containsMatch[1])
+        }
     }
 
     const exactMatch = value.match(/^\^(.+)\$$/)
     if (exactMatch?.[1]) {
         return {
- mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) 
-}
+            mode: 'exact',
+            input: unEscapeRegexChar(exactMatch[1])
+        }
     }
 
     return {
- mode: 'regex', input: value 
-}
+        mode: 'regex',
+        input: value
+    }
 }
 
 function unEscapeRegexChar(value: string) {

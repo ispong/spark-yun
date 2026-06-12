@@ -234,38 +234,78 @@ const formData = reactive({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入函数名', trigger: [ 'blur', 'change' ] 
-} ],
-    msgType: [ {
- required: true, message: '请选择类型', trigger: [ 'blur', 'change' ] 
-} ],
+    name: [
+        {
+            required: true,
+            message: '请输入函数名',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    msgType: [
+        {
+            required: true,
+            message: '请选择类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
     // 阿里短信
-    region: [ {
- required: true, message: '请选择region', trigger: [ 'blur', 'change' ] 
-} ],
-    accessKeyId: [ {
- required: true, message: '请输入AccessKeyId', trigger: [ 'blur', 'change' ] 
-} ],
-    accessKeySecret: [ {
- required: true, message: '请输入AccessKeySecret', trigger: [ 'blur', 'change' ] 
-} ],
-    templateCode: [ {
- required: true, message: '请输入TemplateCode(短信模板Code)', trigger: [ 'blur', 'change' ] 
-} ],
+    region: [
+        {
+            required: true,
+            message: '请选择region',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    accessKeyId: [
+        {
+            required: true,
+            message: '请输入AccessKeyId',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    accessKeySecret: [
+        {
+            required: true,
+            message: '请输入AccessKeySecret',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    templateCode: [
+        {
+            required: true,
+            message: '请输入TemplateCode(短信模板Code)',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
     // 邮箱
-    host: [ {
- required: true, message: '请输入地址', trigger: [ 'blur', 'change' ] 
-} ],
-    port: [ {
- required: true, message: '请输入端口', trigger: [ 'blur', 'change' ] 
-} ],
-    username: [ {
- required: true, message: '请输入账号', trigger: [ 'blur', 'change' ] 
-} ],
-    password: [ {
- required: true, message: '请输入账号', trigger: [ 'blur', 'change' ] 
-} ]
+    host: [
+        {
+            required: true,
+            message: '请输入地址',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    port: [
+        {
+            required: true,
+            message: '请输入端口',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    username: [
+        {
+            required: true,
+            message: '请输入账号',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    password: [
+        {
+            required: true,
+            message: '请输入账号',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {

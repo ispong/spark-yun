@@ -173,21 +173,31 @@ const sourceTableColumn = ref([])
 const targetTableColumn = ref([])
 const buttons = ref([
     {
- type: 'primary', text: '同行映射', code: 'SameLine' 
-},
+        type: 'primary',
+        text: '同行映射',
+        code: 'SameLine'
+    },
     {
- type: 'primary', text: '同名映射', code: 'SameName' 
-},
+        type: 'primary',
+        text: '同名映射',
+        code: 'SameName'
+    },
     //   { type: 'primary', text: '智能映射', code: 'SameLine' },
     {
- type: 'primary', text: '取消映射', code: 'quitLine' 
-},
+        type: 'primary',
+        text: '取消映射',
+        code: 'quitLine'
+    },
     {
- type: 'primary', text: '重置映射', code: 'resetLine' 
-},
+        type: 'primary',
+        text: '重置映射',
+        code: 'resetLine'
+    },
     {
- type: 'primary', text: '刷新字段', code: 'refrashCodes' 
-}
+        type: 'primary',
+        text: '刷新字段',
+        code: 'refrashCodes'
+    }
 ])
 const connectCopy = ref()
 
@@ -290,9 +300,14 @@ function getTableColumnData(params: TableDetailParam, type: string, onlyInit?: b
 
 function tableLinkInit() {
     const arrow = [
-        [ 'Arrow', {
- width: 6, length: 6, location: 1 
-} ],
+        [
+            'Arrow',
+            {
+                width: 6,
+                length: 6,
+                location: 1
+            }
+        ],
         [
             'Label',
             {
@@ -308,17 +323,21 @@ function tableLinkInit() {
     instance = jsPlumb.getInstance({
         Connector: 'Straight', // 连接线形状 Bezier: 贝塞尔曲线 Flowchart: 具有90度转折点的流程线 StateMachine: 状态机 Straight: 直线
         PaintStyle: {
- strokeWidth: 2, stroke: '#ff7c06' 
-}, // 连接线样式
-        Endpoint: [ 'Blank', {
- radius: 1 
-} ], // 端点
+            strokeWidth: 2,
+            stroke: '#ff7c06'
+        }, // 连接线样式
+        Endpoint: [
+            'Blank',
+            {
+                radius: 1
+            }
+        ], // 端点
         Anchor: 'Right',
         // 绘制箭头
         ConnectionOverlays: props.disabled ? [] : arrow,
         EndpointStyle: {
- fill: '#000000' 
-}, // 端点样式
+            fill: '#000000'
+        }, // 端点样式
         Container: 'container' // 目标容器id
     })
 }
@@ -497,8 +516,8 @@ function removeCode(cData: codeParam) {
 function addNewCode() {
     addCodeRef.value.showModal((formData: codeParam) => {
         sourceTableColumn.value.push({
- ...formData 
-})
+            ...formData
+        })
         nextTick(() => {
             initJsPlumb()
         })
@@ -514,8 +533,9 @@ function editCode(scope: any) {
         },
         row,
         {
- disableCode: true, disableType: true 
-}
+            disableCode: true,
+            disableType: true
+        }
     )
 }
 

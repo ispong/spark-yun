@@ -135,18 +135,34 @@ const colNameOptions = ref<Option[]>([])
 const funcOptions = ref<Option[]>([])
 
 const rules = reactive<FormRules>({
-    colName: [ {
- required: true, message: '字段不能为空', trigger: [ 'blur', 'change' ] 
-} ],
-    transformWay: [ {
- required: true, message: '转换方式不能为空', trigger: [ 'blur', 'change' ] 
-} ],
-    transformFunc: [ {
- required: true, message: '函数不能为空', trigger: [ 'blur', 'change' ] 
-} ],
-    transformSql: [ {
- required: true, message: '自定义sql不能为空', trigger: [ 'blur', 'change' ] 
-} ]
+    colName: [
+        {
+            required: true,
+            message: '字段不能为空',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    transformWay: [
+        {
+            required: true,
+            message: '转换方式不能为空',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    transformFunc: [
+        {
+            required: true,
+            message: '函数不能为空',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    transformSql: [
+        {
+            required: true,
+            message: '自定义sql不能为空',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 const formData = computed({

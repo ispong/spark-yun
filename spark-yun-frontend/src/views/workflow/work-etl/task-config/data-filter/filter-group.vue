@@ -152,7 +152,7 @@ import { FormRules } from 'element-plus'
 import { FilterConditionOptions, groupColorPalette } from './config.ts'
 
 defineOptions({
- name: 'FilterGroup' 
+    name: 'FilterGroup'
 })
 
 const props = defineProps<{
@@ -175,18 +175,34 @@ function getGroupStyle() {
 }
 
 const rules = reactive<FormRules>({
-    filterColumn: [ {
- required: true, message: '字段不能为空', trigger: [ 'blur', 'change' ] 
-} ],
-    filterCondition: [ {
- required: true, message: '条件不能为空', trigger: [ 'blur', 'change' ] 
-} ],
-    filterValue: [ {
- required: true, message: '值不能为空', trigger: [ 'blur', 'change' ] 
-} ],
-    customFilter: [ {
- required: true, message: '自定义条件不能为空', trigger: [ 'blur', 'change' ] 
-} ]
+    filterColumn: [
+        {
+            required: true,
+            message: '字段不能为空',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    filterCondition: [
+        {
+            required: true,
+            message: '条件不能为空',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    filterValue: [
+        {
+            required: true,
+            message: '值不能为空',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    customFilter: [
+        {
+            required: true,
+            message: '自定义条件不能为空',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 function toggleFilterWay(index: number) {
@@ -222,8 +238,12 @@ function addGroupToGroup(list: any[]) {
         filterWay: 'AND',
         groupFilter: [
             {
- filterType: 'CONDITION_FILTER', filterColumn: '', filterCondition: '', filterValue: '', customFilter: '' 
-}
+                filterType: 'CONDITION_FILTER',
+                filterColumn: '',
+                filterCondition: '',
+                filterValue: '',
+                customFilter: ''
+            }
         ]
     })
 }

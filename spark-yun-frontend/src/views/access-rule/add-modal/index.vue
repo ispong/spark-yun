@@ -106,15 +106,27 @@ const formData = reactive<any>({
 })
 
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入规则名称', trigger: [ 'blur', 'change' ] 
-} ],
-    ruleType: [ {
- required: true, message: '请选择规则类型', trigger: [ 'blur', 'change' ] 
-} ],
-    ipAddress: [ {
- required: true, message: '请输入IP地址', trigger: [ 'blur', 'change' ] 
-} ]
+    name: [
+        {
+            required: true,
+            message: '请输入规则名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    ruleType: [
+        {
+            required: true,
+            message: '请选择规则类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    ipAddress: [
+        {
+            required: true,
+            message: '请输入IP地址',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {

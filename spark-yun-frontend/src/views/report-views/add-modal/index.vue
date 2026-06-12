@@ -67,9 +67,13 @@ const formData = reactive({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入名称', trigger: [ 'change', 'blur' ] 
-} ]
+    name: [
+        {
+            required: true,
+            message: '请输入名称',
+            trigger: [ 'change', 'blur' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {

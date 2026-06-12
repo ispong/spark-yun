@@ -66,8 +66,8 @@ function getLogData(data: any, type?: string) {
     if (type === 'runningLog') {
         modelConfig.title = '运行日志'
         GetSparkContainerkRunningLog({
- id: data.id 
-})
+            id: data.id
+        })
             .then((res: any) => {
                 logMsg.value = res.data.runningLog
                 status.value = true

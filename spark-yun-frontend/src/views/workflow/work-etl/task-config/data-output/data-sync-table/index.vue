@@ -116,14 +116,20 @@ const sourceTableColumn = ref<Column[]>([])
 const targetTableColumn = ref<Column[]>([])
 const buttons = ref([
     {
- type: 'primary', text: '同行映射', code: 'SameLine' 
-},
+        type: 'primary',
+        text: '同行映射',
+        code: 'SameLine'
+    },
     {
- type: 'primary', text: '同名映射', code: 'SameName' 
-},
+        type: 'primary',
+        text: '同名映射',
+        code: 'SameName'
+    },
     {
- type: 'primary', text: '取消映射', code: 'quitLine' 
-}
+        type: 'primary',
+        text: '取消映射',
+        code: 'quitLine'
+    }
 ])
 const connectCopy = ref()
 
@@ -219,17 +225,26 @@ function tableLinkInit() {
     instance = jsPlumb.getInstance({
         Connector: 'Straight', // 连接线形状 Bezier: 贝塞尔曲线 Flowchart: 具有90度转折点的流程线 StateMachine: 状态机 Straight: 直线
         PaintStyle: {
- strokeWidth: 2, stroke: '#ff7c06' 
-}, // 连接线样式
-        Endpoint: [ 'Blank', {
- radius: 1 
-} ], // 端点
+            strokeWidth: 2,
+            stroke: '#ff7c06'
+        }, // 连接线样式
+        Endpoint: [
+            'Blank',
+            {
+                radius: 1
+            }
+        ], // 端点
         Anchor: 'Right',
         // 绘制箭头
         ConnectionOverlays: [
-            [ 'Arrow', {
- width: 6, length: 6, location: 1 
-} ],
+            [
+                'Arrow',
+                {
+                    width: 6,
+                    length: 6,
+                    location: 1
+                }
+            ],
             [
                 'Label',
                 {
@@ -243,8 +258,8 @@ function tableLinkInit() {
             ]
         ],
         EndpointStyle: {
- fill: '#000000' 
-}, // 端点样式
+            fill: '#000000'
+        }, // 端点样式
         Container: 'containerOutput' // 目标容器id
     })
 }

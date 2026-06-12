@@ -50,9 +50,12 @@ const configRule = (rule: any, value: any, callback: any) => {
     }
 }
 const elFormItemRef = ref()
-const rules = ref([ {
- validator: configRule, trigger: [ 'blur', 'change' ] 
-} ])
+const rules = ref([
+    {
+        validator: configRule,
+        trigger: [ 'blur', 'change' ]
+    }
+])
 watch(
     () => props.formConfig?.uuid,
     (e) => {

@@ -281,8 +281,8 @@ function editEvent(e: any) {
             })
         },
         {
- remark: remark 
-}
+            remark: remark
+        }
     )
 }
 

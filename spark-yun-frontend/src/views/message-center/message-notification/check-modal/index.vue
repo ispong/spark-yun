@@ -134,12 +134,20 @@ const formData = reactive({
     id: ''
 })
 const rules = reactive<FormRules>({
-    receiver: [ {
- required: true, message: '请选择通知对象', trigger: [ 'blur', 'change' ] 
-} ],
-    content: [ {
- required: true, message: '请输入通知内容', trigger: [ 'blur', 'change' ] 
-} ]
+    receiver: [
+        {
+            required: true,
+            message: '请选择通知对象',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    content: [
+        {
+            required: true,
+            message: '请输入通知内容',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {

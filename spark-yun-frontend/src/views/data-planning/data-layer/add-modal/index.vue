@@ -98,20 +98,25 @@ const currentLayerId = ref<string>('')
 const tableRuleMode = ref<TableRuleMode>('prefix')
 const tableRuleModeList: Option[] = [
     {
- label: '前缀匹配', value: 'prefix' 
-},
+        label: '前缀匹配',
+        value: 'prefix'
+    },
     {
- label: '后缀匹配', value: 'suffix' 
-},
+        label: '后缀匹配',
+        value: 'suffix'
+    },
     {
- label: '包含匹配', value: 'contains' 
-},
+        label: '包含匹配',
+        value: 'contains'
+    },
     {
- label: '精确匹配', value: 'exact' 
-},
+        label: '精确匹配',
+        value: 'exact'
+    },
     {
- label: '自定义正则', value: 'regex' 
-}
+        label: '自定义正则',
+        value: 'regex'
+    }
 ]
 
 const modelConfig = reactive({
@@ -142,9 +147,13 @@ const formData = reactive<any>({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
-} ],
+    name: [
+        {
+            required: true,
+            message: '请输入名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
     // parentLayerId: [{ required: true, message: '请选择父级分层', trigger: ['blur', 'change'] }],
     tableRuleInput: [
         {
@@ -289,41 +298,47 @@ function buildTableRule(mode: TableRuleMode, inputValue: string) {
 function parseTableRule(value: string): { mode: TableRuleMode; input: string } {
     if (!value) {
         return {
- mode: 'prefix', input: '' 
-}
+            mode: 'prefix',
+            input: ''
+        }
     }
 
     const prefixMatch = value.match(/^\^(.+)\.\*$/)
     if (prefixMatch?.[1]) {
         return {
- mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) 
-}
+            mode: 'prefix',
+            input: unEscapeRegexChar(prefixMatch[1])
+        }
     }
 
     const suffixMatch = value.match(/^\.\*(.+)\$$/)
     if (suffixMatch?.[1]) {
         return {
- mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) 
-}
+            mode: 'suffix',
+            input: unEscapeRegexChar(suffixMatch[1])
+        }
     }
 
     const containsMatch = value.match(/^\.\*(.+)\.\*$/)
     if (containsMatch?.[1]) {
         return {
- mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) 
-}
+            mode: 'contains',
+            input: unEscapeRegexChar(containsMatch[1])
+        }
     }
 
     const exactMatch = value.match(/^\^(.+)\$$/)
     if (exactMatch?.[1]) {
         return {
- mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) 
-}
+            mode: 'exact',
+            input: unEscapeRegexChar(exactMatch[1])
+        }
     }
 
     return {
- mode: 'regex', input: value 
-}
+        mode: 'regex',
+        input: value
+    }
 }
 
 defineExpose({

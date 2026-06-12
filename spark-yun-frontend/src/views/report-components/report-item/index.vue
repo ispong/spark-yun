@@ -275,8 +275,8 @@ function initData() {
                 chartConfig.title = res.data.cardInfo.name
             }
             myChart.setOption({
- ...echartOption.value 
-})
+                ...echartOption.value
+            })
             setTimeout(() => {
                 myChart.resize()
             })
@@ -399,8 +399,8 @@ function refreshDataEvent() {
 function updateChartEvent() {
     echartOption.value.title.text = chartConfig.title
     myChart.setOption({
- ...echartOption.value 
-})
+        ...echartOption.value
+    })
 }
 
 function resizeChart() {

@@ -71,9 +71,12 @@ const optionsRule = (rule: any, value: any, callback: any) => {
     }
 }
 const elFormItemRef = ref()
-const rules = ref([ {
- validator: optionsRule, trigger: [ 'blur', 'change' ] 
-} ])
+const rules = ref([
+    {
+        validator: optionsRule,
+        trigger: [ 'blur', 'change' ]
+    }
+])
 const props = defineProps([ 'modelValue', 'formConfig' ])
 const emit = defineEmits([ 'update:modelValue' ])
 const formData = computed({

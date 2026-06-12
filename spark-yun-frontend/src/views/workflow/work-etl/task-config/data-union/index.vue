@@ -118,15 +118,27 @@ const props = defineProps<{
 const emit = defineEmits([ 'update:modelValue' ])
 
 const rules = reactive<FormRules>({
-    mainAliaCode: [ {
- required: true, message: '请选择主表', trigger: [ 'blur', 'change' ] 
-} ],
-    aliaCode: [ {
- required: true, message: '请选择表', trigger: [ 'blur', 'change' ] 
-} ],
-    unionWay: [ {
- required: true, message: '请选择连接方式', trigger: [ 'blur', 'change' ] 
-} ]
+    mainAliaCode: [
+        {
+            required: true,
+            message: '请选择主表',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    aliaCode: [
+        {
+            required: true,
+            message: '请选择表',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    unionWay: [
+        {
+            required: true,
+            message: '请选择连接方式',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 const tableConfig = reactive(TableConfig)
 

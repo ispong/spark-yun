@@ -329,15 +329,27 @@ let jarJobConfig = reactive({
     args: [] // 参数
 })
 const rules = reactive<FormRules>({
-    appName: [ {
- required: true, message: '请输入应用名称', trigger: [ 'blur', 'change' ] 
-} ],
-    jarFileId: [ {
- required: true, message: '请选择资源文件', trigger: [ 'blur', 'change' ] 
-} ],
-    mainClass: [ {
- required: true, message: '请输入mainClass', trigger: [ 'blur', 'change' ] 
-} ]
+    appName: [
+        {
+            required: true,
+            message: '请输入应用名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    jarFileId: [
+        {
+            required: true,
+            message: '请选择资源文件',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    mainClass: [
+        {
+            required: true,
+            message: '请输入mainClass',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 const tabList = reactive([

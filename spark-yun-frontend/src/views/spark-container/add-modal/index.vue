@@ -164,21 +164,41 @@ const typeList = reactive([
     }
 ])
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入数据源名称', trigger: [ 'blur', 'change' ] 
-} ],
-    clusterId: [ {
- required: true, message: '请选择集群', trigger: [ 'blur', 'change' ] 
-} ],
-    datasourceId: [ {
- required: true, message: '请选择数据源', trigger: [ 'blur', 'change' ] 
-} ],
-    resourceLevel: [ {
- required: true, message: '请选择资源类型', trigger: [ 'blur', 'change' ] 
-} ],
-    sparkConfig: [ {
- required: true, message: '请输入sparkConfig', trigger: [ 'blur', 'change' ] 
-} ]
+    name: [
+        {
+            required: true,
+            message: '请输入数据源名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    clusterId: [
+        {
+            required: true,
+            message: '请选择集群',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    datasourceId: [
+        {
+            required: true,
+            message: '请选择数据源',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    resourceLevel: [
+        {
+            required: true,
+            message: '请选择资源类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    sparkConfig: [
+        {
+            required: true,
+            message: '请输入sparkConfig',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {

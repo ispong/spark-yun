@@ -416,9 +416,13 @@ let apiWorkConfig = reactive({
     requestBody: '' // 接口请求体
 })
 const rules = reactive<FormRules>({
-    requestType: [ {
- required: true, message: '请选择请求方式', trigger: [ 'blur', 'change' ] 
-} ],
+    requestType: [
+        {
+            required: true,
+            message: '请选择请求方式',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
     requestParam: [],
     requestHeader: []
 })

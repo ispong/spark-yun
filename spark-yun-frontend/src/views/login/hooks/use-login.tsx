@@ -40,8 +40,8 @@ export function useLogin(callback: (callback: LoginModel) => Promise<void>) {
             if (isValid) {
                 btnLoading.value = true
                 callback({
- ...loginModel 
-}).finally(() => {
+                    ...loginModel
+                }).finally(() => {
                     btnLoading.value = false
                 })
             }
@@ -53,8 +53,8 @@ export function useLogin(callback: (callback: LoginModel) => Promise<void>) {
                 if (isValid) {
                     btnLoading.value = true
                     callback({
- ...loginModel 
-}).finally(() => {
+                        ...loginModel
+                    }).finally(() => {
                         btnLoading.value = false
                     })
                 }

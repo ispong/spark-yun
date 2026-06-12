@@ -52,9 +52,12 @@ const rules = ref([
         trigger: [ 'blur', 'change' ]
     }
 ])
-const customRules = ref([ {
- validator: checkPhone, trigger: [ 'blur', 'change' ] 
-} ])
+const customRules = ref([
+    {
+        validator: checkPhone,
+        trigger: [ 'blur', 'change' ]
+    }
+])
 watch(
     () => props.formConfig.defaultValue,
     () => {

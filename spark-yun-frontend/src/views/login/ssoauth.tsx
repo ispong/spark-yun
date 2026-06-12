@@ -15,8 +15,9 @@ export default defineComponent({
             const code = urlParams.get('code') // "John"
             const clientId = urlParams.get('clientId')
             OauthLogin({
- code: code, clientId: clientId 
-})
+                code: code,
+                clientId: clientId
+            })
                 .then((res: any) => {
                     authStore.applyAuthResponse(res.data)
                     getVipLicenseEnabled(true).finally(() => {

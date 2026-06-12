@@ -157,7 +157,9 @@ const effectivePreNodes = computed(() => {
 })
 
 function getNodeName(aliaCode: string): string {
-    if (!effectivePreNodes.value.length) { return '' }
+    if (!effectivePreNodes.value.length) {
+        return ''
+    }
     const node = effectivePreNodes.value.find((n: any) => n.data.nodeConfigData.aliaCode === aliaCode)
     return node ? node.data.nodeConfigData.name : ''
 }
@@ -166,8 +168,9 @@ function addNewCode() {
     addCodeRef.value.showModal(
         (params: any) => {
             tableConfig.tableData.push({
- ...params, checked: true 
-})
+                ...params,
+                checked: true
+            })
         },
         null,
         effectivePreNodes.value

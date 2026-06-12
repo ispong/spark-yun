@@ -76,36 +76,76 @@ const tableFields = ref<Option[]>()
 const addCodeRef = ref()
 
 const rules = reactive<FormRules>({
-    mainAliaCode: [ {
- required: true, message: '请选择主表', trigger: [ 'blur', 'change' ] 
-} ],
-    joinWay: [ {
- required: true, message: '请选择关联', trigger: [ 'blur', 'change' ] 
-} ],
-    joinAliaCode: [ {
- required: true, message: '请选择输入表', trigger: [ 'blur', 'change' ] 
-} ],
-    joinType: [ {
- required: true, message: '请选择关联关系', trigger: [ 'blur', 'change' ] 
-} ],
-    joinLeftColumn: [ {
- required: true, message: '请选择主表字段', trigger: [ 'blur', 'change' ] 
-} ],
-    joinCondition: [ {
- required: true, message: '请选择条件', trigger: [ 'blur', 'change' ] 
-} ],
-    joinRightColumn: [ {
- required: true, message: '请选择字段', trigger: [ 'blur', 'change' ] 
-} ],
-    joinColumn: [ {
- required: true, message: '请选择字段', trigger: [ 'blur', 'change' ] 
-} ],
-    joinValue: [ {
- required: true, message: '请输入字段值', trigger: [ 'blur', 'change' ] 
-} ],
-    joinSql: [ {
- required: true, message: '请输入sql', trigger: [ 'blur', 'change' ] 
-} ]
+    mainAliaCode: [
+        {
+            required: true,
+            message: '请选择主表',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    joinWay: [
+        {
+            required: true,
+            message: '请选择关联',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    joinAliaCode: [
+        {
+            required: true,
+            message: '请选择输入表',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    joinType: [
+        {
+            required: true,
+            message: '请选择关联关系',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    joinLeftColumn: [
+        {
+            required: true,
+            message: '请选择主表字段',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    joinCondition: [
+        {
+            required: true,
+            message: '请选择条件',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    joinRightColumn: [
+        {
+            required: true,
+            message: '请选择字段',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    joinColumn: [
+        {
+            required: true,
+            message: '请选择字段',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    joinValue: [
+        {
+            required: true,
+            message: '请输入字段值',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    joinSql: [
+        {
+            required: true,
+            message: '请输入sql',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 const tableConfig = reactive(TableConfig)
 
@@ -132,7 +172,9 @@ function toggleSelectAll(val: boolean) {
 }
 
 function getNodeName(aliaCode: string): string {
-    if (!props.preNodes) { return '' }
+    if (!props.preNodes) {
+        return ''
+    }
     const node = props.preNodes.find((n: any) => n.data.nodeConfigData.aliaCode === aliaCode)
     return node ? node.data.nodeConfigData.name : ''
 }
@@ -141,8 +183,9 @@ function addNewCode() {
     addCodeRef.value.showModal(
         (params: any) => {
             tableConfig.tableData.push({
- ...params, checked: true 
-})
+                ...params,
+                checked: true
+            })
         },
         null,
         props.preNodes

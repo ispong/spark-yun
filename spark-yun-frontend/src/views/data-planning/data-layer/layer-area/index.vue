@@ -96,11 +96,14 @@ function initGraph() {
                     return htmlString
                 },
                 port: true,
-                ports: [ {
- placement: 'right' 
-}, {
- placement: 'left' 
-} ]
+                ports: [
+                    {
+                        placement: 'right'
+                    },
+                    {
+                        placement: 'left'
+                    }
+                ]
             },
             state: {
                 selected: {
@@ -148,8 +151,9 @@ function initGraph() {
 
 function getComponentHTMLString(data: any) {
     const app = createApp(TreeNode, {
- name: 'TreeNode', params: data 
-}) // 提供必要的 props。
+        name: 'TreeNode',
+        params: data
+    }) // 提供必要的 props。
     const container = document.createElement('div')
     document.body.appendChild(container) // 将容器添加到 DOM 中。
     app.mount(container) // 挂载应用。

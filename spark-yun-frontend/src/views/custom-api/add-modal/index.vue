@@ -736,36 +736,66 @@ const formData = reactive<
     accessRuleId: null // 黑白名单配置id
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
-} ],
-    apiType: [ {
- required: true, message: '请选择请求方式', trigger: [ 'blur', 'change' ] 
-} ],
+    name: [
+        {
+            required: true,
+            message: '请输入名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    apiType: [
+        {
+            required: true,
+            message: '请选择请求方式',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
     path: [
         {
- required: true, message: '请输入自定义访问路径', trigger: [ 'blur', 'change' ] 
-},
+            required: true,
+            message: '请输入自定义访问路径',
+            trigger: [ 'blur', 'change' ]
+        },
         {
- validator: checkPath, trigger: [ 'blur', 'change' ] 
-}
+            validator: checkPath,
+            trigger: [ 'blur', 'change' ]
+        }
     ],
     // clusterId: [{ required: true, message: '请选择计算集群', trigger: [ 'blur', 'change' ]}],
-    datasourceId: [ {
- required: true, message: '请选择数据源', trigger: [ 'blur', 'change' ] 
-} ],
-    reqHeader: [ {
- validator: optionsRule, trigger: [ 'blur', 'change' ] 
-} ],
-    reqBody: [ {
- required: true, message: '请输入请求体设置', trigger: [ 'blur', 'change' ] 
-} ],
-    apiSql: [ {
- required: true, message: '请输入SQL设置', trigger: [ 'blur', 'change' ] 
-} ],
-    resBody: [ {
- required: true, message: '请输入返回体设置（成功/失败）', trigger: [ 'blur', 'change' ] 
-} ]
+    datasourceId: [
+        {
+            required: true,
+            message: '请选择数据源',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    reqHeader: [
+        {
+            validator: optionsRule,
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    reqBody: [
+        {
+            required: true,
+            message: '请输入请求体设置',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    apiSql: [
+        {
+            required: true,
+            message: '请输入SQL设置',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    resBody: [
+        {
+            required: true,
+            message: '请输入返回体设置（成功/失败）',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 // 接口检测参数
@@ -961,12 +991,18 @@ function nextStepEvent() {
                         }
                         formDataTest.path = `${location.origin}/${authStore.tenantId}/api${formData.path}`
                         formDataTest.method = formData.apiType
-                        formDataTest.headerConfig = [ {
- label: '', value: '' 
-} ]
-                        formDataTest.bodyConfig = [ {
- label: '', value: '' 
-} ]
+                        formDataTest.headerConfig = [
+                            {
+                                label: '',
+                                value: ''
+                            }
+                        ]
+                        formDataTest.bodyConfig = [
+                            {
+                                label: '',
+                                value: ''
+                            }
+                        ]
                         formDataTest.bodyParams = null
                         formDataTest.returnConfig = null
                     })

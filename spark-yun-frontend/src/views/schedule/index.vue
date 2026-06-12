@@ -402,8 +402,8 @@ function retry(data: any) {
 
 function stopWork(data: any) {
     TerWorkItemConfig({
- instanceId: data.id 
-})
+        instanceId: data.id
+    })
         .then((res: any) => {
             ElMessage.success(res.msg)
             initData()

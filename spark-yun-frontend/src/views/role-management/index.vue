@@ -168,7 +168,8 @@ const saving = ref(false)
 const roles = ref<any[]>([])
 const editorVisible = ref(false)
 const catalog = reactive({
- modules: [] as string[], actions: [] as string[] 
+    modules: [] as string[],
+    actions: [] as string[]
 })
 const form = reactive({
     id: '',
@@ -210,8 +211,9 @@ function saveRole() {
     }
     saving.value = true
     SaveRole({
- ...form, id: form.id || undefined 
-})
+        ...form,
+        id: form.id || undefined
+    })
         .then((res: any) => {
             ElMessage.success(res.msg)
             editorVisible.value = false
@@ -224,11 +226,11 @@ function saveRole() {
 
 function removeRole(role: any) {
     ElMessageBox.confirm(`确定删除角色“${role.name}”吗？`, '提示', {
- type: 'warning' 
-}).then(() => {
+        type: 'warning'
+    }).then(() => {
         DeleteRole({
- roleId: role.id 
-}).then((res: any) => {
+            roleId: role.id
+        }).then((res: any) => {
             ElMessage.success(res.msg)
             loadRoles()
         })

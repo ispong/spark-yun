@@ -102,10 +102,15 @@ watch(
 )
 
 let mouseXY: MouseXY = {
- x: null, y: null 
+    x: null,
+    y: null
 }
 let DragPos: DragPos = {
- x: null, y: null, w: 1, h: 1, i: null 
+    x: null,
+    y: null,
+    w: 1,
+    h: 1,
+    i: null
 }
 
 function layoutUpdatedEvent(newLayout: any) {
@@ -161,8 +166,9 @@ function startMoveEvent(e: any) {
             }
             let el: any = gridItemRef.value[index]
             el.dragging = {
- top: mouseXY.y - parentRect.top, left: mouseXY.x - parentRect.left 
-}
+                top: mouseXY.y - parentRect.top,
+                left: mouseXY.x - parentRect.left
+            }
             let new_pos = el.calcXY(mouseXY.y - parentRect.top, mouseXY.x - parentRect.left)
             if (mouseInGrid === true) {
                 gridlayoutRef.value.dragEvent('dragstart', 'drop', new_pos.x, new_pos.y, 1, 1)

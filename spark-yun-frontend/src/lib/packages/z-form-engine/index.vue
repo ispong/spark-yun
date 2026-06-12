@@ -91,8 +91,9 @@ watch(
         componentList.value = cloneDeep(e)
     },
     {
- immediate: true, deep: true 
-}
+        immediate: true,
+        deep: true
+    }
 )
 
 // 左侧组件选择事件

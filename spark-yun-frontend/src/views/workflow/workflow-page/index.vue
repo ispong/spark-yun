@@ -931,8 +931,9 @@ function nodeRunningLog(e: any, type: string) {
             // console.log('关闭')
         },
         {
- id: e.data.workInstanceId, type: type 
-}
+            id: e.data.workInstanceId,
+            type: type
+        }
     )
 }
 

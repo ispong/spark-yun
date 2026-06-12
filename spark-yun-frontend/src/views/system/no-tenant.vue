@@ -40,9 +40,12 @@ function recoverTenant() {
             if (!tenant) {
                 return
             }
-            return ChangeTenantData({
- tenantId: tenant.id 
-}, tenant.id).then((changeRes: any) => {
+            return ChangeTenantData(
+                {
+                    tenantId: tenant.id
+                },
+                tenant.id
+            ).then((changeRes: any) => {
                 authStore.applyAuthResponse(changeRes.data)
                 router.replace('/workspace')
             })
@@ -55,8 +58,8 @@ function recoverTenant() {
 function logout() {
     authStore.$reset()
     router.replace({
- name: 'login' 
-})
+        name: 'login'
+    })
 }
 </script>
 

@@ -136,8 +136,8 @@ watch(
         formData.fileData = newList.filter((item) => item.raw).map((item) => item.raw as File)
     },
     {
- deep: true 
-}
+        deep: true
+    }
 )
 
 function showModal(cb: (data: any) => Promise<any>, data?: any): void {

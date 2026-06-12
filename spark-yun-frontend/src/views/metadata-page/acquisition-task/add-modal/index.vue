@@ -557,58 +557,126 @@ const formData = reactive({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入采集任务名称', trigger: [ 'blur', 'change' ] 
-} ],
-    dbType: [ {
- required: true, message: '请选择数据源类型', trigger: [ 'blur', 'change' ] 
-} ],
-    datasourceId: [ {
- required: true, message: '请选择数据源', trigger: [ 'blur', 'change' ] 
-} ],
-    collectType: [ {
- required: true, message: '请选择表', trigger: [ 'blur', 'change' ] 
-} ],
-    tablePattern: [ {
- required: true, message: '请输入正则表达式', trigger: [ 'blur', 'change' ] 
-} ],
+    name: [
+        {
+            required: true,
+            message: '请输入采集任务名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    dbType: [
+        {
+            required: true,
+            message: '请选择数据源类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    datasourceId: [
+        {
+            required: true,
+            message: '请选择数据源',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    collectType: [
+        {
+            required: true,
+            message: '请选择表',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    tablePattern: [
+        {
+            required: true,
+            message: '请输入正则表达式',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
 
-    'cronConfig.workDate': [ {
- required: true, message: '请选择生效时间', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.cron': [ {
- required: true, message: '请输入cron表达式', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.range': [ {
- required: true, message: '请选择调度周期', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.startDateMin': [ {
- required: true, message: '请选择开始时间', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.minNum': [ {
- required: true, message: '请输入时间间隔（分钟）', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.hourNum': [ {
- required: true, message: '请输入时间间隔（小时）', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.endDateMin': [ {
- required: true, message: '请选择结束时间', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.startDate': [ {
- required: true, message: '请选择开始时间', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.endDate': [ {
- required: true, message: '请选择结束时间', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.scheduleDate': [ {
- required: true, message: '请选择调度时间', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.monthDay': [ {
- required: true, message: '请选择指定时间', trigger: [ 'blur', 'change' ] 
-} ],
-    'cronConfig.weekDate': [ {
- required: true, message: '请选择指定时间', trigger: [ 'blur', 'change' ] 
-} ]
+    'cronConfig.workDate': [
+        {
+            required: true,
+            message: '请选择生效时间',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.cron': [
+        {
+            required: true,
+            message: '请输入cron表达式',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.range': [
+        {
+            required: true,
+            message: '请选择调度周期',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.startDateMin': [
+        {
+            required: true,
+            message: '请选择开始时间',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.minNum': [
+        {
+            required: true,
+            message: '请输入时间间隔（分钟）',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.hourNum': [
+        {
+            required: true,
+            message: '请输入时间间隔（小时）',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.endDateMin': [
+        {
+            required: true,
+            message: '请选择结束时间',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.startDate': [
+        {
+            required: true,
+            message: '请选择开始时间',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.endDate': [
+        {
+            required: true,
+            message: '请选择结束时间',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.scheduleDate': [
+        {
+            required: true,
+            message: '请选择调度时间',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.monthDay': [
+        {
+            required: true,
+            message: '请选择指定时间',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    'cronConfig.weekDate': [
+        {
+            required: true,
+            message: '请选择指定时间',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {

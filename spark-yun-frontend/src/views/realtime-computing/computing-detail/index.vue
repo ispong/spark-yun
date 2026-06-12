@@ -562,8 +562,8 @@ function saveData() {
 
 function getData() {
     GetTimeComputingDetail({
- id: route.query.id 
-})
+        id: route.query.id
+    })
         .then((res: any) => {
             if (res.data.syncConfig) {
                 Object.keys(formData).forEach((key: string) => {

@@ -46,9 +46,12 @@ const rules = ref([
         trigger: [ 'blur', 'change' ]
     }
 ])
-const customRules = ref([ {
- validator: checkMail, trigger: [ 'blur', 'change' ] 
-} ])
+const customRules = ref([
+    {
+        validator: checkMail,
+        trigger: [ 'blur', 'change' ]
+    }
+])
 watch(
     () => props.formConfig.defaultValue,
     () => {

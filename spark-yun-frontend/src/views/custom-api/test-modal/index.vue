@@ -243,12 +243,18 @@ function showModal(data: any): void {
     }
     formData.path = `${location.origin}/${authStore.tenantId}/api${data.path}`
     formData.method = data.apiType
-    formData.headerConfig = [ {
- label: '', value: '' 
-} ]
-    formData.bodyConfig = [ {
- label: '', value: '' 
-} ]
+    formData.headerConfig = [
+        {
+            label: '',
+            value: ''
+        }
+    ]
+    formData.bodyConfig = [
+        {
+            label: '',
+            value: ''
+        }
+    ]
     formData.bodyParams = null
     formData.returnConfig = null
     nextTick(() => {

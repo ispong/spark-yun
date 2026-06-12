@@ -58,8 +58,8 @@ function setSourceTableList(params: any) {
         .then((res: any) => {
             sourceTableColumn.value = res.data.tables.map((item: any) => {
                 return {
- code: item 
-}
+                    code: item
+                }
             })
             mergeTableColumns()
             connectNodeLoading.value = false
@@ -77,8 +77,8 @@ function setTargetTableList(params) {
         .then((res: any) => {
             targetTableColumn.value = res.data.tables.map((item: any) => {
                 return {
- code: item 
-}
+                    code: item
+                }
             })
             mergeTableColumns()
             connectNodeLoading.value = false

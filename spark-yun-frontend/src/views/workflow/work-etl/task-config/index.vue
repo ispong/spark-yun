@@ -101,12 +101,20 @@ const modelConfig = reactive({
     closeOnClickModal: false
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
-} ],
-    aliaCode: [ {
- required: true, message: '请输入编码', trigger: [ 'blur', 'change' ] 
-} ]
+    name: [
+        {
+            required: true,
+            message: '请输入名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    aliaCode: [
+        {
+            required: true,
+            message: '请输入编码',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 const currentComponent = computed(() => {

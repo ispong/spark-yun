@@ -201,8 +201,10 @@ function saveOrg() {
     }
     saving.value = true
     SaveOrg({
- ...form, id: form.id || undefined, parentId: form.parentId || undefined 
-})
+        ...form,
+        id: form.id || undefined,
+        parentId: form.parentId || undefined
+    })
         .then((res: any) => {
             ElMessage.success(res.msg)
             editorVisible.value = false
@@ -218,8 +220,8 @@ function removeOrg(org: any) {
         type: 'warning'
     }).then(() => {
         DeleteOrg({
- orgId: org.id 
-}).then((res: any) => {
+            orgId: org.id
+        }).then((res: any) => {
             ElMessage.success(res.msg)
             loadData()
         })

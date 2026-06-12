@@ -81,13 +81,15 @@ const nodeIcon = computed(() => {
 
 let Node
 const mouseDownPos = ref({
- x: 0, y: 0 
+    x: 0,
+    y: 0
 })
 
 function onMouseDown(e: MouseEvent) {
     mouseDownPos.value = {
- x: e.clientX, y: e.clientY 
-}
+        x: e.clientX,
+        y: e.clientY
+    }
 }
 
 function onClick(e: MouseEvent) {

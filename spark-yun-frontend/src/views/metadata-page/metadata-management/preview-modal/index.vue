@@ -85,8 +85,8 @@ const modelConfig = reactive<any>({
 function showModal(data: any): void {
     activeName.value = 'basicInfo'
     changeTypeEvent({
- paneName: 'basicInfo' 
-})
+        paneName: 'basicInfo'
+    })
     infoData.value = data
     modelConfig.visible = true
 }

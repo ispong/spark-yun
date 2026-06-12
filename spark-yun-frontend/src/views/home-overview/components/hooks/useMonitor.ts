@@ -67,7 +67,9 @@ export function useMonitor(currentColony: Ref<ColonyInfo | undefined>, currentFr
     }
 
     function queryMonitorData() {
-        if (!currentColony.value || !currentFrequency.value) { return }
+        if (!currentColony.value || !currentFrequency.value) {
+            return
+        }
 
         queryClusterMonitorInfo({
             clusterId: currentColony.value.id,

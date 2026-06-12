@@ -64,10 +64,16 @@ dir
         yP = ev.offsetY
         offset = 10
 
-        if (yP < offset) { dir += 'n' }
-        else if (yP > this.c.offsetHeight - offset) { dir += 's' }
-        if (xP < offset) { dir += 'w' }
-        else if (xP > this.c.offsetWidth - offset) { dir += 'e' }
+        if (yP < offset) {
+            dir += 'n'
+        } else if (yP > this.c.offsetHeight - offset) {
+            dir += 's'
+        }
+        if (xP < offset) {
+            dir += 'w'
+        } else if (xP > this.c.offsetWidth - offset) {
+            dir += 'e'
+        }
 
         return dir
     }
@@ -91,8 +97,11 @@ dir
     move(e: any): void {
         let d = this.getDirection(e)
         let cursor
-        if (d === '') { cursor = 'default' }
-        else { cursor = d + '-resize' }
+        if (d === '') {
+            cursor = 'default'
+        } else {
+            cursor = d + '-resize'
+        }
         // 修改鼠标显示效果
         this.c.style.cursor = cursor
         // 当开启尺寸修改时，鼠标移动会修改div尺寸

@@ -55,26 +55,33 @@ import { ElMessage, FormInstance, FormRules } from 'element-plus'
 
 const sparkTypeList = [
     {
- label: 'string(字符串)', value: 'string' 
-},
+        label: 'string(字符串)',
+        value: 'string'
+    },
     {
- label: 'int(整数)', value: 'int' 
-},
+        label: 'int(整数)',
+        value: 'int'
+    },
     {
- label: 'long(长整数)', value: 'long' 
-},
+        label: 'long(长整数)',
+        value: 'long'
+    },
     {
- label: 'double(双精度浮点)', value: 'double' 
-},
+        label: 'double(双精度浮点)',
+        value: 'double'
+    },
     {
- label: 'boolean(布尔)', value: 'boolean' 
-},
+        label: 'boolean(布尔)',
+        value: 'boolean'
+    },
     {
- label: 'date(日期)', value: 'date' 
-},
+        label: 'date(日期)',
+        value: 'date'
+    },
     {
- label: 'timestamp(时间戳)', value: 'timestamp' 
-}
+        label: 'timestamp(时间戳)',
+        value: 'timestamp'
+    }
 ]
 // import CodeMirror from 'vue-codemirror6'
 // import {sql} from '@codemirror/lang-sql'

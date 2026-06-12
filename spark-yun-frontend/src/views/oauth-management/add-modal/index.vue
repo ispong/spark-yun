@@ -196,36 +196,76 @@ const formData = reactive<ConfigParam>({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [ {
- required: true, message: '请输入名称', trigger: [ 'change' ] 
-} ],
-    ssoType: [ {
- required: true, message: '请选择类型', trigger: [ 'change' ] 
-} ],
-    authJsonPath: [ {
- required: true, message: '请输入authJsonPath', trigger: [ 'change' ] 
-} ],
-    scope: [ {
- required: true, message: '请输入scope', trigger: [ 'change' ] 
-} ],
-    clientId: [ {
- required: true, message: '请输入clientId', trigger: [ 'change' ] 
-} ],
-    clientSecret: [ {
- required: true, message: '请输入clientSecret', trigger: [ 'change' ] 
-} ],
-    accessTokenUrl: [ {
- required: true, message: '请输入accessTokenUrl', trigger: [ 'change' ] 
-} ],
-    authUrl: [ {
- required: true, message: '请输入authUrl', trigger: [ 'change' ] 
-} ],
-    userUrl: [ {
- required: true, message: '请输入userUrl', trigger: [ 'change' ] 
-} ],
-    redirectUrl: [ {
- required: true, message: '请输入redirectUrl', trigger: [ 'change' ] 
-} ]
+    name: [
+        {
+            required: true,
+            message: '请输入名称',
+            trigger: [ 'change' ]
+        }
+    ],
+    ssoType: [
+        {
+            required: true,
+            message: '请选择类型',
+            trigger: [ 'change' ]
+        }
+    ],
+    authJsonPath: [
+        {
+            required: true,
+            message: '请输入authJsonPath',
+            trigger: [ 'change' ]
+        }
+    ],
+    scope: [
+        {
+            required: true,
+            message: '请输入scope',
+            trigger: [ 'change' ]
+        }
+    ],
+    clientId: [
+        {
+            required: true,
+            message: '请输入clientId',
+            trigger: [ 'change' ]
+        }
+    ],
+    clientSecret: [
+        {
+            required: true,
+            message: '请输入clientSecret',
+            trigger: [ 'change' ]
+        }
+    ],
+    accessTokenUrl: [
+        {
+            required: true,
+            message: '请输入accessTokenUrl',
+            trigger: [ 'change' ]
+        }
+    ],
+    authUrl: [
+        {
+            required: true,
+            message: '请输入authUrl',
+            trigger: [ 'change' ]
+        }
+    ],
+    userUrl: [
+        {
+            required: true,
+            message: '请输入userUrl',
+            trigger: [ 'change' ]
+        }
+    ],
+    redirectUrl: [
+        {
+            required: true,
+            message: '请输入redirectUrl',
+            trigger: [ 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {

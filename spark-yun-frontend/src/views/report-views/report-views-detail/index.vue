@@ -102,8 +102,8 @@ watch(
         syncBreadCrumbByType(type)
     },
     {
- immediate: true 
-}
+        immediate: true
+    }
 )
 
 // 获取可以拖拽的报表组件

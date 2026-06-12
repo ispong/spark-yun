@@ -33,31 +33,35 @@ function workspaceDefaultRoute(): RouteLocationRaw {
     const authStore = useAuthStore()
     if (authStore.userInfo?.workspaceAllPermissions) {
         return {
- name: 'index' 
-}
+            name: 'index'
+        }
     }
     const permissions: string[] = authStore.userInfo?.permissions || []
     const menuModules = permissions.filter((code) => code.endsWith(':menu')).map((code) => code.split(':')[1])
     const target = workspaceChildren.find((route) => menuModules.includes(String(route.name || '')))
-    return target ? {
- name: target.name 
-} : {
- name: 'forbidden' 
-}
+    return target
+        ? {
+              name: target.name
+          }
+        : {
+              name: 'forbidden'
+          }
 }
 
 function defaultRoute(): RouteLocationRaw {
     const authStore = useAuthStore()
     if (!authStore.token) {
         return {
- name: 'login' 
-}
+            name: 'login'
+        }
     }
-    return authStore.userInfo?.systemAdmin ? {
- name: 'platform' 
-} : {
- name: 'workspace' 
-}
+    return authStore.userInfo?.systemAdmin
+        ? {
+              name: 'platform'
+          }
+        : {
+              name: 'workspace'
+          }
 }
 
 const routes: Array<RouteRecordRaw> = [
@@ -85,24 +89,32 @@ const routes: Array<RouteRecordRaw> = [
         name: 'platform',
         component: Home,
         meta: {
- area: 'platform' 
-},
+            area: 'platform'
+        },
         redirect: {
- name: 'user-center' 
-},
+            name: 'user-center'
+        },
         children: [
             {
- path: 'users', name: 'user-center', component: UserCenter 
-},
+                path: 'users',
+                name: 'user-center',
+                component: UserCenter
+            },
             {
- path: 'tenants', name: 'tenant-list', component: TenantList 
-},
+                path: 'tenants',
+                name: 'tenant-list',
+                component: TenantList
+            },
             {
- path: 'license', name: 'license', component: License 
-},
+                path: 'license',
+                name: 'license',
+                component: License
+            },
             {
- path: 'auth', name: 'oauth-management', component: OauthManagement 
-}
+                path: 'auth',
+                name: 'oauth-management',
+                component: OauthManagement
+            }
         ]
     },
     {
@@ -110,21 +122,27 @@ const routes: Array<RouteRecordRaw> = [
         name: 'admin',
         component: Home,
         meta: {
- area: 'admin' 
-},
+            area: 'admin'
+        },
         redirect: {
- name: 'tenant-user' 
-},
+            name: 'tenant-user'
+        },
         children: [
             {
- path: 'members', name: 'tenant-user', component: TenantUser 
-},
+                path: 'members',
+                name: 'tenant-user',
+                component: TenantUser
+            },
             {
- path: 'roles', name: 'role-management', component: RoleManagement 
-},
+                path: 'roles',
+                name: 'role-management',
+                component: RoleManagement
+            },
             {
- path: 'orgs', name: 'org-management', component: OrgManagement 
-}
+                path: 'orgs',
+                name: 'org-management',
+                component: OrgManagement
+            }
         ]
     },
     {
@@ -132,8 +150,8 @@ const routes: Array<RouteRecordRaw> = [
         name: 'workspace',
         component: Home,
         meta: {
- area: 'workspace' 
-},
+            area: 'workspace'
+        },
         redirect: workspaceDefaultRoute,
         children: workspaceChildren
     },
@@ -182,31 +200,31 @@ router.beforeEach(async(to) => {
     }
     if (!authStore.token) {
         return {
- name: 'login' 
-}
+            name: 'login'
+        }
     }
 
     const area = to.meta.area
     if (area === 'platform' && !authStore.userInfo?.platformAdmin) {
         return {
- name: 'forbidden' 
-}
+            name: 'forbidden'
+        }
     }
     if (area === 'admin' && !authStore.userInfo?.tenantAdmin && !authStore.userInfo?.normalAdmin) {
         return {
- name: 'forbidden' 
-}
+            name: 'forbidden'
+        }
     }
     if (area === 'workspace') {
         if (authStore.userInfo?.systemAdmin) {
             return {
- name: 'forbidden' 
-}
+                name: 'forbidden'
+            }
         }
         if (!authStore.tenantId) {
             return {
- name: 'no-tenant' 
-}
+                name: 'no-tenant'
+            }
         }
     }
 
