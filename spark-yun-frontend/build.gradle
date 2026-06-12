@@ -5,6 +5,7 @@ def packageMetadata = new JsonSlurper().parse(packageJsonFile.asFile)
 def requiredPnpmVersion = packageMetadata.packageManager.toString().split('@').last()
 def requiredNodeVersion = packageMetadata.engines.node.toString()
 def frontendDist = layout.projectDirectory.dir('dist')
+def frontendNodeModules = layout.projectDirectory.dir('node_modules')
 
 def shellQuote = { String value ->
     "'${value.replace("'", "'\"'\"'")}'"
@@ -69,7 +70,7 @@ tasks.register('pnpmInstall', Exec) {
         layout.projectDirectory.file('pnpm-workspace.yaml'),
         layout.projectDirectory.file('.npmrc')
     )
-    outputs.upToDateWhen { false }
+    outputs.dir(frontendNodeModules)
 
     workingDir projectDir
     commandLine 'sh', '-c', frontendRuntimeScript('pnpm install --frozen-lockfile --prefer-offline')

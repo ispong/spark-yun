@@ -226,6 +226,11 @@ tasks.register('cleanAll') {
 
 tasks.register('package') {
 
+    dependsOn('install', ':spark-yun-dist:make')
+}
+
+tasks.register('cleanPackage') {
+
     dependsOn('install', 'cleanAll', ':spark-yun-dist:make')
 }
 
@@ -272,6 +277,18 @@ tasks.register('backend') {
 }
 
 tasks.register('install', Exec) {
+    inputs.file(layout.projectDirectory.file('install.sh'))
+    outputs.dirs(
+        layout.projectDirectory.dir('spark-yun-dist/spark-min'),
+        layout.projectDirectory.dir('spark-yun-dist/flink-min'),
+        layout.projectDirectory.dir('resources/jdbc/system'),
+        layout.projectDirectory.dir('resources/libs')
+    )
+    outputs.files(
+        layout.projectDirectory.file('spark-yun-backend/spark-yun-main/src/main/resources/libprql_java-linux-aarch64.so'),
+        layout.projectDirectory.file('spark-yun-backend/spark-yun-main/src/main/resources/libprql_java-linux64.so'),
+        layout.projectDirectory.file('spark-yun-backend/spark-yun-main/src/main/resources/libprql_java-osx-arm64.dylib')
+    )
     if (!System.properties['os.name'].toString().contains('Mac OS X')) {
         doFirst {
             exec {
@@ -291,6 +308,9 @@ gradle.projectsEvaluated {
     def cleanAllTask = tasks.named('cleanAll')
 
     allprojects.each { project ->
+        project.tasks.matching { it.path != ':install' }.configureEach {
+            mustRunAfter(installTask)
+        }
         project.tasks.matching { it.name == 'clean' }.configureEach {
             mustRunAfter(installTask)
         }
