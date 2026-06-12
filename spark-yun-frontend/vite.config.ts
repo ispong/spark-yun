@@ -12,6 +12,38 @@ import { readFileSync } from 'node:fs'
 // 读取VERSION文件
 const version = readFileSync('../VERSION', 'utf-8').trim()
 
+function getAntvChunk(id: string) {
+  if (!id.includes('@antv/')) {
+    return
+  }
+
+  if (id.includes('@antv/x6-vue-shape')) {
+    return 'antv-x6-vue'
+  }
+  if (id.includes('@antv/x6')) {
+    return 'antv-x6'
+  }
+  if (id.includes('@antv/g6')) {
+    return 'antv-g6'
+  }
+  if (id.includes('@antv/layout') || id.includes('@antv/hierarchy') || id.includes('@antv/graphlib')) {
+    return 'antv-layout'
+  }
+  if (
+    id.includes('@antv/g') ||
+    id.includes('@antv/g-') ||
+    id.includes('@antv/component') ||
+    id.includes('@antv/scale')
+  ) {
+    return 'antv-renderer'
+  }
+  if (id.includes('@antv/util') || id.includes('@antv/vendor') || id.includes('@antv/algorithm')) {
+    return 'antv-utils'
+  }
+
+  return 'antv-common'
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   define: {
@@ -71,23 +103,9 @@ export default defineConfig({
           if (id.includes('xe-utils')) {
             return 'xe-utils'
           }
-          if (id.includes('@antv/x6-vue-shape')) {
-            return 'antv-x6-vue'
-          }
-          if (id.includes('@antv/x6')) {
-            return 'antv-x6'
-          }
-          if (id.includes('@antv/g6')) {
-            return 'antv-g6'
-          }
-          if (id.includes('@antv/layout')) {
-            return 'antv-layout'
-          }
-          if (id.includes('@antv/hierarchy')) {
-            return 'antv-hierarchy'
-          }
-          if (id.includes('@antv')) {
-            return 'antv-common'
+          const antvChunk = getAntvChunk(id)
+          if (antvChunk) {
+            return antvChunk
           }
           if (id.includes('zrender')) {
             return 'zrender'
