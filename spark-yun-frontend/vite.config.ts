@@ -53,7 +53,8 @@ function dependencyPath(pkg: string) {
 }
 
 function getEditionRoot(mode: string) {
-  return mode === 'vip' && existsSync(vipEditionRoot) ? vipEditionRoot : openSourceEditionRoot
+  const isVipEdition = mode === 'vip' || process.env.VITE_EDITION === 'vip'
+  return isVipEdition && existsSync(vipEditionRoot) ? vipEditionRoot : openSourceEditionRoot
 }
 
 // https://vitejs.dev/config/

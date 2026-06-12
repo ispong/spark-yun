@@ -10,9 +10,10 @@
     "scripts": {
         "preinstall": "npx only-allow pnpm",
         "dev": "vite --mode dev",
+        "dev:vip": "VITE_EDITION=vip vite --mode dev",
         "serve-prod": "vite",
         "build": "vite build",
-        "build:vip": "vite build --mode vip",
+        "build:vip": "VITE_EDITION=vip vite build --mode vip",
         "build-bak": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false && vite build",
         "preview": "vite preview",
         "test:unit": "vitest",

@@ -6,6 +6,7 @@ def requiredPnpmVersion = packageMetadata.packageManager.toString().split('@').l
 def requiredNodeVersion = packageMetadata.engines.node.toString()
 def frontendDist = layout.projectDirectory.dir('dist')
 def frontendNodeModules = layout.projectDirectory.dir('node_modules')
+def vipFrontendDir = rootProject.file('spark-yun-vip/spark-yun-frontend')
 
 def shellQuote = { String value ->
     "'${value.replace("'", "'\"'\"'")}'"
@@ -84,6 +85,10 @@ tasks.register('format_frontend', Exec) {
     workingDir projectDir
     commandLine 'sh', '-c', frontendRuntimeScript('''
       pnpm run format
+      if [ -d ../spark-yun-vip/spark-yun-frontend/src ]; then
+        pnpm exec prettier --write ../spark-yun-vip/spark-yun-frontend/src
+        pnpm run type-check:vip
+      fi
       pnpm run lint
       pnpm run type-check
     ''')
@@ -97,6 +102,10 @@ tasks.register('npmBuild', Exec) {
     inputs.files(
         fileTree('src'),
         fileTree('public'),
+        fileTree(vipFrontendDir) {
+            include 'README.md'
+            include 'src/**'
+        },
         fileTree(projectDir) {
             include 'index.html'
             include '.env*'
@@ -113,7 +122,13 @@ tasks.register('npmBuild', Exec) {
     outputs.dir(frontendDist)
 
     workingDir projectDir
-    commandLine 'sh', '-c', frontendRuntimeScript('pnpm run build')
+    commandLine 'sh', '-c', frontendRuntimeScript('''
+      if [ -d ../spark-yun-vip/spark-yun-frontend/src/edition ]; then
+        pnpm run build:vip
+      else
+        pnpm run build
+      fi
+    ''')
 }
 
 // Aggregate task used by the distribution build.

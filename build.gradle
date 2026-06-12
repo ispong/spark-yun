@@ -262,11 +262,11 @@ tasks.register('frontend', Exec) {
     commandLine 'sh', '-c', '''
       set -e
       if command -v node >/dev/null 2>&1 && [ "$(node --version | sed 's/^v//')" = "22.22.3" ]; then
-        pnpm run dev --host
+        pnpm run dev:vip --host
       elif command -v fnm >/dev/null 2>&1; then
-        fnm exec --using 22.22.3 sh -lc 'pnpm run dev --host'
+        fnm exec --using 22.22.3 sh -lc 'pnpm run dev:vip --host'
       else
-        pnpm run dev --host
+        pnpm run dev:vip --host
       fi
     '''
 }
