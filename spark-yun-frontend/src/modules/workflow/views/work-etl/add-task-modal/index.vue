@@ -29,7 +29,7 @@
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList } from '@/services/computer-group.service'
+import { GetComputerGroupList } from '@/modules/computer-group/api'
 import TaskConfig from '../task-config/index.vue'
 
 interface FormData {

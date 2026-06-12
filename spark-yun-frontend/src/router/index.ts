@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, type RouteLocationRaw, type RouteRecordRaw } from 'vue-router'
-import Home from '../views/home/home'
+import Home from '@/app/views/home/home'
 import { editionWorkspaceRoutes } from '@edition'
 import { useAuthStore } from '@/store/useAuth'
 import adminRoutes from '@/modules/admin/routes'
@@ -9,11 +9,11 @@ import { shareReportRoute } from '@/modules/report'
 import workspaceRoutes from '@/modules/workspace/routes'
 import { setupRouterGuard } from './guard'
 
-const Login = () => import('../views/login/login')
-const Ssoauth = () => import('../views/login/ssoauth')
-const ShareForm = () => import('../views/share-form/index.vue')
-const Forbidden = () => import('@/views/system/forbidden.vue')
-const NoTenant = () => import('@/views/system/no-tenant.vue')
+const Login = () => import('@/app/views/login/login')
+const Ssoauth = () => import('@/app/views/login/ssoauth')
+const ShareForm = () => import('@/modules/custom-form/views/share-form-page/index.vue')
+const Forbidden = () => import('@/app/views/system/forbidden.vue')
+const NoTenant = () => import('@/app/views/system/no-tenant.vue')
 
 const managementRoutes = new Set([
     'tenant-user',

@@ -186,7 +186,7 @@ import {
     SaveWorkItemConfig,
     TerWorkItemConfig
 } from '@/modules/workflow/api'
-import { GetFileCenterList } from '@/services/file-center.service'
+import { GetFileCenterList } from '@/modules/file-center/api'
 import { ElMessage, ElMessageBox, ElInput, FormRules } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { Loading } from '@element-plus/icons-vue'

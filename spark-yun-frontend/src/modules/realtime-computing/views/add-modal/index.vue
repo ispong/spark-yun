@@ -27,8 +27,8 @@
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList, GetComputerPointData } from '@/services/computer-group.service'
-import { GetDatasourceList } from '@/services/datasource.service'
+import { GetComputerGroupList, GetComputerPointData } from '@/modules/computer-group/api'
+import { GetDatasourceList } from '@/modules/datasource/api'
 
 const form = ref<FormInstance>()
 const callback = ref<any>()

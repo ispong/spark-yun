@@ -83,8 +83,8 @@
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList } from '@/services/computer-group.service'
-import { GetDatasourceList } from '@/services/datasource.service'
+import { GetComputerGroupList } from '@/modules/computer-group/api'
+import { GetDatasourceList } from '@/modules/datasource/api'
 import { GetDataSourceTables } from '@/shared/api'
 
 interface Option {

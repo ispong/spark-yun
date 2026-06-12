@@ -70,7 +70,7 @@ import {
     UnderlineWorkflowData,
     PublishWorkflowData
 } from '@/modules/workflow/api'
-import { CheckLicenseStatus } from '@/services/license.service'
+import { CheckLicenseStatus } from '@/modules/license/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/useAuth'

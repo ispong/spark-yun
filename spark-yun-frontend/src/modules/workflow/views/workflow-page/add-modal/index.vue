@@ -150,9 +150,9 @@
 import { reactive, defineExpose, ref, nextTick, computed } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList, GetComputerPointData } from '@/services/computer-group.service'
-import { GetDatasourceList } from '@/services/datasource.service'
-import { GetSparkContainerList } from '@/services/spark-container.service'
+import { GetComputerGroupList, GetComputerPointData } from '@/modules/computer-group/api'
+import { GetDatasourceList } from '@/modules/datasource/api'
+import { GetSparkContainerList } from '@/modules/spark-container/api'
 import { TypeList } from '../../workflow.config'
 import { getVipLicenseEnabled } from '@/utils/vip-license'
 

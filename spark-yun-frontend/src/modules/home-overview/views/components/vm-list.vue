@@ -71,10 +71,10 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import VmStatus from './vm-status.vue'
 import PersonTag from './person-tag.vue'
 import { ComputeInstance, queryComputeInstances } from '../services/computer-group'
-import DagDetail from '@/views/schedule/dag-detail/index.vue'
+import DagDetail from '@/modules/schedule/views/dag-detail/index.vue'
 import { ReRunWorkflow } from '@/modules/workflow/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { DeleteWorkFlowScheduleLog } from '@/services/schedule.service'
+import { DeleteWorkFlowScheduleLog } from '@/modules/schedule/api'
 
 const keyWord = ref('')
 

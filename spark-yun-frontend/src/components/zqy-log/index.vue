@@ -18,7 +18,7 @@ import { reactive, ref, onUnmounted } from 'vue'
 import BlockModal from '../block-modal/index.vue'
 import BlockTable from '../block-table/index.vue'
 
-import { GetLogData, GetYarnLogData, GetResultData } from '@/services/schedule.service'
+import { GetLogData, GetYarnLogData, GetResultData } from '@/modules/schedule/api'
 
 const callback = ref<any>()
 const logMsg = ref('')

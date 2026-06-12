@@ -212,7 +212,7 @@ import {
     TerWorkItemConfig
 } from '@/modules/workflow/api'
 import { DataSourceType } from './data.config.ts'
-import { GetDatasourceList } from '@/services/datasource.service'
+import { GetDatasourceList } from '@/modules/datasource/api'
 import TableList from './table-list/index.vue'
 
 import PublishLog from '../work-item/publish-log.vue'

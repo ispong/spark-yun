@@ -8,8 +8,6 @@ This project keeps open-source code, shared runtime code, and edition-specific e
 - `src/modules`: feature modules. Each module should own its `api`, `views`, `routes`, and local config.
 - `src/shared`: reusable APIs, hooks, and utilities that are intentionally shared by multiple modules.
 - `src/edition`: edition extension points. Open-source builds keep default implementations here; `spark-yun-vip` can override or extend them through aliases or file replacement.
-- `src/services`: compatibility facade only. New code should import from `src/app`, `src/modules`, or `src/shared` instead.
-- `src/views`: compatibility facade for migrated pages and remaining app-level pages such as login and system fallback pages.
 
 ## Import Rules
 
@@ -32,7 +30,9 @@ Use `@/app` for app-level concerns:
 import { LoginUserInfo } from '@/app/api'
 ```
 
-Avoid adding new implementation code under `src/services` or migrated `src/views/*` directories. Those paths exist to keep older imports and VIP code working during the transition.
+`src/services` has been removed. Do not recreate it; import APIs from their owning layer instead.
+
+`src/views` has been removed. App-level pages live under `src/app/views`, and feature pages live under their owning `src/modules/*/views` directory.
 
 ## Edition Split
 

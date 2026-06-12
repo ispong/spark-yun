@@ -324,7 +324,7 @@ import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 // import CodeMirror from 'vue-codemirror6'
 import { sql } from '@codemirror/lang-sql'
 import { DataSourceType, OverModeList } from './data.config.ts'
-import { GetDatasourceList } from '@/services/datasource.service'
+import { GetDatasourceList } from '@/modules/datasource/api'
 import {
     CreateTableWork,
     GetDataSourceTables,

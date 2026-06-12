@@ -399,14 +399,14 @@ and col3= '${c}' and col4= '${d}' and col5= '${e}' and col6= '${f}' and col7= '$
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetDatasourceList } from '@/services/datasource.service'
-import { GetComputerGroupList } from '@/services/computer-group.service'
+import { GetDatasourceList } from '@/modules/datasource/api'
+import { GetComputerGroupList } from '@/modules/computer-group/api'
 // import CodeMirror from 'vue-codemirror6'
 import { json } from '@codemirror/lang-json'
 import { jsonFormatter } from '@/utils/formatter'
 import { sql } from '@codemirror/lang-sql'
 import { GetCustomApiDetailData, TestCustomApiData } from '@/modules/custom-api/api'
-import { QueryAccessRuleList } from '@/services/access-rule.service'
+import { QueryAccessRuleList } from '@/modules/access-rule/api'
 import Clipboard from 'clipboard'
 
 interface Option {

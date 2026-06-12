@@ -152,7 +152,7 @@ import {
     PublishReportComponentData
 } from '../../../api'
 import { useRoute, useRouter } from 'vue-router'
-import { GetDatasourceList } from '@/services/datasource.service'
+import { GetDatasourceList } from '@/modules/datasource/api'
 
 const route = useRoute()
 const router = useRouter()

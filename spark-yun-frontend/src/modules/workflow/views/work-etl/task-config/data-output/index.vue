@@ -54,7 +54,7 @@
 import { ref, defineProps, defineEmits, computed, onMounted, reactive, nextTick, watch } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { TypeList, ConfigRules, TableConfig, OverModeList } from './config.ts'
-import { GetDatasourceList } from '@/services/datasource.service'
+import { GetDatasourceList } from '@/modules/datasource/api'
 import { GetDataSourceTables } from '@/shared/api'
 import TableDetail from '../data-input/table-detail/index.vue'
 

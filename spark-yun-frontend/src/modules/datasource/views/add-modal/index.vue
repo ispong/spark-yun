@@ -164,7 +164,7 @@ import { reactive, defineExpose, ref, nextTick, computed } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
-import { GetDefaultDriverData, GetDriverListData } from '@/services/driver-management.service'
+import { GetDefaultDriverData, GetDriverListData } from '@/modules/driver-management/api'
 import { TestDatasourceData } from '@/modules/datasource/api'
 import { getVipLicenseEnabled } from '@/utils/vip-license'
 

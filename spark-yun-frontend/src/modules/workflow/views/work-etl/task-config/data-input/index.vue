@@ -76,11 +76,11 @@
 import { ref, defineProps, defineEmits, computed, onMounted, reactive, nextTick } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { TypeList, ConfigRules, TableConfig } from './config.ts'
-import { GetDatasourceList } from '@/services/datasource.service'
+import { GetDatasourceList } from '@/modules/datasource/api'
 import { GetDataSourceTables, GetTableColumnsByTableId } from '@/shared/api'
 import TableDetail from './table-detail/index.vue'
-import RemarkModal from '@/views/metadata-page/metadata-management/remark-modal/index.vue'
-import { CodeRemarkEdit } from '@/services/metadata-page.service'
+import RemarkModal from '@/modules/metadata-page/views/metadata-management/remark-modal/index.vue'
+import { CodeRemarkEdit } from '@/modules/metadata-page/api'
 
 interface Option {
     label: string

@@ -100,7 +100,7 @@ import Breadcrumb from '@/layout/bread-crumb/index.vue'
 import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
-import ShowLog from '@/views/computer-group/computer-pointer/show-log/index.vue'
+import ShowLog from '@/modules/computer-group/views/computer-pointer/show-log/index.vue'
 
 import { BreadCrumbList, TableConfig, FormData, typeList } from './datasource.config'
 import {

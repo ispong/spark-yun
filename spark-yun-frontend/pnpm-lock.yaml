@@ -80,6 +80,9 @@ importers:
       qs:
         specifier: ^6.15.2
         version: 6.15.2
+      validator:
+        specifier: ^13.15.35
+        version: 13.15.35
       vue:
         specifier: 3.5.38
         version: 3.5.38(typescript@5.9.3)
@@ -120,6 +123,9 @@ importers:
       '@types/node':
         specifier: 22.19.21
         version: 22.19.21
+      '@types/validator':
+        specifier: ^13.15.10
+        version: 13.15.10
       '@vitejs/plugin-vue':
         specifier: 6.0.7
         version: 6.0.7(vite@8.0.16(@types/node@22.19.21)(sass@1.101.0)(terser@5.41.0))(vue@3.5.38(typescript@5.9.3))
@@ -1056,6 +1062,9 @@ packages:
 
   '@types/tough-cookie@4.0.5':
     resolution: {integrity: sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==}
+
+  '@types/validator@13.15.10':
+    resolution: {integrity: sha512-T8L6i7wCuyoK8A/ZeLYt1+q0ty3Zb9+qbSSvrIVitzT3YjZqkTZ40IbRsPanlB4h1QB3JVL1SYCdR6ngtFYcuA==}
 
   '@types/web-bluetooth@0.0.21':
     resolution: {integrity: sha512-oIQLCGWtcFZy2JW77j9k8nHzAOpqMHLQejDA48XXMWH6tjCQHz5RCFz1bzsmROyL6PUm+LLnUiI4BCn221inxA==}
@@ -2694,6 +2703,10 @@ packages:
     resolution: {integrity: sha512-6Z7Ma2aVEWisaL6TvBCy7P8rm2LQoPv6dJ7ecIaIixHcwfbJ0x7mWdbcwlIM5IGQxPZSFYeqRCqlOOeKoJYMkw==}
     engines: {node: '>= 4'}
 
+  validator@13.15.35:
+    resolution: {integrity: sha512-TQ5pAGhd5whStmqWvYF4OjQROlmv9SMFVt37qoCBdqRffuuklWYQlCNnEs2ZaIBD1kZRNnikiZOS1eqgkar0iw==}
+    engines: {node: '>= 0.10'}
+
   vite-plugin-static-copy@3.4.0:
     resolution: {integrity: sha512-ekryzCw0ouAOE8tw4RvVL/dfqguXzumsV3FBKoKso4MQ1MUUrUXtl5RI4KpJQUNGqFEsg9kxl4EvDl02YtA9VQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -3991,6 +4004,8 @@ snapshots:
       undici-types: 6.21.0
 
   '@types/tough-cookie@4.0.5': {}
+
+  '@types/validator@13.15.10': {}
 
   '@types/web-bluetooth@0.0.21': {}
 
@@ -5656,6 +5671,8 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   utility-types@3.11.0: {}
+
+  validator@13.15.35: {}
 
   vite-plugin-static-copy@3.4.0(vite@8.0.16(@types/node@22.19.21)(sass@1.101.0)(terser@5.41.0)):
     dependencies:

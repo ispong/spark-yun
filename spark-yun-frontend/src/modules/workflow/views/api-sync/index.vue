@@ -548,12 +548,12 @@ import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { sql } from '@codemirror/lang-sql'
 import { json } from '@codemirror/lang-json'
 import { OverModeList } from './data.config.ts'
-import { GetDatasourceList } from '@/services/datasource.service'
+import { GetDatasourceList } from '@/modules/datasource/api'
 import { GetDataSourceTables, GetTableColumnsByTableId } from '@/shared/api'
 import TableDetail from './table-detail/index.vue'
 import DataSyncTable from './data-sync-table/index.vue'
 import ConfigDetail from '../workflow-page/config-detail/index.vue'
-import { GetJsonArrayNodeList, GetTopicDataList } from '@/services/realtime-computing.service.ts'
+import { GetJsonArrayNodeList, GetTopicDataList } from '@/modules/realtime-computing/api'
 import {
     GetApiDataPreview,
     GetLineageWorkItemConfig,

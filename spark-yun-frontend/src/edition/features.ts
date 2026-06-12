@@ -1,5 +1,5 @@
-import type { Menu } from '@/views/home/menu.config'
-import { CheckLicenseStatus } from '@/services/license.service'
+import type { Menu } from '@/app/views/home/menu.config'
+import { CheckLicenseStatus } from '@/modules/license/api'
 
 const COMMERCIAL_MENU_CODE_SET = new Set([
     // 免密登录

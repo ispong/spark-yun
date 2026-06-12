@@ -84,7 +84,7 @@ import { GetTableColumnsByTableId } from '@/shared/api'
 import { ElMessageBox } from 'element-plus'
 import AddCode from '../add-code/index.vue'
 import { useAuthStore } from '@/store/useAuth'
-import { GetJsonParamNodeList } from '@/services/realtime-computing.service'
+import { GetJsonParamNodeList } from '@/modules/realtime-computing/api'
 
 interface connect {
     source: string

@@ -151,7 +151,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 import eventBus from '@/utils/eventBus'
 import { useAuthStore } from '@/store/useAuth'
-import { GetUserInfoList } from '@/services/tenant-user.service'
+import { GetUserInfoList } from '@/modules/tenant-user/api'
 
 interface FormTenant {
     adminUserId?: string

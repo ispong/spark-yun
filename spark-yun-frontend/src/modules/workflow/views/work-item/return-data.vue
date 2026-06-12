@@ -11,7 +11,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, defineEmits, defineProps } from 'vue'
 import BlockTable from '@/components/block-table/index.vue'
-import { GetResultData } from '@/services/schedule.service'
+import { GetResultData } from '@/modules/schedule/api'
 import LoadingPage from '@/components/loading/index.vue'
 import { getVipLicenseEnabled } from '@/utils/vip-license'
 
