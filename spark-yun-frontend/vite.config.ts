@@ -7,7 +7,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 
 // 读取VERSION文件
 const version = readFileSync('../VERSION', 'utf-8').trim()
@@ -44,13 +44,28 @@ function getAntvChunk(id: string) {
   return 'antv-common'
 }
 
+const openSourceEditionRoot = fileURLToPath(new URL('./src/edition', import.meta.url))
+const vipFrontendRoot = fileURLToPath(new URL('../spark-yun-vip/spark-yun-frontend', import.meta.url))
+const vipEditionRoot = fileURLToPath(new URL('../spark-yun-vip/spark-yun-frontend/src/edition', import.meta.url))
+
+function dependencyPath(pkg: string) {
+  return fileURLToPath(new URL(`./node_modules/${pkg}`, import.meta.url))
+}
+
+function getEditionRoot(mode: string) {
+  return mode === 'vip' && existsSync(vipEditionRoot) ? vipEditionRoot : openSourceEditionRoot
+}
+
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   define: {
     __APP_VERSION__: JSON.stringify(version)
   },
   server: {
-    host: '0.0.0.0'
+    host: '0.0.0.0',
+    fs: {
+      allow: ['.', vipFrontendRoot]
+    }
   },
   plugins: [
     vue(),
@@ -137,8 +152,13 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@core': fileURLToPath(new URL('./src', import.meta.url)),
-      '@edition': fileURLToPath(new URL('./src/edition', import.meta.url)),
+      '@edition': getEditionRoot(mode),
       '@shared': fileURLToPath(new URL('./src/shared', import.meta.url)),
+      'element-plus': dependencyPath('element-plus'),
+      '@element-plus/icons-vue': dependencyPath('@element-plus/icons-vue'),
+      '@codemirror/lang-json': dependencyPath('@codemirror/lang-json'),
+      '@codemirror/lang-sql': dependencyPath('@codemirror/lang-sql'),
+      clipboard: dependencyPath('clipboard'),
       '@antv/x6': '@antv/x6/lib',
       '@antv/x6-vue-shape': '@antv/x6-vue-shape/lib'
     },
@@ -165,4 +185,4 @@ export default defineConfig({
       }
     }
   }
-})
+}))

@@ -1,6 +1,5 @@
 import { accessRuleRoutes } from '@/modules/access-rule'
 import { computerGroupRoutes } from '@/modules/computer-group'
-import { customApiRoutes } from '@/modules/custom-api'
 import { customFormRoutes } from '@/modules/custom-form'
 import { customFuncRoutes } from '@/modules/custom-func'
 import { dataPlanningRoutes } from '@/modules/data-planning'
@@ -28,7 +27,6 @@ export default [
     ...scheduleRoutes,
     ...customFormRoutes,
     ...accessRuleRoutes,
-    ...customApiRoutes,
     ...sparkContainerRoutes,
     ...customFuncRoutes,
     ...libPackageRoutes,
