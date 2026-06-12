@@ -39,6 +39,10 @@ spring:
   banner:
     location: classpath:logo.txt
 
+  groovy:
+    template:
+      check-template-location: false
+
   datasource:
     druid:
       initial-size: 10

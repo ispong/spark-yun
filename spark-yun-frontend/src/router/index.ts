@@ -68,7 +68,9 @@ function defaultRoute(): RouteLocationRaw {
 const routes: Array<RouteRecordRaw> = [
     {
         path: '/',
-        redirect: defaultRoute
+        redirect: {
+            name: 'login'
+        }
     },
     {
         path: '/ssoauth',
