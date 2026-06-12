@@ -63,7 +63,7 @@ const statusMap = ref<any>({
 
 const props = withDefaults(
     defineProps<{
-        status: string
+        status?: string
     }>(),
     {
         status: 'SUCCESS'

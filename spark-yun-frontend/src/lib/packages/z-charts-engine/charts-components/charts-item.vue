@@ -11,7 +11,12 @@
 import { ref, defineProps, onMounted, computed, onUnmounted, defineEmits, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
 
-const props = defineProps(['config', 'renderSence', 'getPreviewOption', 'getRealDataOption'])
+const props = defineProps<{
+    config?: any
+    renderSence?: any
+    getPreviewOption?: any
+    getRealDataOption?: any
+}>()
 const emit = defineEmits(['removeChart'])
 let myChart: any = null
 

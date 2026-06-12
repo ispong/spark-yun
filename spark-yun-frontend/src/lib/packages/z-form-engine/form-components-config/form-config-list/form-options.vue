@@ -56,7 +56,10 @@ const rules = ref([
         trigger: ['blur', 'change']
     }
 ])
-const props = defineProps(['modelValue', 'formConfig'])
+const props = defineProps<{
+    modelValue?: any
+    formConfig?: any
+}>()
 const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {

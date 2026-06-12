@@ -54,12 +54,12 @@ export default class ResizeEngine {
 
     // 获取鼠标所在div的位置
     getDirection(ev: any): string {
-        let xP, yP, offset, dir
+        let dir
         dir = ''
 
-        xP = ev.offsetX
-        yP = ev.offsetY
-        offset = 10
+        const xP = ev.offsetX
+        const yP = ev.offsetY
+        const offset = 10
 
         if (yP < offset) {
             dir += 'n'

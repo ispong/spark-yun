@@ -20,7 +20,7 @@ const statusMap = ref({
 
 const props = withDefaults(
     defineProps<{
-        status: VmData['status']
+        status?: VmData['status']
     }>(),
     {
         status: 'SUCCESS'

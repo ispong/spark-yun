@@ -58,14 +58,14 @@ import draggable from 'vuedraggable'
 import FormInstance from './form-instance'
 import { ComponentInstance } from '../form-engine.interface'
 
-const props = defineProps([
-    'modelValue',
-    'componentList',
-    'currentInstance',
-    'isDragger',
-    'renderSence',
-    'movingInstance'
-])
+const props = defineProps<{
+    modelValue?: any
+    componentList?: any
+    currentInstance?: any
+    isDragger?: any
+    renderSence?: any
+    movingInstance?: any
+}>()
 const emit = defineEmits(['update:modelValue', 'componentListChange', 'chooseItem', 'removeInstance'])
 const formInstance = shallowRef<any>(FormInstance)
 const chooseItemData = ref<ComponentInstance>({})

@@ -247,7 +247,16 @@ tasks.register('frontend', Exec) {
     dependsOn(':spark-yun-frontend:pnpmInstall')
 
     workingDir 'spark-yun-frontend'
-    commandLine 'pnpm', 'run', 'dev', '--host'
+    commandLine 'sh', '-c', '''
+      set -e
+      if command -v node >/dev/null 2>&1 && [ "$(node --version | sed 's/^v//')" = "22.22.3" ]; then
+        pnpm run dev --host
+      elif command -v fnm >/dev/null 2>&1; then
+        fnm exec --using 22.22.3 sh -lc 'pnpm run dev --host'
+      else
+        pnpm run dev --host
+      fi
+    '''
 }
 
 tasks.register('backend') {

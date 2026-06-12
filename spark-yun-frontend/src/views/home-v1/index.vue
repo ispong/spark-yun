@@ -52,8 +52,7 @@ const select = (e: string) => {
 
 onMounted(() => {
     const menuList = menuListData.filter((menu) => menu.authType?.includes(authStore.role || 'ROLE_TENANT_MEMBER'))
-    let urlMenu: string
-    urlMenu = route.name
+    const urlMenu = route.name
     const status = menuList.find((menu) => menu.code === urlMenu)
     // if (!state.currentMenu.value) {
     if (!status) {

@@ -22,7 +22,12 @@ const validateAssetValue = (value: string): string => {
     return value && isNaN(valueNum) ? '' : val
 }
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'isDragger'])
+const props = defineProps<{
+    renderSence?: any
+    modelValue?: any
+    formConfig?: any
+    isDragger?: any
+}>()
 const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {

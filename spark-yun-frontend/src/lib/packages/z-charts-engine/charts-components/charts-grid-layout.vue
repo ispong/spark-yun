@@ -79,7 +79,12 @@ interface DragPos {
     h: number
     i: string
 }
-const props = defineProps(['renderSence', 'chartList', 'getPreviewOption', 'getRealDataOption'])
+const props = defineProps<{
+    renderSence?: any
+    chartList?: any
+    getPreviewOption?: any
+    getRealDataOption?: any
+}>()
 
 const emit = defineEmits(['update:modelValue', 'componentListChange', 'chooseItem', 'removeInstance'])
 const colNum = ref(300)

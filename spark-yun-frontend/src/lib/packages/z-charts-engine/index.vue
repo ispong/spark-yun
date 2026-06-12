@@ -26,14 +26,14 @@ import { ref, defineProps, defineEmits } from 'vue'
 import ChartsChoose from './charts-choose/index.vue'
 import ChartsComponents from './charts-components/charts-grid-layout.vue'
 
-const props = defineProps([
-    'chartsList',
-    'renderSence',
-    'componentList',
-    'getPreviewOption',
-    'getRealDataOption',
-    'showReportComponentsBtn'
-])
+const props = defineProps<{
+    chartsList?: any
+    renderSence?: any
+    componentList?: any
+    getPreviewOption?: any
+    getRealDataOption?: any
+    showReportComponentsBtn?: any
+}>()
 const emit = defineEmits(['getChartListEvent', 'previewChatEvent', 'goReportComponentsEvent'])
 
 const chartComponentsRef = ref()

@@ -35,7 +35,12 @@ const checkPhone = (rule: any, value: any, callback: any) => {
     }
 }
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'isDragger'])
+const props = defineProps<{
+    renderSence?: any
+    modelValue?: any
+    formConfig?: any
+    isDragger?: any
+}>()
 const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {

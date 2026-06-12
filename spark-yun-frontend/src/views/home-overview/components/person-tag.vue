@@ -7,8 +7,8 @@
 <script setup lang="ts">
 const props = withDefaults(
     defineProps<{
-        personName: string
-        personUrl: string
+        personName?: string
+        personUrl?: string
     }>(),
     {
         personName: '',

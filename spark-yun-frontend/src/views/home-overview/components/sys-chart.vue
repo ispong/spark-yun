@@ -23,7 +23,7 @@ echarts.use([GaugeChart, CanvasRenderer])
 
 const props = withDefaults(
     defineProps<{
-        chartData: ChartInfo
+        chartData?: ChartInfo
     }>(),
     {
         chartData: () => ({}) as ChartInfo

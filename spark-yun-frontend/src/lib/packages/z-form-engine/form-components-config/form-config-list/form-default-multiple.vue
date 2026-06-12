@@ -29,7 +29,11 @@
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed, watch, nextTick } from 'vue'
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig'])
+const props = defineProps<{
+    renderSence?: any
+    modelValue?: any
+    formConfig?: any
+}>()
 const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {

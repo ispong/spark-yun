@@ -24,7 +24,10 @@ import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { ElIcon } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 
-const props = defineProps(['params', 'loading'])
+const props = defineProps<{
+    params?: any
+    loading?: any
+}>()
 
 const ownerText = computed(() => {
     const owner = props.params?.createUsername || '-'

@@ -45,7 +45,12 @@ interface Option {
     maxlength?: number
 }
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'getTableCodesMethod'])
+const props = defineProps<{
+    renderSence?: any
+    modelValue?: any
+    formConfig?: any
+    getTableCodesMethod?: any
+}>()
 const emit = defineEmits(['update:modelValue', 'formConfigChange'])
 const formData = computed({
     get() {

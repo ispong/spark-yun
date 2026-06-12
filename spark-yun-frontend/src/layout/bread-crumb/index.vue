@@ -25,7 +25,7 @@ interface BreadCrumb {
 
 const props: any = withDefaults(
     defineProps<{
-        breadCrumbList: any
+        breadCrumbList?: any
     }>(),
     {
         breadCrumbList: []

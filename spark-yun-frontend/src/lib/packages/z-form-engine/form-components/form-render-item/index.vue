@@ -21,7 +21,14 @@
 import { defineProps, computed, defineEmits } from 'vue'
 
 const emit = defineEmits(['removeInstance'])
-const props = defineProps(['renderSence', 'formData', 'formConfig', 'isDragger', 'rules', 'customRules'])
+const props = defineProps<{
+    renderSence?: any
+    formData?: any
+    formConfig?: any
+    isDragger?: any
+    rules?: any
+    customRules?: any
+}>()
 const componentWidth = computed(() => {
     return `${props.formConfig.width * 25}%`
 })

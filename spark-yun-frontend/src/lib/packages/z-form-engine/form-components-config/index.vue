@@ -32,7 +32,13 @@ import { defineProps, defineEmits, computed, ref, shallowRef, markRaw } from 'vu
 import FormSetConfig from './form-set-config'
 import FormConfigConmponents from './form-config-components'
 
-const props = defineProps(['modelValue', 'configList', 'formConfig', 'getTableCodesMethod', 'isAutoCreateTable'])
+const props = defineProps<{
+    modelValue?: any
+    configList?: any
+    formConfig?: any
+    getTableCodesMethod?: any
+    isAutoCreateTable?: any
+}>()
 const emit = defineEmits(['update:modelValue', 'componentListChange', 'formConfigChange'])
 const formData = computed({
     get() {

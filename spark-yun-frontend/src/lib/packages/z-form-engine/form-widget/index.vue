@@ -97,7 +97,9 @@ const guid_8 = function () {
     return S4() + S4() + S4()
 }
 
-const props = defineProps(['modelValue'])
+const props = defineProps<{
+    modelValue?: any
+}>()
 const emit = defineEmits(['add-form-item', 'dbclick-add', 'removeInstance', 'update:modelValue'])
 const currentItem = ref<ComponentInstance>()
 const formComponents = ref(FormComponents)

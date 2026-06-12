@@ -55,14 +55,15 @@ const props = withDefaults(
         modelValue: any
         isDragger?: boolean
         isAutoCreateTable?: boolean
-        formConfigList: ComponentInstance[]
+        formConfigList?: ComponentInstance[]
         getTableCodesMethod?: Function
     }>(),
     {
         renderSence: 'new',
         isDragger: false,
         isAutoCreateTable: false,
-        formConfigList: () => []
+        formConfigList: () => [],
+        getTableCodesMethod: undefined
     }
 )
 const emit = defineEmits(['update:modelValue'])

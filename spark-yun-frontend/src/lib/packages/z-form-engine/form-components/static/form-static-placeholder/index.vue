@@ -12,7 +12,12 @@
 import { defineProps, defineEmits, computed, ref, watch } from 'vue'
 import FormRenderItem from '../../form-render-item/index.vue'
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'isDragger'])
+const props = defineProps<{
+    renderSence?: any
+    modelValue?: any
+    formConfig?: any
+    isDragger?: any
+}>()
 </script>
 
 <style lang="scss">

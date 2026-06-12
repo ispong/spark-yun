@@ -15,7 +15,12 @@
 import CodeMirror from 'vue-codemirror6'
 import { defineProps, defineEmits, computed, ref, onMounted, nextTick } from 'vue'
 
-const props = defineProps(['modelValue', 'lang', 'placeholder', 'disabled'])
+const props = defineProps<{
+    modelValue?: any
+    lang?: any
+    placeholder?: any
+    disabled?: any
+}>()
 const emit = defineEmits(['update:modelValue', 'change'])
 
 const formData = computed({

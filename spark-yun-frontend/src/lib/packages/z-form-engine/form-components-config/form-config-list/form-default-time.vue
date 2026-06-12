@@ -7,7 +7,9 @@
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed } from 'vue'
 
-const props = defineProps(['modelValue'])
+const props = defineProps<{
+    modelValue?: any
+}>()
 const emit = defineEmits(['update:modelValue'])
 const formData = computed({
     get() {

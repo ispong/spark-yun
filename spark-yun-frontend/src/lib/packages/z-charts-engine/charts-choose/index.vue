@@ -41,7 +41,10 @@ import { ref, defineEmits, nextTick, defineProps } from 'vue'
 import EmptyPage from '../empty-page/index.vue'
 import EllipsisTooltip from '../ellipsis-tooltip/charts-ellipsis-tooltip.vue'
 
-const props = defineProps(['chartsList', 'showReportComponentsBtn'])
+const props = defineProps<{
+    chartsList?: any
+    showReportComponentsBtn?: any
+}>()
 const emit = defineEmits([
     'endMoveEvent',
     'startMoveEvent',
