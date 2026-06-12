@@ -1,0 +1,280 @@
+<template>
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
+    <div class="zqy-seach-table">
+        <div class="zqy-table-top">
+            <el-button type="primary" @click="addData">新建用户</el-button>
+            <div class="zqy-seach">
+                <el-input
+                    v-model="keyword"
+                    placeholder="请输入用户名/手机号/邮箱 回车进行搜索"
+                    :maxlength="200"
+                    clearable
+                    @input="inputEvent"
+                    @keyup.enter="initData(false)"
+                />
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+            <div class="zqy-table">
+                <BlockTable
+                    :table-config="tableConfig"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                >
+                    <template #account="scopeSlot">
+                        <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.account }}</span>
+                    </template>
+                    <template #statusTag="scopeSlot">
+                        <div class="btn-group">
+                            <el-tag v-if="scopeSlot.row.status === 'ENABLE'" class="ml-2" type="success">启用</el-tag>
+                            <el-tag v-if="scopeSlot.row.status === 'DISABLE'" class="ml-2" type="danger">禁用</el-tag>
+                        </div>
+                    </template>
+                    <template #platformAdmin="scopeSlot">
+                        <el-tag v-if="scopeSlot.row.platformAdmin" type="warning">平台管理员</el-tag>
+                        <span v-else>-</span>
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group">
+                            <template v-if="scopeSlot.row.status === 'ENABLE'">
+                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, false)">
+                                    禁用
+                                </span>
+                                <el-icon v-else class="is-loading">
+                                    <Loading />
+                                </el-icon>
+                            </template>
+                            <template v-else>
+                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, true)">
+                                    启用
+                                </span>
+                                <el-icon v-else class="is-loading">
+                                    <Loading />
+                                </el-icon>
+                            </template>
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item @click="changePassword(scopeSlot.row)">
+                                            修改密码
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="authStore.userInfo?.systemAdmin && !scopeSlot.row.platformAdmin"
+                                            @click="changePlatformAdmin(scopeSlot.row, true)"
+                                        >
+                                            设为平台管理员
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.platformAdmin"
+                                            @click="changePlatformAdmin(scopeSlot.row, false)"
+                                        >
+                                            取消平台管理员
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </template>
+                </BlockTable>
+            </div>
+        </LoadingPage>
+        <AddModal ref="addModalRef" />
+        <PasswordModal ref="passwordModalRef" />
+    </div>
+</template>
+
+<script lang="ts" setup>
+import { reactive, ref, onMounted } from 'vue'
+import Breadcrumb from '@/layout/bread-crumb/index.vue'
+import BlockTable from '@/components/block-table/index.vue'
+import LoadingPage from '@/components/loading/index.vue'
+import AddModal from './add-modal/index.vue'
+import PasswordModal from './password-modal/index.vue'
+
+import { BreadCrumbList, TableConfig } from './user-center.config'
+import {
+    GetUserCenterList,
+    DisableUser,
+    EnableUser,
+    DeleteUser,
+    AddUserData,
+    UpdateUserData,
+    UpdateUserPassword,
+    SetPlatformAdmin
+} from '@/modules/user-center/api'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useAuthStore } from '@/store/useAuth'
+
+interface FormUser {
+    account: string
+    email: string
+    passwd?: string
+    phone: string
+    remark: string
+    username: string
+    id?: string
+}
+
+const breadCrumbList = reactive(BreadCrumbList)
+const tableConfig: any = reactive(TableConfig)
+const keyword = ref('')
+const loading = ref(false)
+const networkError = ref(false)
+const addModalRef = ref(null)
+const passwordModalRef = ref(null)
+const authStore = useAuthStore()
+
+function initData(tableLoading?: boolean) {
+    loading.value = tableLoading ? false : true
+    networkError.value = networkError.value || false
+    GetUserCenterList({
+        page: tableConfig.pagination.currentPage - 1,
+        pageSize: tableConfig.pagination.pageSize,
+        searchKeyWord: keyword.value
+    })
+        .then((res: any) => {
+            tableConfig.tableData = res.data.content
+            tableConfig.pagination.total = res.data.totalElements ?? res.data.total ?? res.data.content?.length ?? 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
+        })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
+}
+
+function addData() {
+    addModalRef.value.showModal((formData: FormUser) => {
+        return new Promise((resolve: any, reject: any) => {
+            AddUserData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
+        })
+    })
+}
+
+function editData(data: any) {
+    addModalRef.value.showModal((formData: FormUser) => {
+        return new Promise((resolve: any, reject: any) => {
+            UpdateUserData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
+        })
+    }, data)
+}
+
+function changePassword(data: any) {
+    passwordModalRef.value.showModal((formData: any) => {
+        return new Promise((resolve: any, reject: any) => {
+            UpdateUserPassword(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
+        })
+    }, data)
+}
+
+function changePlatformAdmin(data: any, platformAdmin: boolean) {
+    SetPlatformAdmin({
+        userId: data.id,
+        platformAdmin
+    }).then((res: any) => {
+        ElMessage.success(res.msg)
+        initData(true)
+    })
+}
+
+// 启用 or 禁用
+function changeStatus(data: any, status: boolean) {
+    data.statusLoading = true
+    if (status) {
+        EnableUser({
+            userId: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                data.statusLoading = false
+                initData(true)
+            })
+            .catch(() => {
+                data.statusLoading = false
+            })
+    } else {
+        DisableUser({
+            userId: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                data.statusLoading = false
+                initData(true)
+            })
+            .catch(() => {
+                data.statusLoading = false
+            })
+    }
+}
+
+// 删除
+function deleteData(data: any) {
+    ElMessageBox.confirm('确定删除该成员吗？', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        DeleteUser({
+            userId: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch(() => {})
+    })
+}
+
+function inputEvent(e: string) {
+    if (e === '') {
+        initData()
+    }
+}
+
+function handleSizeChange(e: number) {
+    tableConfig.pagination.pageSize = e
+    initData()
+}
+
+function handleCurrentChange(e: number) {
+    tableConfig.pagination.currentPage = e
+    initData()
+}
+
+onMounted(() => {
+    tableConfig.pagination.currentPage = 1
+    tableConfig.pagination.pageSize = 10
+    initData()
+})
+</script>

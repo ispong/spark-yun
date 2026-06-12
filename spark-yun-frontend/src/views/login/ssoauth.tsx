@@ -1,5 +1,5 @@
 import { defineComponent, nextTick } from 'vue'
-import { OauthLogin } from '@/services/login.service'
+import { OauthLogin } from '@/app/api'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/store/useAuth'

@@ -76,7 +76,7 @@
 import { inject, onMounted, ref } from 'vue'
 import { ElIcon, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus'
 import { MoreFilled, Loading, Clock, VideoPause } from '@element-plus/icons-vue'
-import { RunAfterFlowData } from '@/services/workflow.service'
+import { RunAfterFlowData } from '@/modules/workflow/api'
 import eventBus from '@/utils/eventBus'
 
 const getGraph = inject('getGraph')

@@ -50,7 +50,7 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
 import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { ChangeTenantData, QueryTenantList } from '@/services/login.service'
+import { ChangeTenantData, QueryTenantList } from '@/app/api'
 import { CheckLicenseStatus } from '@/services/license.service'
 import { resetVipLicenseCache } from '@/utils/vip-license'
 import eventBus from '@/utils/eventBus'

@@ -136,9 +136,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@core': fileURLToPath(new URL('./src', import.meta.url)),
+      '@edition': fileURLToPath(new URL('./src/edition', import.meta.url)),
+      '@shared': fileURLToPath(new URL('./src/shared', import.meta.url)),
       '@antv/x6': '@antv/x6/lib',
       '@antv/x6-vue-shape': '@antv/x6-vue-shape/lib'
-    }
+    },
+    dedupe: ['vue', 'vue-router', 'pinia']
     // alias: [
     //   {
     //     find: '@',

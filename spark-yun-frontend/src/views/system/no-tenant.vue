@@ -12,7 +12,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChangeTenantData, QueryTenantList } from '@/services/login.service'
+import { ChangeTenantData, QueryTenantList } from '@/app/api'
 import { useAuthStore } from '@/store/useAuth'
 
 const loading = ref(false)

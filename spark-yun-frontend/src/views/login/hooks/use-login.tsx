@@ -2,7 +2,7 @@ import type { ElForm, FormRules } from 'element-plus'
 import { onMounted, reactive, readonly, ref } from 'vue'
 
 import logo from '@/assets/imgs/logo1.svg'
-import { OauthUrlList } from '@/services/login.service'
+import { OauthUrlList } from '@/app/api'
 
 export interface LoginModel {
     account: string

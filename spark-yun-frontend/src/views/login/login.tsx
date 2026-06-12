@@ -1,6 +1,6 @@
 import { defineComponent, nextTick } from 'vue'
 import { useLogin, type LoginModel } from './hooks/use-login'
-import { LoginUserInfo } from '@/services/login.service'
+import { LoginUserInfo } from '@/app/api'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/store/useAuth'

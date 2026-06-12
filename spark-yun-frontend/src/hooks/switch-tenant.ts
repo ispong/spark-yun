@@ -1,4 +1,4 @@
-import { QueryTenantList } from '@/services/login.service'
+import { QueryTenantList } from '@/app/api'
 import { readonly, ref } from 'vue'
 
 export interface TenantInfo {

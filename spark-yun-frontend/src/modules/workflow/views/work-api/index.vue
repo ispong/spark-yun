@@ -1,0 +1,1015 @@
+<template>
+    <div class="zqy-work-item zqy-work-api">
+        <div class="header-options">
+            <div class="btn-box" @click="goBack">
+                <el-icon>
+                    <RefreshLeft />
+                </el-icon>
+                <span class="btn-text">返回</span>
+            </div>
+            <div class="btn-box" @click="saveData">
+                <el-icon v-if="!saveLoading">
+                    <Finished />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">保存</span>
+            </div>
+            <div class="btn-box" @click="runWorkData">
+                <el-icon v-if="!runningLoading">
+                    <VideoPlay />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">运行</span>
+            </div>
+            <div v-if="workConfig.workType === 'API'" class="btn-box" @click="terWorkData">
+                <el-icon v-if="!terLoading">
+                    <Close />
+                </el-icon>
+                <el-icon v-else class="is-loading">
+                    <Loading />
+                </el-icon>
+                <span class="btn-text">中止</span>
+            </div>
+            <div class="btn-box" @click="setConfigData">
+                <el-icon>
+                    <Setting />
+                </el-icon>
+                <span class="btn-text">配置</span>
+            </div>
+            <div class="btn-box" @click="locationNode">
+                <el-icon>
+                    <Position />
+                </el-icon>
+                <span class="btn-text">定位</span>
+            </div>
+            <div class="btn-box" @click="emit('sortWorkList')">
+                <el-icon>
+                    <Sort v-if="!props.orderType" />
+                    <SortDown v-else-if="props.orderType === 'desc'" />
+                    <SortUp v-else />
+                </el-icon>
+                <span class="btn-text">
+                    {{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}
+                </span>
+            </div>
+        </div>
+        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData">
+            <div class="zqy-work-container api-work-container">
+                <div class="sql-code-container">
+                    <!-- 这里是表单部分 -->
+                    <el-form ref="form" label-position="top" label-width="70px" :model="apiWorkConfig" :rules="rules">
+                        <el-form-item label="接口地址" class="api-request-line__form-item">
+                            <div class="api-request-line">
+                                <el-form-item prop="requestType" class="api-request-line__method">
+                                    <el-select
+                                        v-model="apiWorkConfig.requestType"
+                                        placeholder="请选择"
+                                        @change="requestTypeChange"
+                                    >
+                                        <el-option label="GET" value="GET" />
+                                        <el-option label="POST" value="POST" />
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item prop="requestUrl" class="api-request-line__url">
+                                    <el-input
+                                        v-model="apiWorkConfig.requestUrl"
+                                        clearable
+                                        placeholder="请输入"
+                                        maxlength="1000"
+                                    />
+                                </el-form-item>
+                            </div>
+                        </el-form-item>
+                        <el-form-item label="请求头" prop="requestHeader">
+                            <span class="add-btn">
+                                <el-icon @click="addNewOption('requestHeader')">
+                                    <CirclePlus />
+                                </el-icon>
+                            </span>
+                            <div class="form-options__list">
+                                <div
+                                    v-for="(element, index) in apiWorkConfig.requestHeader"
+                                    :key="index"
+                                    class="form-options__item"
+                                >
+                                    <div class="input-item">
+                                        <span class="item-label">键</span>
+                                        <el-input v-model="element.label" placeholder="请输入" />
+                                    </div>
+                                    <div class="input-item">
+                                        <span class="item-label">值</span>
+                                        <el-input v-model="element.value" placeholder="请输入" />
+                                    </div>
+                                    <div class="option-btn">
+                                        <el-icon
+                                            v-if="apiWorkConfig.requestHeader.length > 1"
+                                            class="remove"
+                                            @click="removeItem(index, 'requestHeader')"
+                                        >
+                                            <CircleClose />
+                                        </el-icon>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-form-item>
+                        <el-form-item label="请求参数" prop="requestParam">
+                            <span class="add-btn">
+                                <el-icon @click="addNewOption('requestParam')">
+                                    <CirclePlus />
+                                </el-icon>
+                            </span>
+                            <div class="form-options__list">
+                                <div
+                                    v-for="(element, index) in apiWorkConfig.requestParam"
+                                    :key="index"
+                                    class="form-options__item"
+                                >
+                                    <div class="input-item">
+                                        <span class="item-label">键</span>
+                                        <el-input v-model="element.label" placeholder="请输入" />
+                                    </div>
+                                    <div class="input-item">
+                                        <span class="item-label">值</span>
+                                        <el-input v-model="element.value" placeholder="请输入" />
+                                    </div>
+                                    <div class="option-btn">
+                                        <el-icon
+                                            v-if="apiWorkConfig.requestParam.length > 1"
+                                            class="remove"
+                                            @click="removeItem(index, 'requestParam')"
+                                        >
+                                            <CircleClose />
+                                        </el-icon>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-form-item>
+                        <el-form-item
+                            v-if="apiWorkConfig.requestType === 'POST'"
+                            label="请求体"
+                            :class="{ 'show-screen__full': reqBodyFullStatus }"
+                        >
+                            <span class="format-json" @click="formatterJsonEvent(apiWorkConfig, 'requestBody')">
+                                格式化JSON
+                            </span>
+                            <el-icon class="modal-full-screen" @click="fullScreenEvent">
+                                <FullScreen v-if="!reqBodyFullStatus" />
+                                <Close v-else />
+                            </el-icon>
+                            <code-mirror v-model="apiWorkConfig.requestBody" basic :lang="jsonLang" />
+                        </el-form-item>
+                    </el-form>
+                </div>
+            </div>
+            <el-collapse ref="logCollapseRef" v-model="collapseActive" class="work-item-log__collapse">
+                <div class="log-resize-handle" @mousedown="startResizeLogPanel" />
+                <el-collapse-item title="查看日志" :disabled="true" name="1">
+                    <template #title>
+                        <el-tabs v-model="activeName" @tab-click="changeCollapseUp" @tab-change="tabChangeEvent">
+                            <template v-for="tab in tabList" :key="tab.code">
+                                <el-tab-pane v-if="!tab.hide" :label="tab.name" :name="tab.code" />
+                            </template>
+                        </el-tabs>
+                        <span class="log__collapse">
+                            <el-icon v-if="isCollapse" @click="changeCollapseDown">
+                                <ArrowDown />
+                            </el-icon>
+                            <el-icon v-else @click="changeCollapseUp">
+                                <ArrowUp />
+                            </el-icon>
+                        </span>
+                    </template>
+                    <div class="log-show log-show-datasync" :style="{ height: `${logPanelHeight}px` }">
+                        <component
+                            :is="currentTab"
+                            ref="containerInstanceRef"
+                            class="show-container"
+                            :style="{ height: `${logPanelHeight}px` }"
+                            :show-parse="true"
+                            @get-json-parse-result="getJsonParseResult"
+                        />
+                    </div>
+                </el-collapse-item>
+            </el-collapse>
+        </LoadingPage>
+        <!-- 配置 -->
+        <config-detail ref="configDetailRef" />
+        <!-- 解析弹窗 -->
+        <ParseModal ref="parseModalRef" />
+    </div>
+</template>
+
+<script lang="ts" setup>
+import { reactive, ref, onMounted, onUnmounted, markRaw, nextTick } from 'vue'
+import Breadcrumb from '@/layout/bread-crumb/index.vue'
+import LoadingPage from '@/components/loading/index.vue'
+import ConfigDetail from '../workflow-page/config-detail/index.vue'
+import PublishLog from '../work-item/publish-log.vue'
+import ReturnData from '../work-item/return-data.vue'
+import RunningLog from '../work-item/running-log.vue'
+import TotalDetail from '../work-item/total-detail.vue'
+
+import {
+    DeleteWorkData,
+    GetWorkItemConfig,
+    PublishWorkData,
+    RunWorkItemConfig,
+    SaveWorkItemConfig,
+    TerWorkItemConfig
+} from '@/modules/workflow/api'
+import { ElMessage, ElMessageBox, ElInput, FormRules } from 'element-plus'
+import { useRoute, useRouter } from 'vue-router'
+import { Loading } from '@element-plus/icons-vue'
+// import CodeMirror from 'vue-codemirror6'
+import { json } from '@codemirror/lang-json'
+import { jsonFormatter } from '@/utils/formatter'
+import ParseModal from '@/components/log-container/parse-modal/index.vue'
+
+interface Option {
+    label: string
+    value: string
+}
+const emit = defineEmits(['back', 'locationNode', 'sortWorkList'])
+
+const optionsRule = (rule: any, value: any, callback: any) => {
+    const valueList = (value || []).map((v) => v.value).filter((v) => !!v)
+    if (value && value.some((item: Option) => !item.label || !item.value)) {
+        callback(new Error('请将键/值输入完整'))
+    } else if (value && valueList.length !== Array.from(new Set(valueList)).length) {
+        callback(new Error('值重复，请重新输入'))
+    } else {
+        callback()
+    }
+}
+
+const props = defineProps<{
+    workItemConfig: any
+    workFlowData: any
+    orderType?: 'acs' | 'desc' | ''
+}>()
+
+const loading = ref(false)
+const networkError = ref(false)
+const runningLoading = ref(false)
+const saveLoading = ref(false)
+const terLoading = ref(false)
+const publishLoading = ref(false)
+const stopLoading = ref(false)
+const configDetailRef = ref()
+const activeName = ref()
+const currentTab = ref()
+const instanceId = ref('')
+const changeStatus = ref(false)
+const jsonLang = ref<any>(json())
+const reqBodyFullStatus = ref(false)
+const form = ref<FormInstance>()
+const parseModalRef = ref()
+
+const containerInstanceRef = ref(null)
+
+const logCollapseRef = ref()
+const collapseActive = ref('0')
+const isCollapse = ref(false)
+const logPanelHeight = ref(320)
+const resizeState = reactive({
+    resizing: false,
+    startY: 0,
+    startHeight: 320
+})
+
+let workConfig = reactive({
+    workId: '',
+    workType: ''
+})
+const apiWorkConfig = reactive({
+    requestUrl: '', // 接口请求url
+    requestType: 'GET', // 接口请求类型
+    requestParam: [
+        {
+            label: '',
+            value: ''
+        }
+    ], // 接口请求参数
+    requestHeader: [
+        {
+            label: '',
+            value: ''
+        }
+    ], // 接口请求头
+    requestBody: '' // 接口请求体
+})
+const rules = reactive<FormRules>({
+    requestType: [
+        {
+            required: true,
+            message: '请选择请求方式',
+            trigger: ['blur', 'change']
+        }
+    ],
+    requestParam: [],
+    requestHeader: []
+})
+
+const tabList = reactive([
+    {
+        name: '提交日志',
+        code: 'PublishLog',
+        hide: false
+    },
+    {
+        name: '运行结果',
+        code: 'ReturnData',
+        hide: true
+    }
+])
+
+function setReturnDataTabVisible(visible: boolean) {
+    tabList.forEach((item: any) => {
+        if (item.code === 'ReturnData') {
+            item.hide = !visible
+        }
+    })
+    if (!visible && activeName.value === 'ReturnData') {
+        activeName.value = 'PublishLog'
+        currentTab.value = markRaw(PublishLog)
+    }
+}
+
+function initData(id?: string, tableLoading?: boolean) {
+    loading.value = tableLoading ? false : true
+    networkError.value = networkError.value || false
+    GetWorkItemConfig({
+        workId: props.workItemConfig.id
+    })
+        .then((res: any) => {
+            workConfig = res.data
+            workConfig.workType = props.workItemConfig.workType
+            if (res.data.apiWorkConfig) {
+                Object.keys(apiWorkConfig).forEach((key: string) => {
+                    apiWorkConfig[key] = res.data.apiWorkConfig[key]
+                })
+            }
+            if (!apiWorkConfig.requestType) {
+                apiWorkConfig.requestType = 'GET'
+            }
+            nextTick(() => {
+                changeStatus.value = false
+                setReturnDataTabVisible(false)
+                containerInstanceRef.value.initData(id || instanceId.value, (status: string) => {
+                    if (workConfig.workType === 'API') {
+                        setReturnDataTabVisible(status === 'SUCCESS')
+                    }
+                })
+            })
+            loading.value = false
+            networkError.value = false
+        })
+        .catch(() => {
+            loading.value = false
+            networkError.value = false
+        })
+}
+
+function startResizeLogPanel(event: MouseEvent) {
+    resizeState.resizing = true
+    resizeState.startY = event.clientY
+    resizeState.startHeight = logPanelHeight.value
+    document.addEventListener('mousemove', onResizeLogPanel)
+    document.addEventListener('mouseup', stopResizeLogPanel)
+    event.preventDefault()
+}
+
+function onResizeLogPanel(event: MouseEvent) {
+    if (!resizeState.resizing) {
+        return
+    }
+    const maxHeight = Math.max(220, window.innerHeight - 220)
+    const nextHeight = resizeState.startHeight + (resizeState.startY - event.clientY)
+    logPanelHeight.value = Math.min(maxHeight, Math.max(180, nextHeight))
+}
+
+function stopResizeLogPanel() {
+    resizeState.resizing = false
+    document.removeEventListener('mousemove', onResizeLogPanel)
+    document.removeEventListener('mouseup', stopResizeLogPanel)
+}
+
+function tabChangeEvent(e: string) {
+    const lookup = {
+        PublishLog: PublishLog,
+        ReturnData: ReturnData,
+        RunningLog: RunningLog,
+        TotalDetail: TotalDetail
+    }
+    activeName.value = e
+    currentTab.value = markRaw(lookup[e])
+    nextTick(() => {
+        containerInstanceRef.value.initData(instanceId.value)
+    })
+}
+
+// 返回
+function goBack() {
+    if (changeStatus.value) {
+        ElMessageBox.confirm('作业尚未保存，是否确定要返回吗？', '警告', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+        }).then(() => {
+            emit('back', props.workItemConfig.id)
+        })
+    } else {
+        emit('back', props.workItemConfig.id)
+    }
+}
+function locationNode() {
+    if (changeStatus.value) {
+        ElMessageBox.confirm('作业尚未保存，是否确定要返回吗？', '警告', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+        }).then(() => {
+            emit('locationNode', props.workItemConfig.id)
+        })
+    } else {
+        emit('locationNode', props.workItemConfig.id)
+    }
+}
+
+// 运行
+function runWorkData() {
+    if (changeStatus.value) {
+        ElMessageBox.confirm('作业尚未保存，是否确定要运行作业？', '警告', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+        }).then(() => {
+            runningLoading.value = true
+            // 点击运行，立即跳转到提交日志tab并显示加载状态
+            activeName.value = 'PublishLog'
+            currentTab.value = markRaw(PublishLog)
+            nextTick(() => {
+                changeCollapseUp()
+                // 立即初始化日志组件为加载状态
+                containerInstanceRef.value?.initData('', true)
+            })
+
+            RunWorkItemConfig({
+                workId: props.workItemConfig.id
+            })
+                .then((res: any) => {
+                    runningLoading.value = false
+                    instanceId.value = res.data.instanceId
+                    ElMessage.success(res.msg)
+                    // 获取到 instanceId 后重新初始化日志组件
+                    initData(res.data.instanceId, true)
+                })
+                .catch(() => {
+                    runningLoading.value = false
+                })
+        })
+    } else {
+        tabList.forEach((item: any) => {
+            if (['RunningLog', 'TotalDetail', 'ReturnData'].includes(item.code)) {
+                item.hide = true
+            }
+        })
+        runningLoading.value = true
+
+        // 点击运行，立即跳转到提交日志tab并显示加载状态
+        activeName.value = 'PublishLog'
+        currentTab.value = markRaw(PublishLog)
+        nextTick(() => {
+            changeCollapseUp()
+            // 立即初始化日志组件为加载状态
+            containerInstanceRef.value?.initData('', true)
+        })
+
+        RunWorkItemConfig({
+            workId: props.workItemConfig.id
+        })
+            .then((res: any) => {
+                runningLoading.value = false
+                instanceId.value = res.data.instanceId
+                ElMessage.success(res.msg)
+                // 获取到 instanceId 后重新初始化日志组件
+                initData(res.data.instanceId, true)
+            })
+            .catch(() => {
+                runningLoading.value = false
+            })
+    }
+}
+
+// 终止
+function terWorkData() {
+    if (!instanceId.value) {
+        ElMessage.warning('暂无可中止的作业')
+        return
+    }
+    terLoading.value = true
+    TerWorkItemConfig({
+        workId: props.workItemConfig.id,
+        instanceId: instanceId.value
+    })
+        .then((res: any) => {
+            terLoading.value = false
+            ElMessage.success(res.msg)
+            initData('', true)
+        })
+        .catch(() => {
+            terLoading.value = false
+        })
+}
+
+// 保存配置
+function saveData() {
+    form.value?.validate((valid) => {
+        if (valid) {
+            saveLoading.value = true
+            SaveWorkItemConfig({
+                workId: props.workItemConfig.id,
+                apiWorkConfig: apiWorkConfig
+            })
+                .then((res: any) => {
+                    changeStatus.value = false
+                    ElMessage.success(res.msg)
+                    saveLoading.value = false
+                })
+                .catch(() => {
+                    saveLoading.value = false
+                })
+        } else {
+            ElMessage.warning('请将表单输入完整')
+        }
+    })
+}
+
+// 发布
+function publishData() {
+    publishLoading.value = true
+    PublishWorkData({
+        workId: props.workItemConfig.id
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            publishLoading.value = false
+        })
+        .catch((error: any) => {
+            publishLoading.value = false
+        })
+}
+
+// 下线
+function stopData() {
+    stopLoading.value = true
+    DeleteWorkData({
+        workId: props.workItemConfig.id
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            stopLoading.value = false
+        })
+        .catch((error: any) => {
+            stopLoading.value = false
+        })
+}
+
+// 配置打开
+function setConfigData() {
+    configDetailRef.value.showModal(props.workItemConfig)
+}
+function changeCollapseDown() {
+    logCollapseRef.value.setActiveNames('0')
+    isCollapse.value = false
+}
+function changeCollapseUp(e: any) {
+    if (e && e.paneName === activeName.value && isCollapse.value) {
+        changeCollapseDown()
+    } else {
+        logCollapseRef.value.setActiveNames('1')
+        isCollapse.value = true
+    }
+}
+
+function addNewOption(type: string) {
+    if (type === 'requestHeader') {
+        apiWorkConfig.requestHeader.push({
+            label: '',
+            value: ''
+        })
+    } else if (type === 'requestParam') {
+        apiWorkConfig.requestParam.push({
+            label: '',
+            value: ''
+        })
+    }
+}
+function removeItem(index: number, type: string) {
+    if (type === 'requestHeader') {
+        apiWorkConfig.requestHeader.splice(index, 1)
+    } else if (type === 'requestParam') {
+        apiWorkConfig.requestParam.splice(index, 1)
+    }
+}
+function formatterJsonEvent(formData: any, key: string) {
+    try {
+        formData[key] = jsonFormatter(formData[key])
+    } catch (error) {
+        console.error('请检查输入的JSON格式是否正确', error)
+        ElMessage.error('请检查输入的JSON格式是否正确')
+    }
+}
+function fullScreenEvent() {
+    reqBodyFullStatus.value = !reqBodyFullStatus.value
+}
+function requestTypeChange() {
+    apiWorkConfig.requestBody = ''
+}
+
+function getJsonParseResult() {
+    parseModalRef.value.showModal(instanceId.value, 'jsonPath')
+}
+
+onMounted(() => {
+    initData()
+    activeName.value = 'PublishLog'
+    currentTab.value = markRaw(PublishLog)
+})
+
+onUnmounted(() => {
+    stopResizeLogPanel()
+})
+</script>
+
+<style lang="scss">
+.zqy-work-api {
+    position: relative;
+    background-color: getCssVar('color', 'white');
+
+    .zqy-loading {
+        // overflow-y: auto;
+        margin-top: 50px;
+        // height: calc(100vh - 102px);
+        padding: 0;
+
+        .api-work-container {
+            overflow: auto;
+            padding: 0 20px;
+            height: calc(100vh - 150px);
+            .sql-code-container {
+                margin-top: 12px;
+
+                .api-request-line__form-item {
+                    .api-request-line {
+                        width: 100%;
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 12px;
+                    }
+
+                    .api-request-line__method {
+                        width: 100px;
+                        margin-bottom: 0;
+                    }
+
+                    .api-request-line__url {
+                        flex: 1;
+                        margin-bottom: 0;
+                    }
+                }
+            }
+        }
+    }
+
+    .header-options {
+        position: absolute;
+        top: -50px;
+        left: 0;
+        padding-left: 18px;
+        z-index: 500;
+
+        display: flex;
+        align-items: center;
+        background-color: getCssVar('color', 'white');
+        width: 100%;
+
+        height: 50px;
+        display: flex;
+        align-items: center;
+        color: getCssVar('color', 'primary', 'light-5');
+        border-bottom: 1px solid getCssVar('border-color');
+
+        .btn-box {
+            font-size: getCssVar('font-size', 'extra-small');
+            display: flex;
+            cursor: pointer;
+            width: 48px;
+            margin-right: 8px;
+
+            &.btn-box__4 {
+                width: 70px;
+            }
+
+            .btn-text {
+                margin-left: 4px;
+                font-size: inherit;
+                line-height: 1;
+            }
+
+            &:hover {
+                color: getCssVar('color', 'primary');
+            }
+        }
+    }
+
+    .el-form-item {
+        .modal-full-screen {
+            position: absolute;
+            top: -26px;
+            right: 0;
+            cursor: pointer;
+
+            &:hover {
+                color: getCssVar('color', 'primary');
+            }
+        }
+
+        .format-json {
+            position: absolute;
+            top: -34px;
+            right: 20px;
+            font-size: 12px;
+            color: getCssVar('color', 'primary');
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        &.show-screen__full {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            padding: 12px 20px;
+            box-sizing: border-box;
+            transition: all 0.15s linear;
+            z-index: 10;
+
+            .el-form-item__content {
+                align-items: flex-start;
+                height: 100%;
+
+                .modal-full-screen {
+                    position: absolute;
+                    top: -26px;
+                    right: 0;
+                    cursor: pointer;
+
+                    &:hover {
+                        color: getCssVar('color', 'primary');
+                    }
+                }
+
+                .vue-codemirror {
+                    height: calc(100% - 36px);
+                }
+            }
+        }
+
+        .el-form-item__content {
+            .vue-codemirror {
+                height: 130px;
+                width: 100%;
+
+                .cm-editor {
+                    height: 100%;
+                    outline: none;
+                    border: 1px solid #dcdfe6;
+                }
+
+                .cm-gutters {
+                    font-size: 12px;
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
+                }
+
+                .cm-content {
+                    font-size: 12px;
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
+                }
+
+                .cm-tooltip-autocomplete {
+                    ul {
+                        li {
+                            height: 40px;
+                            display: flex;
+                            align-items: center;
+                            font-size: 12px;
+                            background-color: #ffffff;
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
+                        }
+
+                        li[aria-selected] {
+                            background: #409eff;
+                        }
+
+                        .cm-completionIcon {
+                            margin-right: -4px;
+                            opacity: 0;
+                        }
+                    }
+                }
+            }
+
+            .add-btn {
+                position: absolute;
+                right: 0;
+                top: -32px;
+
+                .el-icon {
+                    color: getCssVar('color', 'primary');
+                    cursor: pointer;
+                    font-size: 16px;
+                }
+            }
+
+            .form-options__list {
+                width: 100%;
+                max-height: 210px;
+                overflow: auto;
+
+                .form-options__item {
+                    display: flex;
+                    margin-bottom: 8px;
+
+                    .input-item {
+                        display: flex;
+                        font-size: 12px;
+                        margin-right: 8px;
+                        color: #303133;
+                        width: 100%;
+
+                        .item-label {
+                            margin-right: 8px;
+                        }
+
+                        .el-input {
+                            .el-input__wrapper {
+                                // padding: 0;
+                            }
+                        }
+                    }
+
+                    .option-btn {
+                        display: flex;
+                        height: 32px;
+                        align-items: center;
+                        margin-right: -8px;
+
+                        .remove {
+                            color: red;
+                            cursor: pointer;
+                            margin-right: 8px;
+
+                            &:hover {
+                                color: getCssVar('color', 'primary');
+                            }
+                        }
+
+                        .move {
+                            color: getCssVar('color', 'primary');
+
+                            &:active {
+                                cursor: move;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .work-item-log__collapse {
+        .log-resize-handle {
+            height: 6px;
+            cursor: ns-resize;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: -3px;
+            z-index: 2;
+        }
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 46px;
+        z-index: 100;
+
+        .el-collapse-item__header {
+            // padding-left: 20px;
+            cursor: default;
+        }
+
+        .el-collapse-item__arrow {
+            display: none;
+        }
+
+        .el-collapse-item__content {
+            padding-bottom: 14px;
+        }
+
+        .log__collapse {
+            position: absolute;
+            right: 20px;
+            cursor: pointer;
+        }
+
+        .el-tabs {
+            width: 100%;
+            // padding: 0 20px;
+            height: 40px;
+            box-sizing: border-box;
+
+            .el-tabs__item {
+                font-size: getCssVar('font-size', 'extra-small');
+            }
+
+            .el-tabs__nav-scroll {
+                padding-left: 20px;
+                box-sizing: border-box;
+            }
+
+            .el-tabs__content {
+                height: 0;
+            }
+
+            .el-tabs__nav-scroll {
+                border-bottom: 1px solid getCssVar('border-color');
+            }
+        }
+
+        .log-show {
+            padding: 0 20px;
+            box-sizing: border-box;
+            overflow: auto;
+
+            &.log-show-datasync {
+                min-height: 180px;
+
+                .zqy-download-log {
+                    right: 40px;
+                    top: 12px;
+                }
+            }
+
+            pre {
+                width: 100px;
+            }
+
+            .show-container {
+                min-height: 180px;
+                overflow: auto;
+            }
+
+            .empty-page {
+                height: 80%;
+            }
+        }
+    }
+}
+</style>

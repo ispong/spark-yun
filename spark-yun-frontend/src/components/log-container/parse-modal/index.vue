@@ -52,7 +52,7 @@ import {
     GetWorkInstanceJsonPath,
     GetWorkInstanceRegexPath,
     GetWorkInstanceTablePath
-} from '@/services/workflow.service'
+} from '@/modules/workflow/api'
 import { ElMessage } from 'element-plus'
 
 const instanceId = ref<string>('')
