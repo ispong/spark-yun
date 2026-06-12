@@ -76,7 +76,7 @@ public class WorkConfigBizService {
                 && !Strings.isEmpty(wocConfigWorkReq.getClusterConfig().getFlinkConfigJson())) {
                 wocConfigWorkReq.getClusterConfig()
                     .setFlinkConfig(JSON.parseObject(wocConfigWorkReq.getClusterConfig().getFlinkConfigJson(),
-                        new TypeReference<Map<String, String>>() {}));
+                        new TypeReference<Map<String, Object>>() {}));
             }
         } catch (Exception e) {
             log.debug(e.getMessage(), e);

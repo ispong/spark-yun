@@ -5,14 +5,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.JwtParserBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,7 +23,7 @@ import java.util.UUID;
 @Slf4j
 public class JwtUtils {
 
-    private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private static final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     /** jwt加密. */
     public static String encrypt(String aesKey, Object obj, String jwtKey, Integer minutes) {
@@ -67,16 +66,12 @@ public class JwtUtils {
     /** jwt解密. */
     public static <A> A decrypt(String jwtKey, String jwtString, String aesKey, Class<A> targetClass) {
 
-        JwtParserBuilder jwtParserBuilder = Jwts.parserBuilder();
+        SecretKey signingKey = jwtKey == null ? key
+            : Keys.hmacShaKeyFor(Arrays.copyOf(jwtKey.getBytes(StandardCharsets.UTF_8), 1 << 5));
 
-        if (jwtKey == null) {
-            jwtParserBuilder = jwtParserBuilder.setSigningKey(key);
-        } else {
-            jwtParserBuilder = jwtParserBuilder
-                .setSigningKey(Keys.hmacShaKeyFor(Arrays.copyOf(jwtKey.getBytes(StandardCharsets.UTF_8), 1 << 5)));
-        }
-
-        String claimStr = jwtParserBuilder.build().parseClaimsJws(jwtString).getBody().get("CLAIM", String.class);
+        String claimStr =
+            Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(jwtString).getPayload().get("CLAIM",
+                String.class);
 
         String targetJsonStr = claimStr;
         if (aesKey != null) {

@@ -39,8 +39,6 @@ dependencies {
 
     implementation libs.stax2.api
 
-    implementation libs.log4j
-
     implementation libs.bouncycastle.bcpkix
 
     implementation libs.bouncycastle.bcprov
