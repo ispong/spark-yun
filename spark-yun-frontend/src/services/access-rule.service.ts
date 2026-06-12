@@ -35,4 +35,3 @@ export function DeleteAccessRule(params: any): Promise<any> {
         params: params
     })
 }
-

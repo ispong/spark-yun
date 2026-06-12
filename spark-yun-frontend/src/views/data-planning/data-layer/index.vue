@@ -1,81 +1,118 @@
 <template>
-    <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table data-layer">
-        <div class="zqy-table-top">
-            <div class="btn-container">
-                <el-button type="primary" @click="addData">
-                    新建分层
-                </el-button>
-            </div>
-            <div class="zqy-seach">
-                <el-radio-group v-model="tableType" @change="changeTypeEvent">
-                    <el-radio-button label="all">全局搜索</el-radio-button>
-                    <el-radio-button label="layer">分层搜索</el-radio-button>
-                </el-radio-group>
-                <el-input
-                    v-model="keyword"
-                    placeholder="请输入搜索条件 回车进行搜索"
-                    :maxlength="200"
-                    clearable
-                    @input="inputEvent"
-                    @keyup.enter="handleCurrentChange(1)"
-                />
-            </div>
-        </div>
-        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
-            <div class="zqy-table">
-                <BlockTable
-                    :table-config="tableConfig"
-                    @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange"
-                >
-                    <template #nameSlot="scopeSlot">
-                        <span
-                            v-if="tableType === 'layer'"
-                            class="name-click"
-                            @click="showDetail(scopeSlot.row)"
-                        >{{ scopeSlot.row.name }}</span>
-                        <span
-                            v-else
-                            class="name-click"
-                            @click="dataModelPage(scopeSlot.row)"
-                        >{{ scopeSlot.row.name }}</span>
-                    </template>
-                    <template #parentNameSlot="scopeSlot">
-                        <span>{{ scopeSlot.row.parentNameList ?? '-' }}</span>
-                    </template>
-                    <template #options="scopeSlot">
-                        <div class="btn-group btn-group-msg">
-                            <span
-                                v-if="tableType === 'layer'"
-                                @click="dataModelPage(scopeSlot.row)"
-                            >模型</span>
-                            <span
-                                v-else
-                                @click="layerAreaView(scopeSlot.row)"
-                            >领域</span>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
-                                <template #dropdown>
-                                    <el-dropdown-menu>
-                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
-                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
-                                        <el-dropdown-item v-if="tableType === 'layer'" @click="layerAreaView(scopeSlot.row)">领域</el-dropdown-item>
-                                    </el-dropdown-menu>
-                                </template>
-                            </el-dropdown>
-                        </div>
-                    </template>
-                </BlockTable>
-                <div class="back-btn-group" v-if="parentLayerId && tableType === 'layer'">
-                    <el-button @click="backHomeLayer">返回首页分层</el-button>
-                    <el-button class="back-up" @click="showParentDetail">返回上一分层</el-button>
-                </div>
-            </div>
-        </LoadingPage>
-        <AddModal ref="addModalRef" />
-        <DataModelDetail ref="dataModelDetailRef"></DataModelDetail>
+  <Breadcrumb :bread-crumb-list="breadCrumbList" />
+  <div class="zqy-seach-table data-layer">
+    <div class="zqy-table-top">
+      <div class="btn-container">
+        <el-button
+          type="primary"
+          @click="addData"
+        >
+          新建分层
+        </el-button>
+      </div>
+      <div class="zqy-seach">
+        <el-radio-group
+          v-model="tableType"
+          @change="changeTypeEvent"
+        >
+          <el-radio-button label="all">
+            全局搜索
+          </el-radio-button>
+          <el-radio-button label="layer">
+            分层搜索
+          </el-radio-button>
+        </el-radio-group>
+        <el-input
+          v-model="keyword"
+          placeholder="请输入搜索条件 回车进行搜索"
+          :maxlength="200"
+          clearable
+          @input="inputEvent"
+          @keyup.enter="handleCurrentChange(1)"
+        />
+      </div>
     </div>
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="initData(false)"
+    >
+      <div class="zqy-table">
+        <BlockTable
+          :table-config="tableConfig"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        >
+          <template #nameSlot="scopeSlot">
+            <span
+              v-if="tableType === 'layer'"
+              class="name-click"
+              @click="showDetail(scopeSlot.row)"
+            >
+              {{ scopeSlot.row.name }}
+            </span>
+            <span
+              v-else
+              class="name-click"
+              @click="dataModelPage(scopeSlot.row)"
+            >
+              {{ scopeSlot.row.name }}
+            </span>
+          </template>
+          <template #parentNameSlot="scopeSlot">
+            <span>{{ scopeSlot.row.parentNameList ?? '-' }}</span>
+          </template>
+          <template #options="scopeSlot">
+            <div class="btn-group btn-group-msg">
+              <span
+                v-if="tableType === 'layer'"
+                @click="dataModelPage(scopeSlot.row)"
+              >模型</span>
+              <span
+                v-else
+                @click="layerAreaView(scopeSlot.row)"
+              >领域</span>
+              <el-dropdown trigger="click">
+                <span class="click-show-more">更多</span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item @click="editData(scopeSlot.row)">
+                      编辑
+                    </el-dropdown-item>
+                    <el-dropdown-item @click="deleteData(scopeSlot.row)">
+                      删除
+                    </el-dropdown-item>
+                    <el-dropdown-item
+                      v-if="tableType === 'layer'"
+                      @click="layerAreaView(scopeSlot.row)"
+                    >
+                      领域
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+          </template>
+        </BlockTable>
+        <div
+          v-if="parentLayerId && tableType === 'layer'"
+          class="back-btn-group"
+        >
+          <el-button @click="backHomeLayer">
+            返回首页分层
+          </el-button>
+          <el-button
+            class="back-up"
+            @click="showParentDetail"
+          >
+            返回上一分层
+          </el-button>
+        </div>
+      </div>
+    </LoadingPage>
+    <AddModal ref="addModalRef" />
+    <DataModelDetail ref="dataModelDetailRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -85,7 +122,12 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 import DataModelDetail from './layer-area/data-model-detail/index.vue'
 import { BreadCrumbList, TableConfig } from './list.config'
-import { DeleteDataLayerData, GetDataLayerTreeData, GetDataLayerList, SaveDataLayerData, UpdateDataLayerData, GetParentLayerNode } from '@/services/data-layer.service'
+import { DeleteDataLayerData,
+    GetDataLayerTreeData,
+    GetDataLayerList,
+    SaveDataLayerData,
+    UpdateDataLayerData,
+    GetParentLayerNode } from '@/services/data-layer.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -111,48 +153,52 @@ function initData(tableLoading?: boolean) {
             pageSize: tableConfig.pagination.pageSize,
             searchKeyWord: keyword.value,
             parentLayerId: parentLayerId.value
-        }).then((res: any) => {
-            tableConfig.tableData = res.data.content
-            tableConfig.pagination.total = res.data.totalElements
-            loading.value = false
-            tableConfig.loading = false
-            networkError.value = false
-
-            if (route.query && route.query.parentLayerId) {
-                router.replace({
-                    name: 'data-layer'
-                })
-            }
-        }).catch(() => {
-            tableConfig.tableData = []
-            tableConfig.pagination.total = 0
-            loading.value = false
-            tableConfig.loading = false
-            networkError.value = true
         })
+            .then((res: any) => {
+                tableConfig.tableData = res.data.content
+                tableConfig.pagination.total = res.data.totalElements
+                loading.value = false
+                tableConfig.loading = false
+                networkError.value = false
+
+                if (route.query && route.query.parentLayerId) {
+                    router.replace({
+                        name: 'data-layer'
+                    })
+                }
+            })
+            .catch(() => {
+                tableConfig.tableData = []
+                tableConfig.pagination.total = 0
+                loading.value = false
+                tableConfig.loading = false
+                networkError.value = true
+            })
     } else {
         GetDataLayerList({
             page: tableConfig.pagination.currentPage - 1,
             pageSize: tableConfig.pagination.pageSize,
             searchKeyWord: keyword.value
-        }).then((res: any) => {
-            tableConfig.tableData = res.data.content
-            tableConfig.pagination.total = res.data.totalElements
-            loading.value = false
-            tableConfig.loading = false
-            networkError.value = false
-            if (route.query && route.query.parentLayerId) {
-                router.replace({
-                    name: 'data-layer'
-                })
-            }
-        }).catch(() => {
-            tableConfig.tableData = []
-            tableConfig.pagination.total = 0
-            loading.value = false
-            tableConfig.loading = false
-            networkError.value = true
         })
+            .then((res: any) => {
+                tableConfig.tableData = res.data.content
+                tableConfig.pagination.total = res.data.totalElements
+                loading.value = false
+                tableConfig.loading = false
+                networkError.value = false
+                if (route.query && route.query.parentLayerId) {
+                    router.replace({
+                        name: 'data-layer'
+                    })
+                }
+            })
+            .catch(() => {
+                tableConfig.tableData = []
+                tableConfig.pagination.total = 0
+                loading.value = false
+                tableConfig.loading = false
+                networkError.value = true
+            })
     }
 }
 
@@ -167,21 +213,27 @@ function changeTypeEvent(e: string) {
 }
 
 function addData() {
-    addModalRef.value.showModal((data: any) => {
-        return new Promise((resolve: any, reject: any) => {
-            const params = {
-                ...data,
-                parentLayerId: !data.parentLayerId ? null : data.parentLayerId
-            }
-            SaveDataLayerData(params).then((res: any) => {
-                ElMessage.success(res.msg)
-                initData()
-                resolve()
-            }).catch((error: any) => {
-                reject(error)
+    addModalRef.value.showModal(
+        (data: any) => {
+            return new Promise((resolve: any, reject: any) => {
+                const params = {
+                    ...data,
+                    parentLayerId: !data.parentLayerId ? null : data.parentLayerId
+                }
+                SaveDataLayerData(params)
+                    .then((res: any) => {
+                        ElMessage.success(res.msg)
+                        initData()
+                        resolve()
+                    })
+                    .catch((error: any) => {
+                        reject(error)
+                    })
             })
-        })
-    }, null, parentLayerId.value)
+        },
+        null,
+        parentLayerId.value
+    )
 }
 function editData(data: any) {
     addModalRef.value.showModal((data: any) => {
@@ -190,13 +242,15 @@ function editData(data: any) {
                 ...data,
                 parentLayerId: !data.parentLayerId ? null : data.parentLayerId
             }
-            UpdateDataLayerData(params).then((res: any) => {
-                ElMessage.success(res.msg)
-                initData()
-                resolve()
-            }).catch((error: any) => {
-                reject(error)
-            })
+            UpdateDataLayerData(params)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     }, data)
 }
@@ -210,10 +264,12 @@ function deleteData(data: any) {
     }).then(() => {
         DeleteDataLayerData({
             id: data.id
-        }).then((res: any) => {
-            ElMessage.success(res.msg)
-            initData()
-        }).catch(() => { })
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch(() => {})
     })
 }
 
@@ -226,18 +282,20 @@ function dataModelPage(data: any) {
 function layerAreaView(data: any) {
     GetParentLayerNode({
         id: data.id
-    }).then((res: any) => {
-        router.push({
-            name: 'layer-area',
-            query: {
-                id: data.id,
-                parentLayerId: res.data.parentLayerId,
-                tableType: tableType.value
-            }
-        })
-    }).catch((error: any) => {
-        console.error('获取父级节点失败', error)
     })
+        .then((res: any) => {
+            router.push({
+                name: 'layer-area',
+                query: {
+                    id: data.id,
+                    parentLayerId: res.data.parentLayerId,
+                    tableType: tableType.value
+                }
+            })
+        })
+        .catch((error: any) => {
+            console.error('获取父级节点失败', error)
+        })
 }
 
 function inputEvent(e: string) {
@@ -258,14 +316,16 @@ function showDetail(data: any) {
 function showParentDetail() {
     GetParentLayerNode({
         id: parentLayerId.value
-    }).then((res: any) => {
-        parentLayerId.value = res.data.parentLayerId
-        tableConfig.pagination.currentPage = 1
-        tableConfig.pagination.pageSize = 10
-        initData()
-    }).catch((error: any) => {
-        console.error('获取父级节点失败', error)
     })
+        .then((res: any) => {
+            parentLayerId.value = res.data.parentLayerId
+            tableConfig.pagination.currentPage = 1
+            tableConfig.pagination.pageSize = 10
+            initData()
+        })
+        .catch((error: any) => {
+            console.error('获取父级节点失败', error)
+        })
 }
 
 // 返回首页分层
@@ -287,7 +347,6 @@ function handleCurrentChange(e: number) {
 }
 
 onMounted(() => {
-
     if (route.query && (route.query.parentLayerId || route.query.tableType)) {
         tableType.value = route.query.tableType ?? 'all'
         parentLayerId.value = route.query.parentLayerId ?? null

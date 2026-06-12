@@ -82,10 +82,16 @@
                 <span class="click-show-more">更多</span>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item v-if="scopeSlot.row.status !== 'PUBLISHED'" @click="publishData(scopeSlot.row)">
+                    <el-dropdown-item
+                      v-if="scopeSlot.row.status !== 'PUBLISHED'"
+                      @click="publishData(scopeSlot.row)"
+                    >
                       发布
                     </el-dropdown-item>
-                    <el-dropdown-item v-if="scopeSlot.row.status === 'PUBLISHED'" @click="stopData(scopeSlot.row)">
+                    <el-dropdown-item
+                      v-if="scopeSlot.row.status === 'PUBLISHED'"
+                      @click="stopData(scopeSlot.row)"
+                    >
                       下线
                     </el-dropdown-item>
                     <el-dropdown-item @click="deleteData(scopeSlot.row)">
@@ -111,7 +117,12 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { DetailTableConfig, FormData } from '../workflow.config'
-import { GetWorkflowDetailList, AddWorkflowDetailList, UpdateWorkflowDetailList, DeleteWorkflowDetailList, PublishWorkData, DeleteWorkData } from '@/services/workflow.service'
+import { GetWorkflowDetailList,
+    AddWorkflowDetailList,
+    UpdateWorkflowDetailList,
+    DeleteWorkflowDetailList,
+    PublishWorkData,
+    DeleteWorkData } from '@/services/workflow.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -123,171 +134,171 @@ const networkError = ref(false)
 const addModalRef = ref(null)
 const tableConfig: any = reactive(DetailTableConfig)
 const breadCrumbList = reactive([
-  {
-    name: '作业流',
-    code: 'workflow'
-  },
-  {
-    name: '作业',
-    code: 'workflow-detail'
-  }
+    {
+        name: '作业流',
+        code: 'workflow'
+    },
+    {
+        name: '作业',
+        code: 'workflow-detail'
+    }
 ])
 
 function initData(tableLoading?: boolean) {
-  loading.value = tableLoading ? false : true
-  networkError.value = networkError.value || false
-  GetWorkflowDetailList({
-    page: tableConfig.pagination.currentPage - 1,
-    pageSize: tableConfig.pagination.pageSize,
-    searchKeyWord: keyword.value,
-    workflowId: route.query.id
-  })
-    .then((res: any) => {
-      tableConfig.tableData = res.data.content
-      tableConfig.pagination.total = res.data.totalElements
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = false
+    loading.value = tableLoading ? false : true
+    networkError.value = networkError.value || false
+    GetWorkflowDetailList({
+        page: tableConfig.pagination.currentPage - 1,
+        pageSize: tableConfig.pagination.pageSize,
+        searchKeyWord: keyword.value,
+        workflowId: route.query.id
     })
-    .catch(() => {
-      tableConfig.tableData = []
-      tableConfig.pagination.total = 0
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = true
-    })
+        .then((res: any) => {
+            tableConfig.tableData = res.data.content
+            tableConfig.pagination.total = res.data.totalElements
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
+        })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
 }
 
 // 添加节点数据
 function addData() {
-  addModalRef.value.showModal((formData: FormData) => {
-    return new Promise((resolve: any, reject: any) => {
-      AddWorkflowDetailList({
-        ...formData,
-        workflowId: route.query.id
-      })
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
-        })
-        .catch((error: any) => {
-          reject(error)
+    addModalRef.value.showModal((formData: FormData) => {
+        return new Promise((resolve: any, reject: any) => {
+            AddWorkflowDetailList({
+                ...formData,
+                workflowId: route.query.id
+            })
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     })
-  })
 }
 
 // 编辑
 function editData(data: any) {
-  addModalRef.value.showModal((formData: FormData) => {
-    return new Promise((resolve: any, reject: any) => {
-      UpdateWorkflowDetailList(formData)
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
+    addModalRef.value.showModal((formData: FormData) => {
+        return new Promise((resolve: any, reject: any) => {
+            UpdateWorkflowDetailList(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
-        .catch((error: any) => {
-          reject(error)
-        })
-    })
-  }, data)
+    }, data)
 }
 
 // 发布
 function publishData(data: any) {
-  PublishWorkData({
-    workId: data.id
-  }).then((res: any) => {
-    ElMessage.success(res.msg)
-    initData()
-  })
-  .catch((error: any) => {
-  })
+    PublishWorkData({
+        workId: data.id
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            initData()
+        })
+        .catch((error: any) => {})
 }
 
 // 下线
 function stopData(data: any) {
-  DeleteWorkData({
-    workId: data.id
-  }).then((res: any) => {
-    ElMessage.success(res.msg)
-    initData()
-  })
-  .catch((error: any) => {
-  })
+    DeleteWorkData({
+        workId: data.id
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            initData()
+        })
+        .catch((error: any) => {})
 }
 
 // 删除
 function deleteData(data: any) {
-  ElMessageBox.confirm('确定删除该节点吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    DeleteWorkflowDetailList({
-      workId: data.id
+    ElMessageBox.confirm('确定删除该节点吗？', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        DeleteWorkflowDetailList({
+            workId: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch((error: any) => {
+                console.error(error)
+            })
     })
-      .then((res: any) => {
-        ElMessage.success(res.msg)
-        initData()
-      })
-      .catch((error: any) => {
-        console.error(error)
-      })
-  })
 }
 
 // 查看作业详细配置
 function showDetail(data: any) {
-  router.push({
-    name: 'work-item',
-    query: {
-      id: data.id,
-      workflowId: route.query.id
-    }
-  })
+    router.push({
+        name: 'work-item',
+        query: {
+            id: data.id,
+            workflowId: route.query.id
+        }
+    })
 }
 
 function inputEvent(e: string) {
-  if (e === '') {
-    initData()
-  }
+    if (e === '') {
+        initData()
+    }
 }
 
 function handleSizeChange(e: number) {
-  tableConfig.pagination.pageSize = e
-  initData(true)
+    tableConfig.pagination.pageSize = e
+    initData(true)
 }
 
 function handleCurrentChange(e: number) {
-  tableConfig.pagination.currentPage = e
-  initData(true)
+    tableConfig.pagination.currentPage = e
+    initData(true)
 }
 
 function getTypeData(e: string) {
-  if (!e) {
-    return
-  }
-  const typeList = [
-    {
-      label: 'Jdbc执行作业',
-      value: 'EXE_JDBC'
-    },
-    {
-      label: 'Jdbc查询作业',
-      value: 'QUERY_JDBC'
-    },
-    {
-      label: 'SparkSql查询作业',
-      value: 'SPARK_SQL'
+    if (!e) {
+        return
     }
-  ]
-  return typeList.find(itme => itme.value === e)?.label
+    const typeList = [
+        {
+            label: 'Jdbc执行作业',
+            value: 'EXE_JDBC'
+        },
+        {
+            label: 'Jdbc查询作业',
+            value: 'QUERY_JDBC'
+        },
+        {
+            label: 'SparkSql查询作业',
+            value: 'SPARK_SQL'
+        }
+    ]
+    return typeList.find((itme) => itme.value === e)?.label
 }
 
 onMounted(() => {
-  initData()
+    initData()
 })
 </script>

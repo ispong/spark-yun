@@ -9,7 +9,7 @@
 import RegexValidator from './regex.validator'
 
 const PortValidator = function(errorMsg: string) {
-  return RegexValidator(/^([1-9]|[1-9]\d{1,3}|[1-5]\d{4}|6[0-5][0-5][0-3][0-5])$/, errorMsg)
+    return RegexValidator(/^([1-9]|[1-9]\d{1,3}|[1-5]\d{4}|6[0-5][0-5][0-3][0-5])$/, errorMsg)
 }
 
 export default PortValidator

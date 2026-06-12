@@ -1,29 +1,43 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-scrollbar>
-            <el-form
-              ref="formRef"
-              label-position="left"
-              label-width="80px"
-              :model="formData"
-            >
-                <div class="main-config-container">
-                    <component
-                        ref="instanceRef"
-                        :is="currentComponent(formData.type)"
-                        v-model="formData"
-                        :incomeNodes="incomeNodes"
-                    ></component>
-                </div>
-            </el-form>
-        </el-scrollbar>
-        <template #customLeft>
-            <el-button v-if="formData.type !== 'DATA_OUTPUT'" type="primary" @click="showFieldsModal" style="margin-right: auto;">输出字段</el-button>
-            <el-button v-else type="primary" @click="showLinkModal" style="margin-right: auto;">字段映射</el-button>
-        </template>
-    </BlockModal>
-    <OutputModal ref="outputModalRef"></OutputModal>
-    <LinkModal ref="linkModalRef"></LinkModal>
+  <BlockModal :model-config="modelConfig">
+    <el-scrollbar>
+      <el-form
+        ref="formRef"
+        label-position="left"
+        label-width="80px"
+        :model="formData"
+      >
+        <div class="main-config-container">
+          <component
+            :is="currentComponent(formData.type)"
+            ref="instanceRef"
+            v-model="formData"
+            :income-nodes="incomeNodes"
+          />
+        </div>
+      </el-form>
+    </el-scrollbar>
+    <template #customLeft>
+      <el-button
+        v-if="formData.type !== 'DATA_OUTPUT'"
+        type="primary"
+        style="margin-right: auto"
+        @click="showFieldsModal"
+      >
+        输出字段
+      </el-button>
+      <el-button
+        v-else
+        type="primary"
+        style="margin-right: auto"
+        @click="showLinkModal"
+      >
+        字段映射
+      </el-button>
+    </template>
+  </BlockModal>
+  <OutputModal ref="outputModalRef" />
+  <LinkModal ref="linkModalRef" />
 </template>
 
 <script lang="ts" setup>
@@ -59,7 +73,8 @@ const formRef = ref<FormInstance>()
 const callback = ref<any>()
 const incomeNodes = ref<any>()
 
-const formData = ref<any>({})
+const formData = ref<any>({
+})
 const instanceRef = ref<any>()
 
 // 字段映射
@@ -75,19 +90,23 @@ const modelConfig = reactive({
         title: '确定',
         ok: okEvent,
         disabled: false,
-        loading: false,
+        loading: false
     },
     cancelConfig: {
         title: '取消',
         cancel: closeEvent,
-        disabled: false,
+        disabled: false
     },
     zIndex: 1100,
-    closeOnClickModal: false,
+    closeOnClickModal: false
 })
 const rules = reactive<FormRules>({
-    name: [{ required: true, message: '请输入名称', trigger: ['blur', 'change'] }],
-    aliaCode: [{ required: true, message: '请输入编码', trigger: ['blur', 'change'] }],
+    name: [ {
+ required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
+} ],
+    aliaCode: [ {
+ required: true, message: '请输入编码', trigger: [ 'blur', 'change' ] 
+} ]
 })
 
 const currentComponent = computed(() => {
@@ -121,23 +140,26 @@ function showModal(prevNode: any, cb: () => void, data: any) {
     modelConfig.title = data.typeName
 
     formData.value = cloneDeep(data)
-    modelConfig.visible = true;
+    modelConfig.visible = true
 }
 
 function okEvent() {
     instanceRef.value.setData && instanceRef.value.setData()
     formRef.value?.validate((valid: boolean) => {
         if (valid) {
-            callback.value(formData.value).then((res: any) => {
-                modelConfig.okConfig.loading = false
-                if (res === undefined) {
-                    modelConfig.visible = false
-                } else {
-                    modelConfig.visible = true
-                }
-            }).catch((err: any) => {
-                modelConfig.okConfig.loading = false
-            })
+            callback
+                .value(formData.value)
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
         } else {
             ElMessage.warning('请将表单输入完整')
         }
@@ -145,7 +167,7 @@ function okEvent() {
 }
 
 function closeEvent() {
-    modelConfig.visible = false;
+    modelConfig.visible = false
 }
 
 defineExpose({

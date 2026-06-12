@@ -1,21 +1,21 @@
 <template>
-    <form-render-item
-        class="form-input-money"
-        :formConfig="formConfig"
-        :rules="rules"
-        :isDragger="isDragger"
-    >
-        <el-input
-            v-model="formData"
-            :disabled="formConfig.disabled"
-            :placeholder="formConfig.placeholder"
-            :maxlength="formConfig.maxlength"
-            :readonly="isDragger"
-            @focus="focusEvent"
-            @input="inputEvent"
-            @blur="blurEvent"
-        />
-    </form-render-item>
+  <form-render-item
+    class="form-input-money"
+    :form-config="formConfig"
+    :rules="rules"
+    :is-dragger="isDragger"
+  >
+    <el-input
+      v-model="formData"
+      :disabled="formConfig.disabled"
+      :placeholder="formConfig.placeholder"
+      :maxlength="formConfig.maxlength"
+      :readonly="isDragger"
+      @focus="focusEvent"
+      @input="inputEvent"
+      @blur="blurEvent"
+    />
+  </form-render-item>
 </template>
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed, ref, watch } from 'vue'
@@ -27,14 +27,19 @@ const validateAssetValue = (value: string): string => {
     return value && isNaN(valueNum) ? '' : val
 }
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'isDragger'])
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps([ 'renderSence', 'modelValue', 'formConfig', 'isDragger' ])
+const emit = defineEmits([ 'update:modelValue' ])
 const formData = computed({
     get() {
         if (focusStatus.value) {
             return props.modelValue
         } else {
-            return props.modelValue !== null && props.modelValue !== undefined && props.modelValue !== '' ? Number(props.modelValue).toLocaleString('zh-CN', {'minimumFractionDigits':2, 'maximumFractionDigits':2}) : ''
+            return props.modelValue !== null && props.modelValue !== undefined && props.modelValue !== ''
+                ? Number(props.modelValue).toLocaleString('zh-CN', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                  })
+                : ''
         }
     },
     set(value) {
@@ -46,14 +51,17 @@ const rules = ref([
     {
         required: true,
         message: `请输入${props.formConfig.label}`,
-        trigger: ['blur', 'change']
+        trigger: [ 'blur', 'change' ]
     }
 ])
-watch(() => props.formConfig.defaultValue, () => {
-    if (props.renderSence === 'new') {
-        emit('update:modelValue', props.formConfig.defaultValue)
+watch(
+    () => props.formConfig.defaultValue,
+    () => {
+        if (props.renderSence === 'new') {
+            emit('update:modelValue', props.formConfig.defaultValue)
+        }
     }
-})
+)
 function focusEvent(e: any) {
     focusStatus.value = true
     emit('update:modelValue', validateAssetValue(e.target.value))

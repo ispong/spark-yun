@@ -31,7 +31,10 @@
           @current-change="handleCurrentChange"
         >
           <template #account="scopeSlot">
-            <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.account }}</span>
+            <span
+              class="name-click"
+              @click="editData(scopeSlot.row)"
+            >{{ scopeSlot.row.account }}</span>
           </template>
           <template #statusTag="scopeSlot">
             <div class="btn-group">
@@ -52,7 +55,12 @@
             </div>
           </template>
           <template #platformAdmin="scopeSlot">
-            <el-tag v-if="scopeSlot.row.platformAdmin" type="warning">平台管理员</el-tag>
+            <el-tag
+              v-if="scopeSlot.row.platformAdmin"
+              type="warning"
+            >
+              平台管理员
+            </el-tag>
             <span v-else>-</span>
           </template>
           <template #options="scopeSlot">
@@ -61,7 +69,9 @@
                 <span
                   v-if="!scopeSlot.row.statusLoading"
                   @click="changeStatus(scopeSlot.row, false)"
-                >禁用</span>
+                >
+                  禁用
+                </span>
                 <el-icon
                   v-else
                   class="is-loading"
@@ -73,7 +83,9 @@
                 <span
                   v-if="!scopeSlot.row.statusLoading"
                   @click="changeStatus(scopeSlot.row, true)"
-                >启用</span>
+                >
+                  启用
+                </span>
                 <el-icon
                   v-else
                   class="is-loading"
@@ -86,10 +98,10 @@
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item @click="editData(scopeSlot.row)">
-                        编辑
+                      编辑
                     </el-dropdown-item>
                     <el-dropdown-item @click="changePassword(scopeSlot.row)">
-                        修改密码
+                      修改密码
                     </el-dropdown-item>
                     <el-dropdown-item
                       v-if="authStore.userInfo?.systemAdmin && !scopeSlot.row.platformAdmin"
@@ -104,7 +116,7 @@
                       取消平台管理员
                     </el-dropdown-item>
                     <el-dropdown-item @click="deleteData(scopeSlot.row)">
-                        删除
+                      删除
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
@@ -128,27 +140,25 @@ import AddModal from './add-modal/index.vue'
 import PasswordModal from './password-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './user-center.config'
-import {
-  GetUserCenterList,
-  DisableUser,
-  EnableUser,
-  DeleteUser,
-  AddUserData,
-  UpdateUserData,
-  UpdateUserPassword,
-  SetPlatformAdmin
-} from '@/services/user-center.service'
+import { GetUserCenterList,
+    DisableUser,
+    EnableUser,
+    DeleteUser,
+    AddUserData,
+    UpdateUserData,
+    UpdateUserPassword,
+    SetPlatformAdmin } from '@/services/user-center.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/store/useAuth'
 
 interface FormUser {
-  account: string;
-  email: string;
-  passwd?: string;
-  phone: string;
-  remark: string;
-  username: string;
-  id?: string;
+    account: string
+    email: string
+    passwd?: string
+    phone: string
+    remark: string
+    username: string
+    id?: string
 }
 
 const breadCrumbList = reactive(BreadCrumbList)
@@ -161,153 +171,153 @@ const passwordModalRef = ref(null)
 const authStore = useAuthStore()
 
 function initData(tableLoading?: boolean) {
-  loading.value = tableLoading ? false : true
-  networkError.value = networkError.value || false
-  GetUserCenterList({
-    page: tableConfig.pagination.currentPage - 1,
-    pageSize: tableConfig.pagination.pageSize,
-    searchKeyWord: keyword.value
-  })
-    .then((res: any) => {
-      tableConfig.tableData = res.data.content
-      tableConfig.pagination.total = res.data.totalElements
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = false
+    loading.value = tableLoading ? false : true
+    networkError.value = networkError.value || false
+    GetUserCenterList({
+        page: tableConfig.pagination.currentPage - 1,
+        pageSize: tableConfig.pagination.pageSize,
+        searchKeyWord: keyword.value
     })
-    .catch(() => {
-      tableConfig.tableData = []
-      tableConfig.pagination.total = 0
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = true
-    })
+        .then((res: any) => {
+            tableConfig.tableData = res.data.content
+            tableConfig.pagination.total = res.data.totalElements
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
+        })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
 }
 
 function addData() {
-  addModalRef.value.showModal((formData: FormUser) => {
-    return new Promise((resolve: any, reject: any) => {
-      AddUserData(formData)
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
-        })
-        .catch((error: any) => {
-          reject(error)
+    addModalRef.value.showModal((formData: FormUser) => {
+        return new Promise((resolve: any, reject: any) => {
+            AddUserData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     })
-  })
 }
 
 function editData(data: any) {
-  addModalRef.value.showModal((formData: FormUser) => {
-    return new Promise((resolve: any, reject: any) => {
-      UpdateUserData(formData)
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
+    addModalRef.value.showModal((formData: FormUser) => {
+        return new Promise((resolve: any, reject: any) => {
+            UpdateUserData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
-        .catch((error: any) => {
-          reject(error)
-        })
-    })
-  }, data)
+    }, data)
 }
 
 function changePassword(data: any) {
-  passwordModalRef.value.showModal((formData: any) => {
-    return new Promise((resolve: any, reject: any) => {
-      UpdateUserPassword(formData)
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          resolve()
+    passwordModalRef.value.showModal((formData: any) => {
+        return new Promise((resolve: any, reject: any) => {
+            UpdateUserPassword(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
-        .catch((error: any) => {
-          reject(error)
-        })
-    })
-  }, data)
+    }, data)
 }
 
 function changePlatformAdmin(data: any, platformAdmin: boolean) {
-  SetPlatformAdmin({
-    userId: data.id,
-    platformAdmin
-  }).then((res: any) => {
-    ElMessage.success(res.msg)
-    initData(true)
-  })
+    SetPlatformAdmin({
+        userId: data.id,
+        platformAdmin
+    }).then((res: any) => {
+        ElMessage.success(res.msg)
+        initData(true)
+    })
 }
 
 // 启用 or 禁用
 function changeStatus(data: any, status: boolean) {
-  data.statusLoading = true
-  if (status) {
-    EnableUser({
-      userId: data.id
-    })
-      .then((res: any) => {
-        ElMessage.success(res.msg)
-        data.statusLoading = false
-        initData(true)
-      })
-      .catch(() => {
-        data.statusLoading = false
-      })
-  } else {
-    DisableUser({
-      userId: data.id
-    })
-      .then((res: any) => {
-        ElMessage.success(res.msg)
-        data.statusLoading = false
-        initData(true)
-      })
-      .catch(() => {
-        data.statusLoading = false
-      })
-  }
+    data.statusLoading = true
+    if (status) {
+        EnableUser({
+            userId: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                data.statusLoading = false
+                initData(true)
+            })
+            .catch(() => {
+                data.statusLoading = false
+            })
+    } else {
+        DisableUser({
+            userId: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                data.statusLoading = false
+                initData(true)
+            })
+            .catch(() => {
+                data.statusLoading = false
+            })
+    }
 }
 
 // 删除
 function deleteData(data: any) {
-  ElMessageBox.confirm('确定删除该成员吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    DeleteUser({
-      userId: data.id
+    ElMessageBox.confirm('确定删除该成员吗？', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        DeleteUser({
+            userId: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch(() => {})
     })
-      .then((res: any) => {
-        ElMessage.success(res.msg)
-        initData()
-      })
-      .catch(() => {})
-  })
 }
 
 function inputEvent(e: string) {
-  if (e === '') {
-    initData()
-  }
+    if (e === '') {
+        initData()
+    }
 }
 
 function handleSizeChange(e: number) {
-  tableConfig.pagination.pageSize = e
-  initData()
+    tableConfig.pagination.pageSize = e
+    initData()
 }
 
 function handleCurrentChange(e: number) {
-  tableConfig.pagination.currentPage = e
-  initData()
+    tableConfig.pagination.currentPage = e
+    initData()
 }
 
 onMounted(() => {
-  tableConfig.pagination.currentPage = 1
-  tableConfig.pagination.pageSize = 10
-  initData()
+    tableConfig.pagination.currentPage = 1
+    tableConfig.pagination.pageSize = 10
+    initData()
 })
 </script>

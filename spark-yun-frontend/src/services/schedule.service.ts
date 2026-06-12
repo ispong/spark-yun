@@ -8,99 +8,98 @@
  */
 import { http } from '@/utils/http'
 interface SerchParams {
-  page: number;
-  pageSize: number;
-  searchKeyWord: string;
-  executeStatus: string
-  workflowId?: string
+    page: number
+    pageSize: number
+    searchKeyWord: string
+    executeStatus: string
+    workflowId?: string
 }
 
 interface LogParam {
-  instanceId: string;
+    instanceId: string
 }
 
 interface workflowInstanceId {
-  workflowInstanceId: string
+    workflowInstanceId: string
 }
 
 // 获取调度历史查询数据---作业实例
 export function GetScheduleList(params: SerchParams): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/work/queryInstance',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/work/queryInstance',
+        params: params
+    })
 }
 
 // 获取调度历史查询数据---作业流实例
 export function GetScheduleWorkFlowList(params: SerchParams): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/workflow/queryWorkFlowInstances',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/workflow/queryWorkFlowInstances',
+        params: params
+    })
 }
 
 // 获取调度历史查询数据---作业流实例
 export function GetScheduleDetail(params: workflowInstanceId): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/work/getWorkflowInstance',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/work/getWorkflowInstance',
+        params: params
+    })
 }
 
 // 获取日志
 export function GetLogData(params: LogParam): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/work/getSubmitLog',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/work/getSubmitLog',
+        params: params
+    })
 }
 
 // 获取Yarn日志
 export function GetYarnLogData(params: LogParam): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/work/getYarnLog',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/work/getYarnLog',
+        params: params
+    })
 }
 
 // 重新运行
 export function ReStartRunning(params: any): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/workflow/runCurrentNode',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/workflow/runCurrentNode',
+        params: params
+    })
 }
 
 // 获取结果表
 export function GetResultData(params: LogParam): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/work/getData',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/work/getData',
+        params: params
+    })
 }
 
 // 删除调度历史-作业
 export function DeleteScheduleLog(params: LogParam): Promise<any> {
-  return http.request({
-    method: 'get',
-    url: '/vip/work-instance/deleteInstance',
-    params: params
-  })
+    return http.request({
+        method: 'get',
+        url: '/vip/work-instance/deleteInstance',
+        params: params
+    })
 }
 
 // 删除调度历史-作业流
 export function DeleteWorkFlowScheduleLog(params: workflowInstanceId): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/vip/workflow-instance/deleteWorkflowInstance',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/vip/workflow-instance/deleteWorkflowInstance',
+        params: params
+    })
 }
-

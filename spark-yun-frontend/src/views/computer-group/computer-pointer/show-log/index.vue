@@ -1,15 +1,25 @@
 <template>
-    <BlockModal :model-config="modelConfig" @close="closeEvent">
-        <div id="content" class="content-box">
-            <LogContainer v-if="logMsg" :logMsg="logMsg" :status="true"></LogContainer>
-        </div>
-    </BlockModal>
+  <BlockModal
+    :model-config="modelConfig"
+    @close="closeEvent"
+  >
+    <div
+      id="content"
+      class="content-box"
+    >
+      <LogContainer
+        v-if="logMsg"
+        :log-msg="logMsg"
+        :status="true"
+      />
+    </div>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, onUnmounted, nextTick } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
-import { GetComputerPointDetailData } from '@/services/computer-group.service';
+import { GetComputerPointDetailData } from '@/services/computer-group.service'
 
 const logMsg = ref('')
 const timer = ref(null)
@@ -49,12 +59,14 @@ function getLogData(id: string) {
     }
     GetComputerPointDetailData({
         clusterNodeId: id
-    }).then((res: any) => {
-        logMsg.value = res.data.agentLog
-    }).catch((err: any) => {
-        console.log('err', err)
-        logMsg.value = ''
     })
+        .then((res: any) => {
+            logMsg.value = res.data.agentLog
+        })
+        .catch((err: any) => {
+            console.log('err', err)
+            logMsg.value = ''
+        })
 }
 
 function closeEvent() {

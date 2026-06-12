@@ -1,17 +1,22 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group acquisition-task-add" label-position="top" :model="formData">
-            <el-form-item label="备注">
-                <el-input
-                    v-model="formData.remark"
-                    type="textarea"
-                    maxlength="200"
-                    :autosize="{ minRows: 4, maxRows: 4 }"
-                    placeholder="请输入"
-                />
-            </el-form-item>
-        </el-form>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group acquisition-task-add"
+      label-position="top"
+      :model="formData"
+    >
+      <el-form-item label="备注">
+        <el-input
+          v-model="formData.remark"
+          type="textarea"
+          maxlength="200"
+          :autosize="{ minRows: 4, maxRows: 4 }"
+          placeholder="请输入"
+        />
+      </el-form-item>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -57,16 +62,19 @@ function okEvent() {
     form.value?.validate((valid) => {
         if (valid) {
             modelConfig.okConfig.loading = true
-            callback.value(formData).then((res: any) => {
-                modelConfig.okConfig.loading = false
-                if (res === undefined) {
-                    modelConfig.visible = false
-                } else {
-                    modelConfig.visible = true
-                }
-            }).catch((err: any) => {
-                modelConfig.okConfig.loading = false
-            })
+            callback
+                .value(formData)
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
         } else {
             ElMessage.warning('请将表单输入完整')
         }
@@ -94,7 +102,7 @@ defineExpose({
                 height: 36px;
 
                 .el-input-number__decrease {
-                    top: 16px
+                    top: 16px;
                 }
             }
         }

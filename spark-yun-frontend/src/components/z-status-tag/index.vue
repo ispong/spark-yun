@@ -1,12 +1,12 @@
 <template>
-    <div :class="vmStatusClass">
-        <div class="vm-status__pointer"></div>
-        <span class="vm-status__text">{{ vmStatus.name }}</span>
-    </div>
+  <div :class="vmStatusClass">
+    <div class="vm-status__pointer" />
+    <span class="vm-status__text">{{ vmStatus.name }}</span>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref } from 'vue'
 
 interface ColonyInfo {
     id: string
@@ -61,21 +61,24 @@ const statusMap = ref<any>({
     INIT: '未初始化'
 })
 
-const props = withDefaults(defineProps<{
-    status: string
-}>(), {
-    status: 'SUCCESS'
-})
+const props = withDefaults(
+    defineProps<{
+        status: string
+    }>(),
+    {
+        status: 'SUCCESS'
+    }
+)
 
 const vmStatusClass = computed(() => {
     if (props.status) {
-        return ['vm-status', 'is-' + props.status.toLowerCase()]
+        return [ 'vm-status', 'is-' + props.status.toLowerCase() ]
     } else {
-        return ['vm-status', 'is-none']
+        return [ 'vm-status', 'is-none' ]
     }
 })
 
-const vmStatus = computed<{ status: ColonyInfo['status'], name: string }>(() => {
+const vmStatus = computed<{ status: ColonyInfo['status']; name: string }>(() => {
     if (props.status) {
         return {
             status: props.status,
@@ -88,7 +91,6 @@ const vmStatus = computed<{ status: ColonyInfo['status'], name: string }>(() => 
         }
     }
 })
-
 </script>
 
 <style scoped lang="scss">
@@ -109,13 +111,13 @@ const vmStatus = computed<{ status: ColonyInfo['status'], name: string }>(() => 
     &.is-enable,
     &.is-check_success,
     &.is-active {
-        color: #43CF7C;
+        color: #43cf7c;
 
         .vm-status__pointer {
-            background-color: #43CF7C;
+            background-color: #43cf7c;
         }
         .vm-status__text {
-            color: #43CF7C;
+            color: #43cf7c;
         }
     }
 
@@ -129,13 +131,13 @@ const vmStatus = computed<{ status: ColonyInfo['status'], name: string }>(() => 
     &.is-unpublished,
     &.is-deleted,
     &.is-stop {
-        color: #FA541C;
+        color: #fa541c;
 
         .vm-status__pointer {
-            background-color: #FA541C;
+            background-color: #fa541c;
         }
         .vm-status__text {
-            color: #FA541C;
+            color: #fa541c;
         }
     }
 
@@ -174,7 +176,9 @@ const vmStatus = computed<{ status: ColonyInfo['status'], name: string }>(() => 
         }
     }
 
-    &.is-running,&.is-building,&.is-new {
+    &.is-running,
+    &.is-building,
+    &.is-new {
         color: #1890ff;
 
         .vm-status__pointer {
@@ -186,13 +190,13 @@ const vmStatus = computed<{ status: ColonyInfo['status'], name: string }>(() => 
     }
 
     &.is-pending {
-        color: #F5B041;
+        color: #f5b041;
 
         .vm-status__pointer {
-            background-color: #F5B041;
+            background-color: #f5b041;
         }
         .vm-status__text {
-            color: #F5B041;
+            color: #f5b041;
         }
     }
 

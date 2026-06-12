@@ -1,57 +1,54 @@
 <template>
-    <BlockDrawer :drawer-config="drawerConfig">
-        <!-- <LoadingPage :visible="loading"> -->
-        <div class="workflow-page">
-            <div class="flow-container flow-container__lineage">
-                <spark-jar
-                    v-if="(workConfig.workType === 'SPARK_JAR' || workConfig.workType === 'FLINK_JAR')"
-                    :workItemConfig="workConfig"
-                    :workFlowData="workFlowData"
-                    :disabled="true"
-                ></spark-jar>
-                <WorkApi
-                    v-if="workConfig.workType === 'API'"
-                    :workItemConfig="workConfig"
-                    :workFlowData="workFlowData"
-                    :disabled="true"
-                ></WorkApi>
-                <ApiSync
-                    v-if="workConfig.workType === 'API_SYNC_JDBC'"
-                    :workItemConfig="workConfig"
-                    :disabled="true"
-                ></ApiSync>
-                <WorkItem
-                    v-if="
-                        !['SPARK_JAR',
-                        'API_SYNC_JDBC',
-                        'DATA_SYNC_JDBC',
-                        'EXCEL_SYNC_JDBC',
-                        'DB_MIGRATE'
-                        ].includes(workConfig.workType)
-                    "
-                    :workItemConfig="workConfig"
-                    :workFlowData="workFlowData"
-                    :disabled="true"
-                ></WorkItem>
-                <data-sync
-                    v-if="workConfig.workType === 'DATA_SYNC_JDBC'"
-                    :workItemConfig="workConfig"
-                    :disabled="true"
-                ></data-sync>
-                <ExcelImport
-                    v-if="workConfig.workType === 'EXCEL_SYNC_JDBC'"
-                    :workItemConfig="workConfig"
-                    :disabled="true"
-                ></ExcelImport>
-                <DatabaseMigrate
-                    v-if="workConfig.workType === 'DB_MIGRATE'"
-                    :workItemConfig="workConfig"
-                    :disabled="true"
-                ></DatabaseMigrate>
-            </div>
-        </div>
-        <!-- </LoadingPage> -->
-    </BlockDrawer>
+  <BlockDrawer :drawer-config="drawerConfig">
+    <!-- <LoadingPage :visible="loading"> -->
+    <div class="workflow-page">
+      <div class="flow-container flow-container__lineage">
+        <spark-jar
+          v-if="workConfig.workType === 'SPARK_JAR' || workConfig.workType === 'FLINK_JAR'"
+          :work-item-config="workConfig"
+          :work-flow-data="workFlowData"
+          :disabled="true"
+        />
+        <WorkApi
+          v-if="workConfig.workType === 'API'"
+          :work-item-config="workConfig"
+          :work-flow-data="workFlowData"
+          :disabled="true"
+        />
+        <ApiSync
+          v-if="workConfig.workType === 'API_SYNC_JDBC'"
+          :work-item-config="workConfig"
+          :disabled="true"
+        />
+        <WorkItem
+          v-if="
+            !['SPARK_JAR', 'API_SYNC_JDBC', 'DATA_SYNC_JDBC', 'EXCEL_SYNC_JDBC', 'DB_MIGRATE'].includes(
+              workConfig.workType
+            )
+          "
+          :work-item-config="workConfig"
+          :work-flow-data="workFlowData"
+          :disabled="true"
+        />
+        <data-sync
+          v-if="workConfig.workType === 'DATA_SYNC_JDBC'"
+          :work-item-config="workConfig"
+          :disabled="true"
+        />
+        <ExcelImport
+          v-if="workConfig.workType === 'EXCEL_SYNC_JDBC'"
+          :work-item-config="workConfig"
+          :disabled="true"
+        />
+        <DatabaseMigrate
+          v-if="workConfig.workType === 'DB_MIGRATE'"
+          :work-item-config="workConfig"
+          :disabled="true"
+        />
+      </div>
+    </div>
+    <!-- </LoadingPage> -->
+  </BlockDrawer>
 </template>
 
 <script lang="ts" setup>
@@ -66,9 +63,7 @@ import WorkItem from '@/views/workflow/work-item/index.vue'
 import DatabaseMigrate from '@/views/workflow/database-migrate/index.vue'
 import ExcelImport from '@/views/workflow/excel-import/index.vue'
 
-import {
-    GetWorkItemConfig
-} from '@/services/workflow.service'
+import { GetWorkItemConfig } from '@/services/workflow.service'
 
 interface WorkConfig {
     workType: string
@@ -92,12 +87,12 @@ const drawerConfig = reactive({
     cancelConfig: {
         title: '取消',
         cancel: closeEvent,
-        disabled: false,
+        disabled: false
     },
     customClass: 'work-detail-modal',
     zIndex: 1100,
-    closeOnClickModal: false,
-});
+    closeOnClickModal: false
+})
 
 function showModal(data: any) {
     workConfig.value = {
@@ -109,15 +104,13 @@ function showModal(data: any) {
         id: data.workId
     }
     drawerConfig.title = `作业详情-${workFlowData.value.name}`
-    drawerConfig.visible = true;
+    drawerConfig.visible = true
 }
 
-function okEvent() {
-
-}
+function okEvent() {}
 
 function closeEvent() {
-    drawerConfig.visible = false;
+    drawerConfig.visible = false
 }
 
 defineExpose({

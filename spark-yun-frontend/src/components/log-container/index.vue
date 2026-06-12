@@ -1,10 +1,16 @@
 <template>
-    <pre
-        class="zqy-log-container"
-        ref="preContentRef"
-        @mousewheel="mousewheelEvent"
-    >{{ (logMsg || '') + loadingMsg }}</pre>
-    <span v-if="!showResult" class="zqy-download-log" @click="downloadLog">下载日志</span>
+  <pre
+    ref="preContentRef"
+    class="zqy-log-container"
+    @mousewheel="mousewheelEvent"
+  >{{
+        (logMsg || '') + loadingMsg
+    }}</pre>
+  <span
+    v-if="!showResult"
+    class="zqy-download-log"
+    @click="downloadLog"
+  >下载日志</span>
 </template>
 
 <script lang="ts" setup>
@@ -12,8 +18,8 @@ import { ref, defineProps, onMounted, computed, nextTick, onUnmounted, watch, de
 import dayjs from 'dayjs'
 
 const props = defineProps<{
-    logMsg: string,
-    status: boolean,
+    logMsg: string
+    status: boolean
     showResult: boolean
 }>()
 
@@ -22,21 +28,25 @@ const loadingTimer = ref()
 const loadingPoint = ref('.')
 const preContentRef = ref(null)
 
-const emit = defineEmits(['getJsonParseResult'])
+const emit = defineEmits([ 'getJsonParseResult' ])
 
-watch(() => props.logMsg, () => {
-    if (position.value) {
-        nextTick(() => {
-            scrollToButtom()
-        })
+watch(
+    () => props.logMsg,
+    () => {
+        if (position.value) {
+            nextTick(() => {
+                scrollToButtom()
+            })
+        }
+    },
+    {
+        immediate: true
     }
-}, {
-    immediate: true
-})
+)
 
 const loadingMsg = computed(() => {
-  const str = !props.status ? `加载中${loadingPoint.value}` : ''
-  return str
+    const str = !props.status ? `加载中${loadingPoint.value}` : ''
+    return str
 })
 
 function getResult() {
@@ -46,8 +56,8 @@ function getResult() {
 function downloadLog() {
     const logStr = props.logMsg
     const nowDate = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss')
-    const blob = new Blob([logStr], {
-        type: "text/plain;charset=utf-8"
+    const blob = new Blob([ logStr ], {
+        type: 'text/plain;charset=utf-8'
     })
     const objectURL = URL.createObjectURL(blob)
     const aTag = document.createElement('a')
@@ -76,9 +86,9 @@ function scrollToButtom() {
 }
 
 function mousewheelEvent(e: any) {
-  if (!(e.deltaY > 0)) {
-    position.value = false
-  }
+    if (!(e.deltaY > 0)) {
+        position.value = false
+    }
 }
 
 onMounted(() => {
@@ -97,10 +107,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (loadingTimer.value) {
-    clearInterval(loadingTimer.value)
-  }
-  loadingTimer.value = null
+    if (loadingTimer.value) {
+        clearInterval(loadingTimer.value)
+    }
+    loadingTimer.value = null
 })
 
 defineExpose({

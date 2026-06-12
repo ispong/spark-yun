@@ -1,28 +1,28 @@
 <template>
-    <form-render-item
-        class="form-input-date"
-        :formConfig="formConfig"
-        :rules="rules"
-        :isDragger="isDragger"
-    >
-        <el-date-picker
-            v-model="formData"
-            :type="formConfig.dateType"
-            :value-format="formatType[formConfig.dateType]"
-            :format="formatType[formConfig.dateType]"
-            :disabled="formConfig.disabled"
-            :placeholder="formConfig.placeholder"
-            :readonly="isDragger"
-            :teleported="true"
-        />
-    </form-render-item>
+  <form-render-item
+    class="form-input-date"
+    :form-config="formConfig"
+    :rules="rules"
+    :is-dragger="isDragger"
+  >
+    <el-date-picker
+      v-model="formData"
+      :type="formConfig.dateType"
+      :value-format="formatType[formConfig.dateType]"
+      :format="formatType[formConfig.dateType]"
+      :disabled="formConfig.disabled"
+      :placeholder="formConfig.placeholder"
+      :readonly="isDragger"
+      :teleported="true"
+    />
+  </form-render-item>
 </template>
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed, ref, watch } from 'vue'
 import FormRenderItem from '../../form-render-item/index.vue'
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'isDragger'])
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps([ 'renderSence', 'modelValue', 'formConfig', 'isDragger' ])
+const emit = defineEmits([ 'update:modelValue' ])
 const formData = computed({
     get() {
         return props.modelValue
@@ -40,14 +40,17 @@ const rules = ref([
     {
         required: true,
         message: `请选择${props.formConfig.label}`,
-        trigger: ['blur', 'change']
+        trigger: [ 'blur', 'change' ]
     }
 ])
-watch(() => props.formConfig.defaultValue, () => {
-    if (props.renderSence === 'new') {
-        emit('update:modelValue', props.formConfig.defaultValue)
+watch(
+    () => props.formConfig.defaultValue,
+    () => {
+        if (props.renderSence === 'new') {
+            emit('update:modelValue', props.formConfig.defaultValue)
+        }
     }
-})
+)
 </script>
 
 <style lang="scss">

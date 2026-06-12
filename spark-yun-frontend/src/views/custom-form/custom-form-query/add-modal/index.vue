@@ -1,29 +1,30 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <LoadingPage :visible="loading">
-            <z-form-engine
-                ref="formEngineRef"
-                v-model="formData"
-                :renderSence="renderSence"
-                :formConfigList="formConfigList"
-            ></z-form-engine>
-        </LoadingPage>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <LoadingPage :visible="loading">
+      <z-form-engine
+        ref="formEngineRef"
+        v-model="formData"
+        :render-sence="renderSence"
+        :form-config-list="formConfigList"
+      />
+    </LoadingPage>
+  </BlockModal>
 </template>
-  
+
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import LoadingPage from '@/components/loading/index.vue'
 import ZFormEngine from '@/lib/packages/z-form-engine/index.vue'
 import { ElMessage } from 'element-plus'
-import { QueryFormConfigById } from '@/services/custom-form.service';
+import { QueryFormConfigById } from '@/services/custom-form.service'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
 const callback = ref<any>()
 const formEngineRef = ref()
-const formData = ref({})
+const formData = ref({
+})
 const formConfigList = ref([])
 
 const loading = ref(false)
@@ -53,7 +54,8 @@ const modelConfig = reactive({
 
 function showModal(cb: () => void, data?: any): void {
     callback.value = cb
-    formData.value = {}
+    formData.value = {
+}
     getFormConfigById()
     if (data) {
         formData.value = {
@@ -73,35 +75,39 @@ function getFormConfigById(tableLoading?: boolean) {
     networkError.value = networkError.value || false
     QueryFormConfigById({
         formId: route.query.id
-    }).then((res: any) => {
-        formConfigList.value = res.data?.components
-        loading.value = false
-        networkError.value = false
-    }).catch(() => {
-        loading.value = false
-        networkError.value = true
     })
+        .then((res: any) => {
+            formConfigList.value = res.data?.components
+            loading.value = false
+            networkError.value = false
+        })
+        .catch(() => {
+            loading.value = false
+            networkError.value = true
+        })
 }
 
 function okEvent() {
-  formEngineRef.value.validateForm((valid: boolean) => {
-    if (valid) {
-        modelConfig.okConfig.loading = true
-        callback.value(formData.value).then((res: any) => {
-            modelConfig.okConfig.loading = false
-            if (res === undefined) {
-                modelConfig.visible = false
-            } else {
-                modelConfig.visible = true
-            }
-        })
-        .catch(() => {
-            modelConfig.okConfig.loading = false
-        })
-    } else {
-      ElMessage.warning('请将表单输入完整')
-    }
-  })
+    formEngineRef.value.validateForm((valid: boolean) => {
+        if (valid) {
+            modelConfig.okConfig.loading = true
+            callback
+                .value(formData.value)
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch(() => {
+                    modelConfig.okConfig.loading = false
+                })
+        } else {
+            ElMessage.warning('请将表单输入完整')
+        }
+    })
 }
 
 function closeEvent() {
@@ -112,7 +118,7 @@ defineExpose({
     showModal
 })
 </script>
-  
+
 <style lang="scss">
 .custom-form-add {
     .zqy-loading {
@@ -120,4 +126,3 @@ defineExpose({
     }
 }
 </style>
-  

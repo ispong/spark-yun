@@ -1,16 +1,23 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <component
-            ref="instanceRef"
-            :is="currentComponent(componentType)"
-            :preNodes="preNodes"
-            :nodeFormData="nodeFormData"
-            v-model="tableData"
-        ></component>
-        <template #customLeft>
-            <el-button v-if="showRefreshBtn" type="primary" @click="refreshFields" style="margin-right: auto;">刷新</el-button>
-        </template>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <component
+      :is="currentComponent(componentType)"
+      ref="instanceRef"
+      v-model="tableData"
+      :pre-nodes="preNodes"
+      :node-form-data="nodeFormData"
+    />
+    <template #customLeft>
+      <el-button
+        v-if="showRefreshBtn"
+        type="primary"
+        style="margin-right: auto"
+        @click="refreshFields"
+      >
+        刷新
+      </el-button>
+    </template>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -32,7 +39,8 @@ const instanceRef = ref<any>()
 const tableData = ref<any[]>([])
 const componentType = ref<string>('DEFAULT')
 const preNodes = ref<any[]>([])
-const nodeFormData = ref<any>({})
+const nodeFormData = ref<any>({
+})
 const saveCallback = ref<((data: any[]) => void) | null>(null)
 const formInstance = shallowRef<any>(Components)
 const modelConfig = reactive({
@@ -44,18 +52,26 @@ const modelConfig = reactive({
         title: '保存',
         ok: okEvent,
         disabled: false,
-        loading: false,
+        loading: false
     },
     cancelConfig: {
         title: '关闭',
         cancel: closeEvent,
-        disabled: false,
+        disabled: false
     },
     zIndex: 1200,
-    closeOnClickModal: false,
+    closeOnClickModal: false
 })
 
-const refreshBtnTypes = ['DATA_JOIN', 'DATA_UNION', 'DATA_FILTER', 'DATA_TRANSFORM', 'DATA_ADD_COL', 'DATA_INPUT', 'DATA_CUSTOM']
+const refreshBtnTypes = [
+    'DATA_JOIN',
+    'DATA_UNION',
+    'DATA_FILTER',
+    'DATA_TRANSFORM',
+    'DATA_ADD_COL',
+    'DATA_INPUT',
+    'DATA_CUSTOM'
+]
 const showRefreshBtn = computed(() => refreshBtnTypes.includes(componentType.value))
 
 const currentComponent = computed(() => {
@@ -74,14 +90,15 @@ function showModal(data: any[], type: string, incomeNodes: any[], formData?: any
     tableData.value = data
     componentType.value = type
     preNodes.value = incomeNodes
-    nodeFormData.value = formData || {}
+    nodeFormData.value = formData || {
+}
     saveCallback.value = (newData: any[]) => {
         // 直接修改原数组引用，确保数据回写到formData.outColumnList
         data.length = 0
-        newData.forEach(item => data.push(item))
+        newData.forEach((item) => data.push(item))
     }
 
-    modelConfig.visible = true;
+    modelConfig.visible = true
 }
 function refreshFields() {
     if (instanceRef.value && instanceRef.value.refreshFields) {
@@ -94,11 +111,11 @@ function okEvent() {
     if (instanceRef.value && instanceRef.value.getTableData && saveCallback.value) {
         saveCallback.value(instanceRef.value.getTableData())
     }
-    modelConfig.visible = false;
+    modelConfig.visible = false
 }
 
 function closeEvent() {
-    modelConfig.visible = false;
+    modelConfig.visible = false
 }
 
 defineExpose({

@@ -18,58 +18,58 @@ import { GetResultItemDetail } from '@/services/workflow.service'
 const timer = ref(null)
 
 let detailData = reactive({
-  finalApplicationStatus: '',
-  trackingUrl: '',
-  yarnApplicationState: ''
+    finalApplicationStatus: '',
+    trackingUrl: '',
+    yarnApplicationState: ''
 })
 
 function initData(id: string): void {
-  getData(id)
-  if (!timer.value) {
-    timer.value = setInterval(() => {
-      getData(id)
-    }, 3000)
-  }
+    getData(id)
+    if (!timer.value) {
+        timer.value = setInterval(() => {
+            getData(id)
+        }, 3000)
+    }
 }
 
 // 获取日志
 function getData(id: string) {
-  if (!id) {
-    return
-  }
-  GetResultItemDetail({
-    instanceId: id
-  })
-    .then((res: any) => {
-      detailData.finalApplicationStatus = res.data.finalApplicationStatus
-      detailData.trackingUrl = res.data.trackingUrl
-      detailData.yarnApplicationState = res.data.yarnApplicationState
+    if (!id) {
+        return
+    }
+    GetResultItemDetail({
+        instanceId: id
     })
-    .catch((error: any) => {
-      console.error(error)
-    })
+        .then((res: any) => {
+            detailData.finalApplicationStatus = res.data.finalApplicationStatus
+            detailData.trackingUrl = res.data.trackingUrl
+            detailData.yarnApplicationState = res.data.yarnApplicationState
+        })
+        .catch((error: any) => {
+            console.error(error)
+        })
 }
 
 onUnmounted(() => {
-  if (timer.value) {
-    clearInterval(timer.value)
-  }
-  timer.value = null
+    if (timer.value) {
+        clearInterval(timer.value)
+    }
+    timer.value = null
 })
 
 defineExpose({
-  initData
+    initData
 })
 </script>
 
 <style lang="scss">
 .detail-container {
-  display: flex;
-  flex-direction: column;
-  color: #666;
-  font-size: getCssVar('font-size', 'extra-small');
-  span {
-    margin-bottom: 12px;
-  }
+    display: flex;
+    flex-direction: column;
+    color: #666;
+    font-size: getCssVar('font-size', 'extra-small');
+    span {
+        margin-bottom: 12px;
+    }
 }
 </style>

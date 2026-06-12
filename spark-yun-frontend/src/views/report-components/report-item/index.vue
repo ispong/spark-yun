@@ -1,117 +1,212 @@
 <template>
-    <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="report-item">
-        <div class="report-button-container">
-            <el-button type="primary" :loading="saveLoading" @click="saveConfigEvent">保存</el-button>
-            <el-button type="primary" :loading="saveLoading" @click="publishChartEvent">发布</el-button>
-        </div>
-        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(true)">
-            <div v-if="showEcharts" class="charts-container" id="currentChart"></div>
-
-            <div class="report-item-config">
-                <el-tabs tab-position="left">
-                    <el-tab-pane label="基础配置">
-                        <div class="config-item">
-                            <div class="item-title">基础配置</div>
-                            <el-scrollbar>
-                                <el-form
-                                    ref="clusterConfigForm"
-                                    label-position="top"
-                                    :model="baseConfig"
-                                    :rules="baseConfigRules"
-                                >
-                                    <el-form-item label="名称" prop="name">
-                                        <el-input
-                                            v-model="baseConfig.name"
-                                            maxlength="200"
-                                            placeholder="请输入"
-                                        />
-                                    </el-form-item>
-                                    <el-form-item label="类型">
-                                        <el-select v-model="baseConfig.type" disabled>
-                                            <el-option
-                                                v-for="item in chartTypeList"
-                                                :key="item.value"
-                                                :label="item.label"
-                                                :value="item.value"
-                                            />
-                                            </el-select>
-                                    </el-form-item>
-                                    <el-form-item label="数据源" prop="datasourceId">
-                                        <el-select v-model="baseConfig.datasourceId" placeholder="请选择">
-                                            <el-option
-                                                v-for="item in dataSourceList"
-                                                :key="item.value"
-                                                :label="item.label"
-                                                :value="item.value"
-                                            />
-                                        </el-select>
-                                    </el-form-item>
-                                    <el-form-item class="sqls-container" prop="sqls">
-                                        <template #label>
-                                            聚合Sql
-                                            <el-tooltip content="例如：select username as x, count(1) as y from users group by username" placement="top">
-                                                <el-icon class="sql-tip-icon"><QuestionFilled /></el-icon>
-                                            </el-tooltip>
-                                        </template>
-                                        <el-icon class="sqls-container-add" @click="addSqlEvent"><CirclePlus /></el-icon>
-                                        <div class="sqls-item" v-for="(sql, index) in baseConfig.sqls" :key="index" :class="{ 'show-screen__full': fullScreenArr[index] }">
-                                            <div class="sql-option-container">
-                                                <span class="sql-option-preview" @click="previewChatEvent(sql)">预览</span>
-                                                <div class="sql-option-icon">
-                                                    <el-icon v-if="baseConfig.sqls.length > 1" class="remove-sql" @click="removeSqlEvent(index)"><CircleClose /></el-icon>
-                                                    <el-icon class="modal-full-screen" @click="fullScreenEvent(index)"><FullScreen v-if="!fullScreenArr[index]" /><Close v-else /></el-icon>
-                                                </div>
-                                            </div>
-                                            <el-input class="shadow-input" disabled v-model="baseConfig.sqls[index]"/>
-                                            <code-mirror v-model="baseConfig.sqls[index]" basic :lang="sqlLang"/>
-                                        </div>
-                                    </el-form-item>
-                                    <el-form-item>
-                                        <el-button type="primary" @click="refreshDataEvent">刷新数据</el-button>
-                                    </el-form-item>
-                                </el-form>
-                            </el-scrollbar>
-                        </div>
-                    </el-tab-pane>
-                    <el-tab-pane label="图表设置">
-                        <div class="config-item">
-                            <div class="item-title">图表设置</div>
-                            <el-scrollbar>
-                                <el-form
-                                    ref="clusterConfigForm"
-                                    label-position="top"
-                                    :model="chartConfig"
-                                    :rules="chartConfigRules"
-                                >
-                                    <el-form-item label="标题" prop="title">
-                                        <el-input
-                                            v-model="chartConfig.title"
-                                            maxlength="200"
-                                            placeholder="请输入"
-                                            @blur="updateChartEvent"
-                                        />
-                                    </el-form-item>
-                                    <el-form-item label="刷新间隔（秒）" prop="title">
-                                        <el-input-number
-                                            v-model="chartConfig.time"
-                                            :min="1"
-                                            controls-position="right"
-                                            placeholder="请输入"
-                                        />
-                                    </el-form-item>
-                                    <el-form-item>
-                                        <el-button type="primary" @click="updateChartEvent">更新图表</el-button>
-                                    </el-form-item>
-                                </el-form>
-                            </el-scrollbar>
-                        </div>
-                    </el-tab-pane>
-                </el-tabs>
-            </div>
-        </LoadingPage>
-        <PreviewReport ref="previewReportRef"></PreviewReport>
+  <Breadcrumb :bread-crumb-list="breadCrumbList" />
+  <div class="report-item">
+    <div class="report-button-container">
+      <el-button
+        type="primary"
+        :loading="saveLoading"
+        @click="saveConfigEvent"
+      >
+        保存
+      </el-button>
+      <el-button
+        type="primary"
+        :loading="saveLoading"
+        @click="publishChartEvent"
+      >
+        发布
+      </el-button>
     </div>
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="initData(true)"
+    >
+      <div
+        v-if="showEcharts"
+        id="currentChart"
+        class="charts-container"
+      />
+
+      <div class="report-item-config">
+        <el-tabs tab-position="left">
+          <el-tab-pane label="基础配置">
+            <div class="config-item">
+              <div class="item-title">
+                基础配置
+              </div>
+              <el-scrollbar>
+                <el-form
+                  ref="clusterConfigForm"
+                  label-position="top"
+                  :model="baseConfig"
+                  :rules="baseConfigRules"
+                >
+                  <el-form-item
+                    label="名称"
+                    prop="name"
+                  >
+                    <el-input
+                      v-model="baseConfig.name"
+                      maxlength="200"
+                      placeholder="请输入"
+                    />
+                  </el-form-item>
+                  <el-form-item label="类型">
+                    <el-select
+                      v-model="baseConfig.type"
+                      disabled
+                    >
+                      <el-option
+                        v-for="item in chartTypeList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item
+                    label="数据源"
+                    prop="datasourceId"
+                  >
+                    <el-select
+                      v-model="baseConfig.datasourceId"
+                      placeholder="请选择"
+                    >
+                      <el-option
+                        v-for="item in dataSourceList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item
+                    class="sqls-container"
+                    prop="sqls"
+                  >
+                    <template #label>
+                      聚合Sql
+                      <el-tooltip
+                        content="例如：select username as x, count(1) as y from users group by username"
+                        placement="top"
+                      >
+                        <el-icon class="sql-tip-icon">
+                          <QuestionFilled />
+                        </el-icon>
+                      </el-tooltip>
+                    </template>
+                    <el-icon
+                      class="sqls-container-add"
+                      @click="addSqlEvent"
+                    >
+                      <CirclePlus />
+                    </el-icon>
+                    <div
+                      v-for="(sql, index) in baseConfig.sqls"
+                      :key="index"
+                      class="sqls-item"
+                      :class="{ 'show-screen__full': fullScreenArr[index] }"
+                    >
+                      <div class="sql-option-container">
+                        <span
+                          class="sql-option-preview"
+                          @click="previewChatEvent(sql)"
+                        >
+                          预览
+                        </span>
+                        <div class="sql-option-icon">
+                          <el-icon
+                            v-if="baseConfig.sqls.length > 1"
+                            class="remove-sql"
+                            @click="removeSqlEvent(index)"
+                          >
+                            <CircleClose />
+                          </el-icon>
+                          <el-icon
+                            class="modal-full-screen"
+                            @click="fullScreenEvent(index)"
+                          >
+                            <FullScreen v-if="!fullScreenArr[index]" />
+                            <Close v-else />
+                          </el-icon>
+                        </div>
+                      </div>
+                      <el-input
+                        v-model="baseConfig.sqls[index]"
+                        class="shadow-input"
+                        disabled
+                      />
+                      <code-mirror
+                        v-model="baseConfig.sqls[index]"
+                        basic
+                        :lang="sqlLang"
+                      />
+                    </div>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button
+                      type="primary"
+                      @click="refreshDataEvent"
+                    >
+                      刷新数据
+                    </el-button>
+                  </el-form-item>
+                </el-form>
+              </el-scrollbar>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="图表设置">
+            <div class="config-item">
+              <div class="item-title">
+                图表设置
+              </div>
+              <el-scrollbar>
+                <el-form
+                  ref="clusterConfigForm"
+                  label-position="top"
+                  :model="chartConfig"
+                  :rules="chartConfigRules"
+                >
+                  <el-form-item
+                    label="标题"
+                    prop="title"
+                  >
+                    <el-input
+                      v-model="chartConfig.title"
+                      maxlength="200"
+                      placeholder="请输入"
+                      @blur="updateChartEvent"
+                    />
+                  </el-form-item>
+                  <el-form-item
+                    label="刷新间隔（秒）"
+                    prop="title"
+                  >
+                    <el-input-number
+                      v-model="chartConfig.time"
+                      :min="1"
+                      controls-position="right"
+                      placeholder="请输入"
+                    />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button
+                      type="primary"
+                      @click="updateChartEvent"
+                    >
+                      更新图表
+                    </el-button>
+                  </el-form-item>
+                </el-form>
+              </el-scrollbar>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </LoadingPage>
+    <PreviewReport ref="previewReportRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -122,11 +217,14 @@ import Breadcrumb from '@/layout/bread-crumb/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 import * as echarts from 'echarts'
 // import CodeMirror from 'vue-codemirror6'
-import {sql} from '@codemirror/lang-sql'
+import { sql } from '@codemirror/lang-sql'
 import PreviewReport from '../preview-report/index.vue'
 
 import { BreadCrumbList, BaseConfigRules, ChartTypeList } from './report-item.config'
-import { ConfigReportComponentData, GetReportComponentData, RefreshReportComponentData, PublishReportComponentData } from '@/services/report-echarts.service'
+import { ConfigReportComponentData,
+    GetReportComponentData,
+    RefreshReportComponentData,
+    PublishReportComponentData } from '@/services/report-echarts.service'
 import { useRoute, useRouter } from 'vue-router'
 import { GetDatasourceList } from '@/services/datasource.service'
 
@@ -139,26 +237,26 @@ const loading = ref(false)
 const showEcharts = ref(true)
 const networkError = ref(false)
 const chartTypeList = ref(ChartTypeList)
-const dataSourceList = ref([])  // 数据源
-const fullScreenArr = ref<boolean[]>([])   // 对应sql脚本全屏显示
+const dataSourceList = ref([]) // 数据源
+const fullScreenArr = ref<boolean[]>([]) // 对应sql脚本全屏显示
 const sqlLang = ref<any>(sql())
 let myChart: any = null
 const echartOption = ref<any>()
-const breadCrumbList = reactive([...BreadCrumbList])
+const breadCrumbList = reactive([ ...BreadCrumbList ])
 // 基础配置
 const baseConfigRules = reactive<FormRules>(BaseConfigRules)
 const baseConfig = reactive({
-    name: '',           // 名称
-    type: '',           // 类型
-    datasourceId: '',   // 数据源
-    sqls: [''],           // 聚合sql
+    name: '', // 名称
+    type: '', // 类型
+    datasourceId: '', // 数据源
+    sqls: [ '' ] // 聚合sql
 })
 
 // 图表配置
 const chartConfigRules = reactive<FormRules>(BaseConfigRules)
 const chartConfig = reactive({
-    title: '',          // 标题
-    time: 60,           // 图表刷新间隔
+    title: '', // 标题
+    time: 60 // 图表刷新间隔
 })
 
 function initData() {
@@ -166,44 +264,48 @@ function initData() {
     loading.value = true
     GetReportComponentData({
         id: route.query.id
-    }).then((res: any) => {
-        echartOption.value = res.data.cardInfo.exampleData
-        if (!echartOption.value.title) {
-            echartOption.value.title = {
-                title: res.data.cardInfo.name,
-                left: 'center'
-            }
-            chartConfig.title = res.data.cardInfo.name
-        }
-        myChart.setOption({...echartOption.value})
-        setTimeout(() => {
-            myChart.resize()
-        })
-        window.addEventListener('resize', resizeChart)
-        baseConfig.sqls = res.data.cardInfo?.dataSql?.sqlList || ['']
-        baseConfig.sqls.forEach(s => {
-            fullScreenArr.value.push(false)
-        })
-        baseConfig.name = res.data.cardInfo.name
-        baseConfig.type = res.data.cardInfo.type
-        baseConfig.datasourceId = res.data.cardInfo.datasourceId
-
-        if (res.data.cardInfo?.webConfig?.title) {
-            chartConfig.title = res.data.cardInfo.webConfig.title
-        } else if (res.data.cardInfo.exampleData?.title?.text) {
-            chartConfig.title = res.data.cardInfo.exampleData.title?.text
-        }
-        if (res.data.cardInfo?.webConfig?.time) {
-            chartConfig.time = res.data.cardInfo.webConfig.time
-        } else {
-            chartConfig.time = 60
-        }
-
-        loading.value = false
-    }).catch((error: any) => {
-        loading.value = false
-        console.error(error)
     })
+        .then((res: any) => {
+            echartOption.value = res.data.cardInfo.exampleData
+            if (!echartOption.value.title) {
+                echartOption.value.title = {
+                    title: res.data.cardInfo.name,
+                    left: 'center'
+                }
+                chartConfig.title = res.data.cardInfo.name
+            }
+            myChart.setOption({
+ ...echartOption.value 
+})
+            setTimeout(() => {
+                myChart.resize()
+            })
+            window.addEventListener('resize', resizeChart)
+            baseConfig.sqls = res.data.cardInfo?.dataSql?.sqlList || [ '' ]
+            baseConfig.sqls.forEach((s) => {
+                fullScreenArr.value.push(false)
+            })
+            baseConfig.name = res.data.cardInfo.name
+            baseConfig.type = res.data.cardInfo.type
+            baseConfig.datasourceId = res.data.cardInfo.datasourceId
+
+            if (res.data.cardInfo?.webConfig?.title) {
+                chartConfig.title = res.data.cardInfo.webConfig.title
+            } else if (res.data.cardInfo.exampleData?.title?.text) {
+                chartConfig.title = res.data.cardInfo.exampleData.title?.text
+            }
+            if (res.data.cardInfo?.webConfig?.time) {
+                chartConfig.time = res.data.cardInfo.webConfig.time
+            } else {
+                chartConfig.time = 60
+            }
+
+            loading.value = false
+        })
+        .catch((error: any) => {
+            loading.value = false
+            console.error(error)
+        })
 }
 
 // 保存数据
@@ -218,12 +320,14 @@ function saveConfigEvent() {
         dataSql: {
             sqlList: baseConfig.sqls
         }
-    }).then((res: any) => {
-        saveLoading.value = false
-        ElMessage.success(res.msg)
-    }).catch(() => {
-        saveLoading.value = false
     })
+        .then((res: any) => {
+            saveLoading.value = false
+            ElMessage.success(res.msg)
+        })
+        .catch(() => {
+            saveLoading.value = false
+        })
 }
 
 // 发布
@@ -238,25 +342,29 @@ function publishChartEvent() {
         dataSql: {
             sqlList: baseConfig.sqls
         }
-    }).then((res: any) => {
-        PublishReportComponentData({
-            id: route.query.id,
-        }).then((res: any) => {
-            saveLoading.value = false
-            ElMessage.success(res.msg)
-            router.push({
-                name: 'report-components',
-                query: {
-                    reportViewId: route.query.reportViewId,
-                    reportViewType: route.query.reportViewId ? 'edit' : route.query.reportViewType
-                }
+    })
+        .then((res: any) => {
+            PublishReportComponentData({
+                id: route.query.id
             })
-        }).catch(() => {
+                .then((res: any) => {
+                    saveLoading.value = false
+                    ElMessage.success(res.msg)
+                    router.push({
+                        name: 'report-components',
+                        query: {
+                            reportViewId: route.query.reportViewId,
+                            reportViewType: route.query.reportViewId ? 'edit' : route.query.reportViewType
+                        }
+                    })
+                })
+                .catch(() => {
+                    saveLoading.value = false
+                })
+        })
+        .catch(() => {
             saveLoading.value = false
         })
-    }).catch(() => {
-        saveLoading.value = false
-    })
 }
 
 // 基础配置事件
@@ -279,17 +387,20 @@ function refreshDataEvent() {
         dataSql: {
             sqlList: baseConfig.sqls
         }
-    }).then((res: any) => {
-        echartOption.value = res.data.viewData
-        myChart.setOption(echartOption.value)
-    }).catch(() => {
     })
+        .then((res: any) => {
+            echartOption.value = res.data.viewData
+            myChart.setOption(echartOption.value)
+        })
+        .catch(() => {})
 }
 
 // 图表配置事件
 function updateChartEvent() {
     echartOption.value.title.text = chartConfig.title
-    myChart.setOption({ ...echartOption.value })
+    myChart.setOption({
+ ...echartOption.value 
+})
 }
 
 function resizeChart() {
@@ -297,22 +408,26 @@ function resizeChart() {
 }
 // 查询数据源
 function getDataSourceList(e: boolean) {
-  if (e) {
-    GetDatasourceList({
-      page: 0,
-      pageSize: 10000,
-      searchKeyWord: ''
-    }).then((res: any) => {
-      dataSourceList.value = res.data.content.filter((item: any) => item.dbType !== 'KAFKA').map((item: any) => {
-        return {
-          label: item.name,
-          value: item.id
-        }
-      })
-    }).catch(() => {
-        dataSourceList.value = []
-    })
-  }
+    if (e) {
+        GetDatasourceList({
+            page: 0,
+            pageSize: 10000,
+            searchKeyWord: ''
+        })
+            .then((res: any) => {
+                dataSourceList.value = res.data.content
+                    .filter((item: any) => item.dbType !== 'KAFKA')
+                    .map((item: any) => {
+                        return {
+                            label: item.name,
+                            value: item.id
+                        }
+                    })
+            })
+            .catch(() => {
+                dataSourceList.value = []
+            })
+    }
 }
 
 // 预览
@@ -325,7 +440,9 @@ function previewChatEvent(sql: string) {
 
 onMounted(() => {
     if (route.query.reportViewId) {
-        breadCrumbList.splice(0, breadCrumbList.length,
+        breadCrumbList.splice(
+            0,
+            breadCrumbList.length,
             {
                 name: '数据大屏',
                 code: 'report-views'
@@ -461,7 +578,7 @@ onUnmounted(() => {
                             .sqls-item {
                                 width: 100%;
                                 margin-bottom: 4px;
-                                
+
                                 &.show-screen__full {
                                     position: fixed;
                                     width: 100%;
@@ -513,41 +630,45 @@ onUnmounted(() => {
                             .vue-codemirror {
                                 height: 130px;
                                 width: 100%;
-    
+
                                 .cm-editor {
                                     height: 100%;
                                     outline: none;
                                     border: 1px solid #dcdfe6;
                                 }
-    
+
                                 .cm-gutters {
                                     font-size: 12px;
-                                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                                        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
                                 }
-    
+
                                 .cm-content {
                                     font-size: 12px;
-                                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                                        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
                                 }
-    
+
                                 .cm-tooltip-autocomplete {
                                     ul {
                                         li {
-                                        height: 40px;
-                                        display: flex;
-                                        align-items: center;
-                                        font-size: 12px;
-                                        background-color: #ffffff;
-                                        font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                                            height: 40px;
+                                            display: flex;
+                                            align-items: center;
+                                            font-size: 12px;
+                                            background-color: #ffffff;
+                                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont,
+                                                'Segoe UI', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+                                                'Segoe UI Symbol';
                                         }
-    
+
                                         li[aria-selected] {
-                                        background: #409EFF;
+                                            background: #409eff;
                                         }
-    
+
                                         .cm-completionIcon {
-                                        margin-right: -4px;
-                                        opacity: 0;
+                                            margin-right: -4px;
+                                            opacity: 0;
                                         }
                                     }
                                 }

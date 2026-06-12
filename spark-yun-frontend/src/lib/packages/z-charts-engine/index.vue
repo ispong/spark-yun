@@ -1,24 +1,24 @@
 <template>
-    <div class="z-charts-engine">
-        <ChartsChoose
-            v-if="renderSence !== 'readonly'"
-            :chartsList="chartsList"
-            :showReportComponentsBtn="showReportComponentsBtn"
-            @startMoveEvent="startMoveEvent"
-            @endMoveEvent="endMoveEvent"
-            @getChartListEvent="getChartListEvent"
-            @previewChatEvent="previewChatEvent"
-            @goReportComponentsEvent="goReportComponentsEvent"
-        ></ChartsChoose>
-        <ChartsComponents
-            ref="chartComponentsRef"
-            class="charts-edit-container"
-            :renderSence="renderSence"
-            :chartList="componentList"
-            :getPreviewOption="getPreviewOption"
-            :getRealDataOption="getRealDataOption"
-        ></ChartsComponents>
-    </div>
+  <div class="z-charts-engine">
+    <ChartsChoose
+      v-if="renderSence !== 'readonly'"
+      :charts-list="chartsList"
+      :show-report-components-btn="showReportComponentsBtn"
+      @start-move-event="startMoveEvent"
+      @end-move-event="endMoveEvent"
+      @get-chart-list-event="getChartListEvent"
+      @preview-chat-event="previewChatEvent"
+      @go-report-components-event="goReportComponentsEvent"
+    />
+    <ChartsComponents
+      ref="chartComponentsRef"
+      class="charts-edit-container"
+      :render-sence="renderSence"
+      :chart-list="componentList"
+      :get-preview-option="getPreviewOption"
+      :get-real-data-option="getRealDataOption"
+    />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -26,8 +26,15 @@ import { ref, defineProps, defineEmits } from 'vue'
 import ChartsChoose from './charts-choose/index.vue'
 import ChartsComponents from './charts-components/charts-grid-layout.vue'
 
-const props = defineProps(['chartsList', 'renderSence', 'componentList', 'getPreviewOption', 'getRealDataOption', 'showReportComponentsBtn'])
-const emit = defineEmits(['getChartListEvent', 'previewChatEvent', 'goReportComponentsEvent'])
+const props = defineProps([
+    'chartsList',
+    'renderSence',
+    'componentList',
+    'getPreviewOption',
+    'getRealDataOption',
+    'showReportComponentsBtn'
+])
+const emit = defineEmits([ 'getChartListEvent', 'previewChatEvent', 'goReportComponentsEvent' ])
 
 const chartComponentsRef = ref()
 
@@ -56,13 +63,13 @@ function goReportComponentsEvent() {
 
 function downloadLog() {
     const logStr = ''
-    const blob = new Blob([logStr], {
-        type: "text/plain;charset=utf-8"
+    const blob = new Blob([ logStr ], {
+        type: 'text/plain;charset=utf-8'
     })
     const objectURL = URL.createObjectURL(blob)
     const aTag = document.createElement('a')
     aTag.href = objectURL
-    aTag.download = "日志.log"
+    aTag.download = '日志.log'
     aTag.click()
     URL.revokeObjectURL(objectURL)
 }

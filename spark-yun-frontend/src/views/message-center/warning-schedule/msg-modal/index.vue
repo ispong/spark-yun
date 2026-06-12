@@ -1,15 +1,32 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group message-modal-res" label-position="top" :model="formData">
-            <el-form-item label="详情" :class="{ 'show-screen__full': fullStatus }">
-                <el-icon class="modal-full-screen" @click="fullScreenEvent()">
-                    <FullScreen v-if="!fullStatus" />
-                    <Close v-else />
-                </el-icon>
-                <code-mirror :disabled="true" ref="responseBodyRef" v-model="formData.content" basic :lang="jsonLang" />
-            </el-form-item>
-        </el-form>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group message-modal-res"
+      label-position="top"
+      :model="formData"
+    >
+      <el-form-item
+        label="详情"
+        :class="{ 'show-screen__full': fullStatus }"
+      >
+        <el-icon
+          class="modal-full-screen"
+          @click="fullScreenEvent()"
+        >
+          <FullScreen v-if="!fullStatus" />
+          <Close v-else />
+        </el-icon>
+        <code-mirror
+          ref="responseBodyRef"
+          v-model="formData.content"
+          :disabled="true"
+          basic
+          :lang="jsonLang"
+        />
+      </el-form-item>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -107,7 +124,6 @@ defineExpose({
                 &:hover {
                     text-decoration: underline;
                 }
-
             }
 
             .modal-full-screen {
@@ -118,7 +134,6 @@ defineExpose({
 
                 &:hover {
                     color: getCssVar('color', 'primary');
-                    ;
                 }
             }
 
@@ -134,12 +149,14 @@ defineExpose({
 
                 .cm-gutters {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
+                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
                 }
 
                 .cm-content {
                     font-size: 12px;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
+                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
                 }
 
                 .cm-tooltip-autocomplete {
@@ -150,11 +167,12 @@ defineExpose({
                             align-items: center;
                             font-size: 12px;
                             background-color: #ffffff;
-                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
+                                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
                         }
 
                         li[aria-selected] {
-                            background: #409EFF;
+                            background: #409eff;
                         }
 
                         .cm-completionIcon {

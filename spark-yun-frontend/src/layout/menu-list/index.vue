@@ -37,113 +37,113 @@
 </template>
 
 <script lang="ts" setup>
-import { useAuthStore } from '@/store/useAuth';
+import { useAuthStore } from '@/store/useAuth'
 import { ref, defineProps, defineEmits, reactive } from 'vue'
 // import { useState } from '@/hooks/useStore'
 
 interface menu {
-  icon: string;
-  name: string;
-  code: string;
-  authType?: Array<string>;
+    icon: string
+    name: string
+    code: string
+    authType?: Array<string>
 }
 
-const authStore = useAuthStore();
+const authStore = useAuthStore()
 // const state = useState([ 'role' ], 'authStoreModule')
 let isCollapse = ref(false)
 const configData = reactive({
-  role: authStore.role
+    role: authStore.role
 })
 
 defineProps<{
-  menuList: {
-    type: Array<menu>;
-    default:() => [];
-  };
-  defaultMenu: string;
+    menuList: {
+        type: Array<menu>
+        default:() => []
+    }
+    defaultMenu: string
 }>()
 const emit = defineEmits([ 'select' ])
 
 const handleSelect = (key: string, keyPath: string[]) => {
-  emit('select', key)
+    emit('select', key)
 }
 
 function clickToCollapse() {
-  isCollapse.value = !isCollapse.value
+    isCollapse.value = !isCollapse.value
 }
 </script>
 
 <style lang="scss">
 // wraning global css
 .el-menu-item {
-  height: getCssVar('menu', 'item-height') !important;
-  display: flex;
-  align-items: center;
-  &.is-active {
-    background-color: getCssVar('color', 'primary', 'light-8') !important;
-  }
+    height: getCssVar('menu', 'item-height') !important;
+    display: flex;
+    align-items: center;
+    &.is-active {
+        background-color: getCssVar('color', 'primary', 'light-8') !important;
+    }
 }
 .el-menu-item-group__title {
-  display: none;
+    display: none;
 }
 .menu-list {
-  height: 100%;
-  width: 100%;
-  position: relative;
-  border-right: solid 1px #e6e6e6;
-  .el-menu {
-    border-right: 0;
-    .el-submenu {
-      .el-menu-item-group__title {
-        display: none;
-      }
-      .el-submenu__title {
-        height: getCssVar('menu', 'item-height');
+    height: 100%;
+    width: 100%;
+    position: relative;
+    border-right: solid 1px #e6e6e6;
+    .el-menu {
+        border-right: 0;
+        .el-submenu {
+            .el-menu-item-group__title {
+                display: none;
+            }
+            .el-submenu__title {
+                height: getCssVar('menu', 'item-height');
+                display: flex;
+                align-items: center;
+            }
+        }
+        .el-menu-item {
+            height: getCssVar('menu', 'item-height');
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+            padding-right: 0;
+            padding-left: 45px !important;
+            .el-tooltip {
+                display: flex !important;
+                align-items: center;
+            }
+            &.is-active {
+                background-color: getCssVar('color', 'primary', 'light-8');
+            }
+        }
+    }
+    .el-menu-vertical-demo:not(.el-menu--collapse) {
+        width: 200px;
+        min-height: 400px;
+    }
+    .collapse-btn {
+        border: 1px solid getCssVar('border-color');
+        width: 12px;
+        height: 60px;
+        border-radius: 0 12px 12px 0;
         display: flex;
+        justify-content: center;
         align-items: center;
-      }
+        position: absolute;
+        right: -14px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        opacity: 0.7;
+        &:hover {
+            background-color: getCssVar('color', 'white');
+            opacity: 1;
+        }
+        .el-icon {
+            color: getCssVar('color', 'info');
+        }
     }
-    .el-menu-item {
-      height: getCssVar('menu', 'item-height');
-      display: flex;
-      align-items: center;
-      box-sizing: border-box;
-      padding-right: 0;
-      padding-left: 45px !important;
-      .el-tooltip {
-        display: flex !important;
-        align-items: center;
-      }
-      &.is-active {
-        background-color: getCssVar('color', 'primary', 'light-8');
-      }
-    }
-  }
-  .el-menu-vertical-demo:not(.el-menu--collapse) {
-    width: 200px;
-    min-height: 400px;
-  }
-  .collapse-btn {
-    border: 1px solid getCssVar('border-color');
-    width: 12px;
-    height: 60px;
-    border-radius: 0 12px 12px 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    right: -14px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    opacity: 0.7;
-    &:hover {
-      background-color: getCssVar('color', 'white');
-      opacity: 1;
-    }
-    .el-icon {
-      color: getCssVar('color', 'info');
-    }
-  }
 }
 </style>

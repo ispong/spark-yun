@@ -1,18 +1,18 @@
 export interface colConfig {
-    prop?: string;
-    title: string;
-    align?: string;
-    showOverflowTooltip?: boolean;
-    customSlot?: string;
-    width?: number;
-    minWidth?: number;
-    fixed?: string;
-  }
+    prop?: string
+    title: string
+    align?: string
+    showOverflowTooltip?: boolean
+    customSlot?: string
+    width?: number
+    minWidth?: number
+    fixed?: string
+}
 export interface TableConfig {
-    tableData: Array<any>;
-    colConfigs: Array<colConfig>;
-    seqType: string;
-    loading?: boolean; // 表格loading
+    tableData: Array<any>
+    colConfigs: Array<colConfig>
+    seqType: string
+    loading?: boolean // 表格loading
 }
 export const TableConfig: TableConfig = {
     tableData: [],

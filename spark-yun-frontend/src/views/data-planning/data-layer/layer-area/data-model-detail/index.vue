@@ -1,38 +1,45 @@
 <template>
-    <BlockModal :model-config="modelConfig" top="10vh">
-        <div class="zqy-table-top">
-            <span></span>
-            <div class="zqy-seach">
-                <el-input
-                    v-model="keyword"
-                    placeholder="请输入搜索条件 回车进行搜索"
-                    :maxlength="200"
-                    clearable
-                    @input="inputEvent"
-                    @keyup.enter="handleCurrentChange(1)"
-                />
-            </div>
-        </div>
-        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
-            <div class="zqy-table">
-                <BlockTable
-                    :table-config="tableConfig"
-                    @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange"
-                >
-                    <template #nameSlot="scopeSlot">
-                        <span
-                            class="name-click"
-                            @click="showDetail(scopeSlot.row)"
-                        >{{ scopeSlot.row.name }}</span>
-                    </template>
-                    <template #statusTag="scopeSlot">
-                        <ZStatusTag :status="scopeSlot.row.status"></ZStatusTag>
-                    </template>
-                </BlockTable>
-            </div>
-        </LoadingPage>
-    </BlockModal>
+  <BlockModal
+    :model-config="modelConfig"
+    top="10vh"
+  >
+    <div class="zqy-table-top">
+      <span />
+      <div class="zqy-seach">
+        <el-input
+          v-model="keyword"
+          placeholder="请输入搜索条件 回车进行搜索"
+          :maxlength="200"
+          clearable
+          @input="inputEvent"
+          @keyup.enter="handleCurrentChange(1)"
+        />
+      </div>
+    </div>
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="initData(false)"
+    >
+      <div class="zqy-table">
+        <BlockTable
+          :table-config="tableConfig"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        >
+          <template #nameSlot="scopeSlot">
+            <span
+              class="name-click"
+              @click="showDetail(scopeSlot.row)"
+            >{{ scopeSlot.row.name }}</span>
+          </template>
+          <template #statusTag="scopeSlot">
+            <ZStatusTag :status="scopeSlot.row.status" />
+          </template>
+        </BlockTable>
+      </div>
+    </LoadingPage>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -43,21 +50,21 @@ import LoadingPage from '@/components/loading/index.vue'
 import { useRouter } from 'vue-router'
 
 interface colConfig {
-    prop?: string;
-    title: string;
-    align?: string;
-    showOverflowTooltip?: boolean;
-    customSlot?: string;
-    width?: number;
-    minWidth?: number;
+    prop?: string
+    title: string
+    align?: string
+    showOverflowTooltip?: boolean
+    customSlot?: string
+    width?: number
+    minWidth?: number
     formatter?: any
-    fixed?: string;
+    fixed?: string
 }
 
 interface Pagination {
-    currentPage: number;
-    pageSize: number;
-    total: number;
+    currentPage: number
+    pageSize: number
+    total: number
 }
 
 interface TableConfig {
@@ -137,7 +144,7 @@ const modelConfig = reactive<any>({
     zIndex: 1100,
     cancelConfig: {
         title: '取消',
-        cancel: closeEvent,
+        cancel: closeEvent
     },
     closeOnClickModal: false
 })
@@ -184,19 +191,21 @@ function initData(tableLoading?: boolean) {
         pageSize: tableConfig.pagination.pageSize,
         searchKeyWord: keyword.value,
         layerId: info.value.id
-    }).then((res: any) => {
-        tableConfig.tableData = res.data.content
-        tableConfig.pagination.total = res.data.totalElements
-        loading.value = false
-        tableConfig.loading = false
-        networkError.value = false
-    }).catch(() => {
-        tableConfig.tableData = []
-        tableConfig.pagination.total = 0
-        loading.value = false
-        tableConfig.loading = false
-        networkError.value = true
     })
+        .then((res: any) => {
+            tableConfig.tableData = res.data.content
+            tableConfig.pagination.total = res.data.totalElements
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
+        })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
 }
 
 function handleSizeChange(e: number) {

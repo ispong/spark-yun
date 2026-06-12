@@ -1,21 +1,35 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
-            <el-form-item label="名称" prop="name">
-                <el-input v-model="formData.name" maxlength="100" placeholder="请输入" show-word-limit />
-            </el-form-item>
-            <el-form-item label="备注">
-                <el-input
-                    v-model="formData.remark"
-                    show-word-limit
-                    type="textarea"
-                    maxlength="200"
-                    :autosize="{ minRows: 4, maxRows: 4 }"
-                    placeholder="请输入"
-                />
-            </el-form-item>
-        </el-form>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+    >
+      <el-form-item
+        label="名称"
+        prop="name"
+      >
+        <el-input
+          v-model="formData.name"
+          maxlength="100"
+          placeholder="请输入"
+          show-word-limit
+        />
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input
+          v-model="formData.remark"
+          show-word-limit
+          type="textarea"
+          maxlength="200"
+          :autosize="{ minRows: 4, maxRows: 4 }"
+          placeholder="请输入"
+        />
+      </el-form-item>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -53,7 +67,9 @@ const formData = reactive({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [{ required: true, message: '请输入名称', trigger: ['change', 'blur']}]
+    name: [ {
+ required: true, message: '请输入名称', trigger: [ 'change', 'blur' ] 
+} ]
 })
 
 function showModal(cb: () => void, data: any): void {
@@ -81,19 +97,22 @@ function okEvent() {
     form.value?.validate((valid) => {
         if (valid) {
             modelConfig.okConfig.loading = true
-            callback.value({
-                ...formData,
-                id: formData.id ? formData.id : undefined
-            }).then((res: any) => {
-                modelConfig.okConfig.loading = false
-                if (res === undefined) {
-                    modelConfig.visible = false
-                } else {
-                    modelConfig.visible = true
-                }
-            }).catch((err: any) => {
-                modelConfig.okConfig.loading = false
-            })
+            callback
+                .value({
+                    ...formData,
+                    id: formData.id ? formData.id : undefined
+                })
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
         } else {
             ElMessage.warning('请将表单输入完整')
         }

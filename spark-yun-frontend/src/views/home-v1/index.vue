@@ -50,68 +50,68 @@ const showData = ref(true)
 const menuListData: Array<menu> = reactive(MenuListData)
 
 const select = (e: string) => {
-  defaultMenu.value = e
-  authStore.setCurrentMenu(e)
-  router.push({
-    name: e
-  })
+    defaultMenu.value = e
+    authStore.setCurrentMenu(e)
+    router.push({
+        name: e
+    })
 }
 
 onMounted(() => {
-  const menuList = menuListData.filter((menu) => menu.authType?.includes(authStore.role || 'ROLE_TENANT_MEMBER'))
-  let urlMenu: string
-  urlMenu = route.name
-  const status = menuList.find((menu) => menu.code === urlMenu)
-  // if (!state.currentMenu.value) {
-  if (!status) {
-    defaultMenu.value = menuList[0].code
-    router.push({
-      name: defaultMenu.value
+    const menuList = menuListData.filter((menu) => menu.authType?.includes(authStore.role || 'ROLE_TENANT_MEMBER'))
+    let urlMenu: string
+    urlMenu = route.name
+    const status = menuList.find((menu) => menu.code === urlMenu)
+    // if (!state.currentMenu.value) {
+    if (!status) {
+        defaultMenu.value = menuList[0].code
+        router.push({
+            name: defaultMenu.value
+        })
+        authStore.setCurrentMenu(defaultMenu.value)
+    } else {
+        defaultMenu.value = urlMenu
+        router.push({
+            name: urlMenu
+        })
+    }
+    // 这里接受eventbus 触发页面更新
+    eventBus.on('tenantChange', () => {
+        showData.value = false
+        nextTick(() => {
+            showData.value = true
+        })
     })
-    authStore.setCurrentMenu(defaultMenu.value)
-  } else {
-    defaultMenu.value = urlMenu
-    router.push({
-      name: urlMenu
-    })
-  }
-  // 这里接受eventbus 触发页面更新
-  eventBus.on('tenantChange', () => {
-    showData.value = false
-    nextTick(() => {
-      showData.value = true
-    })
-  })
 })
 
 onUnmounted(() => {
-  eventBus.off('tenantChange', () => {
-    console.log('这里移除了bus')
-  })
+    eventBus.off('tenantChange', () => {
+        console.log('这里移除了bus')
+    })
 })
 </script>
 
 <style lang="scss">
 .zqy-home {
-  width: 100%;
-  .home-container {
     width: 100%;
-    display: flex;
-    height: calc(100vh - 60px);
-    margin-top: 60px;
-    position: relative;
-    // min-width: 960px;
-    .container-left {
-      background-color: getCssVar('color', 'white');
-      box-shadow: getCssVar('box-shadow', 'lighter');
-      padding-top: 8px;
-      box-sizing: border-box;
-      z-index: 1;
+    .home-container {
+        width: 100%;
+        display: flex;
+        height: calc(100vh - 60px);
+        margin-top: 60px;
+        position: relative;
+        // min-width: 960px;
+        .container-left {
+            background-color: getCssVar('color', 'white');
+            box-shadow: getCssVar('box-shadow', 'lighter');
+            padding-top: 8px;
+            box-sizing: border-box;
+            z-index: 1;
+        }
+        .container-right {
+            width: 100%;
+            overflow: auto;
+        }
     }
-    .container-right {
-      width: 100%;
-      overflow: auto;
-    }
-  }
 }
 </style>

@@ -9,97 +9,97 @@
 import { http } from '@/utils/http'
 
 interface SerchParams {
-  page: number;
-  pageSize: number;
-  searchKeyWord: string;
-  tenantId?: string
+    page: number
+    pageSize: number
+    searchKeyWord: string
+    tenantId?: string
 }
 
 interface FormUser {
-  isTenantAdmin: boolean;
-  userId: string;
-  tenantId: string
+    isTenantAdmin: boolean
+    userId: string
+    tenantId: string
 }
 
 interface DeleteParam {
-  tenantUserId: string;
+    tenantUserId: string
 }
 
 // 查询当前租户成员
 export function GetUserList(params: SerchParams): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/tenant-user/pageTenantUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/pageTenantUser',
+        params: params
+    })
 }
 
 // 查询系统成员池信息
 export function GetUserInfoList(params: SerchParams): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/user/pageEnableUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/user/pageEnableUser',
+        params: params
+    })
 }
 
 // 添加成员
 export function AddTenantUserData(params: FormUser): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/tenant-user/addTenantUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/addTenantUser',
+        params: params
+    })
 }
 
 // 编辑成员
 export function EditTenantUserData(params: FormUser): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/tenant-user/addTenantUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/addTenantUser',
+        params: params
+    })
 }
 
 // 删除
 export function DeleteTenantUser(params: DeleteParam): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/tenant-user/removeTenantUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/removeTenantUser',
+        params: params
+    })
 }
 
 // 授权
 export function GiveAuth(params: DeleteParam): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/tenant-user/setTenantAdmin',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/setTenantAdmin',
+        params: params
+    })
 }
 
 // 取消授权
 export function RemoveAuth(params: DeleteParam): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/tenant-user/removeTenantAdmin',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/removeTenantAdmin',
+        params: params
+    })
 }
 
 export function SetTenantMemberStatus(params: { tenantUserId: string; status: string }): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/api/admin/members/setStatus',
-    params
-  })
+    return http.request({
+        method: 'post',
+        url: '/api/admin/members/setStatus',
+        params
+    })
 }
 
 export function SetMemberRoles(params: { userId: string; roleIds: string[] }): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/api/admin/members/setRoles',
-    params
-  })
+    return http.request({
+        method: 'post',
+        url: '/api/admin/members/setRoles',
+        params
+    })
 }

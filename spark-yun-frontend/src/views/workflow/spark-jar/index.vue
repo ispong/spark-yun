@@ -1,135 +1,263 @@
 <template>
-    <div class="zqy-work-item zqy-spark-jar">
-        <div class="header-options">
-            <div class="btn-box" @click="goBack">
-                <el-icon>
-                    <RefreshLeft />
-                </el-icon>
-                <span class="btn-text">返回</span>
-            </div>
-            <div class="btn-box" @click="saveData">
-                <el-icon v-if="!saveLoading">
-                    <Finished />
-                </el-icon>
-                <el-icon v-else class="is-loading">
-                    <Loading />
-                </el-icon>
-                <span class="btn-text">保存</span>
-            </div>
-            <div class="btn-box" @click="runWorkData">
-                <el-icon v-if="!runningLoading">
-                    <VideoPlay />
-                </el-icon>
-                <el-icon v-else class="is-loading">
-                    <Loading />
-                </el-icon>
-                <span class="btn-text">运行</span>
-            </div>
-            <div v-if="workConfig.workType === 'SPARK_JAR'" class="btn-box" @click="terWorkData">
-                <el-icon v-if="!terLoading">
-                    <Close />
-                </el-icon>
-                <el-icon v-else class="is-loading">
-                    <Loading />
-                </el-icon>
-                <span class="btn-text">中止</span>
-            </div>
-            <div class="btn-box" @click="setConfigData">
-                <el-icon>
-                    <Setting />
-                </el-icon>
-                <span class="btn-text">配置</span>
-            </div>
-            <div class="btn-box" @click="locationNode">
-                <el-icon>
-                    <Position />
-                </el-icon>
-                <span class="btn-text">定位</span>
-            </div>
-            <div class="btn-box" @click="emit('sortWorkList')">
-                <el-icon>
-                    <Sort v-if="!props.orderType" />
-                    <SortDown v-else-if="props.orderType === 'desc'" />
-                    <SortUp v-else />
-                </el-icon>
-                <span class="btn-text">{{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}</span>
-            </div>
-        </div>
-        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData">
-            <div class="zqy-work-container jar-work-container">
-                <div class="sql-code-container">
-                    <!-- 这里是表单部分 -->
-                    <el-form ref="form" label-position="top" label-width="70px" :model="jarJobConfig" :rules="rules">
-                        <el-row :gutter="24">
-                            <el-col :span="18">
-                                <el-form-item prop="appName" label="应用名称">
-                                    <el-input v-model="jarJobConfig.appName" clearable placeholder="请输入"
-                                        maxlength="200"></el-input>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                        <el-row :gutter="24">
-                            <el-col :span="18">
-                                <el-form-item prop="jarFileId" label="资源文件">
-                                    <el-select v-model="jarJobConfig.jarFileId" clearable filterable placeholder="请选择">
-                                        <el-option v-for="item in fileIdList" :key="item.value" :label="item.label" :value="item.value" />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                        <el-row :gutter="24">
-                            <el-col :span="18">
-                                <el-form-item prop="mainClass" label="mainClass">
-                                    <el-input v-model="jarJobConfig.mainClass" clearable placeholder="请输入"
-                                        maxlength="200"></el-input>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                        <el-row :gutter="24">
-                            <el-col :span="18">
-                                <el-form-item label="请求参数" class="jar-args-container">
-                                    <el-icon class="button-add" @click="addParam(jarJobConfig.args)"><CirclePlusFilled /></el-icon>
-                                    <el-scrollbar>
-                                        <template v-for="(tag, index) in jarJobConfig.args" :key="index">
-                                            <div class="input-container">
-                                                <el-input v-model="jarJobConfig.args[index]" clearable placeholder="请输入" maxlength="2000" @blur.stop></el-input>
-                                                <el-icon class="button-remove" @click="handleClose(index)"><RemoveFilled /></el-icon>
-                                            </div>
-                                        </template>
-                                    </el-scrollbar>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                    </el-form>
-                </div>
-                <el-collapse v-model="collapseActive" class="work-item-log__collapse" ref="logCollapseRef">
-                    <div class="log-resize-handle" @mousedown="startResizeLogPanel"></div>
-            <el-collapse-item title="查看日志" :disabled="true" name="1">
-                        <template #title>
-                        <el-tabs v-model="activeName" @tab-click="changeCollapseUp" @tab-change="tabChangeEvent">
-                            <template v-for="tab in tabList" :key="tab.code">
-                            <el-tab-pane v-if="!tab.hide" :label="tab.name" :name="tab.code" />
-                            </template>
-                        </el-tabs>
-                        <span class="log__collapse">
-                            <el-icon v-if="isCollapse" @click="changeCollapseDown">
-                            <ArrowDown />
-                            </el-icon>
-                            <el-icon v-else @click="changeCollapseUp">
-                            <ArrowUp />
-                            </el-icon>
-                        </span>
-                        </template>
-                        <div class="log-show log-show-datasync" :style="{ height: `${logPanelHeight}px` }">
-                            <component :is="currentTab" ref="containerInstanceRef" class="show-container" :style="{ height: `${logPanelHeight}px` }" />
-                        </div>
-                    </el-collapse-item>
-                </el-collapse>
-            </div>
-        </LoadingPage>
-        <!-- 配置 -->
-        <config-detail ref="configDetailRef"></config-detail>
+  <div class="zqy-work-item zqy-spark-jar">
+    <div class="header-options">
+      <div
+        class="btn-box"
+        @click="goBack"
+      >
+        <el-icon>
+          <RefreshLeft />
+        </el-icon>
+        <span class="btn-text">返回</span>
+      </div>
+      <div
+        class="btn-box"
+        @click="saveData"
+      >
+        <el-icon v-if="!saveLoading">
+          <Finished />
+        </el-icon>
+        <el-icon
+          v-else
+          class="is-loading"
+        >
+          <Loading />
+        </el-icon>
+        <span class="btn-text">保存</span>
+      </div>
+      <div
+        class="btn-box"
+        @click="runWorkData"
+      >
+        <el-icon v-if="!runningLoading">
+          <VideoPlay />
+        </el-icon>
+        <el-icon
+          v-else
+          class="is-loading"
+        >
+          <Loading />
+        </el-icon>
+        <span class="btn-text">运行</span>
+      </div>
+      <div
+        v-if="workConfig.workType === 'SPARK_JAR'"
+        class="btn-box"
+        @click="terWorkData"
+      >
+        <el-icon v-if="!terLoading">
+          <Close />
+        </el-icon>
+        <el-icon
+          v-else
+          class="is-loading"
+        >
+          <Loading />
+        </el-icon>
+        <span class="btn-text">中止</span>
+      </div>
+      <div
+        class="btn-box"
+        @click="setConfigData"
+      >
+        <el-icon>
+          <Setting />
+        </el-icon>
+        <span class="btn-text">配置</span>
+      </div>
+      <div
+        class="btn-box"
+        @click="locationNode"
+      >
+        <el-icon>
+          <Position />
+        </el-icon>
+        <span class="btn-text">定位</span>
+      </div>
+      <div
+        class="btn-box"
+        @click="emit('sortWorkList')"
+      >
+        <el-icon>
+          <Sort v-if="!props.orderType" />
+          <SortDown v-else-if="props.orderType === 'desc'" />
+          <SortUp v-else />
+        </el-icon>
+        <span class="btn-text">
+          {{ props.orderType === 'desc' ? '降序' : props.orderType === 'acs' ? '升序' : '排序' }}
+        </span>
+      </div>
     </div>
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="initData"
+    >
+      <div class="zqy-work-container jar-work-container">
+        <div class="sql-code-container">
+          <!-- 这里是表单部分 -->
+          <el-form
+            ref="form"
+            label-position="top"
+            label-width="70px"
+            :model="jarJobConfig"
+            :rules="rules"
+          >
+            <el-row :gutter="24">
+              <el-col :span="18">
+                <el-form-item
+                  prop="appName"
+                  label="应用名称"
+                >
+                  <el-input
+                    v-model="jarJobConfig.appName"
+                    clearable
+                    placeholder="请输入"
+                    maxlength="200"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="24">
+              <el-col :span="18">
+                <el-form-item
+                  prop="jarFileId"
+                  label="资源文件"
+                >
+                  <el-select
+                    v-model="jarJobConfig.jarFileId"
+                    clearable
+                    filterable
+                    placeholder="请选择"
+                  >
+                    <el-option
+                      v-for="item in fileIdList"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="24">
+              <el-col :span="18">
+                <el-form-item
+                  prop="mainClass"
+                  label="mainClass"
+                >
+                  <el-input
+                    v-model="jarJobConfig.mainClass"
+                    clearable
+                    placeholder="请输入"
+                    maxlength="200"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="24">
+              <el-col :span="18">
+                <el-form-item
+                  label="请求参数"
+                  class="jar-args-container"
+                >
+                  <el-icon
+                    class="button-add"
+                    @click="addParam(jarJobConfig.args)"
+                  >
+                    <CirclePlusFilled />
+                  </el-icon>
+                  <el-scrollbar>
+                    <template
+                      v-for="(tag, index) in jarJobConfig.args"
+                      :key="index"
+                    >
+                      <div class="input-container">
+                        <el-input
+                          v-model="jarJobConfig.args[index]"
+                          clearable
+                          placeholder="请输入"
+                          maxlength="2000"
+                          @blur.stop
+                        />
+                        <el-icon
+                          class="button-remove"
+                          @click="handleClose(index)"
+                        >
+                          <RemoveFilled />
+                        </el-icon>
+                      </div>
+                    </template>
+                  </el-scrollbar>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-form>
+        </div>
+        <el-collapse
+          ref="logCollapseRef"
+          v-model="collapseActive"
+          class="work-item-log__collapse"
+        >
+          <div
+            class="log-resize-handle"
+            @mousedown="startResizeLogPanel"
+          />
+          <el-collapse-item
+            title="查看日志"
+            :disabled="true"
+            name="1"
+          >
+            <template #title>
+              <el-tabs
+                v-model="activeName"
+                @tab-click="changeCollapseUp"
+                @tab-change="tabChangeEvent"
+              >
+                <template
+                  v-for="tab in tabList"
+                  :key="tab.code"
+                >
+                  <el-tab-pane
+                    v-if="!tab.hide"
+                    :label="tab.name"
+                    :name="tab.code"
+                  />
+                </template>
+              </el-tabs>
+              <span class="log__collapse">
+                <el-icon
+                  v-if="isCollapse"
+                  @click="changeCollapseDown"
+                >
+                  <ArrowDown />
+                </el-icon>
+                <el-icon
+                  v-else
+                  @click="changeCollapseUp"
+                >
+                  <ArrowUp />
+                </el-icon>
+              </span>
+            </template>
+            <div
+              class="log-show log-show-datasync"
+              :style="{ height: `${logPanelHeight}px` }"
+            >
+              <component
+                :is="currentTab"
+                ref="containerInstanceRef"
+                class="show-container"
+                :style="{ height: `${logPanelHeight}px` }"
+              />
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
+    </LoadingPage>
+    <!-- 配置 -->
+    <config-detail ref="configDetailRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -143,7 +271,12 @@ import ReturnData from '../work-item/return-data.vue'
 import RunningLog from '../work-item/running-log.vue'
 import TotalDetail from '../work-item/total-detail.vue'
 
-import { DeleteWorkData, GetWorkItemConfig, PublishWorkData, RunWorkItemConfig, SaveWorkItemConfig, TerWorkItemConfig } from '@/services/workflow.service'
+import { DeleteWorkData,
+    GetWorkItemConfig,
+    PublishWorkData,
+    RunWorkItemConfig,
+    SaveWorkItemConfig,
+    TerWorkItemConfig } from '@/services/workflow.service'
 import { GetFileCenterList } from '@/services/file-center.service'
 import { ElMessage, ElMessageBox, ElInput, FormRules } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
@@ -151,11 +284,11 @@ import { Loading } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
-const emit = defineEmits(['back', 'locationNode', 'sortWorkList'])
+const emit = defineEmits([ 'back', 'locationNode', 'sortWorkList' ])
 
 const props = defineProps<{
-    workItemConfig: any,
-    workFlowData: any,
+    workItemConfig: any
+    workFlowData: any
     orderType?: 'acs' | 'desc' | ''
 }>()
 
@@ -190,15 +323,21 @@ let workConfig = reactive({
     workType: ''
 })
 let jarJobConfig = reactive({
-    appName: '',    // 应用名称
-    jarFileId: '',  // 依赖
+    appName: '', // 应用名称
+    jarFileId: '', // 依赖
     mainClass: '',
-    args: []        // 参数
+    args: [] // 参数
 })
 const rules = reactive<FormRules>({
-    appName: [{ required: true, message: '请输入应用名称', trigger: ['blur', 'change'] }],
-    jarFileId: [{ required: true, message: '请选择资源文件', trigger: ['blur', 'change'] }],
-    mainClass: [{ required: true, message: '请输入mainClass', trigger: ['blur', 'change'] }]
+    appName: [ {
+ required: true, message: '请输入应用名称', trigger: [ 'blur', 'change' ] 
+} ],
+    jarFileId: [ {
+ required: true, message: '请选择资源文件', trigger: [ 'blur', 'change' ] 
+} ],
+    mainClass: [ {
+ required: true, message: '请输入mainClass', trigger: [ 'blur', 'change' ] 
+} ]
 })
 
 const tabList = reactive([
@@ -216,7 +355,7 @@ const tabList = reactive([
         name: '运行日志',
         code: 'RunningLog',
         hide: true
-    },
+    }
     // {
     //   name: '监控信息',
     //   code: 'TotalDetail',
@@ -243,7 +382,7 @@ function initData(id?: string, tableLoading?: boolean) {
                     // 运行结束
                     if (workConfig.workType === 'SPARK_JAR' && id) {
                         tabList.forEach((item: any) => {
-                            if (['RunningLog', 'TotalDetail'].includes(item.code)) {
+                            if ([ 'RunningLog', 'TotalDetail' ].includes(item.code)) {
                                 item.hide = false
                             }
                             if (item.code === 'ReturnData') {
@@ -253,7 +392,7 @@ function initData(id?: string, tableLoading?: boolean) {
                     }
                     if (workConfig.workType === 'FLINK_JAR' && id) {
                         tabList.forEach((item: any) => {
-                            if (['RunningLog', 'TotalDetail'].includes(item.code)) {
+                            if ([ 'RunningLog', 'TotalDetail' ].includes(item.code)) {
                                 item.hide = false
                             }
                         })
@@ -275,16 +414,18 @@ function getFileCenterList() {
         pageSize: 10000,
         searchKeyWord: '',
         type: 'JOB'
-    }).then((res: any) => {
-        fileIdList.value = res.data.content.map(item => {
-            return {
-                label: item.fileName,
-                value: item.id
-            }
-        })
-    }).catch(() => {
-        fileIdList.value = []
     })
+        .then((res: any) => {
+            fileIdList.value = res.data.content.map((item) => {
+                return {
+                    label: item.fileName,
+                    value: item.id
+                }
+            })
+        })
+        .catch(() => {
+            fileIdList.value = []
+        })
 }
 
 function startResizeLogPanel(event: MouseEvent) {
@@ -362,7 +503,7 @@ function runWorkData() {
             type: 'warning'
         }).then(() => {
             tabList.forEach((item: any) => {
-                if (['RunningLog', 'TotalDetail', 'ReturnData'].includes(item.code)) {
+                if ([ 'RunningLog', 'TotalDetail', 'ReturnData' ].includes(item.code)) {
                     item.hide = true
                 }
             })
@@ -392,7 +533,7 @@ function runWorkData() {
         })
     } else {
         tabList.forEach((item: any) => {
-            if (['RunningLog', 'TotalDetail', 'ReturnData'].includes(item.code)) {
+            if ([ 'RunningLog', 'TotalDetail', 'ReturnData' ].includes(item.code)) {
                 item.hide = true
             }
         })
@@ -466,10 +607,11 @@ function publishData() {
     publishLoading.value = true
     PublishWorkData({
         workId: props.workItemConfig.id
-    }).then((res: any) => {
-        ElMessage.success(res.msg)
-        publishLoading.value = false
     })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            publishLoading.value = false
+        })
         .catch((error: any) => {
             publishLoading.value = false
         })
@@ -480,10 +622,11 @@ function stopData() {
     stopLoading.value = true
     DeleteWorkData({
         workId: props.workItemConfig.id
-    }).then((res: any) => {
-        ElMessage.success(res.msg)
-        stopLoading.value = false
     })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            stopLoading.value = false
+        })
         .catch((error: any) => {
             stopLoading.value = false
         })
@@ -494,8 +637,8 @@ function setConfigData() {
     configDetailRef.value.showModal(props.workItemConfig)
 }
 function changeCollapseDown() {
-  logCollapseRef.value.setActiveNames('0')
-  isCollapse.value = false
+    logCollapseRef.value.setActiveNames('0')
+    isCollapse.value = false
 }
 
 function changeCollapseUp(e: any) {
@@ -524,7 +667,6 @@ onMounted(() => {
 onUnmounted(() => {
     stopResizeLogPanel()
 })
-
 </script>
 
 <style lang="scss">
@@ -547,16 +689,15 @@ onUnmounted(() => {
             }
 
             .work-item-log__collapse {
-
-        .log-resize-handle {
-            height: 6px;
-            cursor: ns-resize;
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: -3px;
-            z-index: 2;
-        }
+                .log-resize-handle {
+                    height: 6px;
+                    cursor: ns-resize;
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    top: -3px;
+                    z-index: 2;
+                }
                 position: absolute;
                 left: 0;
                 right: 0;
@@ -609,7 +750,7 @@ onUnmounted(() => {
                 .log-show {
                     padding: 0 20px;
                     box-sizing: border-box;
-            overflow: auto;
+                    overflow: auto;
 
                     &.log-show-datasync {
                         min-height: 180px;
@@ -655,25 +796,25 @@ onUnmounted(() => {
         border-bottom: 1px solid getCssVar('border-color');
 
         .btn-box {
-          font-size: getCssVar('font-size', 'extra-small');
-          display: flex;
-          cursor: pointer;
-          width: 48px;
-          margin-right: 8px;
+            font-size: getCssVar('font-size', 'extra-small');
+            display: flex;
+            cursor: pointer;
+            width: 48px;
+            margin-right: 8px;
 
-          &.btn-box__4 {
-            width: 70px;
-          }
+            &.btn-box__4 {
+                width: 70px;
+            }
 
-          .btn-text {
-            margin-left: 4px;
-            font-size: inherit;
-            line-height: 1;
-          }
+            .btn-text {
+                margin-left: 4px;
+                font-size: inherit;
+                line-height: 1;
+            }
 
-          &:hover {
-            color: getCssVar('color', 'primary');;
-          }
+            &:hover {
+                color: getCssVar('color', 'primary');
+            }
         }
     }
     .jar-args-container {
@@ -686,15 +827,15 @@ onUnmounted(() => {
         }
         .el-form-item__content {
             position: relative;
-                .el-scrollbar {
+            .el-scrollbar {
+                width: 100%;
+                .el-scrollbar__view {
                     width: 100%;
-                    .el-scrollbar__view {
-                        width: 100%;
-                        max-height: calc(100vh - 450px);
-                        padding-right: 0;
-                        box-sizing: border-box;
-                    }
+                    max-height: calc(100vh - 450px);
+                    padding-right: 0;
+                    box-sizing: border-box;
                 }
+            }
             .button-add {
                 position: absolute;
                 top: -27px;
@@ -707,7 +848,7 @@ onUnmounted(() => {
                 }
             }
             .input-container {
-                &+.input-container {
+                & + .input-container {
                     margin-top: 12px;
                 }
                 position: relative;

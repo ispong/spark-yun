@@ -13,8 +13,5 @@ export default {
         componentType: 'FormStaticPlaceholder',
         colorPicker: '#000000'
     },
-    conponentSetConfig: [
-        'LABEL',
-        'COLOR_PICKER'
-    ]
+    conponentSetConfig: [ 'LABEL', 'COLOR_PICKER' ]
 }

@@ -1,27 +1,43 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <div class="share-form-container">
-            <div class="share-form">
-                <span class="label">链接：</span>
-                <span class="url">
-                    <EllipsisTooltip class="url-show" :label="url || '暂无链接'" />
-                </span>
-                <span v-if="url" class="copy-url" id="share-report-url" :data-clipboard-text="url"
-                    @click="copyUrlEvent('share-report-url')">复制</span>
-            </div>
-        </div>
-        <div class="share-option-container">
-            <div class="valid-day-input">
-                <span>生效时间（天）</span>
-                <el-input-number
-                    v-model="validDay"
-                    :min="1"
-                    controls-position="right"
-                />
-            </div>
-            <el-button :loading="loading" type="primary" @click="getShareFormUrl">生成分享链接</el-button>
-        </div>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <div class="share-form-container">
+      <div class="share-form">
+        <span class="label">链接：</span>
+        <span class="url">
+          <EllipsisTooltip
+            class="url-show"
+            :label="url || '暂无链接'"
+          />
+        </span>
+        <span
+          v-if="url"
+          id="share-report-url"
+          class="copy-url"
+          :data-clipboard-text="url"
+          @click="copyUrlEvent('share-report-url')"
+        >
+          复制
+        </span>
+      </div>
+    </div>
+    <div class="share-option-container">
+      <div class="valid-day-input">
+        <span>生效时间（天）</span>
+        <el-input-number
+          v-model="validDay"
+          :min="1"
+          controls-position="right"
+        />
+      </div>
+      <el-button
+        :loading="loading"
+        type="primary"
+        @click="getShareFormUrl"
+      >
+        生成分享链接
+      </el-button>
+    </div>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -62,12 +78,14 @@ function getShareFormUrl() {
     GetChartsLinkConfig({
         viewId: cardInfo.value.id,
         validDay: validDay.value
-    }).then((res: any) => {
-        loading.value = false
-        url.value = `${location.origin}/dashboard/${res.data.viewLinkId}`
-    }).catch(() => {
-        loading.value = false
     })
+        .then((res: any) => {
+            loading.value = false
+            url.value = `${location.origin}/dashboard/${res.data.viewLinkId}`
+        })
+        .catch(() => {
+            loading.value = false
+        })
 }
 
 function copyUrlEvent(id: string) {
@@ -96,47 +114,46 @@ defineExpose({
         align-items: center;
         height: 160px;
         padding: 0 20px;
-    
+
         .img-code {
             border: 1px solid red;
             height: 100px;
             width: 100px;
         }
-    
+
         .share-form {
             display: flex;
             width: 100%;
-    
+
             .label {
                 color: getCssVar('color', 'primary');
                 margin-right: 12px;
                 font-size: 12px;
                 min-width: 40px;
             }
-    
+
             .url {
                 color: getCssVar('color', 'primary', 'light-5');
                 font-size: 12px;
                 max-width: 400px;
-    
+
                 .url-show {
                     max-width: 100%;
                 }
             }
-    
+
             .copy-url {
                 font-size: 12px;
                 color: getCssVar('color', 'primary');
                 cursor: pointer;
-    
+
                 &:hover {
                     text-decoration: underline;
                 }
-    
             }
         }
     }
-    
+
     .share-option-container {
         padding: 20px;
         box-sizing: border-box;
@@ -154,7 +171,8 @@ defineExpose({
                 color: getCssVar('text-color', 'primary');
             }
             .el-input-number {
-                .el-input-number__decrease,.el-input-number__increase {
+                .el-input-number__decrease,
+                .el-input-number__increase {
                     border: 0;
                     background-color: unset;
                 }

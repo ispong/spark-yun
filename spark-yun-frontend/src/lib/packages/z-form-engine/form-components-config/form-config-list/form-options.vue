@@ -1,35 +1,54 @@
 <template>
-    <el-form-item
-        ref="elFormItemRef"
-        label="数据字典"
-        class="form-options"
-        prop="options"
-        :rules="rules"
-    >
-        <span class="add-btn">
-            <el-icon @click="addNewOption"><CirclePlus /></el-icon>
-        </span>
-        <div class="form-options__list">
-            <draggable :list="formConfig.options" :animation="150" handle=".move" itemKey="label-value">
-                <template #item="{ element, index }">
-                    <div class="form-options__item">
-                        <div class="input-item">
-                            <span class="item-label">键</span>
-                            <el-input v-model="element.label" placeholder="请输入"></el-input>
-                        </div>
-                        <div class="input-item">
-                            <span class="item-label">值</span>
-                            <el-input v-model="element.value" placeholder="请输入"></el-input>
-                        </div>
-                        <div class="option-btn">
-                            <el-icon v-if="formConfig.options.length > 1" class="remove" @click="removeItem(index)"><CircleClose /></el-icon>
-                            <el-icon class="move"><Sort /></el-icon>
-                        </div>
-                    </div>
-                </template>
-            </draggable>
-        </div>
-    </el-form-item>
+  <el-form-item
+    ref="elFormItemRef"
+    label="数据字典"
+    class="form-options"
+    prop="options"
+    :rules="rules"
+  >
+    <span class="add-btn">
+      <el-icon @click="addNewOption"><CirclePlus /></el-icon>
+    </span>
+    <div class="form-options__list">
+      <draggable
+        :list="formConfig.options"
+        :animation="150"
+        handle=".move"
+        item-key="label-value"
+      >
+        <template #item="{ element, index }">
+          <div class="form-options__item">
+            <div class="input-item">
+              <span class="item-label">键</span>
+              <el-input
+                v-model="element.label"
+                placeholder="请输入"
+              />
+            </div>
+            <div class="input-item">
+              <span class="item-label">值</span>
+              <el-input
+                v-model="element.value"
+                placeholder="请输入"
+              />
+            </div>
+            <div class="option-btn">
+              <el-icon
+                v-if="formConfig.options.length > 1"
+                class="remove"
+                @click="removeItem(index)"
+              >
+                <CircleClose />
+              </el-icon>
+              <el-icon class="move">
+                <Sort />
+              </el-icon>
+            </div>
+          </div>
+        </template>
+      </draggable>
+    </div>
+  </el-form-item>
 </template>
 
 <script lang="ts" setup>
@@ -42,7 +61,7 @@ interface Option {
 }
 
 const optionsRule = (rule: any, value: any, callback: any) => {
-    const valueList = (value || []).map(v => v.value).filter(v => !!v)
+    const valueList = (value || []).map((v) => v.value).filter((v) => !!v)
     if (value && value.some((item: Option) => !item.label || !item.value)) {
         callback(new Error('请将键/值输入完整'))
     } else if (value && valueList.length !== Array.from(new Set(valueList)).length) {
@@ -52,11 +71,11 @@ const optionsRule = (rule: any, value: any, callback: any) => {
     }
 }
 const elFormItemRef = ref()
-const rules = ref([
-    { validator: optionsRule, trigger: ['blur', 'change'] }
-])
-const props = defineProps(['modelValue', 'formConfig'])
-const emit = defineEmits(['update:modelValue'])
+const rules = ref([ {
+ validator: optionsRule, trigger: [ 'blur', 'change' ] 
+} ])
+const props = defineProps([ 'modelValue', 'formConfig' ])
+const emit = defineEmits([ 'update:modelValue' ])
 const formData = computed({
     get() {
         return props.modelValue
@@ -66,15 +85,19 @@ const formData = computed({
     }
 })
 
-watch(() => props.formConfig?.uuid, (e) => {
-    nextTick(() => {
-        elFormItemRef.value?.validate().catch(() => {
-            console.warn('请将组件配置填写完整-数据字典')
+watch(
+    () => props.formConfig?.uuid,
+    (e) => {
+        nextTick(() => {
+            elFormItemRef.value?.validate().catch(() => {
+                console.warn('请将组件配置填写完整-数据字典')
+            })
         })
-    })
-}, {
-    immediate: true
-})
+    },
+    {
+        immediate: true
+    }
+)
 
 function addNewOption() {
     const options: Option[] = props.modelValue
@@ -91,7 +114,7 @@ function addNewOption() {
 }
 
 function removeItem(index: number) {
-    const options: Option[] = [...props.modelValue] 
+    const options: Option[] = [ ...props.modelValue ]
     options.splice(index, 1)
     emit('update:modelValue', options)
 }

@@ -1,7 +1,7 @@
 export interface BreadCrumb {
-    name: string;
-    code: string;
-    hidden?: boolean;
+    name: string
+    code: string
+    hidden?: boolean
 }
 
 export const BreadCrumbList: Array<BreadCrumb> = [

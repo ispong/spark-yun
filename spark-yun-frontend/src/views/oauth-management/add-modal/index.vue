@@ -1,52 +1,127 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
-            <el-form-item label="名称" prop="name">
-                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="类型" prop="ssoType">
-                <el-select
-                    v-model="formData.ssoType"
-                    placeholder="请选择"
-                >
-                    <el-option
-                        v-for="item in typeList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="clientId" prop="clientId">
-                <el-input v-model="formData.clientId" maxlength="2000" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="clientSecret" prop="clientSecret">
-                <el-input v-model="formData.clientSecret" maxlength="2000" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="scope">
-                <el-input v-model="formData.scope" maxlength="2000" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="authUrl" prop="authUrl">
-                <el-input v-model="formData.authUrl" maxlength="2000" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="accessTokenUrl" prop="accessTokenUrl">
-                <el-input v-model="formData.accessTokenUrl" maxlength="2000" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="redirectUrl (回调地址)" prop="redirectUrl">
-                <el-input v-model="formData.redirectUrl" maxlength="2000" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="userUrl" prop="userUrl">
-                <el-input v-model="formData.userUrl" maxlength="2000" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="authJsonPath" prop="authJsonPath">
-                <el-input v-model="formData.authJsonPath" maxlength="2000" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="备注">
-                <el-input v-model="formData.remark" show-word-limit type="textarea" maxlength="200"
-                    :autosize="{ minRows: 4, maxRows: 4 }" placeholder="请输入" />
-            </el-form-item>
-        </el-form>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+    >
+      <el-form-item
+        label="名称"
+        prop="name"
+      >
+        <el-input
+          v-model="formData.name"
+          maxlength="200"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="类型"
+        prop="ssoType"
+      >
+        <el-select
+          v-model="formData.ssoType"
+          placeholder="请选择"
+        >
+          <el-option
+            v-for="item in typeList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        label="clientId"
+        prop="clientId"
+      >
+        <el-input
+          v-model="formData.clientId"
+          maxlength="2000"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="clientSecret"
+        prop="clientSecret"
+      >
+        <el-input
+          v-model="formData.clientSecret"
+          maxlength="2000"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item label="scope">
+        <el-input
+          v-model="formData.scope"
+          maxlength="2000"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="authUrl"
+        prop="authUrl"
+      >
+        <el-input
+          v-model="formData.authUrl"
+          maxlength="2000"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="accessTokenUrl"
+        prop="accessTokenUrl"
+      >
+        <el-input
+          v-model="formData.accessTokenUrl"
+          maxlength="2000"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="redirectUrl (回调地址)"
+        prop="redirectUrl"
+      >
+        <el-input
+          v-model="formData.redirectUrl"
+          maxlength="2000"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="userUrl"
+        prop="userUrl"
+      >
+        <el-input
+          v-model="formData.userUrl"
+          maxlength="2000"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="authJsonPath"
+        prop="authJsonPath"
+      >
+        <el-input
+          v-model="formData.authJsonPath"
+          maxlength="2000"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input
+          v-model="formData.remark"
+          show-word-limit
+          type="textarea"
+          maxlength="200"
+          :autosize="{ minRows: 4, maxRows: 4 }"
+          placeholder="请输入"
+        />
+      </el-form-item>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -121,16 +196,36 @@ const formData = reactive<ConfigParam>({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [{ required: true, message: '请输入名称', trigger: ['change']}],
-    ssoType: [{ required: true, message: '请选择类型', trigger: ['change']}],
-    authJsonPath: [{ required: true, message: '请输入authJsonPath', trigger: ['change']}],
-    scope: [{ required: true, message: '请输入scope', trigger: ['change']}],
-    clientId: [{ required: true, message: '请输入clientId', trigger: ['change']}],
-    clientSecret: [{ required: true, message: '请输入clientSecret', trigger: ['change']}],
-    accessTokenUrl: [{ required: true, message: '请输入accessTokenUrl', trigger: ['change']}],
-    authUrl: [{ required: true, message: '请输入authUrl', trigger: ['change']}],
-    userUrl: [{ required: true, message: '请输入userUrl', trigger: ['change']}],
-    redirectUrl: [{ required: true, message: '请输入redirectUrl', trigger: ['change']}]
+    name: [ {
+ required: true, message: '请输入名称', trigger: [ 'change' ] 
+} ],
+    ssoType: [ {
+ required: true, message: '请选择类型', trigger: [ 'change' ] 
+} ],
+    authJsonPath: [ {
+ required: true, message: '请输入authJsonPath', trigger: [ 'change' ] 
+} ],
+    scope: [ {
+ required: true, message: '请输入scope', trigger: [ 'change' ] 
+} ],
+    clientId: [ {
+ required: true, message: '请输入clientId', trigger: [ 'change' ] 
+} ],
+    clientSecret: [ {
+ required: true, message: '请输入clientSecret', trigger: [ 'change' ] 
+} ],
+    accessTokenUrl: [ {
+ required: true, message: '请输入accessTokenUrl', trigger: [ 'change' ] 
+} ],
+    authUrl: [ {
+ required: true, message: '请输入authUrl', trigger: [ 'change' ] 
+} ],
+    userUrl: [ {
+ required: true, message: '请输入userUrl', trigger: [ 'change' ] 
+} ],
+    redirectUrl: [ {
+ required: true, message: '请输入redirectUrl', trigger: [ 'change' ] 
+} ]
 })
 
 function showModal(cb: () => void, data: any): void {
@@ -158,19 +253,22 @@ function okEvent() {
     form.value?.validate((valid: boolean) => {
         if (valid) {
             modelConfig.okConfig.loading = true
-            callback.value({
-                ...formData,
-                id: formData.id ? formData.id : undefined
-            }).then((res: any) => {
-                modelConfig.okConfig.loading = false
-                if (res === undefined) {
-                    modelConfig.visible = false
-                } else {
-                    modelConfig.visible = true
-                }
-            }).catch(() => {
-                modelConfig.okConfig.loading = false
-            })
+            callback
+                .value({
+                    ...formData,
+                    id: formData.id ? formData.id : undefined
+                })
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch(() => {
+                    modelConfig.okConfig.loading = false
+                })
         } else {
             ElMessage.warning('请将表单输入完整')
         }

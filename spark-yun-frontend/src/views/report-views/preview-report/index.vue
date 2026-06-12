@@ -1,9 +1,12 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <div class="preview-report">
-            <div class="charts-container" id="currentChartId"></div>
-        </div>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <div class="preview-report">
+      <div
+        id="currentChartId"
+        class="charts-container"
+      />
+    </div>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -31,7 +34,7 @@ function showModal(echartsData: any): void {
         myChart = echarts.init(document.getElementById('currentChartId'))
         myChart.setOption(echartsData)
         window.addEventListener('resize', resizeChart)
-    }, 500);
+    }, 500)
     modelConfig.visible = true
 }
 
@@ -56,7 +59,7 @@ defineExpose({
     position: relative;
     padding: 12px;
     box-sizing: border-box;
-    
+
     .charts-container {
         height: 100%;
     }

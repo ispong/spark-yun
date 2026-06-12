@@ -1,17 +1,26 @@
-
 <template>
-  <LoadingPage class="log-loading" :visible="loading">
+  <LoadingPage
+    class="log-loading"
+    :visible="loading"
+  >
     <LogContainer
       v-if="strData || jsonData"
-      :logMsg="strData || jsonData"
-      :showResult="true"
+      :log-msg="strData || jsonData"
+      :show-result="true"
       :status="true"
-    ></LogContainer>
+    />
     <template v-else>
-      <BlockTable class="result-table-log" :table-config="tableConfig"/>
+      <BlockTable
+        class="result-table-log"
+        :table-config="tableConfig"
+      />
     </template>
   </LoadingPage>
-  <span v-if="showParseWithLicense" class="zqy-json-parse" @click="getJsonParseResult">结果解析</span>
+  <span
+    v-if="showParseWithLicense"
+    class="zqy-json-parse"
+    @click="getJsonParseResult"
+  >结果解析</span>
 </template>
 
 <script lang="ts" setup>
@@ -21,102 +30,102 @@ import { GetResultData } from '@/services/schedule.service'
 import LoadingPage from '@/components/loading/index.vue'
 import { getVipLicenseEnabled } from '@/utils/vip-license'
 
-const emit = defineEmits(['getJsonParseResult'])
+const emit = defineEmits([ 'getJsonParseResult' ])
 
 const props = defineProps<{
-  showParse: boolean
+    showParse: boolean
 }>()
 const licenseEnabled = ref(false)
 const showParseWithLicense = computed(() => props.showParse && licenseEnabled.value)
 
 const tableConfig = reactive({
-  tableData: [],
-  colConfigs: [],
-  seqType: 'seq',
-  loading: false
+    tableData: [],
+    colConfigs: [],
+    seqType: 'seq',
+    loading: false
 })
 const jsonData = ref()
 const strData = ref()
 const loading = ref<boolean>(false)
 
 function initData(id: string): void {
-  getResultDatalist(id)
+    getResultDatalist(id)
 }
 
 function getJsonParseResult() {
     emit('getJsonParseResult')
 }
 
-onMounted(async () => {
-  licenseEnabled.value = await getVipLicenseEnabled()
+onMounted(async() => {
+    licenseEnabled.value = await getVipLicenseEnabled()
 })
 
 // 获取结果
 function getResultDatalist(id: string) {
-  if (!id) {
-    tableConfig.colConfigs = []
-    tableConfig.tableData = []
-    tableConfig.loading = false
-    loading.value = false
-    return
-  }
-  tableConfig.loading = true
-  loading.value = true
-  GetResultData({
-    instanceId: id
-  })
-    .then((res: any) => {
-      jsonData.value = res.data.jsonData
-      strData.value = res.data.strData
+    if (!id) {
+        tableConfig.colConfigs = []
+        tableConfig.tableData = []
+        tableConfig.loading = false
+        loading.value = false
+        return
+    }
+    tableConfig.loading = true
+    loading.value = true
+    GetResultData({
+        instanceId: id
+    })
+        .then((res: any) => {
+            jsonData.value = res.data.jsonData
+            strData.value = res.data.strData
 
-      loading.value = false
+            loading.value = false
 
-      const col = res.data.data.slice(0, 1)[0]
-      const tableData = res.data.data.slice(1, res.data.data.length)
-      tableConfig.colConfigs = col.map((colunm: any) => {
-        return {
-          prop: colunm,
-          title: colunm,
-          minWidth: 100,
-          showHeaderOverflow: true,
-          showOverflowTooltip: true
-        }
-      })
-      tableConfig.tableData = tableData.map((columnData: any) => {
-        const dataObj: any = {
-        }
-        col.forEach((c: any, index: number) => {
-          dataObj[c] = columnData[index]
+            const col = res.data.data.slice(0, 1)[0]
+            const tableData = res.data.data.slice(1, res.data.data.length)
+            tableConfig.colConfigs = col.map((colunm: any) => {
+                return {
+                    prop: colunm,
+                    title: colunm,
+                    minWidth: 100,
+                    showHeaderOverflow: true,
+                    showOverflowTooltip: true
+                }
+            })
+            tableConfig.tableData = tableData.map((columnData: any) => {
+                const dataObj: any = {
+}
+                col.forEach((c: any, index: number) => {
+                    dataObj[c] = columnData[index]
+                })
+                return dataObj
+            })
+            tableConfig.loading = false
         })
-        return dataObj
-      })
-      tableConfig.loading = false
-    })
-    .catch(() => {
-      tableConfig.colConfigs = []
-      tableConfig.tableData = []
-      tableConfig.loading = false
-    })
+        .catch(() => {
+            tableConfig.colConfigs = []
+            tableConfig.tableData = []
+            tableConfig.loading = false
+        })
 }
 
 defineExpose({
-  initData
+    initData
 })
 </script>
 
 <style lang="scss">
 .log-loading {
-  &.zqy-loading {
-    position: static;
-    height: 100% !important;
-    padding: 0 !important;
-    margin-top: 0 !important;
-    overflow: auto;
-  }
+    &.zqy-loading {
+        position: static;
+        height: 100% !important;
+        padding: 0 !important;
+        margin-top: 0 !important;
+        overflow: auto;
+    }
 }
 .vxe-table--body-wrapper {
-  // max-height: calc(100vh - 428px);
-  // overflow: auto;
+    // max-height: calc(100vh - 428px);
+    // overflow: auto;
 }
 .zqy-json-parse {
     font-size: 12px;

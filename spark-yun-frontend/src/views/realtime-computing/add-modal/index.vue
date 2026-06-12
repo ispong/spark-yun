@@ -17,7 +17,10 @@
           placeholder="请输入"
         />
       </el-form-item>
-      <el-form-item label="计算集群" prop="clusterId">
+      <el-form-item
+        label="计算集群"
+        prop="clusterId"
+      >
         <el-select
           v-model="formData.clusterId"
           placeholder="请选择"
@@ -49,127 +52,133 @@
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList, GetComputerPointData } from '@/services/computer-group.service';
-import { GetDatasourceList } from '@/services/datasource.service';
+import { GetComputerGroupList, GetComputerPointData } from '@/services/computer-group.service'
+import { GetDatasourceList } from '@/services/datasource.service'
 
 const form = ref<FormInstance>()
 const callback = ref<any>()
-const clusterList = ref([])  // 计算集群
-const clusterNodeList = ref([])  // 集群节点
-const dataSourceList = ref([])  // 数据源
+const clusterList = ref([]) // 计算集群
+const clusterNodeList = ref([]) // 集群节点
+const dataSourceList = ref([]) // 数据源
 const showForm = ref(true)
 const renderSense = ref('')
 
 const modelConfig = reactive({
-  title: '新建实时',
-  visible: false,
-  width: '520px',
-  okConfig: {
-    title: '确定',
-    ok: okEvent,
-    disabled: false,
-    loading: false
-  },
-  cancelConfig: {
-    title: '取消',
-    cancel: closeEvent,
-    disabled: false
-  },
-  needScale: false,
-  zIndex: 1100,
-  closeOnClickModal: false
+    title: '新建实时',
+    visible: false,
+    width: '520px',
+    okConfig: {
+        title: '确定',
+        ok: okEvent,
+        disabled: false,
+        loading: false
+    },
+    cancelConfig: {
+        title: '取消',
+        cancel: closeEvent,
+        disabled: false
+    },
+    needScale: false,
+    zIndex: 1100,
+    closeOnClickModal: false
 })
 const formData = reactive({
-  name: '',
-  clusterId: '', // 计算集群
-  remark: '',
-  id: ''
+    name: '',
+    clusterId: '', // 计算集群
+    remark: '',
+    id: ''
 })
 const rules = reactive<FormRules>({
-  name: [{ required: true, message: '请输入作业名称', trigger: [ 'blur', 'change' ]}],
-  clusterId: [{ required: true, message: '请选择计算集群', trigger: [ 'blur', 'change' ]}]
+    name: [ {
+ required: true, message: '请输入作业名称', trigger: [ 'blur', 'change' ] 
+} ],
+    clusterId: [ {
+ required: true, message: '请选择计算集群', trigger: [ 'blur', 'change' ] 
+} ]
 })
 
 function showModal(cb: () => void, data: any): void {
-  callback.value = cb
-  modelConfig.visible = true
-  if (data && data.id) {
-    Object.keys(data).forEach((key: string) => {
-      formData[key] = data[key]
-    });
-    formData.clusterId && getClusterList(true)
-    modelConfig.title = '编辑实时'
-    renderSense.value = 'edit'
-  } else {
-    formData.name = ''
-    formData.remark = ''
-    formData.clusterId = ''
-    formData.id = ''
-    modelConfig.title = '新建实时'
-    renderSense.value = 'new'
-  }
-  nextTick(() => {
-    form.value?.resetFields()
-  })
+    callback.value = cb
+    modelConfig.visible = true
+    if (data && data.id) {
+        Object.keys(data).forEach((key: string) => {
+            formData[key] = data[key]
+        })
+        formData.clusterId && getClusterList(true)
+        modelConfig.title = '编辑实时'
+        renderSense.value = 'edit'
+    } else {
+        formData.name = ''
+        formData.remark = ''
+        formData.clusterId = ''
+        formData.id = ''
+        modelConfig.title = '新建实时'
+        renderSense.value = 'new'
+    }
+    nextTick(() => {
+        form.value?.resetFields()
+    })
 }
 
 function okEvent() {
-  form.value?.validate((valid) => {
-    if (valid) {
-      modelConfig.okConfig.loading = true
-      callback
-        .value({
-          ...formData,
-          id: formData.id ? formData.id : undefined
-        })
-        .then((res: any) => {
-          modelConfig.okConfig.loading = false
-          if (res === undefined) {
-            modelConfig.visible = false
-          } else {
-            modelConfig.visible = true
-          }
-        })
-        .catch((err: any) => {
-          modelConfig.okConfig.loading = false
-        })
-    } else {
-      ElMessage.warning('请将表单输入完整')
-    }
-  })
+    form.value?.validate((valid) => {
+        if (valid) {
+            modelConfig.okConfig.loading = true
+            callback
+                .value({
+                    ...formData,
+                    id: formData.id ? formData.id : undefined
+                })
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
+        } else {
+            ElMessage.warning('请将表单输入完整')
+        }
+    })
 }
 
 function getClusterList(e: boolean) {
-  if (e) {
-    GetComputerGroupList({
-      page: 0,
-      pageSize: 10000,
-      searchKeyWord: ''
-    }).then((res: any) => {
-      clusterList.value = res.data.content.map((item: any) => {
-        return {
-          label: item.name,
-          value: item.id
-        }
-      })
-    }).catch(() => {
-      clusterList.value = []
-    })
-  }
+    if (e) {
+        GetComputerGroupList({
+            page: 0,
+            pageSize: 10000,
+            searchKeyWord: ''
+        })
+            .then((res: any) => {
+                clusterList.value = res.data.content.map((item: any) => {
+                    return {
+                        label: item.name,
+                        value: item.id
+                    }
+                })
+            })
+            .catch(() => {
+                clusterList.value = []
+            })
+    }
 }
 
 function closeEvent() {
-  modelConfig.visible = false
+    modelConfig.visible = false
 }
 
 defineExpose({
-  showModal
+    showModal
 })
 </script>
 
 <style lang="scss">
 .add-computer-group {
-  padding: 12px 20px 0 20px;
-  box-sizing: border-box;
+    padding: 12px 20px 0 20px;
+    box-sizing: border-box;
 }
 </style>

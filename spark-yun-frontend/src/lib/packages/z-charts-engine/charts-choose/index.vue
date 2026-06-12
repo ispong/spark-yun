@@ -1,28 +1,52 @@
 <template>
-    <div class="charts-choose">
-        <div class="search-box">
-            <el-input
-                v-model="searchParam"
-                placeholder="输入后回车搜索"
-                :style="{ width: showReportComponentsBtn ? 'calc(100% - 112px)' : 'calc(100% - 24px)' }"
-                @input="inputEvent"
-                @keyup.enter="initData"
-            ></el-input>
-            <el-button v-if="showReportComponentsBtn" @click="goReportComponents">卡片中心</el-button>
-        </div>
-        <div class="form-dragger-widget">
-            <template v-if="chartsList.length">
-                <div :draggable="true" v-for="(element, index) in chartsList" :key="index" class="edit-item" @drag="startMoveEvent(element, $event)" @dragend="endMoveEvent(element, $event)">
-                    <span class="draggable-name"><EllipsisTooltip class="label-name-text" :label="element.chartName" /></span>
-                    <span class="draggable-type">{{element.typeName}}</span>
-                    <el-button class="preview-chart" type="primary" link @click="previewChatEvent(element)">预览</el-button>
-                </div>
-            </template>
-            <template v-else>
-                <EmptyPage></EmptyPage>
-            </template>
-        </div>
+  <div class="charts-choose">
+    <div class="search-box">
+      <el-input
+        v-model="searchParam"
+        placeholder="输入后回车搜索"
+        :style="{ width: showReportComponentsBtn ? 'calc(100% - 112px)' : 'calc(100% - 24px)' }"
+        @input="inputEvent"
+        @keyup.enter="initData"
+      />
+      <el-button
+        v-if="showReportComponentsBtn"
+        @click="goReportComponents"
+      >
+        卡片中心
+      </el-button>
     </div>
+    <div class="form-dragger-widget">
+      <template v-if="chartsList.length">
+        <div
+          v-for="(element, index) in chartsList"
+          :key="index"
+          :draggable="true"
+          class="edit-item"
+          @drag="startMoveEvent(element, $event)"
+          @dragend="endMoveEvent(element, $event)"
+        >
+          <span class="draggable-name">
+            <EllipsisTooltip
+              class="label-name-text"
+              :label="element.chartName"
+            />
+          </span>
+          <span class="draggable-type">{{ element.typeName }}</span>
+          <el-button
+            class="preview-chart"
+            type="primary"
+            link
+            @click="previewChatEvent(element)"
+          >
+            预览
+          </el-button>
+        </div>
+      </template>
+      <template v-else>
+        <EmptyPage />
+      </template>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -30,14 +54,20 @@ import { ref, defineEmits, nextTick, defineProps } from 'vue'
 import EmptyPage from '../empty-page/index.vue'
 import EllipsisTooltip from '../ellipsis-tooltip/charts-ellipsis-tooltip.vue'
 
-const props = defineProps(['chartsList', 'showReportComponentsBtn'])
-const emit = defineEmits([ 'endMoveEvent', 'startMoveEvent', 'getChartListEvent', 'previewChatEvent', 'goReportComponentsEvent'])
+const props = defineProps([ 'chartsList', 'showReportComponentsBtn' ])
+const emit = defineEmits([
+    'endMoveEvent',
+    'startMoveEvent',
+    'getChartListEvent',
+    'previewChatEvent',
+    'goReportComponentsEvent'
+])
 
 const guid = function() {
     function S4() {
-        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
-    return (S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' +S4() + S4() +S4());
+    return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4()
 }
 const searchParam = ref('')
 

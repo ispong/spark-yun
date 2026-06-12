@@ -19,7 +19,7 @@
     <span
       v-else
       class="empty-text"
-    > {{ label }} </span>
+    >{{ label }}</span>
   </div>
 </template>
 
@@ -27,37 +27,37 @@
 import { computed, defineProps, withDefaults } from 'vue'
 
 withDefaults(
-  defineProps<{
-    label?: string;
-  }>(),
-  {
-    label: '暂无数据'
-  }
+    defineProps<{
+        label?: string
+    }>(),
+    {
+        label: '暂无数据'
+    }
 )
 </script>
 
 <style lang="scss">
 .empty-page {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin: 0;
-  width: 120px;
-  position: absolute !important;
-  right: calc(50% - 60px);
-  height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    width: 120px;
+    position: absolute !important;
+    right: calc(50% - 60px);
+    height: 100%;
 
-  .empty-icon {
-    width: auto;
-    height: 72px;
-    cursor: auto;
-  }
-  .empty-text {
-    font-size: 12px;
-    color: #b2b2b2;
-    margin-top: 4px;
-    line-height: normal;
-  }
+    .empty-icon {
+        width: auto;
+        height: 72px;
+        cursor: auto;
+    }
+    .empty-text {
+        font-size: 12px;
+        color: #b2b2b2;
+        margin-top: 4px;
+        line-height: normal;
+    }
 }
 </style>

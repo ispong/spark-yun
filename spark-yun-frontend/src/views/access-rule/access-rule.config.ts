@@ -1,39 +1,39 @@
 export interface BreadCrumb {
-    name: string;
-    code: string;
-    hidden?: boolean;
+    name: string
+    code: string
+    hidden?: boolean
 }
 
 export interface colConfig {
-    prop?: string;
-    title: string;
-    align?: string;
-    showOverflowTooltip?: boolean;
-    customSlot?: string;
-    width?: number;
-    minWidth?: number;
+    prop?: string
+    title: string
+    align?: string
+    showOverflowTooltip?: boolean
+    customSlot?: string
+    width?: number
+    minWidth?: number
     formatter?: any
-    fixed?: string;
+    fixed?: string
 }
 
 export interface Pagination {
-    currentPage: number;
-    pageSize: number;
-    total: number;
+    currentPage: number
+    pageSize: number
+    total: number
 }
 
 export interface TableConfig {
-    tableData: Array<any>;
-    colConfigs: Array<colConfig>;
-    seqType: string;
-    pagination?: Pagination;
-    loading?: boolean;
+    tableData: Array<any>
+    colConfigs: Array<colConfig>
+    seqType: string
+    pagination?: Pagination
+    loading?: boolean
 }
 
 export interface SerchParams {
-    page: number;
-    pageSize: number;
-    searchKeyWord: string;
+    page: number
+    pageSize: number
+    searchKeyWord: string
 }
 
 export const BreadCrumbList: Array<BreadCrumb> = [
@@ -98,9 +98,9 @@ export const TableConfig: TableConfig = {
     tableData: [],
     colConfigs: colConfigs,
     pagination: {
-      currentPage: 1,
-      pageSize: 10,
-      total: 0
+        currentPage: 1,
+        pageSize: 10,
+        total: 0
     },
     seqType: 'seq',
     loading: false

@@ -37,12 +37,22 @@
             >{{ scopeSlot.row.name }}</span>
           </template>
           <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status === 'STOP' ? 'UN_PUBLISHED' : scopeSlot.row.status"></ZStatusTag>
+            <ZStatusTag
+              :status="scopeSlot.row.status === 'STOP' ? 'UN_PUBLISHED' : scopeSlot.row.status"
+            />
           </template>
           <template #options="scopeSlot">
             <div class="btn-group">
-              <span v-if="!['UN_AUTO', 'STOP'].includes(scopeSlot.row.status)" @click="underlineWorkFlow(scopeSlot.row)">下线</span>
-              <span v-else @click="publishWorkFlow(scopeSlot.row)">发布</span>
+              <span
+                v-if="!['UN_AUTO', 'STOP'].includes(scopeSlot.row.status)"
+                @click="underlineWorkFlow(scopeSlot.row)"
+              >
+                下线
+              </span>
+              <span
+                v-else
+                @click="publishWorkFlow(scopeSlot.row)"
+              >发布</span>
               <el-dropdown trigger="click">
                 <span class="click-show-more">更多</span>
                 <template #dropdown>
@@ -74,7 +84,12 @@ import AddModal from './add-modal/index.vue'
 // import { useState } from '@/hooks/useStore'
 
 import { BreadCrumbList, TableConfig, FormData } from './workflow.config'
-import { GetWorkflowList, AddWorkflowData, UpdateWorkflowData, DeleteWorkflowData, UnderlineWorkflowData, PublishWorkflowData } from '@/services/workflow.service'
+import { GetWorkflowList,
+    AddWorkflowData,
+    UpdateWorkflowData,
+    DeleteWorkflowData,
+    UnderlineWorkflowData,
+    PublishWorkflowData } from '@/services/workflow.service'
 import { CheckLicenseStatus } from '@/services/license.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -93,165 +108,167 @@ const networkError = ref(false)
 const addModalRef = ref(null)
 
 function refreshLicenseAndReload() {
-  CheckLicenseStatus()
-    .catch(() => {
-      // 发布/下线后仅做许可证状态刷新，失败也继续刷新页面
-    })
-    .finally(() => {
-      window.location.reload()
-    })
+    CheckLicenseStatus()
+        .catch(() => {
+            // 发布/下线后仅做许可证状态刷新，失败也继续刷新页面
+        })
+        .finally(() => {
+            window.location.reload()
+        })
 }
 
 function initData(tableLoading?: boolean) {
-  loading.value = tableLoading ? false : true
-  networkError.value = networkError.value || false
-  GetWorkflowList({
-    page: tableConfig.pagination.currentPage - 1,
-    pageSize: tableConfig.pagination.pageSize,
-    searchKeyWord: keyword.value
-  })
-    .then((res: any) => {
-      tableConfig.tableData = res.data.content
-      tableConfig.pagination.total = res.data.totalElements
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = false
+    loading.value = tableLoading ? false : true
+    networkError.value = networkError.value || false
+    GetWorkflowList({
+        page: tableConfig.pagination.currentPage - 1,
+        pageSize: tableConfig.pagination.pageSize,
+        searchKeyWord: keyword.value
     })
-    .catch(() => {
-      tableConfig.tableData = []
-      tableConfig.pagination.total = 0
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = true
-    })
+        .then((res: any) => {
+            tableConfig.tableData = res.data.content
+            tableConfig.pagination.total = res.data.totalElements
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
+        })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
 }
 
 function addGroup() {
-  addModalRef.value.showModal((formData: FormData) => {
-    return new Promise((resolve: any, reject: any) => {
-      AddWorkflowData(formData)
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
-        })
-        .catch((error: any) => {
-          reject(error)
+    addModalRef.value.showModal((formData: FormData) => {
+        return new Promise((resolve: any, reject: any) => {
+            AddWorkflowData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     })
-  })
 }
 
 function editData(data: any) {
-  addModalRef.value.showModal((formData: FormData) => {
-    return new Promise((resolve: any, reject: any) => {
-      UpdateWorkflowData(formData)
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
+    addModalRef.value.showModal((formData: FormData) => {
+        return new Promise((resolve: any, reject: any) => {
+            UpdateWorkflowData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
-        .catch((error: any) => {
-          reject(error)
-        })
-    })
-  }, data)
+    }, data)
 }
 
 // 下线工作流
 function underlineWorkFlow(data: any) {
-  UnderlineWorkflowData({
-    workflowId: data.id
-  }).then((res: any) => {
-    initData()
-    ElMessage({
-      type: 'success',
-      message: res?.msg || '操作成功',
-      onClose: () => {
-        refreshLicenseAndReload()
-      }
+    UnderlineWorkflowData({
+        workflowId: data.id
     })
-  }).catch(() => {
-  })
+        .then((res: any) => {
+            initData()
+            ElMessage({
+                type: 'success',
+                message: res?.msg || '操作成功',
+                onClose: () => {
+                    refreshLicenseAndReload()
+                }
+            })
+        })
+        .catch(() => {})
 }
 
 // 发布作业流
 function publishWorkFlow(data: any) {
-  PublishWorkflowData({
-      workflowId: data.id
-  }).then((res: any) => {
-      initData()
-      ElMessage({
-        type: 'success',
-        message: res?.msg || '操作成功',
-        onClose: () => {
-          refreshLicenseAndReload()
-        }
-      })
-  }).catch(() => {
-  })
+    PublishWorkflowData({
+        workflowId: data.id
+    })
+        .then((res: any) => {
+            initData()
+            ElMessage({
+                type: 'success',
+                message: res?.msg || '操作成功',
+                onClose: () => {
+                    refreshLicenseAndReload()
+                }
+            })
+        })
+        .catch(() => {})
 }
 
 // 删除
 function deleteData(data: any) {
-  ElMessageBox.confirm('确定删除该作业流吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    DeleteWorkflowData({
-      workflowId: data.id,
-      Tenant: authStore.tenantId
+    ElMessageBox.confirm('确定删除该作业流吗？', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        DeleteWorkflowData({
+            workflowId: data.id,
+            Tenant: authStore.tenantId
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch(() => {})
     })
-      .then((res: any) => {
-        ElMessage.success(res.msg)
-        initData()
-      })
-      .catch(() => {})
-  })
 }
 
 function showDetail(data: any) {
-  router.push({
-    name: 'workflow-page',
-    query: {
-      id: data.id,
-      name: data.name
-    }
-  })
+    router.push({
+        name: 'workflow-page',
+        query: {
+            id: data.id,
+            name: data.name
+        }
+    })
 }
 
 function inputEvent(e: string) {
-  if (e === '') {
-    initData()
-  }
+    if (e === '') {
+        initData()
+    }
 }
 
 function handleSizeChange(e: number) {
-  tableConfig.pagination.pageSize = e
-  initData()
+    tableConfig.pagination.pageSize = e
+    initData()
 }
 
 function handleCurrentChange(e: number) {
-  tableConfig.pagination.currentPage = e
-  initData()
+    tableConfig.pagination.currentPage = e
+    initData()
 }
 
 onMounted(() => {
-  tableConfig.pagination.currentPage = 1
-  tableConfig.pagination.pageSize = 10
-  initData()
+    tableConfig.pagination.currentPage = 1
+    tableConfig.pagination.pageSize = 10
+    initData()
 })
 </script>
 
 <style lang="scss">
 .zqy-seach-table {
-  .name-click {
-    cursor: pointer;
-    color: getCssVar('color', 'primary', 'light-5');
-    &:hover {
-      color: getCssVar('color', 'primary');;
+    .name-click {
+        cursor: pointer;
+        color: getCssVar('color', 'primary', 'light-5');
+        &:hover {
+            color: getCssVar('color', 'primary');
+        }
     }
-  }
 }
 </style>

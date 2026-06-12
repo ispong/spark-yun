@@ -1,61 +1,82 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form
-            ref="form"
-            class="add-computer-group acquisition-task-add"
-            label-position="top"
-            :model="formData"
-            :rules="rules"
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group acquisition-task-add"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+    >
+      <el-form-item
+        label="分层名称"
+        prop="name"
+      >
+        <el-input
+          v-model="formData.name"
+          maxlength="200"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="父级分层"
+        prop="parentLayerId"
+      >
+        <el-select
+          v-model="formData.parentLayerId"
+          filterable
+          clearable
+          placeholder="请选择"
         >
-            <el-form-item label="分层名称" prop="name">
-                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="父级分层" prop="parentLayerId">
-                <el-select
-                    v-model="formData.parentLayerId"
-                    filterable
-                    clearable
-                    placeholder="请选择"
-                >
-                    <el-option
-                        v-for="item in parentLayerIdList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="表名规范" prop="tableRuleInput">
-                <el-tooltip
-                    content="支持前缀/后缀/包含/精确匹配，系统会自动转为正则保存"
-                    placement="top"
-                >
-                    <el-icon style="left: 50px" class="tooltip-msg"><QuestionFilled /></el-icon>
-                </el-tooltip>
-                <div class="table-rule-config">
-                    <el-select
-                        v-model="tableRuleMode"
-                    >
-                        <el-option
-                            v-for="item in tableRuleModeList"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value"
-                        />
-                    </el-select>
-                    <el-input
-                        v-model="formData.tableRuleInput"
-                        maxlength="200"
-                        :placeholder="tableRulePlaceholder"
-                    />
-                </div>
-            </el-form-item>
-            <el-form-item label="备注">
-                <el-input v-model="formData.remark" type="textarea" maxlength="200"
-                    :autosize="{ minRows: 4, maxRows: 4 }" placeholder="请输入" />
-            </el-form-item>
-        </el-form>
-    </BlockModal>
+          <el-option
+            v-for="item in parentLayerIdList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        label="表名规范"
+        prop="tableRuleInput"
+      >
+        <el-tooltip
+          content="支持前缀/后缀/包含/精确匹配，系统会自动转为正则保存"
+          placement="top"
+        >
+          <el-icon
+            style="left: 50px"
+            class="tooltip-msg"
+          >
+            <QuestionFilled />
+          </el-icon>
+        </el-tooltip>
+        <div class="table-rule-config">
+          <el-select v-model="tableRuleMode">
+            <el-option
+              v-for="item in tableRuleModeList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+          <el-input
+            v-model="formData.tableRuleInput"
+            maxlength="200"
+            :placeholder="tableRulePlaceholder"
+          />
+        </div>
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input
+          v-model="formData.remark"
+          type="textarea"
+          maxlength="200"
+          :autosize="{ minRows: 4, maxRows: 4 }"
+          placeholder="请输入"
+        />
+      </el-form-item>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -76,11 +97,21 @@ const parentLayerIdList = ref<Option[]>([])
 const currentLayerId = ref<string>('')
 const tableRuleMode = ref<TableRuleMode>('prefix')
 const tableRuleModeList: Option[] = [
-    { label: '前缀匹配', value: 'prefix' },
-    { label: '后缀匹配', value: 'suffix' },
-    { label: '包含匹配', value: 'contains' },
-    { label: '精确匹配', value: 'exact' },
-    { label: '自定义正则', value: 'regex' }
+    {
+ label: '前缀匹配', value: 'prefix' 
+},
+    {
+ label: '后缀匹配', value: 'suffix' 
+},
+    {
+ label: '包含匹配', value: 'contains' 
+},
+    {
+ label: '精确匹配', value: 'exact' 
+},
+    {
+ label: '自定义正则', value: 'regex' 
+}
 ]
 
 const modelConfig = reactive({
@@ -111,7 +142,9 @@ const formData = reactive<any>({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [{ required: true, message: '请输入名称', trigger: ['blur', 'change'] }],
+    name: [ {
+ required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
+} ],
     // parentLayerId: [{ required: true, message: '请选择父级分层', trigger: ['blur', 'change'] }],
     tableRuleInput: [
         {
@@ -128,7 +161,7 @@ const rules = reactive<FormRules>({
                 }
                 callback()
             },
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ]
 })
@@ -177,16 +210,19 @@ function okEvent() {
                 tableRule: buildTableRule(tableRuleMode.value, formData.tableRuleInput),
                 remark: formData.remark
             }
-            callback.value(submitData).then((res: any) => {
-                modelConfig.okConfig.loading = false
-                if (res === undefined) {
-                    modelConfig.visible = false
-                } else {
-                    modelConfig.visible = true
-                }
-            }).catch((err: any) => {
-                modelConfig.okConfig.loading = false
-            })
+            callback
+                .value(submitData)
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
         } else {
             ElMessage.warning('请将表单输入完整')
         }
@@ -198,18 +234,22 @@ function getParentLayerIList(excludeLayerId?: string) {
         page: 0,
         pageSize: 10000,
         searchKeyWord: ''
-    }).then((res: any) => {
-        parentLayerIdList.value = [...res.data.content
-            .filter((item: any) => item.id !== excludeLayerId)
-            .map((item: any) => {
-                return {
-                    label: item.fullPathName,
-                    value: item.id
-                }
-            })]
-    }).catch(() => {
-        parentLayerIdList.value = []
     })
+        .then((res: any) => {
+            parentLayerIdList.value = [
+                ...res.data.content
+                    .filter((item: any) => item.id !== excludeLayerId)
+                    .map((item: any) => {
+                        return {
+                            label: item.fullPathName,
+                            value: item.id
+                        }
+                    })
+            ]
+        })
+        .catch(() => {
+            parentLayerIdList.value = []
+        })
 }
 
 function closeEvent() {
@@ -248,30 +288,42 @@ function buildTableRule(mode: TableRuleMode, inputValue: string) {
 
 function parseTableRule(value: string): { mode: TableRuleMode; input: string } {
     if (!value) {
-        return { mode: 'prefix', input: '' }
+        return {
+ mode: 'prefix', input: '' 
+}
     }
 
     const prefixMatch = value.match(/^\^(.+)\.\*$/)
     if (prefixMatch?.[1]) {
-        return { mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) }
+        return {
+ mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) 
+}
     }
 
     const suffixMatch = value.match(/^\.\*(.+)\$$/)
     if (suffixMatch?.[1]) {
-        return { mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) }
+        return {
+ mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) 
+}
     }
 
     const containsMatch = value.match(/^\.\*(.+)\.\*$/)
     if (containsMatch?.[1]) {
-        return { mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) }
+        return {
+ mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) 
+}
     }
 
     const exactMatch = value.match(/^\^(.+)\$$/)
     if (exactMatch?.[1]) {
-        return { mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) }
+        return {
+ mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) 
+}
     }
 
-    return { mode: 'regex', input: value }
+    return {
+ mode: 'regex', input: value 
+}
 }
 
 defineExpose({
@@ -291,7 +343,7 @@ defineExpose({
                 height: 36px;
 
                 .el-input-number__decrease {
-                    top: 16px
+                    top: 16px;
                 }
             }
         }

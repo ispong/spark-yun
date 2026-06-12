@@ -32,23 +32,12 @@ export default defineConfig({
       ]
     }),
     Components({
-      extensions: ['vue'],
-      include: [/\.vue$/, /\.vue\?vue/, /\.md$/, /\.tsx$/, /\.jsx$/],
-      resolvers: [ElementPlusResolver({
+      extensions: [ 'vue' ],
+      include: [ /\.vue$/, /\.vue\?vue/, /\.md$/, /\.tsx$/, /\.jsx$/ ],
+      resolvers: [ ElementPlusResolver({
         importStyle: 'sass'
-      })]
-    }),
-    {
-      name: 'singleHMR',
-      handleHotUpdate({ modules }) {
-        modules.map(m => {
-          // m.importedModules = new Set()
-          m.importers = new Set()
-        })
-
-        return modules
-      }
-    }
+      }) ]
+    })
   ],
   build: {
     outDir: 'dist',
@@ -83,7 +72,7 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `@use "@/assets/styles/variable.scss" as *;`
+        additionalData: '@use "@/assets/styles/variable.scss" as *;'
       }
     }
   }

@@ -3,7 +3,6 @@
 
 // import { authStore } from './auth.store'
 
-
 // export default createStore({
 //   modules: {
 //     authStoreModule: authStore

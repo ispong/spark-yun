@@ -1,25 +1,30 @@
 <template>
-    <el-form-item
-        class="form-render-item"
-        :class="{'form-render-item__edit': !isDragger, 'form-input__dragger': isDragger }"
-        :label="formConfig.label || ' '"
-        :style="{ 'width': '100%' }"
-        :prop="!isDragger ? formConfig.uuid : ''"
-        :rules="rulesList"
-    >
-        <div class="form-render-item__btn">
-            <el-icon @click="removeInstance"><Delete /></el-icon>
-        </div>
-        <div v-if="isDragger && formConfig.type !== 'static'" class="form-render-item__mark"></div>
-        <slot></slot>
-    </el-form-item>
+  <el-form-item
+    class="form-render-item"
+    :class="{ 'form-render-item__edit': !isDragger, 'form-input__dragger': isDragger }"
+    :label="formConfig.label || ' '"
+    :style="{ width: '100%' }"
+    :prop="!isDragger ? formConfig.uuid : ''"
+    :rules="rulesList"
+  >
+    <div class="form-render-item__btn">
+      <el-icon @click="removeInstance">
+        <Delete />
+      </el-icon>
+    </div>
+    <div
+      v-if="isDragger && formConfig.type !== 'static'"
+      class="form-render-item__mark"
+    />
+    <slot />
+  </el-form-item>
 </template>
 
 <script lang="ts" setup>
 import { defineProps, computed, defineEmits } from 'vue'
 
-const emit = defineEmits(['removeInstance'])
-const props = defineProps(['renderSence', 'formData', 'formConfig', 'isDragger', 'rules', 'customRules'])
+const emit = defineEmits([ 'removeInstance' ])
+const props = defineProps([ 'renderSence', 'formData', 'formConfig', 'isDragger', 'rules', 'customRules' ])
 const componentWidth = computed(() => {
     return `${props.formConfig.width * 25}%`
 })
@@ -27,9 +32,9 @@ const componentWidth = computed(() => {
 const rulesList = computed(() => {
     const customRulesList = props.customRules && props.customRules.length ? props.customRules : []
     if (props.formConfig.required) {
-        return [...props.rules, ...customRulesList]
+        return [ ...props.rules, ...customRulesList ]
     } else {
-        return [...customRulesList]
+        return [ ...customRulesList ]
     }
 })
 

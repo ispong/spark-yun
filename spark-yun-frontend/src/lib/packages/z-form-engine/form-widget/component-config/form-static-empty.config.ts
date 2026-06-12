@@ -12,7 +12,5 @@ export default {
         valid: true,
         componentType: 'FormStaticEmpty'
     },
-    conponentSetConfig: [
-        'WIDTH'
-    ]
+    conponentSetConfig: [ 'WIDTH' ]
 }

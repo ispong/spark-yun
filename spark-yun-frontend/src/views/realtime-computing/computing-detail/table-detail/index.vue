@@ -1,11 +1,17 @@
 <template>
-    <BlockModal :model-config="modelConfig" @close="closeEvent">
-        <div id="content" class="content-box">
-            <BlockTable :table-config="tableConfig" />
-        </div>
-    </BlockModal>
+  <BlockModal
+    :model-config="modelConfig"
+    @close="closeEvent"
+  >
+    <div
+      id="content"
+      class="content-box"
+    >
+      <BlockTable :table-config="tableConfig" />
+    </div>
+  </BlockModal>
 </template>
-  
+
 <script lang="ts" setup>
 import { reactive, defineExpose, ref } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
@@ -49,33 +55,35 @@ function showModal(data: Param): void {
 // 获取结果
 function getResultDatalist() {
     tableConfig.loading = true
-    GetSourceTablesDetail(info.value).then((res: any) => {
-        const col = res.data.columns
-        const tableData = res.data.rows
-        tableConfig.colConfigs = col.map((colunm: any) => {
-            return {
-                prop: colunm,
-                title: colunm,
-                minWidth: 100,
-                showHeaderOverflow: true,
-                showOverflowTooltip: true
-            }
-        })
-        tableConfig.tableData = []
-        res.data.rows.forEach(rowData => {
-            const columnData = {}
-            col.forEach((cl, index) => {
-                columnData[cl] = rowData[index]
+    GetSourceTablesDetail(info.value)
+        .then((res: any) => {
+            const col = res.data.columns
+            const tableData = res.data.rows
+            tableConfig.colConfigs = col.map((colunm: any) => {
+                return {
+                    prop: colunm,
+                    title: colunm,
+                    minWidth: 100,
+                    showHeaderOverflow: true,
+                    showOverflowTooltip: true
+                }
             })
-            tableConfig.tableData.push(columnData)
+            tableConfig.tableData = []
+            res.data.rows.forEach((rowData) => {
+                const columnData = {
+}
+                col.forEach((cl, index) => {
+                    columnData[cl] = rowData[index]
+                })
+                tableConfig.tableData.push(columnData)
+            })
+            tableConfig.loading = false
         })
-        tableConfig.loading = false
-    })
-    .catch(() => {
-        tableConfig.colConfigs = []
-        tableConfig.tableData = []
-        tableConfig.loading = false
-    })
+        .catch(() => {
+            tableConfig.colConfigs = []
+            tableConfig.tableData = []
+            tableConfig.loading = false
+        })
 }
 
 function closeEvent() {
@@ -100,4 +108,3 @@ defineExpose({
     }
 }
 </style>
-  

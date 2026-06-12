@@ -10,54 +10,54 @@ import { http } from '@/utils/http'
 
 // 获取数据源驱动
 export function GetDriverListData(params: any): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/datasource/pageDatabaseDriver',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/datasource/pageDatabaseDriver',
+        params: params
+    })
 }
 // 获取默认驱动
 export function GetDefaultDriverData(params: any): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/datasource/getDefaultDatabaseDriver',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/datasource/getDefaultDatabaseDriver',
+        params: params
+    })
 }
 
 // 删除驱动
 export function DeleteDefaultDriverData(params: any): Promise<any> {
     return http.request({
-      method: 'post',
-      url: '/datasource/deleteDatabaseDriver',
-      params: params
+        method: 'post',
+        url: '/datasource/deleteDatabaseDriver',
+        params: params
     })
 }
 
 // 添加驱动
 export function AddDefaultDriverData(params: any): Promise<any> {
     return http.uploadFile({
-      method: 'post',
-      timeout: 1000 * 60 * 10 , // 10分钟
-      url: '/datasource/uploadDatabaseDriver',
-      params: params
+        method: 'post',
+        timeout: 1000 * 60 * 10, // 10分钟
+        url: '/datasource/uploadDatabaseDriver',
+        params: params
     })
 }
 
 // 设为默认驱动
 export function SetDefaultDriverData(params: any): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/datasource/settingDefaultDatabaseDriver',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/datasource/settingDefaultDatabaseDriver',
+        params: params
+    })
 }
 
 // 更新备注
 export function UpdateDefaultDriverRemark(params: any): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/datasource/updateDatabaseDriverRemark',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/datasource/updateDatabaseDriverRemark',
+        params: params
+    })
 }

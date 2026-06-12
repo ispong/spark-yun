@@ -1,31 +1,68 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
-            <template v-if="renderSence === 'new'">
-                <el-form-item label="字段名" prop="code">
-                    <el-input v-model="formData.code" maxlength="64" placeholder="请输入"/>
-                </el-form-item>
-                <el-form-item label="类型" prop="type">
-                    <el-select v-model="formData.type" filterable clearable placeholder="请选择">
-                        <el-option v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value" />
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="jsonPath" prop="jsonPath">
-                    <el-input v-model="formData.jsonPath" maxlength="2000" placeholder="请输入，如 $.data.id"/>
-                </el-form-item>
-            </template>
-            <el-form-item label="转换">
-                <code-mirror v-model="formData.sql" basic :lang="lang"/>
-            </el-form-item>
-        </el-form>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+    >
+      <template v-if="renderSence === 'new'">
+        <el-form-item
+          label="字段名"
+          prop="code"
+        >
+          <el-input
+            v-model="formData.code"
+            maxlength="64"
+            placeholder="请输入"
+          />
+        </el-form-item>
+        <el-form-item
+          label="类型"
+          prop="type"
+        >
+          <el-select
+            v-model="formData.type"
+            filterable
+            clearable
+            placeholder="请选择"
+          >
+            <el-option
+              v-for="item in typeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item
+          label="jsonPath"
+          prop="jsonPath"
+        >
+          <el-input
+            v-model="formData.jsonPath"
+            maxlength="2000"
+            placeholder="请输入，如 $.data.id"
+          />
+        </el-form-item>
+      </template>
+      <el-form-item label="转换">
+        <code-mirror
+          v-model="formData.sql"
+          basic
+          :lang="lang"
+        />
+      </el-form-item>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 // import CodeMirror from 'vue-codemirror6'
-import {sql} from '@codemirror/lang-sql'
+import { sql } from '@codemirror/lang-sql'
 
 interface codeParam {
     code: string
@@ -67,29 +104,49 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入字段名',
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ],
     type: [
         {
             required: true,
             message: '请选择类型',
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ]
 })
 
 const typeOptions = [
-    { label: 'string', value: 'string' },
-    { label: 'int', value: 'int' },
-    { label: 'long', value: 'long' },
-    { label: 'double', value: 'double' },
-    { label: 'boolean', value: 'boolean' },
-    { label: 'date', value: 'date' },
-    { label: 'timestamp', value: 'timestamp' },
-    { label: 'object', value: 'object' },
-    { label: 'array', value: 'array' },
-    { label: 'bigDecimal', value: 'bigDecimal' }
+    {
+ label: 'string', value: 'string' 
+},
+    {
+ label: 'int', value: 'int' 
+},
+    {
+ label: 'long', value: 'long' 
+},
+    {
+ label: 'double', value: 'double' 
+},
+    {
+ label: 'boolean', value: 'boolean' 
+},
+    {
+ label: 'date', value: 'date' 
+},
+    {
+ label: 'timestamp', value: 'timestamp' 
+},
+    {
+ label: 'object', value: 'object' 
+},
+    {
+ label: 'array', value: 'array' 
+},
+    {
+ label: 'bigDecimal', value: 'bigDecimal' 
+}
 ]
 
 function showModal(cb: () => void, data?: codeParam, mode: 'new' | 'edit' = 'new'): void {
@@ -146,23 +203,24 @@ defineExpose({
         height: 100px;
         width: 100%;
         .cm-editor {
-          height: 100%;
-          outline: none;
-          border: 1px solid #dcdfe6;
+            height: 100%;
+            outline: none;
+            border: 1px solid #dcdfe6;
         }
 
         .cm-gutters {
-          font-size: 12px;
-          font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-size: 12px;
+            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
+                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
         }
 
         .cm-content {
-          font-size: 12px;
-          font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-size: 12px;
+            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
+                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
         }
         .cm-tooltip-autocomplete {
-
-          // display: none !important;
+            // display: none !important;
             ul {
                 li {
                     height: 40px;
@@ -170,11 +228,12 @@ defineExpose({
                     align-items: center;
                     font-size: 12px;
                     background-color: #ffffff;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
+                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
                 }
 
                 li[aria-selected] {
-                    background: #409EFF;
+                    background: #409eff;
                 }
 
                 .cm-completionIcon {

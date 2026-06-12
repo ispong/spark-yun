@@ -61,153 +61,153 @@ const callback = ref<any>()
 const licenseEnabled = ref(true)
 const isEditMode = ref(false)
 const modelConfig = reactive({
-  title: '新建作业',
-  visible: false,
-  width: '520px',
-  okConfig: {
-    title: '确定',
-    ok: okEvent,
-    disabled: false,
-    loading: false
-  },
-  cancelConfig: {
-    title: '取消',
-    cancel: closeEvent,
-    disabled: false
-  },
-  needScale: false,
-  zIndex: 1100,
-  closeOnClickModal: false
+    title: '新建作业',
+    visible: false,
+    width: '520px',
+    okConfig: {
+        title: '确定',
+        ok: okEvent,
+        disabled: false,
+        loading: false
+    },
+    cancelConfig: {
+        title: '取消',
+        cancel: closeEvent,
+        disabled: false
+    },
+    needScale: false,
+    zIndex: 1100,
+    closeOnClickModal: false
 })
 const formData = reactive({
-  name: '',
-  workType: '',
-  remark: '',
-  id: ''
+    name: '',
+    workType: '',
+    remark: '',
+    id: ''
 })
 const allTypeList = [
-  {
-    label: 'Jdbc执行作业',
-    value: 'EXE_JDBC'
-  },
-  {
-    label: 'Jdbc查询作业',
-    value: 'QUERY_JDBC'
-  },
-  {
-    label: 'SparkSql查询作业',
-    value: 'SPARK_SQL'
-  },
-  {
-    label: '数据同步Spark版本',
-    value: 'DATA_SYNC_JDBC'
-  },
-  {
-    label: 'Bash作业',
-    value: 'BASH'
-  },
-  {
-    label: 'Python作业',
-    value: 'PYTHON'
-  }
+    {
+        label: 'Jdbc执行作业',
+        value: 'EXE_JDBC'
+    },
+    {
+        label: 'Jdbc查询作业',
+        value: 'QUERY_JDBC'
+    },
+    {
+        label: 'SparkSql查询作业',
+        value: 'SPARK_SQL'
+    },
+    {
+        label: '数据同步Spark版本',
+        value: 'DATA_SYNC_JDBC'
+    },
+    {
+        label: 'Bash作业',
+        value: 'BASH'
+    },
+    {
+        label: 'Python作业',
+        value: 'PYTHON'
+    }
 ]
 const limitedWorkTypeSet = new Set([
-  'API',
-  'BASH',
-  'CURL',
-  'EXE_JDBC',
-  'FLINK_JAR',
-  'PYTHON',
-  'QUERY_JDBC',
-  'SPARK_JAR',
-  'SPARK_SQL',
-  'DATA_SYNC_JDBC'
+    'API',
+    'BASH',
+    'CURL',
+    'EXE_JDBC',
+    'FLINK_JAR',
+    'PYTHON',
+    'QUERY_JDBC',
+    'SPARK_JAR',
+    'SPARK_SQL',
+    'DATA_SYNC_JDBC'
 ])
 const typeList = computed(() => {
-  if (licenseEnabled.value || isEditMode.value) {
-    return allTypeList
-  }
-  return allTypeList.filter(item => limitedWorkTypeSet.has(item.value))
+    if (licenseEnabled.value || isEditMode.value) {
+        return allTypeList
+    }
+    return allTypeList.filter((item) => limitedWorkTypeSet.has(item.value))
 })
 const rules = reactive<FormRules>({
-  name: [
-    {
-      required: true,
-      message: '请输入作业名称',
-      trigger: [ 'blur', 'change' ]
-    }
-  ],
-  workType: [
-    {
-      required: true,
-      message: '请选择类型',
-      trigger: [ 'blur', 'change' ]
-    }
-  ]
+    name: [
+        {
+            required: true,
+            message: '请输入作业名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    workType: [
+        {
+            required: true,
+            message: '请选择类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 async function showModal(cb: () => void, data: any): Promise<void> {
-  callback.value = cb
-  licenseEnabled.value = await getVipLicenseEnabled()
-  isEditMode.value = !!(data && data.id)
-  modelConfig.visible = true
-  if (data && data.id) {
-    formData.name = data.name
-    formData.workType = data.workType
-    formData.remark = data.remark
-    formData.id = data.id
-    modelConfig.title = '编辑作业'
-  } else {
-    formData.name = ''
-    formData.workType = ''
-    formData.remark = ''
-    formData.id = ''
-    modelConfig.title = '新建作业'
-  }
-  nextTick(() => {
-    form.value?.resetFields()
-  })
+    callback.value = cb
+    licenseEnabled.value = await getVipLicenseEnabled()
+    isEditMode.value = !!(data && data.id)
+    modelConfig.visible = true
+    if (data && data.id) {
+        formData.name = data.name
+        formData.workType = data.workType
+        formData.remark = data.remark
+        formData.id = data.id
+        modelConfig.title = '编辑作业'
+    } else {
+        formData.name = ''
+        formData.workType = ''
+        formData.remark = ''
+        formData.id = ''
+        modelConfig.title = '新建作业'
+    }
+    nextTick(() => {
+        form.value?.resetFields()
+    })
 }
 
 function okEvent() {
-  form.value?.validate((valid) => {
-    if (valid) {
-      modelConfig.okConfig.loading = true
-      callback
-        .value({
-          ...formData,
-          id: formData.id ? formData.id : undefined
-        })
-        .then((res: any) => {
-          modelConfig.okConfig.loading = false
-          if (res === undefined) {
-            modelConfig.visible = false
-          } else {
-            modelConfig.visible = true
-          }
-        })
-        .catch((err: any) => {
-          modelConfig.okConfig.loading = false
-          ElMessage.error(err)
-        })
-    } else {
-      ElMessage.warning('请将表单输入完整')
-    }
-  })
+    form.value?.validate((valid) => {
+        if (valid) {
+            modelConfig.okConfig.loading = true
+            callback
+                .value({
+                    ...formData,
+                    id: formData.id ? formData.id : undefined
+                })
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                    ElMessage.error(err)
+                })
+        } else {
+            ElMessage.warning('请将表单输入完整')
+        }
+    })
 }
 
 function closeEvent() {
-  modelConfig.visible = false
+    modelConfig.visible = false
 }
 
 defineExpose({
-  showModal
+    showModal
 })
 </script>
 
 <style lang="scss">
 .add-computer-group {
-  padding: 12px 20px 0 20px;
-  box-sizing: border-box;
+    padding: 12px 20px 0 20px;
+    box-sizing: border-box;
 }
 </style>

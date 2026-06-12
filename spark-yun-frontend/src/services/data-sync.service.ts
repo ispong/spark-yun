@@ -76,7 +76,6 @@ export function GetTableColumnsByTableId(params: TableDetailParam): Promise<any>
     })
 }
 
-
 // 作业流-数据同步-保存数据
 export function SaveDataSync(params: SaveParams): Promise<any> {
     return http.request({

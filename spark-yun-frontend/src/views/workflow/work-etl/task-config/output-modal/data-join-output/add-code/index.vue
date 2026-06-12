@@ -1,53 +1,83 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
-            <el-form-item label="来源表" prop="fromAliaCode">
-                <el-select
-                    v-model="formData.fromAliaCode"
-                    filterable
-                    clearable
-                    placeholder="请选择"
-                    @change="changeEvent"
-                >
-                    <el-option
-                        v-for="item in sourceTablesList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="关联字段名" prop="fromColName">
-                <el-select
-                    v-model="formData.fromColName"
-                    filterable
-                    clearable
-                    placeholder="请选择"
-                    @visible-change="getTableFields($event)"
-                    @change="onFromColNameChange"
-                >
-                    <el-option
-                        v-for="item in tableFields"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="字段名" prop="colName">
-                <el-input v-model="formData.colName" maxlength="20" placeholder="请输入"/>
-            </el-form-item>
-            <el-form-item label="类型" prop="colType">
-                <el-input v-model="formData.colType" maxlength="20" placeholder="请输入"/>
-            </el-form-item>
-            <el-form-item label="备注">
-                <el-input v-model="formData.remark" maxlength="20" placeholder="请输入"/>
-            </el-form-item>
-            <!-- <el-form-item label="转换">
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+    >
+      <el-form-item
+        label="来源表"
+        prop="fromAliaCode"
+      >
+        <el-select
+          v-model="formData.fromAliaCode"
+          filterable
+          clearable
+          placeholder="请选择"
+          @change="changeEvent"
+        >
+          <el-option
+            v-for="item in sourceTablesList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        label="关联字段名"
+        prop="fromColName"
+      >
+        <el-select
+          v-model="formData.fromColName"
+          filterable
+          clearable
+          placeholder="请选择"
+          @visible-change="getTableFields($event)"
+          @change="onFromColNameChange"
+        >
+          <el-option
+            v-for="item in tableFields"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        label="字段名"
+        prop="colName"
+      >
+        <el-input
+          v-model="formData.colName"
+          maxlength="20"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="类型"
+        prop="colType"
+      >
+        <el-input
+          v-model="formData.colType"
+          maxlength="20"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input
+          v-model="formData.remark"
+          maxlength="20"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <!-- <el-form-item label="转换">
                 <code-mirror v-model="formData.sql" basic :lang="lang"/>
             </el-form-item> -->
-        </el-form>
-    </BlockModal>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -68,7 +98,8 @@ const callback = ref<any>()
 const renderSence = ref('new')
 const sourceTablesList = ref([])
 const tableFields = ref([])
-const pageInfo = ref({})
+const pageInfo = ref({
+})
 
 const modelConfig = reactive({
     title: '添加字段',
@@ -101,28 +132,28 @@ const rules = reactive<FormRules>({
         {
             required: true,
             message: '请输入字段名',
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ],
     colType: [
         {
             required: true,
             message: '请输入类型',
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ],
     fromAliaCode: [
         {
             required: true,
             message: '请选择来源表',
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ],
     fromColName: [
         {
             required: true,
             message: '请请选来源字段名',
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ]
 })
@@ -178,15 +209,17 @@ function getTableList() {
     })
 }
 function getTableFields(e: boolean, config: any) {
-    const currentItem = sourceTablesList.value.find(dd => dd.value === formData.fromAliaCode)
+    const currentItem = sourceTablesList.value.find((dd) => dd.value === formData.fromAliaCode)
     if (e && currentItem.data.outColumnList) {
-        tableFields.value = (currentItem.data.outColumnList || []).filter((item: any) => item.checked !== false).map((column: any) => {
-            return {
-                label: column.colName,
-                value: column.colName,
-                colType: column.colType
-            }
-        })
+        tableFields.value = (currentItem.data.outColumnList || [])
+            .filter((item: any) => item.checked !== false)
+            .map((column: any) => {
+                return {
+                    label: column.colName,
+                    value: column.colName,
+                    colType: column.colType
+                }
+            })
     }
 }
 

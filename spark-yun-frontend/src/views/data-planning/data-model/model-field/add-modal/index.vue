@@ -1,70 +1,95 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form
-            ref="form"
-            class="add-computer-group model-field-container"
-            label-position="top"
-            :model="formData"
-            :rules="rules"
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group model-field-container"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+    >
+      <el-form-item
+        label="名称"
+        prop="name"
+      >
+        <el-input
+          v-model="formData.name"
+          maxlength="500"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="字段标准"
+        prop="columnFormatId"
+      >
+        <el-button
+          class="add-format-data"
+          link
+          type="primary"
+          @click="addFormatDataEvent"
         >
-            <el-form-item label="名称" prop="name">
-                <el-input v-model="formData.name" maxlength="500" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="字段标准" prop="columnFormatId">
-                <el-button
-                    class="add-format-data"
-                    link
-                    type="primary"
-                    @click="addFormatDataEvent"
-                >新建字段标准</el-button>
-                <el-select
-                    v-model="formData.columnFormatId"
-                    filterable
-                    clearable
-                    placeholder="请选择"
-                    @change="columnFormatChangeEvent"
-                    @visible-change="getFieldFormatList"
-                >
-                    <el-option
-                        v-for="item in fieldTypeList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="字段名" prop="columnName" :show-message="false">
-                <el-input
-                    v-if="showPrefixRuleInput"
-                    v-model="formData.columnNameInput"
-                    maxlength="500"
-                    :placeholder="columnNamePlaceholder"
-                >
-                    <template #prepend>{{ currentColumnRule.input }}</template>
-                </el-input>
-                <el-input
-                    v-else-if="showSuffixRuleInput"
-                    v-model="formData.columnNameInput"
-                    maxlength="500"
-                    :placeholder="columnNamePlaceholder"
-                >
-                    <template #append>{{ currentColumnRule.input }}</template>
-                </el-input>
-                <el-input
-                    v-else
-                    v-model="formData.columnName"
-                    :disabled="showExactRuleInput"
-                    maxlength="500"
-                    :placeholder="columnNamePlaceholder"
-                />
-            </el-form-item>
-            <el-form-item label="备注">
-                <el-input v-model="formData.remark" type="textarea" maxlength="200"
-                    :autosize="{ minRows: 4, maxRows: 4 }" placeholder="请输入" />
-            </el-form-item>
-        </el-form>
-        <AddModal ref="addModalRef" />
-    </BlockModal>
+          新建字段标准
+        </el-button>
+        <el-select
+          v-model="formData.columnFormatId"
+          filterable
+          clearable
+          placeholder="请选择"
+          @change="columnFormatChangeEvent"
+          @visible-change="getFieldFormatList"
+        >
+          <el-option
+            v-for="item in fieldTypeList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        label="字段名"
+        prop="columnName"
+        :show-message="false"
+      >
+        <el-input
+          v-if="showPrefixRuleInput"
+          v-model="formData.columnNameInput"
+          maxlength="500"
+          :placeholder="columnNamePlaceholder"
+        >
+          <template #prepend>
+            {{ currentColumnRule.input }}
+          </template>
+        </el-input>
+        <el-input
+          v-else-if="showSuffixRuleInput"
+          v-model="formData.columnNameInput"
+          maxlength="500"
+          :placeholder="columnNamePlaceholder"
+        >
+          <template #append>
+            {{ currentColumnRule.input }}
+          </template>
+        </el-input>
+        <el-input
+          v-else
+          v-model="formData.columnName"
+          :disabled="showExactRuleInput"
+          maxlength="500"
+          :placeholder="columnNamePlaceholder"
+        />
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input
+          v-model="formData.remark"
+          type="textarea"
+          maxlength="200"
+          :autosize="{ minRows: 4, maxRows: 4 }"
+          placeholder="请输入"
+        />
+      </el-form-item>
+    </el-form>
+    <AddModal ref="addModalRef" />
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -120,12 +145,19 @@ const formData = reactive<any>({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [{ required: true, message: '请输入字段', trigger: ['blur', 'change'] }],
+    name: [ {
+ required: true, message: '请输入字段', trigger: [ 'blur', 'change' ] 
+} ],
     columnName: [
-        { required: true, message: '请输入字段名', trigger: ['blur', 'change'] },
+        {
+ required: true, message: '请输入字段名', trigger: [ 'blur', 'change' ] 
+},
         {
             validator: (_rule, value, callback) => {
-                if ((currentColumnRule.mode === 'prefix' || currentColumnRule.mode === 'suffix') && !formData.columnNameInput?.trim()) {
+                if (
+                    (currentColumnRule.mode === 'prefix' || currentColumnRule.mode === 'suffix') &&
+                    !formData.columnNameInput?.trim()
+                ) {
                     callback(new Error('请输入字段名可变部分'))
                     return
                 }
@@ -133,11 +165,19 @@ const rules = reactive<FormRules>({
                     callback()
                     return
                 }
-                if (currentColumnRule.mode === 'contains' && currentColumnRule.input && !value.includes(currentColumnRule.input)) {
+                if (
+                    currentColumnRule.mode === 'contains' &&
+                    currentColumnRule.input &&
+                    !value.includes(currentColumnRule.input)
+                ) {
                     callback(new Error(`字段名需包含：${currentColumnRule.input}`))
                     return
                 }
-                if (currentColumnRule.mode === 'exact' && currentColumnRule.input && value !== currentColumnRule.input) {
+                if (
+                    currentColumnRule.mode === 'exact' &&
+                    currentColumnRule.input &&
+                    value !== currentColumnRule.input
+                ) {
                     callback(new Error(`字段名需为：${currentColumnRule.input}`))
                     return
                 }
@@ -154,10 +194,12 @@ const rules = reactive<FormRules>({
                 }
                 callback()
             },
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ],
-    columnFormatId: [{ required: true, message: '请选择字段标准', trigger: ['blur', 'change'] }]
+    columnFormatId: [ {
+ required: true, message: '请选择字段标准', trigger: [ 'blur', 'change' ] 
+} ]
 })
 
 const showPrefixRuleInput = computed(() => currentColumnRule.mode === 'prefix')
@@ -180,9 +222,12 @@ const columnNamePlaceholder = computed(() => {
     return '请输入'
 })
 
-watch(() => formData.columnNameInput, () => {
-    syncColumnNameByRule()
-})
+watch(
+    () => formData.columnNameInput,
+    () => {
+        syncColumnNameByRule()
+    }
+)
 
 function showModal(cb: () => void, data: any): void {
     if (data) {
@@ -210,16 +255,19 @@ function okEvent() {
     form.value?.validate((valid: boolean) => {
         if (valid) {
             modelConfig.okConfig.loading = true
-            callback.value(formData).then((res: any) => {
-                modelConfig.okConfig.loading = false
-                if (res === undefined) {
-                    modelConfig.visible = false
-                } else {
-                    modelConfig.visible = true
-                }
-            }).catch((err: any) => {
-                modelConfig.okConfig.loading = false
-            })
+            callback
+                .value(formData)
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
         } else {
             ElMessage.warning('请将表单输入完整')
         }
@@ -231,19 +279,21 @@ function getFieldFormatList(e: boolean, searchType?: string) {
         GetFieldFormatList({
             page: 0,
             pageSize: 10000,
-            searchKeyWord: searchType || '',
-        }).then((res: any) => {
-            fieldTypeList.value = res.data.content.map((item: any) => {
-                return {
-                    label: item.name,
-                    value: item.id,
-                    columnRule: item.columnRule
-                }
-            })
-            fillDefaultColumnNameByRule(false)
-        }).catch(() => {
-            fieldTypeList.value = []
+            searchKeyWord: searchType || ''
         })
+            .then((res: any) => {
+                fieldTypeList.value = res.data.content.map((item: any) => {
+                    return {
+                        label: item.name,
+                        value: item.id,
+                        columnRule: item.columnRule
+                    }
+                })
+                fillDefaultColumnNameByRule(false)
+            })
+            .catch(() => {
+                fieldTypeList.value = []
+            })
     } else {
         fieldTypeList.value = []
     }
@@ -253,15 +303,17 @@ function getFieldFormatList(e: boolean, searchType?: string) {
 function addFormatDataEvent() {
     addModalRef.value.showModal((data: any) => {
         return new Promise((resolve: any, reject: any) => {
-            SaveFieldFormatData(data).then((res: any) => {
-                formData.columnFormatId = res.data.id
-                getFieldFormatList(true)
-                fillDefaultColumnNameByRule(true, true)
-                ElMessage.success(res.msg)
-                resolve()
-            }).catch((error: any) => {
-                reject(error)
-            })
+            SaveFieldFormatData(data)
+                .then((res: any) => {
+                    formData.columnFormatId = res.data.id
+                    getFieldFormatList(true)
+                    fillDefaultColumnNameByRule(true, true)
+                    ElMessage.success(res.msg)
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     })
 }
@@ -321,30 +373,42 @@ function syncColumnNameByRule() {
 
 function parseColumnRule(value: string): { mode: ColumnRuleMode; input: string } {
     if (!value) {
-        return { mode: 'none', input: '' }
+        return {
+ mode: 'none', input: '' 
+}
     }
 
     const prefixMatch = value.match(/^\^(.+)\.\*$/)
     if (prefixMatch?.[1]) {
-        return { mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) }
+        return {
+ mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) 
+}
     }
 
     const suffixMatch = value.match(/^\.\*(.+)\$$/)
     if (suffixMatch?.[1]) {
-        return { mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) }
+        return {
+ mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) 
+}
     }
 
     const containsMatch = value.match(/^\.\*(.+)\.\*$/)
     if (containsMatch?.[1]) {
-        return { mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) }
+        return {
+ mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) 
+}
     }
 
     const exactMatch = value.match(/^\^(.+)\$$/)
     if (exactMatch?.[1]) {
-        return { mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) }
+        return {
+ mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) 
+}
     }
 
-    return { mode: 'regex', input: value }
+    return {
+ mode: 'regex', input: value 
+}
 }
 
 function unEscapeRegexChar(value: string) {
@@ -396,7 +460,7 @@ defineExpose({
                 height: 36px;
 
                 .el-input-number__decrease {
-                    top: 16px
+                    top: 16px;
                 }
             }
 

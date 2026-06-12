@@ -44,115 +44,115 @@
 import { defineProps, ref, watch } from 'vue'
 
 interface BtnConfig {
-  title: string;
-  disabled: boolean;
-  loading: boolean;
-  hide?: boolean
+    title: string
+    disabled: boolean
+    loading: boolean
+    hide?: boolean
 }
 
 interface OkBtnConfig extends BtnConfig {
-  ok: () => void;
+    ok: () => void
 }
 
 interface CancelBtnConfig extends BtnConfig {
-  cancel: () => void;
+    cancel: () => void
 }
 
 interface ModalConfig {
-  title: string;
-  visible: boolean;
-  width: string | number;
-  okConfig: OkBtnConfig;
-  cancelConfig: CancelBtnConfig;
-  zIndex?: number;
-  customClass?: string;
-  footerHidden?: boolean;
+    title: string
+    visible: boolean
+    width: string | number
+    okConfig: OkBtnConfig
+    cancelConfig: CancelBtnConfig
+    zIndex?: number
+    customClass?: string
+    footerHidden?: boolean
 }
 
 const visible = ref(false)
 
 const props = defineProps<{
-  modelConfig: ModalConfig;
+    modelConfig: ModalConfig
 }>()
 
 watch(
-  () => props.modelConfig.visible,
-  (newVal) => {
-    visible.value = newVal
-  }
+    () => props.modelConfig.visible,
+    (newVal) => {
+        visible.value = newVal
+    }
 )
 
 function clickToSave() {
-  props.modelConfig.okConfig.ok()
+    props.modelConfig.okConfig.ok()
 }
 
 function clickToCancel() {
-  props.modelConfig.cancelConfig.cancel()
+    props.modelConfig.cancelConfig.cancel()
 }
 
 function close() {
-  props.modelConfig?.cancelConfig?.cancel()
+    props.modelConfig?.cancelConfig?.cancel()
 }
 </script>
 
 <style lang="scss">
 .zqy-block-modal {
-  overflow: unset !important;
-  border-radius: 2px;
-  .el-dialog__header {
-    padding: 12px !important;
-    width: 100%;
-    box-sizing: border-box;
-    cursor: default;
-    border-bottom: 1px solid #ebeef5;
-    .el-dialog__headerbtn {
-      height: 50px;
-      top: 0;
+    overflow: unset !important;
+    border-radius: 2px;
+    .el-dialog__header {
+        padding: 12px !important;
+        width: 100%;
+        box-sizing: border-box;
+        cursor: default;
+        border-bottom: 1px solid #ebeef5;
+        .el-dialog__headerbtn {
+            height: 50px;
+            top: 0;
+        }
+        .el-dialog__title {
+            font-size: 16px;
+            color: getCssVar('text-color', 'primary');
+        }
     }
-    .el-dialog__title {
-      font-size: 16px;
-      color: getCssVar('text-color', 'primary');
+    .el-dialog__body {
+        overflow: auto;
+        // max-height: calc(100vh - 96px);
+        max-height: calc(74vh - 102px);
+        padding: 0 !important;
     }
-  }
-  .el-dialog__body {
-    overflow: auto;
-    // max-height: calc(100vh - 96px);
-    max-height: calc(74vh - 102px);
-    padding: 0 !important;
-  }
-  .custom-header-btn {
-    position: absolute;
-    top: 13px;
-    right: 44px;
-    .scale-all-screen {
-      cursor: pointer;
-      &:hover {
-        color: #005bac;
-      }
+    .custom-header-btn {
+        position: absolute;
+        top: 13px;
+        right: 44px;
+        .scale-all-screen {
+            cursor: pointer;
+            &:hover {
+                color: #005bac;
+            }
+        }
+        .scale-exist-screen {
+            height: 24px;
+            width: 24px;
+            cursor: pointer;
+            position: absolute;
+            right: -6px;
+            top: -3px;
+            &:hover {
+                color: #005bac;
+            }
+        }
     }
-    .scale-exist-screen {
-      height: 24px;
-      width: 24px;
-      cursor: pointer;
-      position: absolute;
-      right: -6px;
-      top: -3px;
-      &:hover {
-        color: #005bac;
-      }
+    .el-dialog__footer {
+        border-top: 1px solid #ebeef5;
+        box-shadow: unset !important;
+        border-radius: 0 0 4px 4px;
+        padding: 12px 20px;
+        display: flex;
+        justify-content: flex-end;
+        > span {
+            display: flex;
+            align-items: center;
+        }
     }
-  }
-  .el-dialog__footer {
-    border-top: 1px solid #ebeef5;
-    box-shadow: unset !important;
-    border-radius: 0 0 4px 4px;
-    padding: 12px 20px;
-    display: flex;
-    justify-content: flex-end;
-    > span {
-      display: flex;
-      align-items: center;
-    }
-  }
 }
 </style>

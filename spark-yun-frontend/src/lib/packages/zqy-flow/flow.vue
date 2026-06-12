@@ -1,36 +1,36 @@
 <template>
-    <div class="zqy-flow">
-        <section class="section-cot">
-            <div id="container">
-                <div id="draw-cot" />
-            </div>
-            <!-- 后续动态注入 -->
-            <div class="status-container">
-                <span class="status-tag status-SUCCESS">成功</span>
-                <span class="status-tag status-PENDING">等待中</span>
-                <span class="status-tag status-RUNNING">运行中</span>
-                <span class="status-tag status-BREAK">中断</span>
-                <span class="status-tag status-FAIL">失败</span>
-                <span class="status-tag status-ABORT">已中止</span>
-                <span class="status-tag status-ABORTING">中止中</span>
-            </div>
-        </section>
-    </div>
+  <div class="zqy-flow">
+    <section class="section-cot">
+      <div id="container">
+        <div id="draw-cot" />
+      </div>
+      <!-- 后续动态注入 -->
+      <div class="status-container">
+        <span class="status-tag status-SUCCESS">成功</span>
+        <span class="status-tag status-PENDING">等待中</span>
+        <span class="status-tag status-RUNNING">运行中</span>
+        <span class="status-tag status-BREAK">中断</span>
+        <span class="status-tag status-FAIL">失败</span>
+        <span class="status-tag status-ABORT">已中止</span>
+        <span class="status-tag status-ABORTING">中止中</span>
+      </div>
+    </section>
+  </div>
 </template>
 
-<script setup lang='ts'>
+<script setup lang="ts">
 import { nextTick, onMounted, createVNode, ref, defineEmits } from 'vue'
 import { Graph, Path, Addon } from '@antv/x6'
 import CustomNode from './custom-node.vue'
 
 let _Graph: any
 let dnd: any
-let container: HTMLElement | undefined;
+let container: HTMLElement | undefined
 
 const runningStatus = ref(false)
 const hideGridStatus = ref(false)
 
-const emit = defineEmits(['refresh'])
+const emit = defineEmits([ 'refresh' ])
 
 function initGraph() {
     Graph.registerNode(
@@ -40,21 +40,19 @@ function initGraph() {
             width: 180,
             height: 36,
             component: {
-                render: ()=>{
-                   return createVNode(CustomNode);
+                render: () => {
+                    return createVNode(CustomNode)
                 }
             },
             ports: {
                 groups: {
                     top: {
                         position: 'top',
-                        attrs:
-                        {
+                        attrs: {
                             circle: {
                                 r: 4,
                                 magnet: true,
-                                stroke:
-                                    '#C2C8D5',
+                                stroke: '#C2C8D5',
                                 strokeWidth: 1,
                                 fill: '#fff'
                             }
@@ -65,8 +63,7 @@ function initGraph() {
                         attrs: {
                             circle: {
                                 r: 4,
-                                magnet:
-                                    true,
+                                magnet: true,
                                 stroke: '#C2C8D5',
                                 strokeWidth: 1,
                                 fill: '#fff'
@@ -103,8 +100,12 @@ function initGraph() {
             const deltaY = Math.abs(e.y - s.y)
             const control = Math.floor((deltaY / 3) * 2)
 
-            const v1 = { x: s.x, y: s.y + offset + control }
-            const v2 = { x: e.x, y: e.y - offset - control }
+            const v1 = {
+ x: s.x, y: s.y + offset + control 
+}
+            const v2 = {
+ x: e.x, y: e.y - offset - control 
+}
 
             return Path.normalize(
                 `M ${s.x} ${s.y}
@@ -132,7 +133,7 @@ function initGraph() {
         container: container,
         panning: {
             enabled: true,
-            eventTypes: ['leftMouseDown', 'mouseWheel']
+            eventTypes: [ 'leftMouseDown', 'mouseWheel' ]
         },
         mousewheel: {
             enabled: true,
@@ -165,14 +166,15 @@ function initGraph() {
             targetAnchor: 'top',
             allowNode: false,
             allowEdge: false,
-            validateMagnet({ magnet }) {
+            validateMagnet({
+ magnet 
+}) {
                 // if (!hideGridStatus.value) {
                 //     return false
                 // } else {
                 //     return magnet.getAttribute('port-group') !== 'top'
                 // }
                 return magnet.getAttribute('port-group') !== 'top'
-
             },
             createEdge() {
                 return _Graph.createEdge({
@@ -201,39 +203,55 @@ function initGraph() {
     })
     dnd = new Addon.Dnd({
         target: _Graph,
-        getDragNode: (node: any) => node.clone({ keepId: true }),
-        getDropNode: (node: any) => node.clone({ keepId: true }),
+        getDragNode: (node: any) => node.clone({
+ keepId: true 
+}),
+        getDropNode: (node: any) => node.clone({
+ keepId: true 
+}),
         validateNode() {
             return true
         }
     })
-    _Graph.on('node:mouseenter', ({ node }) => {
+    _Graph.on('node:mouseenter', ({
+ node 
+}) => {
         if (!runningStatus.value && !hideGridStatus.value) {
             node.addTools({
                 name: 'button-remove',
                 args: {
-                    x: 144,  // 160最右边
+                    x: 144, // 160最右边
                     y: 13,
                     // x: 170,
                     // y: 0,
                     // offset: { x: 15, y: 5 },
-                    offset: { x: 10, y: 10 },
+                    offset: {
+ x: 10, y: 10 
+}
                 }
             })
         }
     })
-    _Graph.on('node:mouseleave', ({ node }) => {
+    _Graph.on('node:mouseleave', ({
+ node 
+}) => {
         node.removeTools()
     })
-    _Graph.on('edge:mouseenter', ({ edge }) => {
+    _Graph.on('edge:mouseenter', ({
+ edge 
+}) => {
         if (!runningStatus.value && !hideGridStatus.value) {
             edge.addTools({
                 name: 'button-remove',
-                args: { distance: '50%' }
+                args: {
+ distance: '50%' 
+}
             })
         }
     })
-    _Graph.on('edge:mouseleave', ({ edge }) => {
+    _Graph.on('edge:mouseleave', ({
+ edge 
+}) => {
         edge.removeTools()
     })
     _Graph.bindKey('backspace', () => {
@@ -327,7 +345,7 @@ function refresh() {
     emit('refresh')
 }
 function locationContentCenter() {
-  _Graph.center()
+    _Graph.center()
 }
 
 onMounted(() => {
@@ -352,7 +370,7 @@ defineExpose({
 
 <style lang="scss" scoped>
 $--status-SUCCESS: #52c41a;
-$--status-PENDING: #F5B041;
+$--status-PENDING: #f5b041;
 $--status-BREAK: #3f3a24;
 $--status-FAIL: #ff4d4f;
 $--status-ABORT: #9f26e1;
@@ -413,7 +431,7 @@ $--status-RUNNING: #1890ff;
                 position: relative;
                 margin: 2px 0;
                 &::before {
-                    content: "";
+                    content: '';
                     width: 6px;
                     height: 6px;
                     border-radius: 4px;
@@ -485,7 +503,6 @@ $--status-RUNNING: #1890ff;
     }
 }
 
-
 @keyframes running-line {
     to {
         stroke-dashoffset: -1000;
@@ -502,4 +519,3 @@ $--status-RUNNING: #1890ff;
     }
 }
 </style>
-  

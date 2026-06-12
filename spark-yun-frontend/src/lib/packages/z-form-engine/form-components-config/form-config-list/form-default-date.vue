@@ -1,20 +1,23 @@
 <template>
-    <el-form-item label="默认值" class="form-default-date">
-        <el-date-picker
-            v-model="formData"
-            placeholder="请选择"
-            :type="formConfig.dateType"
-            :value-format="formatType[formConfig?.dateType]"
-            :format="formatType[formConfig?.dateType]"
-        />
-    </el-form-item>
+  <el-form-item
+    label="默认值"
+    class="form-default-date"
+  >
+    <el-date-picker
+      v-model="formData"
+      placeholder="请选择"
+      :type="formConfig.dateType"
+      :value-format="formatType[formConfig?.dateType]"
+      :format="formatType[formConfig?.dateType]"
+    />
+  </el-form-item>
 </template>
 
 <script lang="ts" setup>
 import { ref, defineProps, defineEmits, computed, watch } from 'vue'
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig'])
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps([ 'renderSence', 'modelValue', 'formConfig' ])
+const emit = defineEmits([ 'update:modelValue' ])
 let formData = computed({
     get() {
         return props.modelValue
@@ -29,9 +32,12 @@ const formatType = ref({
     year: 'YYYY'
 })
 
-watch(() => props.formConfig?.dateType, () => {
-    emit('update:modelValue', null)
-})
+watch(
+    () => props.formConfig?.dateType,
+    () => {
+        emit('update:modelValue', null)
+    }
+)
 </script>
 
 <style lang="scss">

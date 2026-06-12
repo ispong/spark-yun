@@ -1,7 +1,11 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <monitor-chart :monitorData="monitorData" :dateTimeList="dateTimeList" :hideFull="true"></monitor-chart>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <monitor-chart
+      :monitor-data="monitorData"
+      :date-time-list="dateTimeList"
+      :hide-full="true"
+    />
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -49,7 +53,7 @@ defineExpose({
 <style lang="scss">
 .preview-report-chart {
     box-sizing: border-box;
-    
+
     .monitor-chart {
         margin: 0;
         width: 100%;

@@ -9,98 +9,98 @@
 import { http } from '@/utils/http'
 
 interface SerchParams {
-  page: number;
-  pageSize: number;
-  searchKeyWord: string;
+    page: number
+    pageSize: number
+    searchKeyWord: string
 }
 
 interface UserParam {
-  userId: string;
+    userId: string
 }
 
 interface UpdateUserPasswordParams {
-  userId: string;
-  newPassword: string;
-  confirmPassword: string;
+    userId: string
+    newPassword: string
+    confirmPassword: string
 }
 
 interface User {
-  account: string;
-  email: string;
-  passwd?: string;
-  phone: string;
-  remark: string;
-  username: string;
-  id?: string;
+    account: string
+    email: string
+    passwd?: string
+    phone: string
+    remark: string
+    username: string
+    id?: string
 }
 
 // 用户中心-查询用户成员
 export function GetUserCenterList(params: SerchParams): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/user/pageUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/user/pageUser',
+        params: params
+    })
 }
 
 // 用户中心-启用
 export function DisableUser(params: UserParam): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/user/disableUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/user/disableUser',
+        params: params
+    })
 }
 
 // 用户中心-禁用
 export function EnableUser(params: UserParam): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/user/enableUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/user/enableUser',
+        params: params
+    })
 }
 
 // 用户中心-添加用户
 export function AddUserData(params: User): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/user/addUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/user/addUser',
+        params: params
+    })
 }
 
 // 用户中心-编辑用户
 export function UpdateUserData(params: User): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/user/updateUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/user/updateUser',
+        params: params
+    })
 }
 
 // 用户中心-删除用户
 export function DeleteUser(params: UserParam): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/user/deleteUser',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/user/deleteUser',
+        params: params
+    })
 }
 
 // 用户中心-修改密码
 export function UpdateUserPassword(params: UpdateUserPasswordParams): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/user/updateUserPassword',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/user/updateUserPassword',
+        params: params
+    })
 }
 
 export function SetPlatformAdmin(params: { userId: string; platformAdmin: boolean }): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/user/setPlatformAdmin',
-    params
-  })
+    return http.request({
+        method: 'post',
+        url: '/user/setPlatformAdmin',
+        params
+    })
 }

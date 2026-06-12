@@ -1,69 +1,90 @@
 <template>
-    <div class="form-components-widget" :class="{ 'form-components-widget__out': !mouseenterIn }" @mouseleave="mouseoverEvent" @mouseenter="mouseenterEvent">
-        <el-scrollbar>
-            <div class="input-component">
-                <p class="title">常用组件</p>
-                <draggable
-                    class="form-dragger-widget"
-                    itemKey="uuid"
-                    drag-class="chosen-item"
-                    :group="{ name: 'ZFormEngineConfig', pull: 'clone', put: false }"
-                    :move="onMove"
-                    :animation="150"
-                    :list="formComponentEditConfig"
-                    :force-fallback="true"
-                    :sort="false"
-                    :clone="cloneItemData"
-                    @start="startMoveEvent"
-                    @end="endMoveEvent"
-                >
-                    <template #item="{ element }">
-                        <div class="edit-item" @dblclick="clickToAdd(element)" v-if="element.type === 'simple'">
-                            <el-icon class="draggable-icon"><component :is="element.icon" /></el-icon>
-                            <span class="draggable-name">{{element.name}}</span>
-                            <component
-                                class="shadow-instance"
-                                :formData="formDataWidget"
-                                :formConfig="element"
-                                :is="computedRenderSenceComponent(element.componentType)"
-                            ></component>
-                        </div>
-                    </template>
-                </draggable>
+  <div
+    class="form-components-widget"
+    :class="{ 'form-components-widget__out': !mouseenterIn }"
+    @mouseleave="mouseoverEvent"
+    @mouseenter="mouseenterEvent"
+  >
+    <el-scrollbar>
+      <div class="input-component">
+        <p class="title">
+          常用组件
+        </p>
+        <draggable
+          class="form-dragger-widget"
+          item-key="uuid"
+          drag-class="chosen-item"
+          :group="{ name: 'ZFormEngineConfig', pull: 'clone', put: false }"
+          :move="onMove"
+          :animation="150"
+          :list="formComponentEditConfig"
+          :force-fallback="true"
+          :sort="false"
+          :clone="cloneItemData"
+          @start="startMoveEvent"
+          @end="endMoveEvent"
+        >
+          <template #item="{ element }">
+            <div
+              v-if="element.type === 'simple'"
+              class="edit-item"
+              @dblclick="clickToAdd(element)"
+            >
+              <el-icon class="draggable-icon">
+                <component :is="element.icon" />
+              </el-icon>
+              <span class="draggable-name">{{ element.name }}</span>
+              <component
+                :is="computedRenderSenceComponent(element.componentType)"
+                class="shadow-instance"
+                :form-data="formDataWidget"
+                :form-config="element"
+              />
             </div>
-            <div class="static-component">
-                <p class="title">静态组件</p>
-                <draggable
-                    class="form-dragger-widget form-dragger-component__edit"
-                    itemKey="uuid"
-                    drag-class="chosen-item"
-                    :group="{ name: 'ZFormEngineConfig', pull: 'clone', put: false }"
-                    :move="onMove"
-                    :animation="150"
-                    :list="formComponentEditConfig"
-                    :force-fallback="true"
-                    :sort="false"
-                    :clone="cloneItemData"
-                    @start="startMoveEvent"
-                    @end="endMoveEvent"
-                >
-                    <template #item="{ element }">
-                        <div class="edit-item" @dblclick="clickToAdd(element)" v-if="element.type === 'static'">
-                            <el-icon class="draggable-icon"><component :is="element.icon" /></el-icon>
-                            <span class="draggable-name">{{element.name}}</span>
-                            <component
-                                class="shadow-instance"
-                                :formData="formDataWidget"
-                                :formConfig="element"
-                                :isDragger="true"
-                                :is="computedRenderSenceComponent(element.componentType)"
-                            ></component>
-                        </div>
-                    </template>
-                </draggable>
+          </template>
+        </draggable>
+      </div>
+      <div class="static-component">
+        <p class="title">
+          静态组件
+        </p>
+        <draggable
+          class="form-dragger-widget form-dragger-component__edit"
+          item-key="uuid"
+          drag-class="chosen-item"
+          :group="{ name: 'ZFormEngineConfig', pull: 'clone', put: false }"
+          :move="onMove"
+          :animation="150"
+          :list="formComponentEditConfig"
+          :force-fallback="true"
+          :sort="false"
+          :clone="cloneItemData"
+          @start="startMoveEvent"
+          @end="endMoveEvent"
+        >
+          <template #item="{ element }">
+            <div
+              v-if="element.type === 'static'"
+              class="edit-item"
+              @dblclick="clickToAdd(element)"
+            >
+              <el-icon class="draggable-icon">
+                <component :is="element.icon" />
+              </el-icon>
+              <span class="draggable-name">{{ element.name }}</span>
+              <component
+                :is="computedRenderSenceComponent(element.componentType)"
+                class="shadow-instance"
+                :form-data="formDataWidget"
+                :form-config="element"
+                :is-dragger="true"
+              />
             </div>
-        </el-scrollbar>
-    </div>
+          </template>
+        </draggable>
+      </div>
+    </el-scrollbar>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -76,19 +97,19 @@ import FormInstance from '../form-components/form-instance'
 
 const guid = function() {
     function S4() {
-        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
-    return (S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' +S4() + S4() +S4());
+    return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4()
 }
 
 const guid_8 = function() {
     function S4() {
-        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
-    return (S4() + S4() + S4());
+    return S4() + S4() + S4()
 }
 
-const props = defineProps(['modelValue'])
+const props = defineProps([ 'modelValue' ])
 const emit = defineEmits([ 'add-form-item', 'dbclick-add', 'removeInstance', 'update:modelValue' ])
 const currentItem = ref<ComponentInstance>()
 const formComponents = ref(FormComponents)
@@ -110,7 +131,7 @@ const computedRenderSenceComponent = computed(() => {
     }
 })
 const formComponentEditConfig = computed(() => {
-    return formComponents.value.map(item => {
+    return formComponents.value.map((item) => {
         return {
             ...item.componentConfig,
             icon: item.editConfig.icon,
@@ -128,7 +149,7 @@ function startMoveEvent(e: any) {
 }
 function endMoveEvent(e: any) {
     let path = e.originalEvent.path || (e.originalEvent.composedPath && e.originalEvent.composedPath())
-    if (path && path.some(el => el.className === 'form-dragger-component')) {
+    if (path && path.some((el) => el.className === 'form-dragger-component')) {
         emit('add-form-item', currentItem.value)
     } else {
         emit('removeInstance', currentItem.value)
@@ -168,7 +189,8 @@ function mouseenterEvent() {
     min-width: 230px;
     width: 230px;
     height: 100%;
-    .input-component, .static-component {
+    .input-component,
+    .static-component {
         .title {
             padding: 0 8px;
             font-size: 12px;

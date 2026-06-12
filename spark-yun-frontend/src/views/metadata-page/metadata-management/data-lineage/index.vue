@@ -7,38 +7,36 @@
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
 <template>
-    <BlockModal :model-config="modelConfig" top="4vh">
-        <div id="containerDataLineage" class="containerDataLineage"></div>
-        <WorkDetail ref="workDetailRef"></WorkDetail>
-    </BlockModal>
+  <BlockModal
+    :model-config="modelConfig"
+    top="4vh"
+  >
+    <div
+      id="containerDataLineage"
+      class="containerDataLineage"
+    />
+    <WorkDetail ref="workDetailRef" />
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
 import { reactive, defineExpose, defineProps, ref, createVNode, onMounted, nextTick, defineEmits } from 'vue'
-import { VueNode } from 'g6-extension-vue';
-import {
-    Graph,
-    register,
-    ExtensionCategory,
-    treeToGraphData,
-    GraphEvent,
-    TreeData,
-    EdgeEvent
-} from '@antv/g6';
+import { VueNode } from 'g6-extension-vue'
+import { Graph, register, ExtensionCategory, treeToGraphData, GraphEvent, TreeData, EdgeEvent } from '@antv/g6'
 import eventBus from '@/utils/eventBus'
-import CustomNode from './custom-node.vue';
+import CustomNode from './custom-node.vue'
 import WorkDetail from './work-detail.vue'
 
 let graph: any
 
-const guid = function () {
+const guid = function() {
     function S4() {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
     return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4()
 }
 
-const emit = defineEmits(['showDetail'])
+const emit = defineEmits([ 'showDetail' ])
 const props = defineProps<{
     isCode: boolean
 }>()
@@ -80,7 +78,7 @@ function showModal(data: any, cb: any, pt?: string): void {
         initData().then((res: any) => {
             res.childrenStatus = true
             if (res.children && res.children.length) {
-                res.children.forEach(dd => {
+                res.children.forEach((dd) => {
                     dd.parentStatus = true
                 })
             }
@@ -92,12 +90,15 @@ function showModal(data: any, cb: any, pt?: string): void {
 function initData(params?: any) {
     if (callback.value && callback.value instanceof Function) {
         return new Promise((resolve: any, reject: any) => {
-            callback.value(params).then((res: any) => {
-                resolve(res)
-            }).catch((error: any) => {
-                console.error('请求失败', error)
-                reject(error)
-            })
+            callback
+                .value(params)
+                .then((res: any) => {
+                    resolve(res)
+                })
+                .catch((error: any) => {
+                    console.error('请求失败', error)
+                    reject(error)
+                })
         })
     }
 }
@@ -114,7 +115,7 @@ function initGraph(data: any) {
             type: 'center', // 自适应类型：'view' 或 'center'
             animation: {
                 // 自适应动画效果
-                duration: 30, // 动画持续时间(毫秒)
+                duration: 30 // 动画持续时间(毫秒)
                 // easing: 'ease-in-out', // 动画缓动函数
             }
         },
@@ -135,7 +136,7 @@ function initGraph(data: any) {
                         placement: 'right'
                     }
                 ],
-                size: [150, obj[pageType.value]]
+                size: [ 150, obj[pageType.value] ]
             }
         },
         edge: {
@@ -168,7 +169,9 @@ function initGraph(data: any) {
             },
             getEdgeData: (source: TreeData, target: TreeData) => {
                 return {
-                    id: `${guid()}&&sparkYun&&${target.workVersionId || ''}&&sparkYun&&${target.workName || ''}&&sparkYun&&${target.workType || ''}`,
+                    id: `${guid()}&&sparkYun&&${target.workVersionId || ''}&&sparkYun&&${
+                        target.workName || ''
+                    }&&sparkYun&&${target.workType || ''}`,
                     source: source.id,
                     target: target.id,
                     name: target.workflowName ? `${target.workflowName}（${target.workName}）` : '',
@@ -176,8 +179,8 @@ function initGraph(data: any) {
                 }
             }
         }),
-        behaviors: ['drag-canvas', 'zoom-canvas', 'drag-element'],
-    });
+        behaviors: [ 'drag-canvas', 'zoom-canvas', 'drag-element' ]
+    })
     renderGraph()
 }
 
@@ -189,90 +192,102 @@ async function renderGraph() {
         const workType = argumentsParams[3] ? argumentsParams[3] : ''
         if (workId) {
             workDetailRef.value.showModal({
-               workId: workId,
-               name: name,
-               workType: workType
-          })
+                workId: workId,
+                name: name,
+                workType: workType
+            })
         }
-    });
-    await graph.render();
+    })
+    await graph.render()
 }
 
 // 查看上游
 function getParentNode(data: any) {
     data.lineageType = 'PARENT'
-    initData(data).then(async (res: any) => {
-        const parentData = res.parent || []
-        if (parentData && parentData.length) {
-            const allData = graph.getData()
-            const parentNodeConfig = {
-                nodes: [],
-                edges: []
-            }
-            parentNodeConfig.nodes = parentData.map((pNode: any, index: number) => {
-                return {
-                    id: pNode.id,
-                    name: pNode.name,
-                    data: {
-                        ...pNode,
-                        childrenStatus: true
-                    },
-                    style: {
-                        x: data.style.x - 320,
-                        y: (data.style.y / 2) * (index + 1),
-                    }
+    initData(data)
+        .then(async(res: any) => {
+            const parentData = res.parent || []
+            if (parentData && parentData.length) {
+                const allData = graph.getData()
+                const parentNodeConfig = {
+                    nodes: [],
+                    edges: []
                 }
-            })
-            parentNodeConfig.nodes.forEach((node: any) => {
-                parentNodeConfig.edges.push({
-                    data: res,
-                    id: `${guid()}&&sparkYun&&${node.data.workVersionId || ''}&&sparkYun&&${node.data.workName || ''}&&sparkYun&&${node.data.workType || ''}`,
-                    source: node.id,
-                    target: data.id,
-                    name: node.data.workflowName ? `${node.data.workflowName}（${node.data.workName}）` : ''
+                parentNodeConfig.nodes = parentData.map((pNode: any, index: number) => {
+                    return {
+                        id: pNode.id,
+                        name: pNode.name,
+                        data: {
+                            ...pNode,
+                            childrenStatus: true
+                        },
+                        style: {
+                            x: data.style.x - 320,
+                            y: (data.style.y / 2) * (index + 1)
+                        }
+                    }
                 })
-            })
-            graph.addNodeData(parentNodeConfig.nodes)
-            graph.addEdgeData(parentNodeConfig.edges)
-            await graph.draw();
-        }
-    }).catch((error) => {
-        console.error('请求失败', error)
-    })
+                parentNodeConfig.nodes.forEach((node: any) => {
+                    parentNodeConfig.edges.push({
+                        data: res,
+                        id: `${guid()}&&sparkYun&&${node.data.workVersionId || ''}&&sparkYun&&${
+                            node.data.workName || ''
+                        }&&sparkYun&&${node.data.workType || ''}`,
+                        source: node.id,
+                        target: data.id,
+                        name: node.data.workflowName ? `${node.data.workflowName}（${node.data.workName}）` : ''
+                    })
+                })
+                graph.addNodeData(parentNodeConfig.nodes)
+                graph.addEdgeData(parentNodeConfig.edges)
+                await graph.draw()
+            }
+        })
+        .catch((error) => {
+            console.error('请求失败', error)
+        })
 }
 // 查看下游
 function getChildNode(data: any) {
     data.lineageType = 'SON'
-    initData(data).then(async (res: any) => {
-        if (res.children && res.children.length) {
-            graph.addNodeData(res.children.map((node: any, index: number) => {
-                return {
-                    id: node.id,
-                    data: {
-                        ...node,
-                        parentStatus: true
-                    },
-                    style: {
-                        x: data.style.x + 320,
-                        y: (data.style.y) * (index + 1),
-                    }
-                }
-            }))
-            graph.addEdgeData(res.children.map((node: any) => {
-                return {
-                    data: node,
-                    id: `${guid()}&&sparkYun&&${node.workVersionId || ''}&&sparkYun&&${node.workName || ''}&&sparkYun&&${node.workType || ''}`,
-                    source: data.id,
-                    target: node.id,
-                    name: node.workflowName ? `${node.workflowName}（${node.workName}）` : ''
-                }
-            }))
-        }
-        // renderGraph()
-        await graph.draw();
-    }).catch((error) => {
-        console.error('请求失败', error)
-    })
+    initData(data)
+        .then(async(res: any) => {
+            if (res.children && res.children.length) {
+                graph.addNodeData(
+                    res.children.map((node: any, index: number) => {
+                        return {
+                            id: node.id,
+                            data: {
+                                ...node,
+                                parentStatus: true
+                            },
+                            style: {
+                                x: data.style.x + 320,
+                                y: data.style.y * (index + 1)
+                            }
+                        }
+                    })
+                )
+                graph.addEdgeData(
+                    res.children.map((node: any) => {
+                        return {
+                            data: node,
+                            id: `${guid()}&&sparkYun&&${node.workVersionId || ''}&&sparkYun&&${
+                                node.workName || ''
+                            }&&sparkYun&&${node.workType || ''}`,
+                            source: data.id,
+                            target: node.id,
+                            name: node.workflowName ? `${node.workflowName}（${node.workName}）` : ''
+                        }
+                    })
+                )
+            }
+            // renderGraph()
+            await graph.draw()
+        })
+        .catch((error) => {
+            console.error('请求失败', error)
+        })
 }
 
 function closeEvent() {
@@ -281,7 +296,7 @@ function closeEvent() {
 }
 
 onMounted(() => {
-    register(ExtensionCategory.NODE, 'vue-node', VueNode);
+    register(ExtensionCategory.NODE, 'vue-node', VueNode)
 })
 
 defineExpose({

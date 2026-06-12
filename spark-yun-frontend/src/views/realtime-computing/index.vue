@@ -37,7 +37,9 @@
             >{{ scopeSlot.row.name }}</span>
           </template>
           <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status === 'STOP' ? 'STOP_S' : scopeSlot.row.status"></ZStatusTag>
+            <ZStatusTag
+              :status="scopeSlot.row.status === 'STOP' ? 'STOP_S' : scopeSlot.row.status"
+            />
           </template>
           <template #options="scopeSlot">
             <div class="btn-group">
@@ -46,10 +48,16 @@
                 <span class="click-show-more">更多</span>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item v-if="scopeSlot.row.status !== 'NEW'" @click="showLog(scopeSlot.row)">
+                    <el-dropdown-item
+                      v-if="scopeSlot.row.status !== 'NEW'"
+                      @click="showLog(scopeSlot.row)"
+                    >
                       提交日志
                     </el-dropdown-item>
-                    <el-dropdown-item v-if="scopeSlot.row.status === 'RUNNING'" @click="showRunningLog(scopeSlot.row)">
+                    <el-dropdown-item
+                      v-if="scopeSlot.row.status === 'RUNNING'"
+                      @click="showRunningLog(scopeSlot.row)"
+                    >
                       运行日志
                     </el-dropdown-item>
                     <el-dropdown-item @click="editData(scopeSlot.row)">
@@ -84,11 +92,17 @@ import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 import { BreadCrumbList, TableConfig, FormData } from './realtime-computing.config.ts'
-import { SaveTimeComputingData, GetTimeComputingList, UpdateTimeComputingData, DeleteTimeComputingData, RunTimeComputingData, CheckComputingStatus, StopTimeComputingData } from '@/services/realtime-computing.service.ts'
+import { SaveTimeComputingData,
+    GetTimeComputingList,
+    UpdateTimeComputingData,
+    DeleteTimeComputingData,
+    RunTimeComputingData,
+    CheckComputingStatus,
+    StopTimeComputingData } from '@/services/realtime-computing.service.ts'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import ShowLog from './show-log/index.vue'
-import {Loading} from "@element-plus/icons-vue";
+import { Loading } from '@element-plus/icons-vue'
 
 const router = useRouter()
 
@@ -103,189 +117,193 @@ const showLogRef = ref(null)
 const isRequest = ref(false)
 
 function initData(tableLoading?: boolean, type?: string) {
-  loading.value = tableLoading ? false : true
-  networkError.value = networkError.value || false
-  isRequest.value = true
-  GetTimeComputingList({
-    page: tableConfig.pagination.currentPage - 1,
-    pageSize: tableConfig.pagination.pageSize,
-    searchKeyWord: keyword.value
-  })
-    .then((res: any) => {
-      if (type) {
-        res.data.content.forEach((item: any) => {
-          tableConfig.tableData.forEach((col: any) => {
-            if (item.id === col.id) {
-              col.status = item.status
+    loading.value = tableLoading ? false : true
+    networkError.value = networkError.value || false
+    isRequest.value = true
+    GetTimeComputingList({
+        page: tableConfig.pagination.currentPage - 1,
+        pageSize: tableConfig.pagination.pageSize,
+        searchKeyWord: keyword.value
+    })
+        .then((res: any) => {
+            if (type) {
+                res.data.content.forEach((item: any) => {
+                    tableConfig.tableData.forEach((col: any) => {
+                        if (item.id === col.id) {
+                            col.status = item.status
+                        }
+                    })
+                })
+            } else {
+                tableConfig.tableData = res.data.content
+                tableConfig.pagination.total = res.data.totalElements
             }
-          })
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
+            isRequest.value = false
         })
-      } else {
-        tableConfig.tableData = res.data.content
-        tableConfig.pagination.total = res.data.totalElements
-      }
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = false
-      isRequest.value = false
-    })
-    .catch(() => {
-      isRequest.value = false
-      tableConfig.tableData = []
-      tableConfig.pagination.total = 0
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = true
-      if (timer.value) {
-        clearInterval(timer.value)
-      }
-      timer.value = null
-    })
+        .catch(() => {
+            isRequest.value = false
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+            if (timer.value) {
+                clearInterval(timer.value)
+            }
+            timer.value = null
+        })
 }
 
 function addData() {
-  addModalRef.value.showModal((formData: FormData) => {
-    return new Promise((resolve: any, reject: any) => {
-      SaveTimeComputingData(formData)
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
-        })
-        .catch((error: any) => {
-          reject(error)
+    addModalRef.value.showModal((formData: FormData) => {
+        return new Promise((resolve: any, reject: any) => {
+            SaveTimeComputingData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     })
-  })
 }
 
 function editData(data: any) {
-  addModalRef.value.showModal((formData: FormData) => {
-    return new Promise((resolve: any, reject: any) => {
-      UpdateTimeComputingData(formData)
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
+    addModalRef.value.showModal((formData: FormData) => {
+        return new Promise((resolve: any, reject: any) => {
+            UpdateTimeComputingData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
-        .catch((error: any) => {
-          reject(error)
-        })
-    })
-  }, data)
+    }, data)
 }
 
 // 停止实时计算
 function stopComputing(data: any) {
-  StopTimeComputingData({
-    id: data.id
-  }).then((res: any) => {
-    initData()
-    ElMessage.success(res.msg)
-  }).catch(() => {
-  })
+    StopTimeComputingData({
+        id: data.id
+    })
+        .then((res: any) => {
+            initData()
+            ElMessage.success(res.msg)
+        })
+        .catch(() => {})
 }
 
 // 运行实时计算
 function startComputing(data: any) {
-  RunTimeComputingData({
-      id: data.id
-  }).then((res: any) => {
-      ElMessage.success(res.msg)
-      initData()
-  }).catch(() => {
-  })
+    RunTimeComputingData({
+        id: data.id
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            initData()
+        })
+        .catch(() => {})
 }
 
 // 检测实时计算
 function checkData(data: any) {
-  CheckComputingStatus({
-      id: data.id
-  }).then((res: any) => {
-      ElMessage.success(res.msg)
-      initData()
-  }).catch(() => {
-  })
+    CheckComputingStatus({
+        id: data.id
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            initData()
+        })
+        .catch(() => {})
 }
 
 // 删除
 function deleteData(data: any) {
-  ElMessageBox.confirm('确定删除该实时计算吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    DeleteTimeComputingData({
-      id: data.id
-    }).then((res: any) => {
-      ElMessage.success(res.msg)
-      initData()
+    ElMessageBox.confirm('确定删除该实时计算吗？', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        DeleteTimeComputingData({
+            id: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch(() => {})
     })
-    .catch(() => {})
-  })
 }
 
 function showDetail(data: any) {
-  router.push({
-    name: 'computing-detail',
-    query: {
-      id: data.id,
-      name: data.name,
-      status: data.status
-    }
-  })
+    router.push({
+        name: 'computing-detail',
+        query: {
+            id: data.id,
+            name: data.name,
+            status: data.status
+        }
+    })
 }
 
 // 展示日志
 function showLog(data: any) {
-  showLogRef.value.showModal(data.id)
+    showLogRef.value.showModal(data.id)
 }
 // 展示日志
 function showRunningLog(data: any) {
-  showLogRef.value.showModal(data.id, 'runningLog')
+    showLogRef.value.showModal(data.id, 'runningLog')
 }
 
 function inputEvent(e: string) {
-  if (e === '') {
-    initData()
-  }
+    if (e === '') {
+        initData()
+    }
 }
 
 function handleSizeChange(e: number) {
-  tableConfig.pagination.pageSize = e
-  initData()
+    tableConfig.pagination.pageSize = e
+    initData()
 }
 
 function handleCurrentChange(e: number) {
-  tableConfig.pagination.currentPage = e
-  initData()
+    tableConfig.pagination.currentPage = e
+    initData()
 }
 
 onMounted(() => {
-  tableConfig.pagination.currentPage = 1
-  tableConfig.pagination.pageSize = 10
-  initData()
-  timer.value = setInterval(() => {
-    !isRequest.value && initData(true, 'interval')
-  }, 3000)
+    tableConfig.pagination.currentPage = 1
+    tableConfig.pagination.pageSize = 10
+    initData()
+    timer.value = setInterval(() => {
+        !isRequest.value && initData(true, 'interval')
+    }, 3000)
 })
 onUnmounted(() => {
-  if (timer.value) {
-    clearInterval(timer.value)
-  }
-  timer.value = null
+    if (timer.value) {
+        clearInterval(timer.value)
+    }
+    timer.value = null
 })
 </script>
 
 <style lang="scss">
 .zqy-seach-table {
-  .name-click {
-    cursor: pointer;
-    color: getCssVar('color', 'primary', 'light-5');
-    &:hover {
-      color: getCssVar('color', 'primary');;
+    .name-click {
+        cursor: pointer;
+        color: getCssVar('color', 'primary', 'light-5');
+        &:hover {
+            color: getCssVar('color', 'primary');
+        }
     }
-  }
 }
 </style>
 ./realtime-computing.config

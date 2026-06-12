@@ -1,37 +1,37 @@
 <template>
-    <div class="zqy-form-engine">
-        <!-- 左侧组件选择 -->
-        <form-widget
-            v-if="isDragger"
-            v-model="movingInstance"
-            @add-form-item="addFormItem"
-            @dbclick-add="dbclickAddItem"
-            @removeInstance="removeInstance"
-        ></form-widget>
-        <!-- 中间表单组件拖拽 -->
-        <form-components
-            ref="formComponentRef"
-            v-model="formData"
-            :componentList="componentList"
-            :currentInstance="instanceConfig.chooseItemData"
-            :isDragger="isDragger"
-            :renderSence="renderSence"
-            :movingInstance="movingInstance"
-            @componentListChange="componentListChange"
-            @chooseItem="chooseItem"
-            @removeInstance="removeInstance"
-        ></form-components>
-        <!-- 右侧组件配置 -->
-        <form-components-config
-            v-if="isDragger"
-            v-model="instanceConfig.chooseItemData"
-            :formConfig="instanceConfig.chooseItemData"
-            :configList="instanceConfig.chooseItemConfigList"
-            :isAutoCreateTable="isAutoCreateTable"
-            :getTableCodesMethod="getTableCodesMethod"
-            @formConfigChange="formConfigChange"
-        ></form-components-config>
-    </div>
+  <div class="zqy-form-engine">
+    <!-- 左侧组件选择 -->
+    <form-widget
+      v-if="isDragger"
+      v-model="movingInstance"
+      @add-form-item="addFormItem"
+      @dbclick-add="dbclickAddItem"
+      @remove-instance="removeInstance"
+    />
+    <!-- 中间表单组件拖拽 -->
+    <form-components
+      ref="formComponentRef"
+      v-model="formData"
+      :component-list="componentList"
+      :current-instance="instanceConfig.chooseItemData"
+      :is-dragger="isDragger"
+      :render-sence="renderSence"
+      :moving-instance="movingInstance"
+      @component-list-change="componentListChange"
+      @choose-item="chooseItem"
+      @remove-instance="removeInstance"
+    />
+    <!-- 右侧组件配置 -->
+    <form-components-config
+      v-if="isDragger"
+      v-model="instanceConfig.chooseItemData"
+      :form-config="instanceConfig.chooseItemData"
+      :config-list="instanceConfig.chooseItemConfigList"
+      :is-auto-create-table="isAutoCreateTable"
+      :get-table-codes-method="getTableCodesMethod"
+      @form-config-change="formConfigChange"
+    />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -49,20 +49,23 @@ interface InstanceConfig {
     chooseItemData: ComponentInstance | null
     chooseItemConfigList: string[]
 }
-const props = withDefaults(defineProps<{
-    renderSence?: string
-    modelValue: any
-    isDragger?: boolean
-    isAutoCreateTable?: boolean
-    formConfigList: ComponentInstance[]
-    getTableCodesMethod?: Function
-}>(), {
-    renderSence: 'new',
-    isDragger: false,
-    isAutoCreateTable: false,
-    formConfigList: () => []
-})
-const emit = defineEmits(['update:modelValue'])
+const props = withDefaults(
+    defineProps<{
+        renderSence?: string
+        modelValue: any
+        isDragger?: boolean
+        isAutoCreateTable?: boolean
+        formConfigList: ComponentInstance[]
+        getTableCodesMethod?: Function
+    }>(),
+    {
+        renderSence: 'new',
+        isDragger: false,
+        isAutoCreateTable: false,
+        formConfigList: () => []
+    }
+)
+const emit = defineEmits([ 'update:modelValue' ])
 const componentList = ref<ComponentInstance[]>([])
 const formComponentRef = ref()
 const formComps = reactive(FormComps)
@@ -82,21 +85,29 @@ const formData = computed({
     }
 })
 
-watch(() => props.formConfigList, (e: ComponentInstance[]) => {
-    componentList.value = cloneDeep(e)
-}, { immediate: true, deep: true })
+watch(
+    () => props.formConfigList,
+    (e: ComponentInstance[]) => {
+        componentList.value = cloneDeep(e)
+    },
+    {
+ immediate: true, deep: true 
+}
+)
 
 // 左侧组件选择事件
 function addFormItem(instance: ComponentInstance | null) {
     instanceConfig.chooseItemData = instance
     if (instance) {
-        if (!componentList.value.some(ins => ins.uuid === instanceConfig.chooseItemData?.uuid)) {
+        if (!componentList.value.some((ins) => ins.uuid === instanceConfig.chooseItemData?.uuid)) {
             componentList.value.push(instance)
         }
         try {
-            instanceConfig.chooseItemConfigList = formComps.find(item => item.editConfig.code === instanceConfig.chooseItemData.componentType).conponentSetConfig
+            instanceConfig.chooseItemConfigList = formComps.find(
+                (item) => item.editConfig.code === instanceConfig.chooseItemData.componentType
+            ).conponentSetConfig
         } catch (error) {
-            console.error('请确认组件类型是否注册 001')   
+            console.error('请确认组件类型是否注册 001')
         }
     }
 }
@@ -105,9 +116,11 @@ function dbclickAddItem(instance: ComponentInstance) {
     componentList.value.push(instance)
     instanceConfig.chooseItemData = instance
     try {
-        instanceConfig.chooseItemConfigList = formComps.find(item => item.editConfig.code === instanceConfig.chooseItemData.componentType).conponentSetConfig
+        instanceConfig.chooseItemConfigList = formComps.find(
+            (item) => item.editConfig.code === instanceConfig.chooseItemData.componentType
+        ).conponentSetConfig
     } catch (error) {
-        console.error('请确认组件类型是否注册 002')   
+        console.error('请确认组件类型是否注册 002')
     }
 }
 
@@ -115,9 +128,11 @@ function dbclickAddItem(instance: ComponentInstance) {
 function chooseItem(data: ComponentInstance) {
     instanceConfig.chooseItemData = data
     try {
-        instanceConfig.chooseItemConfigList = formComps.find(item => item.editConfig.code === instanceConfig.chooseItemData.componentType).conponentSetConfig
+        instanceConfig.chooseItemConfigList = formComps.find(
+            (item) => item.editConfig.code === instanceConfig.chooseItemData.componentType
+        ).conponentSetConfig
     } catch (error) {
-        console.error('请确认组件类型是否注册 003')   
+        console.error('请确认组件类型是否注册 003')
     }
 }
 function componentListChange(e: any[]) {
@@ -132,7 +147,7 @@ function removeInstance(e: ComponentInstance) {
 
 // 右侧配置事件
 function formConfigChange(e: any) {
-    componentList.value.forEach(c => {
+    componentList.value.forEach((c) => {
         if (c.uuid === e.uuid) {
             c.required = e.required
             c.maxlength = e.maxlength
@@ -143,7 +158,7 @@ function formConfigChange(e: any) {
 
 // expose method
 function getFormItemConfigList() {
-    if (componentList.value.some(item => !item.valid)) {
+    if (componentList.value.some((item) => !item.valid)) {
         ElMessage.warning('请将组件必填项配置输入完整')
         return false
     }

@@ -1,26 +1,45 @@
 <template>
-    <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="report-views">
-        <div class="report-button-container" v-if="renderSence === 'edit'">
-            <el-button type="primary" :loading="saveLoading" @click="saveData">保存</el-button>
-            <el-button type="primary" :loading="saveLoading" @click="publishEvent">发布</el-button>
-        </div>
-        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData">
-            <ZChartsEngine
-                ref="ZChartsEngineRef"
-                :chartsList="chartsList"
-                :renderSence="renderSence"
-                :componentList="componentList"
-                :getPreviewOption="getPreviewOption"
-                :getRealDataOption="getRealDataOption"
-                :showReportComponentsBtn="true"
-                @getChartListEvent="getChartListEvent"
-                @previewChatEvent="previewChatEvent"
-                @goReportComponentsEvent="goReportComponents"
-            ></ZChartsEngine>
-        </LoadingPage>
-        <PreviewReport ref="previewReportRef"></PreviewReport>
+  <Breadcrumb :bread-crumb-list="breadCrumbList" />
+  <div class="report-views">
+    <div
+      v-if="renderSence === 'edit'"
+      class="report-button-container"
+    >
+      <el-button
+        type="primary"
+        :loading="saveLoading"
+        @click="saveData"
+      >
+        保存
+      </el-button>
+      <el-button
+        type="primary"
+        :loading="saveLoading"
+        @click="publishEvent"
+      >
+        发布
+      </el-button>
     </div>
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="initData"
+    >
+      <ZChartsEngine
+        ref="ZChartsEngineRef"
+        :charts-list="chartsList"
+        :render-sence="renderSence"
+        :component-list="componentList"
+        :get-preview-option="getPreviewOption"
+        :get-real-data-option="getRealDataOption"
+        :show-report-components-btn="true"
+        @get-chart-list-event="getChartListEvent"
+        @preview-chat-event="previewChatEvent"
+        @go-report-components-event="goReportComponents"
+      />
+    </LoadingPage>
+    <PreviewReport ref="previewReportRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -32,14 +51,12 @@ import ZChartsEngine from '@/lib/packages/z-charts-engine/index.vue'
 import { useAuthStore } from '@/store/useAuth'
 import { ElMessage } from 'element-plus'
 import PreviewReport from '../preview-report/index.vue'
-import {
-    QueryReportComponent,
+import { QueryReportComponent,
     GetReportComponentData,
     GetReportViewDetail,
     RefreshReportViewItemData,
     SaveReportViewDetail,
-    PublishReportViewData
-} from '@/services/report-echarts.service'
+    PublishReportViewData } from '@/services/report-echarts.service'
 import { useRoute, useRouter } from 'vue-router'
 import { ChartTypeList } from '../../report-components/report-item/report-item.config'
 
@@ -47,7 +64,7 @@ const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
-const guid = function () {
+const guid = function() {
     function S4() {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
@@ -84,7 +101,9 @@ watch(
     (type) => {
         syncBreadCrumbByType(type)
     },
-    { immediate: true }
+    {
+ immediate: true 
+}
 )
 
 // 获取可以拖拽的报表组件
@@ -94,11 +113,12 @@ function getChartListEvent(e: string) {
 
 function previewChatEvent(e: any) {
     GetReportComponentData({
-        id: e.id,
-    }).then((res: any) => {
-        previewReportRef.value.showModal(res.data.cardInfo.exampleData)
-    }).catch(() => {
+        id: e.id
     })
+        .then((res: any) => {
+            previewReportRef.value.showModal(res.data.cardInfo.exampleData)
+        })
+        .catch(() => {})
 }
 
 function goReportComponents() {
@@ -113,17 +133,19 @@ function goReportComponents() {
 // 获取所有配置信息
 function initData() {
     if (!route.query.id) {
-        return;
+        return
     }
     loading.value = true
     GetReportViewDetail({
         id: route.query.id
-    }).then((res: any) => {
-        loading.value = false
-        componentList.value = res.data?.webConfig?.cardList || []
-    }).catch(() => {
-        loading.value = false
     })
+        .then((res: any) => {
+            loading.value = false
+            componentList.value = res.data?.webConfig?.cardList || []
+        })
+        .catch(() => {
+            loading.value = false
+        })
 }
 // 获取可拖拽的报表组件
 function getChartComponents(e: string) {
@@ -131,31 +153,34 @@ function getChartComponents(e: string) {
         page: 0,
         pageSize: 99999,
         searchKeyWord: e
-    }).then((res: any) => {
-        chartsList.value = (res.data.content || []).filter(item => item.status === 'PUBLISHED').map((item: any) => {
-            const typeName = chartTypeList.value.find(t => t.value === item.type)
-            return {
-                chartName: item.name,
-                id: item.id,
-                type: item.type.toLowerCase(),
-                typeName: typeName?.label,
-                uuid: guid(),
-                x: 0,
-                y: 0,
-                w: maxWidth,
-                h: 16,
-                i: guid(),
-                option: {}
-            }
-        })
-    }).catch(() => {
-
     })
+        .then((res: any) => {
+            chartsList.value = (res.data.content || [])
+                .filter((item) => item.status === 'PUBLISHED')
+                .map((item: any) => {
+                    const typeName = chartTypeList.value.find((t) => t.value === item.type)
+                    return {
+                        chartName: item.name,
+                        id: item.id,
+                        type: item.type.toLowerCase(),
+                        typeName: typeName?.label,
+                        uuid: guid(),
+                        x: 0,
+                        y: 0,
+                        w: maxWidth,
+                        h: 16,
+                        i: guid(),
+                        option: {
+}
+                    }
+                })
+        })
+        .catch(() => {})
 }
 
 function saveData(): void {
     if (!route.query.id) {
-        return;
+        return
     }
     saveLoading.value = true
     componentList.value = ZChartsEngineRef.value.getComponentList()
@@ -165,12 +190,14 @@ function saveData(): void {
             cardList: componentList.value
         },
         cardList: componentList.value.map((item: any) => item.id)
-    }).then((res: any) => {
-        saveLoading.value = false
-        ElMessage.success(res.msg)
-    }).catch(() => {
-        saveLoading.value = false
     })
+        .then((res: any) => {
+            saveLoading.value = false
+            ElMessage.success(res.msg)
+        })
+        .catch(() => {
+            saveLoading.value = false
+        })
 }
 
 // 拖拽时获取预览的效果
@@ -179,9 +206,11 @@ function getPreviewOption(config: any) {
         // console.log('拿到预览数据')
         GetReportComponentData({
             id: config.id
-        }).then((res: any) => {
-            resolve(res.data.cardInfo)
-        }).catch(() => {})
+        })
+            .then((res: any) => {
+                resolve(res.data.cardInfo)
+            })
+            .catch(() => {})
     })
 }
 // 真实场景下获取真实数据
@@ -190,15 +219,17 @@ function getRealDataOption(config: any) {
         // console.log('获取真实数据')
         RefreshReportViewItemData({
             id: config.id
-        }).then((res: any) => {
-            resolve(res.data.viewData)
-        }).catch(() => {})
+        })
+            .then((res: any) => {
+                resolve(res.data.viewData)
+            })
+            .catch(() => {})
     })
 }
 
 function publishEvent() {
     if (!route.query.id) {
-        return;
+        return
     }
     saveLoading.value = true
 
@@ -209,21 +240,25 @@ function publishEvent() {
             cardList: componentList.value
         },
         cardList: componentList.value.map((item: any) => item.id)
-    }).then((res: any) => {
-        PublishReportViewData({
-            id: route.query.id
-        }).then((res: any) => {
-            saveLoading.value = false
-            ElMessage.success(res.msg)
-            router.push({
-                name: 'report-views'
+    })
+        .then((res: any) => {
+            PublishReportViewData({
+                id: route.query.id
             })
-        }).catch(() => {
+                .then((res: any) => {
+                    saveLoading.value = false
+                    ElMessage.success(res.msg)
+                    router.push({
+                        name: 'report-views'
+                    })
+                })
+                .catch(() => {
+                    saveLoading.value = false
+                })
+        })
+        .catch(() => {
             saveLoading.value = false
         })
-    }).catch(() => {
-        saveLoading.value = false
-    })
 }
 
 onMounted(() => {

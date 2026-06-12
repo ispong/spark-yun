@@ -1,21 +1,21 @@
 <template>
-    <form-render-item
-        class="form-static-placeholder"
-        :class="{ 'form-static-placeholder__dragger': isDragger }"
-        :formConfig="formConfig"
-        :isDragger="isDragger"
-    >
-        <span
-            :style="{ color: formConfig.colorPicker}"
-            class="text-container"
-        >{{formConfig.label}}</span>
-    </form-render-item>
+  <form-render-item
+    class="form-static-placeholder"
+    :class="{ 'form-static-placeholder__dragger': isDragger }"
+    :form-config="formConfig"
+    :is-dragger="isDragger"
+  >
+    <span
+      :style="{ color: formConfig.colorPicker }"
+      class="text-container"
+    >{{ formConfig.label }}</span>
+  </form-render-item>
 </template>
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed, ref, watch } from 'vue'
 import FormRenderItem from '../../form-render-item/index.vue'
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'isDragger'])
+const props = defineProps([ 'renderSence', 'modelValue', 'formConfig', 'isDragger' ])
 </script>
 
 <style lang="scss">

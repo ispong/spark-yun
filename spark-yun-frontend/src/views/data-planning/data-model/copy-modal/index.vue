@@ -1,39 +1,61 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form
-            ref="form"
-            class="add-computer-group acquisition-task-add"
-            label-position="top"
-            :model="formData"
-            :rules="rules"
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group acquisition-task-add"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+    >
+      <el-form-item
+        label="名称"
+        prop="name"
+      >
+        <el-input
+          v-model="formData.name"
+          maxlength="200"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="数据分层"
+        prop="layerId"
+      >
+        <el-select
+          v-model="formData.layerId"
+          filterable
+          clearable
+          placeholder="请选择"
         >
-            <el-form-item label="名称" prop="name">
-                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="数据分层" prop="layerId">
-                <el-select
-                    v-model="formData.layerId"
-                    filterable
-                    clearable
-                    placeholder="请选择"
-                >
-                    <el-option
-                        v-for="item in parentLayerIdList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="表名" prop="tableName">
-                <el-input v-model="formData.tableName" maxlength="200" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="备注">
-                <el-input v-model="formData.remark" type="textarea" maxlength="200"
-                    :autosize="{ minRows: 4, maxRows: 4 }" placeholder="请输入" />
-            </el-form-item>
-        </el-form>
-    </BlockModal>
+          <el-option
+            v-for="item in parentLayerIdList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        label="表名"
+        prop="tableName"
+      >
+        <el-input
+          v-model="formData.tableName"
+          maxlength="200"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input
+          v-model="formData.remark"
+          type="textarea"
+          maxlength="200"
+          :autosize="{ minRows: 4, maxRows: 4 }"
+          placeholder="请输入"
+        />
+      </el-form-item>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -65,106 +87,106 @@ const modelTypeList = ref<Option[]>([
     }
 ])
 const dbTypeList = ref<Option[]>([
-  {
-    label: 'Clickhouse',
-    value: 'CLICKHOUSE'
-  },
-  {
-    label: 'Db2',
-    value: 'DB2'
-  },
-  {
-    label: 'Doris',
-    value: 'DORIS'
-  },
-  {
-    label: 'DuckDB',
-    value: 'DUCK_DB'
-  },
-  {
-    label: '达梦',
-    value: 'DM'
-  },
-  {
-    label: 'Gauss',
-    value: 'GAUSS'
-  },
-  {
-    label: 'Gbase',
-    value: 'GBASE'
-  },
-  {
-    label: 'Greenplum',
-    value: 'GREENPLUM'
-  },
-  {
-    label: 'H2',
-    value: 'H2'
-  },
-  {
-    label: 'HanaSap',
-    value: 'HANA_SAP'
-  },
-  {
-    label: 'Hive',
-    value: 'HIVE'
-  },
-  {
-    label: 'Impala',
-    value: 'IMPALA'
-  },
-  {
-    label: 'Mysql',
-    value: 'MYSQL'
-  },
-  {
-    label: 'OceanBase',
-    value: 'OCEANBASE'
-  },
-  {
-    label: 'OpenGauss',
-    value: 'OPEN_GAUSS'
-  },
-  {
-    label: 'Oracle',
-    value: 'ORACLE'
-  },
-  {
-    label: 'PostgreSql',
-    value: 'POSTGRE_SQL'
-  },
-  {
-    label: 'Presto',
-    value: 'PRESTO'
-  },
-  {
-    label: 'SelectDB',
-    value: 'SELECT_DB'
-  },
-  {
-    label: 'SqlServer',
-    value: 'SQL_SERVER'
-  },
-  {
-    label: 'StarRocks',
-    value: 'STAR_ROCKS'
-  },
-  {
-    label: 'Sybase',
-    value: 'SYBASE'
-  },
-  {
-    label: 'TDengine',
-    value: 'T_DENGINE'
-  },
-  {
-    label: 'TiDB',
-    value: 'TIDB'
-  },
-  {
-    label: 'Trino',
-    value: 'TRINO'
-  }
+    {
+        label: 'Clickhouse',
+        value: 'CLICKHOUSE'
+    },
+    {
+        label: 'Db2',
+        value: 'DB2'
+    },
+    {
+        label: 'Doris',
+        value: 'DORIS'
+    },
+    {
+        label: 'DuckDB',
+        value: 'DUCK_DB'
+    },
+    {
+        label: '达梦',
+        value: 'DM'
+    },
+    {
+        label: 'Gauss',
+        value: 'GAUSS'
+    },
+    {
+        label: 'Gbase',
+        value: 'GBASE'
+    },
+    {
+        label: 'Greenplum',
+        value: 'GREENPLUM'
+    },
+    {
+        label: 'H2',
+        value: 'H2'
+    },
+    {
+        label: 'HanaSap',
+        value: 'HANA_SAP'
+    },
+    {
+        label: 'Hive',
+        value: 'HIVE'
+    },
+    {
+        label: 'Impala',
+        value: 'IMPALA'
+    },
+    {
+        label: 'Mysql',
+        value: 'MYSQL'
+    },
+    {
+        label: 'OceanBase',
+        value: 'OCEANBASE'
+    },
+    {
+        label: 'OpenGauss',
+        value: 'OPEN_GAUSS'
+    },
+    {
+        label: 'Oracle',
+        value: 'ORACLE'
+    },
+    {
+        label: 'PostgreSql',
+        value: 'POSTGRE_SQL'
+    },
+    {
+        label: 'Presto',
+        value: 'PRESTO'
+    },
+    {
+        label: 'SelectDB',
+        value: 'SELECT_DB'
+    },
+    {
+        label: 'SqlServer',
+        value: 'SQL_SERVER'
+    },
+    {
+        label: 'StarRocks',
+        value: 'STAR_ROCKS'
+    },
+    {
+        label: 'Sybase',
+        value: 'SYBASE'
+    },
+    {
+        label: 'TDengine',
+        value: 'T_DENGINE'
+    },
+    {
+        label: 'TiDB',
+        value: 'TIDB'
+    },
+    {
+        label: 'Trino',
+        value: 'TRINO'
+    }
 ])
 const dataSourceList = ref<Option[]>([])
 const tableNameList = ref<Option[]>([])
@@ -191,21 +213,28 @@ const modelConfig = reactive({
 const formData = reactive<any>({
     name: '',
     layerId: '',
-    modelType: '',  // 模型类型 ORIGIN_MODEL | LINK_MODEL
-    dbType: '',     // 数据源类型
+    modelType: '', // 模型类型 ORIGIN_MODEL | LINK_MODEL
+    dbType: '', // 数据源类型
     datasourceId: '',
     tableName: '',
-    tableConfig: {}, // 高级配置
+    tableConfig: {
+}, // 高级配置
     remark: '',
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [{ required: true, message: '请输入采集任务名称', trigger: ['blur', 'change'] }],
-    layerId: [{ required: true, message: '请选择数据分层', trigger: ['blur', 'change'] }],
+    name: [ {
+ required: true, message: '请输入采集任务名称', trigger: [ 'blur', 'change' ] 
+} ],
+    layerId: [ {
+ required: true, message: '请选择数据分层', trigger: [ 'blur', 'change' ] 
+} ],
     // modelType: [{ required: true, message: '请选择模型类型', trigger: ['blur', 'change'] }],
     // dbType: [{ required: true, message: '请选择数据源类型', trigger: ['blur', 'change'] }],
     // datasourceId: [{ required: true, message: '请选择数据源', trigger: ['blur', 'change'] }],
-    tableName: [{ required: true, message: '请选择表名', trigger: ['blur', 'change'] }]
+    tableName: [ {
+ required: true, message: '请选择表名', trigger: [ 'blur', 'change' ] 
+} ]
 })
 
 function showModal(cb: () => void, data: any): void {
@@ -227,16 +256,19 @@ function okEvent() {
     form.value?.validate((valid: boolean) => {
         if (valid) {
             modelConfig.okConfig.loading = true
-            callback.value(formData).then((res: any) => {
-                modelConfig.okConfig.loading = false
-                if (res === undefined) {
-                    modelConfig.visible = false
-                } else {
-                    modelConfig.visible = true
-                }
-            }).catch((err: any) => {
-                modelConfig.okConfig.loading = false
-            })
+            callback
+                .value(formData)
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
         } else {
             ElMessage.warning('请将表单输入完整')
         }
@@ -248,16 +280,20 @@ function getParentLayerIList() {
         page: 0,
         pageSize: 10000,
         searchKeyWord: ''
-    }).then((res: any) => {
-        parentLayerIdList.value = [...res.data.content.map((item: any) => {
-            return {
-                label: item.fullPathName,
-                value: item.id
-            }
-        })]
-    }).catch(() => {
-        parentLayerIdList.value = []
     })
+        .then((res: any) => {
+            parentLayerIdList.value = [
+                ...res.data.content.map((item: any) => {
+                    return {
+                        label: item.fullPathName,
+                        value: item.id
+                    }
+                })
+            ]
+        })
+        .catch(() => {
+            parentLayerIdList.value = []
+        })
 }
 
 function closeEvent() {
@@ -280,16 +316,18 @@ function getDataSourceList(e: boolean, searchType?: string) {
             pageSize: 10000,
             searchKeyWord: searchType || '',
             datasourceType: formData.dbType
-        }).then((res: any) => {
-            dataSourceList.value = res.data.content.map((item: any) => {
-                return {
-                    label: item.name,
-                    value: item.id
-                }
-            })
-        }).catch(() => {
-            dataSourceList.value = []
         })
+            .then((res: any) => {
+                dataSourceList.value = res.data.content.map((item: any) => {
+                    return {
+                        label: item.name,
+                        value: item.id
+                    }
+                })
+            })
+            .catch(() => {
+                dataSourceList.value = []
+            })
     } else {
         dataSourceList.value = []
     }
@@ -299,17 +337,19 @@ function getDataSourceTable(e: boolean) {
     if (e && formData.datasourceId) {
         GetDataSourceTables({
             dataSourceId: formData.datasourceId,
-            tablePattern: ""
-        }).then((res: any) => {
-            tableNameList.value = res.data.tables.map((item: any) => {
-                return {
-                    label: item,
-                    value: item
-                }
-            })
-        }).catch(() => {
-            tableNameList.value = []
+            tablePattern: ''
         })
+            .then((res: any) => {
+                tableNameList.value = res.data.tables.map((item: any) => {
+                    return {
+                        label: item,
+                        value: item
+                    }
+                })
+            })
+            .catch(() => {
+                tableNameList.value = []
+            })
     } else {
         tableNameList.value = []
     }
@@ -332,7 +372,7 @@ defineExpose({
                 height: 36px;
 
                 .el-input-number__decrease {
-                    top: 16px
+                    top: 16px;
                 }
             }
         }

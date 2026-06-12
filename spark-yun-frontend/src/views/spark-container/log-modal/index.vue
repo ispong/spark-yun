@@ -1,18 +1,30 @@
 <template>
-    <BlockModal :model-config="modelConfig" @close="closeEvent">
-        <LoadingPage class="log-loading" :visible="loading">
-            <div id="content" class="content-box">
-                <LogContainer v-if="logMsg" :logMsg="logMsg" :status="status"></LogContainer>
-            </div>
-        </LoadingPage>
-    </BlockModal>
+  <BlockModal
+    :model-config="modelConfig"
+    @close="closeEvent"
+  >
+    <LoadingPage
+      class="log-loading"
+      :visible="loading"
+    >
+      <div
+        id="content"
+        class="content-box"
+      >
+        <LogContainer
+          v-if="logMsg"
+          :log-msg="logMsg"
+          :status="status"
+        />
+      </div>
+    </LoadingPage>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, onUnmounted, nextTick, computed } from 'vue'
 import { GetSparkContainerkDetail, GetSparkContainerkRunningLog } from '@/services/spark-container.service'
 import LoadingPage from '@/components/loading/index.vue'
-
 
 const logMsg = ref('')
 const timer = ref(null)
@@ -53,37 +65,43 @@ function getLogData(data: any, type?: string) {
     isRequest.value = true
     if (type === 'runningLog') {
         modelConfig.title = '运行日志'
-        GetSparkContainerkRunningLog({ id: data.id }).then((res: any) => {
-            logMsg.value = res.data.runningLog
-            status.value = true
-            isRequest.value = false
-            loading.value = false
-        }).catch(() => {
-            logMsg.value = ''
-            isRequest.value = false
-            loading.value = false
-        })
+        GetSparkContainerkRunningLog({
+ id: data.id 
+})
+            .then((res: any) => {
+                logMsg.value = res.data.runningLog
+                status.value = true
+                isRequest.value = false
+                loading.value = false
+            })
+            .catch(() => {
+                logMsg.value = ''
+                isRequest.value = false
+                loading.value = false
+            })
     } else {
         modelConfig.title = '提交日志'
         GetSparkContainerkDetail({
             id: data.id
-        }).then((res: any) => {
-            status.value = ['FAIL', 'RUNNING'].includes(res.data.status) ? true : false
-            logMsg.value = res.data.submitLog
-            if (['RUNNING', 'FAIL'].includes(res.data.status)) {
-                if (timer.value) {
-                    clearInterval(timer.value)
-                }
-                timer.value = null
-            }
-            loading.value = false
-            isRequest.value = false
-        }).catch((err: any) => {
-            loading.value = false
-            console.log('err', err)
-            logMsg.value = ''
-            isRequest.value = false
         })
+            .then((res: any) => {
+                status.value = [ 'FAIL', 'RUNNING' ].includes(res.data.status) ? true : false
+                logMsg.value = res.data.submitLog
+                if ([ 'RUNNING', 'FAIL' ].includes(res.data.status)) {
+                    if (timer.value) {
+                        clearInterval(timer.value)
+                    }
+                    timer.value = null
+                }
+                loading.value = false
+                isRequest.value = false
+            })
+            .catch((err: any) => {
+                loading.value = false
+                console.log('err', err)
+                logMsg.value = ''
+                isRequest.value = false
+            })
     }
 }
 

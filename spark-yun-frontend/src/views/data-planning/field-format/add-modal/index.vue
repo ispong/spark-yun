@@ -1,75 +1,133 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form
-            ref="form"
-            class="add-computer-group acquisition-task-add"
-            label-position="top"
-            :model="formData"
-            :rules="rules"
-            :disabled="readonly"
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group acquisition-task-add"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+      :disabled="readonly"
+    >
+      <el-form-item
+        label="名称"
+        prop="name"
+      >
+        <el-input
+          v-model="formData.name"
+          maxlength="500"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="字段名规范"
+        prop="columnRuleInput"
+      >
+        <el-tooltip
+          content="支持前缀/后缀/包含/精确匹配，系统会自动转为正则保存"
+          placement="top"
         >
-            <el-form-item label="名称" prop="name">
-                <el-input v-model="formData.name" maxlength="500" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="字段名规范" prop="columnRuleInput">
-                <el-tooltip
-                    content="支持前缀/后缀/包含/精确匹配，系统会自动转为正则保存"
-                    placement="top"
-                >
-                    <el-icon style="left: 60px" class="tooltip-msg"><QuestionFilled /></el-icon>
-                </el-tooltip>
-                <div class="table-rule-config">
-                    <el-select v-model="columnRuleMode">
-                        <el-option
-                            v-for="item in columnRuleModeList"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value"
-                        />
-                    </el-select>
-                    <el-input
-                        v-model="formData.columnRuleInput"
-                        maxlength="500"
-                        :placeholder="columnRulePlaceholder"
-                    />
-                </div>
-            </el-form-item>
-            <el-form-item label="字段类型" prop="columnTypeCode">
-                <el-select
-                    v-model="formData.columnTypeCode"
-                    filterable
-                    placeholder="请选择"
-                >
-                    <el-option
-                        v-for="item in fieldTypeList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="字段精度" >
-                <el-input v-model="formData.columnType" maxlength="200" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="属性" class="field-attr-row">
-                <el-checkbox v-model="formData.isPrimary" true-label="ENABLE" false-label="DISABLE">主键</el-checkbox>
-                <el-checkbox v-model="formData.isNull" true-label="ENABLE" false-label="DISABLE">非空</el-checkbox>
-                <el-checkbox v-model="formData.isDuplicate" true-label="ENABLE" false-label="DISABLE">唯一</el-checkbox>
-                <el-checkbox v-model="formData.isPartition" true-label="ENABLE" false-label="DISABLE">分区键</el-checkbox>
-            </el-form-item>
-            <el-form-item label="默认值" prop="defaultValue" :show-message="false">
-                <el-input
-                    v-model="formData.defaultValue"
-                    maxlength="500"
-                    :placeholder="formData.isNull === 'ENABLE' ? '勾选非空时，请输入默认值' : '请输入'"
-                />
-            </el-form-item>
-            <el-form-item label="备注">
-                <el-input v-model="formData.remark" type="textarea" maxlength="200"
-                    :autosize="{ minRows: 4, maxRows: 4 }" placeholder="请输入" />
-            </el-form-item>
-        </el-form>
-    </BlockModal>
+          <el-icon
+            style="left: 60px"
+            class="tooltip-msg"
+          >
+            <QuestionFilled />
+          </el-icon>
+        </el-tooltip>
+        <div class="table-rule-config">
+          <el-select v-model="columnRuleMode">
+            <el-option
+              v-for="item in columnRuleModeList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+          <el-input
+            v-model="formData.columnRuleInput"
+            maxlength="500"
+            :placeholder="columnRulePlaceholder"
+          />
+        </div>
+      </el-form-item>
+      <el-form-item
+        label="字段类型"
+        prop="columnTypeCode"
+      >
+        <el-select
+          v-model="formData.columnTypeCode"
+          filterable
+          placeholder="请选择"
+        >
+          <el-option
+            v-for="item in fieldTypeList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="字段精度">
+        <el-input
+          v-model="formData.columnType"
+          maxlength="200"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="属性"
+        class="field-attr-row"
+      >
+        <el-checkbox
+          v-model="formData.isPrimary"
+          true-label="ENABLE"
+          false-label="DISABLE"
+        >
+          主键
+        </el-checkbox>
+        <el-checkbox
+          v-model="formData.isNull"
+          true-label="ENABLE"
+          false-label="DISABLE"
+        >
+          非空
+        </el-checkbox>
+        <el-checkbox
+          v-model="formData.isDuplicate"
+          true-label="ENABLE"
+          false-label="DISABLE"
+        >
+          唯一
+        </el-checkbox>
+        <el-checkbox
+          v-model="formData.isPartition"
+          true-label="ENABLE"
+          false-label="DISABLE"
+        >
+          分区键
+        </el-checkbox>
+      </el-form-item>
+      <el-form-item
+        label="默认值"
+        prop="defaultValue"
+        :show-message="false"
+      >
+        <el-input
+          v-model="formData.defaultValue"
+          maxlength="500"
+          :placeholder="formData.isNull === 'ENABLE' ? '勾选非空时，请输入默认值' : '请输入'"
+        />
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input
+          v-model="formData.remark"
+          type="textarea"
+          maxlength="200"
+          :autosize="{ minRows: 4, maxRows: 4 }"
+          placeholder="请输入"
+        />
+      </el-form-item>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -88,11 +146,21 @@ const callback = ref<any>()
 const readonly = ref<boolean>(false)
 const columnRuleMode = ref<ColumnRuleMode>('prefix')
 const columnRuleModeList: Option[] = [
-    { label: '前缀匹配', value: 'prefix' },
-    { label: '后缀匹配', value: 'suffix' },
-    { label: '包含匹配', value: 'contains' },
-    { label: '精确匹配', value: 'exact' },
-    { label: '自定义正则', value: 'regex' }
+    {
+ label: '前缀匹配', value: 'prefix' 
+},
+    {
+ label: '后缀匹配', value: 'suffix' 
+},
+    {
+ label: '包含匹配', value: 'contains' 
+},
+    {
+ label: '精确匹配', value: 'exact' 
+},
+    {
+ label: '自定义正则', value: 'regex' 
+}
 ]
 const fieldTypeList = ref<Option[]>([
     {
@@ -159,9 +227,15 @@ const formData = reactive<any>({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [{ required: true, message: '请输入名称', trigger: ['blur', 'change'] }],
-    columnTypeCode: [{ required: true, message: '请选择字段类型', trigger: ['blur', 'change'] }],
-    columnType: [{ required: true, message: '请输入字段精度', trigger: ['blur', 'change'] }],
+    name: [ {
+ required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
+} ],
+    columnTypeCode: [ {
+ required: true, message: '请选择字段类型', trigger: [ 'blur', 'change' ] 
+} ],
+    columnType: [ {
+ required: true, message: '请输入字段精度', trigger: [ 'blur', 'change' ] 
+} ],
     columnRuleInput: [
         {
             validator: (_rule, value, callback) => {
@@ -176,19 +250,21 @@ const rules = reactive<FormRules>({
                 }
                 callback()
             },
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ],
-    defaultValue: [{
-        trigger: ['blur', 'change'],
-        validator: (_rule: any, value: string, callback: (error?: Error) => void) => {
-            if (formData.isNull === 'ENABLE' && !value?.trim()) {
-                callback(new Error('勾选非空时，请输入默认值'))
-                return
+    defaultValue: [
+        {
+            trigger: [ 'blur', 'change' ],
+            validator: (_rule: any, value: string, callback: (error?: Error) => void) => {
+                if (formData.isNull === 'ENABLE' && !value?.trim()) {
+                    callback(new Error('勾选非空时，请输入默认值'))
+                    return
+                }
+                callback()
             }
-            callback()
         }
-    }]
+    ]
 })
 
 const columnRulePlaceholder = computed(() => {
@@ -198,9 +274,12 @@ const columnRulePlaceholder = computed(() => {
     return '请输入关键字，例如：user_'
 })
 
-watch(() => formData.isNull, () => {
-    form.value?.validateField('defaultValue')
-})
+watch(
+    () => formData.isNull,
+    () => {
+        form.value?.validateField('defaultValue')
+    }
+)
 
 function showModal(cb: () => void, data: any, type?: string): void {
     modelConfig.okConfig = {
@@ -220,7 +299,7 @@ function showModal(cb: () => void, data: any, type?: string): void {
         modelConfig.title = '编辑标准'
     } else {
         readonly.value = false
-        const keys = ['isNull', 'isPrimary', 'isDuplicate', 'isPartition']
+        const keys = [ 'isNull', 'isPrimary', 'isDuplicate', 'isPartition' ]
         Object.keys(formData).forEach((key: string) => {
             formData[key] = ''
             if (keys.includes(key)) {
@@ -249,16 +328,19 @@ function okEvent() {
                 ...formData,
                 columnRule: buildColumnRule(columnRuleMode.value, formData.columnRuleInput)
             }
-            callback.value(submitData).then((res: any) => {
-                modelConfig.okConfig.loading = false
-                if (res === undefined) {
-                    modelConfig.visible = false
-                } else {
-                    modelConfig.visible = true
-                }
-            }).catch((err: any) => {
-                modelConfig.okConfig.loading = false
-            })
+            callback
+                .value(submitData)
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
         } else {
             ElMessage.warning('请将表单输入完整')
         }
@@ -301,30 +383,42 @@ function buildColumnRule(mode: ColumnRuleMode, inputValue: string) {
 
 function parseColumnRule(value: string): { mode: ColumnRuleMode; input: string } {
     if (!value) {
-        return { mode: 'prefix', input: '' }
+        return {
+ mode: 'prefix', input: '' 
+}
     }
 
     const prefixMatch = value.match(/^\^(.+)\.\*$/)
     if (prefixMatch?.[1]) {
-        return { mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) }
+        return {
+ mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) 
+}
     }
 
     const suffixMatch = value.match(/^\.\*(.+)\$$/)
     if (suffixMatch?.[1]) {
-        return { mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) }
+        return {
+ mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) 
+}
     }
 
     const containsMatch = value.match(/^\.\*(.+)\.\*$/)
     if (containsMatch?.[1]) {
-        return { mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) }
+        return {
+ mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) 
+}
     }
 
     const exactMatch = value.match(/^\^(.+)\$$/)
     if (exactMatch?.[1]) {
-        return { mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) }
+        return {
+ mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) 
+}
     }
 
-    return { mode: 'regex', input: value }
+    return {
+ mode: 'regex', input: value 
+}
 }
 
 defineExpose({
@@ -344,7 +438,7 @@ defineExpose({
                 height: 36px;
 
                 .el-input-number__decrease {
-                    top: 16px
+                    top: 16px;
                 }
             }
         }

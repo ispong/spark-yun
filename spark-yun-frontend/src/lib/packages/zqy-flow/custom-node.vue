@@ -1,38 +1,113 @@
 <template>
-    <div class="zqy-flow-node " :class="status" @dblclick="dbclickToDetain">
-        <div class="flow-node-container" ref="content">
-            <p class="text">{{ name }}</p>
-            <template v-if="isRunning">
-                <el-icon v-if="status === 'RUNNING'" class="custom-icon is-loading"><Loading /></el-icon>
-                <el-icon v-if="status === 'ABORTING'" class="custom-icon is-loading"><Loading /></el-icon>
-                <el-icon v-if="status === 'PENDING'" class="custom-icon"><Clock /></el-icon>
-                <el-icon v-if="status === 'ABORT'" class="custom-icon"><VideoPause /></el-icon>
-            </template>
-            <el-dropdown v-if="showMenu" trigger="click" @command="handleCommand">
-                <el-icon class="node-option-more">
-                    <MoreFilled />
-                </el-icon>
-                <template #dropdown>
-                    <el-dropdown-menu>
-                        <el-dropdown-item command="node_log">日志</el-dropdown-item>
-                        <el-dropdown-item v-if="status === 'SUCCESS' && ['SPARK_SQL', 'QUERY_JDBC','SPARK_CONTAINER_SQL','PRQL'].includes(node.data.nodeConfigData.workType)" command="node_result">运行结果</el-dropdown-item>
-                        <el-dropdown-item v-if="status === 'SUCCESS' && ['API', 'SPARK_JAR'].includes(node.data.nodeConfigData.workType)" command="json_result">运行结果</el-dropdown-item>
-                        <el-dropdown-item v-if="['SPARK_SQL', 'FLINK_SQL','FLINK_JAR','SPARK_JAR', 'PY_SPARK', 'BASH', 'PYTHON', 'DATA_SYNC_JDBC', 'CURL'].includes(node.data.nodeConfigData.workType)" command="node_yarnLog">运行日志</el-dropdown-item>
-                        <el-dropdown-item command="node_runAfter">重跑下游</el-dropdown-item>
-                        <el-dropdown-item command="node_break">中断</el-dropdown-item>
-                        <el-dropdown-item command="node_reRun">重跑当前</el-dropdown-item>
-                    </el-dropdown-menu>
-                </template>
-            </el-dropdown>
-        </div>
+  <div
+    class="zqy-flow-node"
+    :class="status"
+    @dblclick="dbclickToDetain"
+  >
+    <div
+      ref="content"
+      class="flow-node-container"
+    >
+      <p class="text">
+        {{ name }}
+      </p>
+      <template v-if="isRunning">
+        <el-icon
+          v-if="status === 'RUNNING'"
+          class="custom-icon is-loading"
+        >
+          <Loading />
+        </el-icon>
+        <el-icon
+          v-if="status === 'ABORTING'"
+          class="custom-icon is-loading"
+        >
+          <Loading />
+        </el-icon>
+        <el-icon
+          v-if="status === 'PENDING'"
+          class="custom-icon"
+        >
+          <Clock />
+        </el-icon>
+        <el-icon
+          v-if="status === 'ABORT'"
+          class="custom-icon"
+        >
+          <VideoPause />
+        </el-icon>
+      </template>
+      <el-dropdown
+        v-if="showMenu"
+        trigger="click"
+        @command="handleCommand"
+      >
+        <el-icon class="node-option-more">
+          <MoreFilled />
+        </el-icon>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="node_log">
+              日志
+            </el-dropdown-item>
+            <el-dropdown-item
+              v-if="
+                status === 'SUCCESS' &&
+                  ['SPARK_SQL', 'QUERY_JDBC', 'SPARK_CONTAINER_SQL', 'PRQL'].includes(
+                    node.data.nodeConfigData.workType
+                  )
+              "
+              command="node_result"
+            >
+              运行结果
+            </el-dropdown-item>
+            <el-dropdown-item
+              v-if="
+                status === 'SUCCESS' && ['API', 'SPARK_JAR'].includes(node.data.nodeConfigData.workType)
+              "
+              command="json_result"
+            >
+              运行结果
+            </el-dropdown-item>
+            <el-dropdown-item
+              v-if="
+                [
+                  'SPARK_SQL',
+                  'FLINK_SQL',
+                  'FLINK_JAR',
+                  'SPARK_JAR',
+                  'PY_SPARK',
+                  'BASH',
+                  'PYTHON',
+                  'DATA_SYNC_JDBC',
+                  'CURL'
+                ].includes(node.data.nodeConfigData.workType)
+              "
+              command="node_yarnLog"
+            >
+              运行日志
+            </el-dropdown-item>
+            <el-dropdown-item command="node_runAfter">
+              重跑下游
+            </el-dropdown-item>
+            <el-dropdown-item command="node_break">
+              中断
+            </el-dropdown-item>
+            <el-dropdown-item command="node_reRun">
+              重跑当前
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { inject, onMounted, ref } from 'vue'
 import { ElIcon, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus'
 import { MoreFilled, Loading, Clock, VideoPause } from '@element-plus/icons-vue'
-import { RunAfterFlowData } from '@/services/workflow.service';
+import { RunAfterFlowData } from '@/services/workflow.service'
 import eventBus from '@/utils/eventBus'
 
 const getGraph = inject('getGraph')
@@ -63,13 +138,14 @@ function dbclickToDetain() {
 onMounted(() => {
     node.value = Node = getNode()
     name.value = node.value.data.name
-    node.value.on('change:data', ({ current }) => {
+    node.value.on('change:data', ({
+ current 
+}) => {
         status.value = current.status
         isRunning.value = current.isRunning
         showMenu.value = !!current.workInstanceId
     })
 })
-
 </script>
 
 <style lang="scss">
@@ -82,7 +158,7 @@ onMounted(() => {
     height: 100%;
     background-color: #fff;
     border: 1px solid #c2c8d5;
-    border-left: 4px solid #5F95FF;
+    border-left: 4px solid #5f95ff;
     border-radius: 4px;
     box-shadow: 0 2px 5px 1px rgba(0, 0, 0, 0.06);
 
@@ -127,7 +203,7 @@ p {
     font-size: 20px;
     width: 20px;
     height: 20px;
-    background-color: #5F95FF;
+    background-color: #5f95ff;
     border-radius: 50%;
     cursor: pointer;
     color: #ffffff;
@@ -157,7 +233,7 @@ p {
     border-left: 4px solid #52c41a;
 }
 .zqy-flow-node.PENDING {
-    border-left: 4px solid #F5B041;
+    border-left: 4px solid #f5b041;
 }
 .zqy-flow-node.BREAK {
     border-left: 4px solid #3f3a24;
@@ -198,7 +274,7 @@ p {
 }
 
 .x6-node-selected .zqy-flow-node.PENDING {
-    border-color: #F5B041;
+    border-color: #f5b041;
     border-radius: 2px;
     box-shadow: 0 0 0 4px #ffe1b4;
 }

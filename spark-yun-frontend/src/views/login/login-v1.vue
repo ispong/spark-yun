@@ -7,7 +7,10 @@
  * @FilePath: /spark-yun/spark-yun-website/src/views/login/login.vue
 -->
 <template>
-  <div class="zqy-login" @keyup.enter="clickToLogin">
+  <div
+    class="zqy-login"
+    @keyup.enter="clickToLogin"
+  >
     <div class="zqy-login-container">
       <div class="normal-login-title">
         至轻云
@@ -50,7 +53,8 @@
           </el-button>
         </el-form-item>
         <el-form-item class="registered-content">
-          <span class="registered">超轻量级智能化大数据中心
+          <span class="registered">
+            超轻量级智能化大数据中心
             <!-- <a class="do-registered" @click="clickRegistered"
                             >免费注册</a -->
           </span>
@@ -94,75 +98,75 @@
 // })
 
 function clickToLogin() {
-  loading.value = true
-  LoginUserInfo(formData)
-    .then((res: any) => {
-      mutations.setUserInfo(res.data)
-      mutations.setToken(res.data.token)
-      mutations.setTenantId(res.data?.tenantId)
-      mutations.setRole(res.data?.role)
-      loading.value = false
-      router.push({
-        name: 'home'
-      })
-      ElMessage.success(res.msg)
-    })
-    .catch((err: any) => {
-      loading.value = false
-      console.error(err)
-    })
+    loading.value = true
+    LoginUserInfo(formData)
+        .then((res: any) => {
+            mutations.setUserInfo(res.data)
+            mutations.setToken(res.data.token)
+            mutations.setTenantId(res.data?.tenantId)
+            mutations.setRole(res.data?.role)
+            loading.value = false
+            router.push({
+                name: 'home'
+            })
+            ElMessage.success(res.msg)
+        })
+        .catch((err: any) => {
+            loading.value = false
+            console.error(err)
+        })
 }
 </script>
 
 <style lang="scss">
 .zqy-login {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  .zqy-login-container {
-    width: 360px;
-    height: 370px;
-    padding: 32px 32px;
-    box-sizing: border-box;
-    border-radius: getCssVar('border-radius', 'small');
-    background-color: rgba($color: getCssVar('color', 'white'), $alpha: 1);
-    box-shadow: getCssVar('box-shadow', 'lighter');
-    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .zqy-login-container {
+        width: 360px;
+        height: 370px;
+        padding: 32px 32px;
+        box-sizing: border-box;
+        border-radius: getCssVar('border-radius', 'small');
+        background-color: rgba($color: getCssVar('color', 'white'), $alpha: 1);
+        box-shadow: getCssVar('box-shadow', 'lighter');
+        position: relative;
 
-    .normal-login-title {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 32px;
-      margin-top: 30px;
-      margin-bottom: 30px;
-    }
-    .login-button-content {
-      margin-top: 24px;
-      .login-button {
-        width: 100%;
-      }
-    }
-    .registered-content {
-      text-align: right;
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      .registered {
-        font-size: 12px;
-        width: 100%;
-        text-align: center;
-        .do-registered {
-          color: getCssVar('color', 'primary');
-          &:hover {
-            cursor: pointer;
-          }
+        .normal-login-title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            margin-top: 30px;
+            margin-bottom: 30px;
         }
-      }
+        .login-button-content {
+            margin-top: 24px;
+            .login-button {
+                width: 100%;
+            }
+        }
+        .registered-content {
+            text-align: right;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            .registered {
+                font-size: 12px;
+                width: 100%;
+                text-align: center;
+                .do-registered {
+                    color: getCssVar('color', 'primary');
+                    &:hover {
+                        cursor: pointer;
+                    }
+                }
+            }
+        }
     }
-  }
 }
 </style>

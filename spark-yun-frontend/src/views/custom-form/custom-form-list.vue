@@ -1,70 +1,150 @@
 <template>
-    <div class="zqy-seach-table costom-form">
-        <div class="zqy-table-top">
-            <el-button type="primary" @click="addData">
-                新建表单
-            </el-button>
-            <div class="zqy-seach">
-                <el-input v-model="keyword" placeholder="请输入表单名称 回车进行搜索" :maxlength="200" clearable @input="inputEvent"
-                    @keyup.enter="initData(false)" />
-            </div>
-        </div>
-        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
-            <div class="form-card-container">
-                <template v-if="formList?.length">
-                    <el-scrollbar max-height="calc(100vh - 146px)" class="form-card-list">
-                        <template v-for="card in formList" :key="card.id">
-                            <el-tooltip :disabled="!card.remark" :content="card.remark" placement="top" :show-after="600">
-                                <div class="form-card-item" @click="redirectQuery(card)">
-                                    <div class="card-title">
-                                        <EllipsisTooltip class="card-title-name" :label="card.name" />
-                                    </div>
-                                    <div class="card-item">
-                                        <span class="name name_3">数据源：</span>
-                                        <EllipsisTooltip class="card-item-name card-item-name_3" :label="card.datasourceName" />
-                                    </div>
-                                    <div class="card-item">
-                                        <span class="name">表名：</span>
-                                        <EllipsisTooltip class="card-item-name" :label="card.mainTable" />
-                                    </div>
-                                    <div class="card-item">
-                                        <span class="name name_4">创建时间：</span>
-                                        <EllipsisTooltip class="card-item-name card-item-name_4" :label="card.createDateTime" />
-                                    </div>
-                                    <div class="card-item">状态：{{card.status === 'UNPUBLISHED' ? '未发布' : '已发布'}}</div>
-                                    <div class="card-actions">
-                                        <span v-if="card.status === 'UNPUBLISHED'" class="card-action" @click.stop="editData(card)">配置</span>
-                                        <span class="card-action" @click.stop="updateData(card)">编辑</span>
-                                        <span v-if="card.status === 'UNPUBLISHED'" class="card-action card-action__danger" @click.stop="deleteData(card)">删除</span>
-                                        <span v-if="card.status !== 'UNPUBLISHED'" class="card-action" @click.stop="shareForm(card)">分享</span>
-                                        <span v-if="card.status !== 'UNPUBLISHED'" class="card-action" @click.stop="underlineForm(card)">下线</span>
-                                        <span v-else class="card-action" @click.stop="publishForm(card)">发布</span>
-                                    </div>
-                                </div>
-                            </el-tooltip>
-                        </template>
-                        <template v-for="(_, index) in emptyBox" :key="index">
-                            <div class="form-card-item form-card-item__empty"></div>
-                        </template>
-                    </el-scrollbar>
-                    <el-pagination
-                        v-if="pagination"
-                        class="pagination"
-                        popper-class="pagination-popper"
-                        background
-                        layout="prev, pager, next, sizes, total, jumper" :hide-on-single-page="false" :total="pagination.total"
-                        :page-size="pagination.pageSize" :current-page="pagination.currentPage" :page-sizes="[10, 20]"
-                        @size-change="handleSizeChange" @current-change="handleCurrentChange"
-                    />
-                </template>
-                <template v-else>
-                    <empty-page></empty-page>
-                </template>
-            </div>
-        </LoadingPage>
-        <add-form ref="addFormRef"></add-form>
-        <ShareForm ref="shareFormRef"></ShareForm>
+  <div class="zqy-seach-table costom-form">
+    <div class="zqy-table-top">
+      <el-button
+        type="primary"
+        @click="addData"
+      >
+        新建表单
+      </el-button>
+      <div class="zqy-seach">
+        <el-input
+          v-model="keyword"
+          placeholder="请输入表单名称 回车进行搜索"
+          :maxlength="200"
+          clearable
+          @input="inputEvent"
+          @keyup.enter="initData(false)"
+        />
+      </div>
     </div>
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="initData(false)"
+    >
+      <div class="form-card-container">
+        <template v-if="formList?.length">
+          <el-scrollbar
+            max-height="calc(100vh - 146px)"
+            class="form-card-list"
+          >
+            <template
+              v-for="card in formList"
+              :key="card.id"
+            >
+              <el-tooltip
+                :disabled="!card.remark"
+                :content="card.remark"
+                placement="top"
+                :show-after="600"
+              >
+                <div
+                  class="form-card-item"
+                  @click="redirectQuery(card)"
+                >
+                  <div class="card-title">
+                    <EllipsisTooltip
+                      class="card-title-name"
+                      :label="card.name"
+                    />
+                  </div>
+                  <div class="card-item">
+                    <span class="name name_3">数据源：</span>
+                    <EllipsisTooltip
+                      class="card-item-name card-item-name_3"
+                      :label="card.datasourceName"
+                    />
+                  </div>
+                  <div class="card-item">
+                    <span class="name">表名：</span>
+                    <EllipsisTooltip
+                      class="card-item-name"
+                      :label="card.mainTable"
+                    />
+                  </div>
+                  <div class="card-item">
+                    <span class="name name_4">创建时间：</span>
+                    <EllipsisTooltip
+                      class="card-item-name card-item-name_4"
+                      :label="card.createDateTime"
+                    />
+                  </div>
+                  <div class="card-item">
+                    状态：{{ card.status === 'UNPUBLISHED' ? '未发布' : '已发布' }}
+                  </div>
+                  <div class="card-actions">
+                    <span
+                      v-if="card.status === 'UNPUBLISHED'"
+                      class="card-action"
+                      @click.stop="editData(card)"
+                    >
+                      配置
+                    </span>
+                    <span
+                      class="card-action"
+                      @click.stop="updateData(card)"
+                    >编辑</span>
+                    <span
+                      v-if="card.status === 'UNPUBLISHED'"
+                      class="card-action card-action__danger"
+                      @click.stop="deleteData(card)"
+                    >
+                      删除
+                    </span>
+                    <span
+                      v-if="card.status !== 'UNPUBLISHED'"
+                      class="card-action"
+                      @click.stop="shareForm(card)"
+                    >
+                      分享
+                    </span>
+                    <span
+                      v-if="card.status !== 'UNPUBLISHED'"
+                      class="card-action"
+                      @click.stop="underlineForm(card)"
+                    >
+                      下线
+                    </span>
+                    <span
+                      v-else
+                      class="card-action"
+                      @click.stop="publishForm(card)"
+                    >发布</span>
+                  </div>
+                </div>
+              </el-tooltip>
+            </template>
+            <template
+              v-for="(_, index) in emptyBox"
+              :key="index"
+            >
+              <div class="form-card-item form-card-item__empty" />
+            </template>
+          </el-scrollbar>
+          <el-pagination
+            v-if="pagination"
+            class="pagination"
+            popper-class="pagination-popper"
+            background
+            layout="prev, pager, next, sizes, total, jumper"
+            :hide-on-single-page="false"
+            :total="pagination.total"
+            :page-size="pagination.pageSize"
+            :current-page="pagination.currentPage"
+            :page-sizes="[10, 20]"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+          />
+        </template>
+        <template v-else>
+          <empty-page />
+        </template>
+      </div>
+    </LoadingPage>
+    <add-form ref="addFormRef" />
+    <ShareForm ref="shareFormRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -77,7 +157,12 @@ import AddForm from './add-form/index.vue'
 import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ShareForm from './share-form-modal/index.vue'
-import { CreateCustomFormData, DeleteCustomFormData, DeployCustomFormData, OfflineCustomFormData, QueryCustomFormList, UpdateCustomFormData } from '@/services/custom-form.service'
+import { CreateCustomFormData,
+    DeleteCustomFormData,
+    DeployCustomFormData,
+    OfflineCustomFormData,
+    QueryCustomFormList,
+    UpdateCustomFormData } from '@/services/custom-form.service'
 
 interface formDataParam {
     name: string
@@ -100,13 +185,13 @@ const networkError = ref(false)
 const loading = ref(false)
 const addFormRef = ref()
 const keyword = ref('')
-const formList = ref()   // 卡片列表
+const formList = ref() // 卡片列表
 const pagination = reactive(PaginationParam)
 const shareFormRef = ref()
 
 const emptyBox = computed(() => {
-    if (formList.value?.length > 4 && (formList.value?.length % 4)) {
-        const length = 4 - formList.value?.length % 4
+    if (formList.value?.length > 4 && formList.value?.length % 4) {
+        const length = 4 - (formList.value?.length % 4)
         return new Array(length)
     } else if (formList.value?.length < 4 && formList.value?.length > 0) {
         const length = 4 - formList.value?.length
@@ -123,23 +208,25 @@ function initData(tableLoading?: boolean) {
         page: pagination.currentPage - 1,
         pageSize: pagination.pageSize,
         searchKeyWord: keyword.value || ''
-    }).then((res: any) => {
-        formList.value = res.data.content
-        pagination.total = res.data.totalElements
-        loading.value = false
-        networkError.value = false
-    }).catch(() => {
-        formList.value = []
-        pagination.total = 0
-        loading.value = false
-        networkError.value = true
     })
+        .then((res: any) => {
+            formList.value = res.data.content
+            pagination.total = res.data.totalElements
+            loading.value = false
+            networkError.value = false
+        })
+        .catch(() => {
+            formList.value = []
+            pagination.total = 0
+            loading.value = false
+            networkError.value = true
+        })
 }
 
 function inputEvent(e: string) {
-  if (e === '') {
-    initData()
-  }
+    if (e === '') {
+        initData()
+    }
 }
 function handleSizeChange(e: number) {
     pagination.pageSize = e
@@ -147,27 +234,28 @@ function handleSizeChange(e: number) {
 }
 
 function handleCurrentChange(e: number) {
-  pagination.currentPage = e
-  initData()
+    pagination.currentPage = e
+    initData()
 }
-
 
 function addData() {
     addFormRef.value.showModal((data: formDataParam) => {
         return new Promise((resolve, reject) => {
-            CreateCustomFormData(data).then((res: any) => {
-                resolve()
-                router.push({
-                    name: 'form-setting',
-                    query: {
-                      id: res.data.id,
-                      formVersion: res.data.formVersion
-                    }
+            CreateCustomFormData(data)
+                .then((res: any) => {
+                    resolve()
+                    router.push({
+                        name: 'form-setting',
+                        query: {
+                            id: res.data.id,
+                            formVersion: res.data.formVersion
+                        }
+                    })
+                    ElMessage.success(res.msg)
                 })
-                ElMessage.success(res.msg)
-            }).catch(err => {
-                reject(err)
-            })
+                .catch((err) => {
+                    reject(err)
+                })
         })
     })
 }
@@ -178,13 +266,15 @@ function updateData(card: any) {
                 id: data.id,
                 name: data.name,
                 remark: data.remark
-            }).then((res: any) => {
-                ElMessage.success(res.msg)
-                resolve()
-                initData()
-            }).catch(err => {
-                reject(err)
             })
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    resolve()
+                    initData()
+                })
+                .catch((err) => {
+                    reject(err)
+                })
         })
     }, card)
 }
@@ -193,8 +283,8 @@ function editData(card: any) {
     router.push({
         name: 'form-setting',
         query: {
-          id: card.id,
-          formVersion: card.formVersion
+            id: card.id,
+            formVersion: card.formVersion
         }
     })
 }
@@ -206,11 +296,12 @@ function deleteData(card: any) {
     }).then(() => {
         DeleteCustomFormData({
             formId: card.id
-        }).then((res: any) => {
-            handleCurrentChange(1)
-            ElMessage.success(res.msg)
-        }).catch(err => {
         })
+            .then((res: any) => {
+                handleCurrentChange(1)
+                ElMessage.success(res.msg)
+            })
+            .catch((err) => {})
     })
 }
 // 分享
@@ -226,11 +317,12 @@ function underlineForm(card: any) {
     }).then(() => {
         OfflineCustomFormData({
             formId: card.id
-        }).then((res: any) => {
-            initData()
-            ElMessage.success('下线成功')
-        }).catch(err => {
         })
+            .then((res: any) => {
+                initData()
+                ElMessage.success('下线成功')
+            })
+            .catch((err) => {})
     })
 }
 // 发布
@@ -242,11 +334,12 @@ function publishForm(card: any) {
     }).then(() => {
         DeployCustomFormData({
             formId: card.id
-        }).then((res: any) => {
-            initData()
-            ElMessage.success('发布成功')
-        }).catch(err => {
         })
+            .then((res: any) => {
+                initData()
+                ElMessage.success('发布成功')
+            })
+            .catch((err) => {})
     })
 }
 
@@ -254,8 +347,8 @@ function redirectQuery(data: any) {
     router.push({
         name: 'form-query',
         query: {
-          id: data.id,
-          formVersion: data.formVersion
+            id: data.id,
+            formVersion: data.formVersion
         }
     })
 }
@@ -304,7 +397,7 @@ onMounted(() => {
                 color: #666;
                 position: relative;
 
-                &:not(:nth-child(1),:nth-child(2),:nth-child(3),:nth-child(4)) {
+                &:not(:nth-child(1), :nth-child(2), :nth-child(3), :nth-child(4)) {
                     margin-top: 12px;
                 }
                 &:hover {

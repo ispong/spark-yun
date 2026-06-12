@@ -1,27 +1,37 @@
 <template>
-    <el-form-item
-        ref="elFormItemRef"
-        class="form-config-switch-info"
-        label="文字描述"
-        prop="switchInfo"
-        :rules="rules"
-    >
-        <div class="info-item">
-            <span class="info-item__label">开启</span>
-            <el-input v-model="formData.open" :clearable="true" maxlength="2000" placeholder="请输入"></el-input>
-        </div>
-        <div class="info-item item-last">
-            <span class="info-item__label">关闭</span>
-            <el-input v-model="formData.close" :clearable="true" maxlength="2000" placeholder="请输入"></el-input>
-        </div>
-    </el-form-item>
+  <el-form-item
+    ref="elFormItemRef"
+    class="form-config-switch-info"
+    label="文字描述"
+    prop="switchInfo"
+    :rules="rules"
+  >
+    <div class="info-item">
+      <span class="info-item__label">开启</span>
+      <el-input
+        v-model="formData.open"
+        :clearable="true"
+        maxlength="2000"
+        placeholder="请输入"
+      />
+    </div>
+    <div class="info-item item-last">
+      <span class="info-item__label">关闭</span>
+      <el-input
+        v-model="formData.close"
+        :clearable="true"
+        maxlength="2000"
+        placeholder="请输入"
+      />
+    </div>
+  </el-form-item>
 </template>
 
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed, ref, watch, nextTick } from 'vue'
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig',])
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps([ 'renderSence', 'modelValue', 'formConfig' ])
+const emit = defineEmits([ 'update:modelValue' ])
 const formData = computed({
     get() {
         return props.modelValue
@@ -40,18 +50,22 @@ const configRule = (rule: any, value: any, callback: any) => {
     }
 }
 const elFormItemRef = ref()
-const rules = ref([
-    { validator: configRule, trigger: ['blur', 'change'] }
-])
-watch(() => props.formConfig?.uuid, (e) => {
-    nextTick(() => {
-        elFormItemRef.value?.validate().catch(() => {
-            console.warn('请将组件配置填写完整-文字描述')
+const rules = ref([ {
+ validator: configRule, trigger: [ 'blur', 'change' ] 
+} ])
+watch(
+    () => props.formConfig?.uuid,
+    (e) => {
+        nextTick(() => {
+            elFormItemRef.value?.validate().catch(() => {
+                console.warn('请将组件配置填写完整-文字描述')
+            })
         })
-    })
-}, {
-    immediate: true
-})
+    },
+    {
+        immediate: true
+    }
+)
 </script>
 
 <style lang="scss">

@@ -1,19 +1,23 @@
 <template>
-    <div class="z-share-form">
-        <Header />
-        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="getReportConfigById">
-            <div class="share-form-container">
-                <ZChartsEngine
-                    ref="ZChartsEngineRef"
-                    :chartsList="chartsList"
-                    :renderSence="renderSence"
-                    :componentList="componentList"
-                    :getPreviewOption="getPreviewOption"
-                    :getRealDataOption="getRealDataOption"
-                ></ZChartsEngine>
-            </div>
-        </LoadingPage>
-    </div>
+  <div class="z-share-form">
+    <Header />
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="getReportConfigById"
+    >
+      <div class="share-form-container">
+        <ZChartsEngine
+          ref="ZChartsEngineRef"
+          :charts-list="chartsList"
+          :render-sence="renderSence"
+          :component-list="componentList"
+          :get-preview-option="getPreviewOption"
+          :get-real-data-option="getRealDataOption"
+        />
+      </div>
+    </LoadingPage>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -23,7 +27,10 @@ import LoadingPage from '@/components/loading/index.vue'
 import { useRoute } from 'vue-router'
 import Header from '@/layout/header/index.vue'
 import ZChartsEngine from '@/lib/packages/z-charts-engine/index.vue'
-import { GetChartsLinkInfoConfig, RefreshReportViewItemData, GetReportComponentData, GetReportViewDetail } from '@/services/report-echarts.service'
+import { GetChartsLinkInfoConfig,
+    RefreshReportViewItemData,
+    GetReportComponentData,
+    GetReportViewDetail } from '@/services/report-echarts.service'
 
 interface baseParam {
     tenantId: string
@@ -52,14 +59,19 @@ const shareReportConfig = ref<baseParam>({
 function getRealDataOption(config: any) {
     return new Promise((resolve, reject) => {
         // console.log('获取真实数据')
-        RefreshReportViewItemData({
-            id: config.id
-        }, {
-            authorization: shareReportConfig.value.viewToken,
-            tenant: shareReportConfig.value.tenantId
-        }).then((res: any) => {
-            resolve(res.data.viewData)
-        }).catch(() => {})
+        RefreshReportViewItemData(
+            {
+                id: config.id
+            },
+            {
+                authorization: shareReportConfig.value.viewToken,
+                tenant: shareReportConfig.value.tenantId
+            }
+        )
+            .then((res: any) => {
+                resolve(res.data.viewData)
+            })
+            .catch(() => {})
     })
 }
 
@@ -69,27 +81,34 @@ function getPreviewOption(config: any) {
         // console.log('拿到预览数据')
         GetReportComponentData({
             id: config.id
-        }).then((res: any) => {
-            resolve(res.data.cardInfo)
-        }).catch(() => {})
+        })
+            .then((res: any) => {
+                resolve(res.data.cardInfo)
+            })
+            .catch(() => {})
     })
 }
 
 function getReportConfigById(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
     networkError.value = networkError.value || false
-    GetReportViewDetail({
-        id: shareReportConfig.value.viewId
-    }, {
-        authorization: shareReportConfig.value.viewToken,
-        tenant: shareReportConfig.value.tenantId
-    }).then((res: any) => {
-        componentList.value = res.data?.webConfig?.cardList || []
-        loading.value = false
-    }).catch(() => {
-        loading.value = false
-        networkError.value = true
-    })
+    GetReportViewDetail(
+        {
+            id: shareReportConfig.value.viewId
+        },
+        {
+            authorization: shareReportConfig.value.viewToken,
+            tenant: shareReportConfig.value.tenantId
+        }
+    )
+        .then((res: any) => {
+            componentList.value = res.data?.webConfig?.cardList || []
+            loading.value = false
+        })
+        .catch(() => {
+            loading.value = false
+            networkError.value = true
+        })
 }
 
 function getlinkParams() {
@@ -97,13 +116,15 @@ function getlinkParams() {
         loading.value = true
         GetChartsLinkInfoConfig({
             viewLinkId: shareLinkId.value
-        }).then((res: any) => {
-            shareReportConfig.value = res.data
-            resolve()
-        }).catch((error: any) => {
-            loading.value = false
-            reject(error)
         })
+            .then((res: any) => {
+                shareReportConfig.value = res.data
+                resolve()
+            })
+            .catch((error: any) => {
+                loading.value = false
+                reject(error)
+            })
     })
 }
 

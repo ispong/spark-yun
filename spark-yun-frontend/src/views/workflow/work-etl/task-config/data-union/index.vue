@@ -1,53 +1,91 @@
 <template>
-    <div class="config-components data-join">
-        <el-form-item prop="mainAliaCode" class="form-item-top" label="主表" :rules="rules.mainAliaCode">
-            <el-select
-                v-model="formData.mainAliaCode"
-                filterable
-                clearable
-                placeholder="请选择"
-                @change="tableChangeEvent($event, formData.unionEtl)"
-            >
-                <el-option
-                    v-for="item in tableNameList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                />
-            </el-select>
+  <div class="config-components data-join">
+    <el-form-item
+      prop="mainAliaCode"
+      class="form-item-top"
+      label="主表"
+      :rules="rules.mainAliaCode"
+    >
+      <el-select
+        v-model="formData.mainAliaCode"
+        filterable
+        clearable
+        placeholder="请选择"
+        @change="tableChangeEvent($event, formData.unionEtl)"
+      >
+        <el-option
+          v-for="item in tableNameList"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+    </el-form-item>
+    <div class="config-label">
+      <span>关联配置</span>
+      <span class="add-btn">
+        <el-icon @click="addNewOption">
+          <CirclePlus />
+        </el-icon>
+      </span>
+    </div>
+    <div
+      v-for="(unionItem, i) in formData.unionEtl"
+      :key="unionItem.id || i"
+      class="form-options__list"
+      :style="getGroupStyle(i)"
+    >
+      <el-icon
+        v-if="formData.unionEtl.length > 1"
+        class="remove-block-btn"
+        @click="removeItem(i)"
+      >
+        <CircleClose />
+      </el-icon>
+      <div class="list-item-row">
+        <el-form-item
+          :prop="`unionEtl[${i}].unionWay`"
+          :rules="rules.unionWay"
+          class="form-item-top"
+          label="连接方式"
+        >
+          <el-select
+            v-model="formData.unionEtl[i].unionWay"
+            placeholder="请选择"
+            :filterable="true"
+          >
+            <el-option
+              label="去重合并"
+              value="UNION"
+            />
+            <el-option
+              label="并集合并"
+              value="UNION_ALL"
+            />
+          </el-select>
         </el-form-item>
-        <div class="config-label">
-            <span>关联配置</span>
-            <span class="add-btn">
-                <el-icon @click="addNewOption">
-                    <CirclePlus />
-                </el-icon>
-            </span>
-        </div>
-        <div class="form-options__list" v-for="(unionItem, i) in formData.unionEtl" :key="unionItem.id || i" :style="getGroupStyle(i)">
-            <el-icon v-if="formData.unionEtl.length > 1" class="remove-block-btn" @click="removeItem(i)">
-                <CircleClose />
-            </el-icon>
-            <div class="list-item-row">
-                <el-form-item :prop="`unionEtl[${i}].unionWay`" :rules="rules.unionWay" class="form-item-top" label="连接方式">
-                    <el-select v-model="formData.unionEtl[i].unionWay" placeholder="请选择" :filterable="true">
-                        <el-option label="去重合并" value="UNION"/>
-                        <el-option label="并集合并" value="UNION_ALL"/>
-                    </el-select>
-                </el-form-item>
-                <el-form-item :prop="`unionEtl[${i}].aliaCode`" :rules="rules.aliaCode" class="form-item-top" label="表名">
-                    <el-select v-model="formData.unionEtl[i].aliaCode" :filterable="true" placeholder="请选择">
-                        <el-option
-                            v-for="item in tableNameList"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value"
-                        />
-                    </el-select>
-                </el-form-item>
-            </div>
-        </div>
-        <!-- <div v-show="false" class="table-container" style="height: 314px;">
+        <el-form-item
+          :prop="`unionEtl[${i}].aliaCode`"
+          :rules="rules.aliaCode"
+          class="form-item-top"
+          label="表名"
+        >
+          <el-select
+            v-model="formData.unionEtl[i].aliaCode"
+            :filterable="true"
+            placeholder="请选择"
+          >
+            <el-option
+              v-for="item in tableNameList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+      </div>
+    </div>
+    <!-- <div v-show="false" class="table-container" style="height: 314px;">
             <BlockTable
               :table-config="tableConfig"
             >
@@ -58,7 +96,7 @@
                 </template>
             </BlockTable>
         </div> -->
-    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -74,15 +112,21 @@ interface Option {
 }
 
 const props = defineProps<{
-    modelValue: any,
+    modelValue: any
     incomeNodes: any
 }>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits([ 'update:modelValue' ])
 
 const rules = reactive<FormRules>({
-    mainAliaCode: [{ required: true, message: '请选择主表', trigger: ['blur', 'change'] }],
-    aliaCode: [{ required: true, message: '请选择表', trigger: ['blur', 'change'] }],
-    unionWay: [{ required: true, message: '请选择连接方式', trigger: ['blur', 'change'] }]
+    mainAliaCode: [ {
+ required: true, message: '请选择主表', trigger: [ 'blur', 'change' ] 
+} ],
+    aliaCode: [ {
+ required: true, message: '请选择表', trigger: [ 'blur', 'change' ] 
+} ],
+    unionWay: [ {
+ required: true, message: '请选择连接方式', trigger: [ 'blur', 'change' ] 
+} ]
 })
 const tableConfig = reactive(TableConfig)
 
@@ -152,16 +196,18 @@ function updateOutColumnList() {
     }
     const mainItem = tableNameList.value.find((item: any) => item.value === mainAliaCode)
     if (mainItem && mainItem.data.outColumnList) {
-        const fields = (mainItem.data.outColumnList || []).filter((item: any) => item.checked !== false).map((column: any) => {
-            return {
-                colName: column.colName,
-                colType: column.colType,
-                remark: column.remark,
-                checked: true
-            }
-        })
+        const fields = (mainItem.data.outColumnList || [])
+            .filter((item: any) => item.checked !== false)
+            .map((column: any) => {
+                return {
+                    colName: column.colName,
+                    colType: column.colType,
+                    remark: column.remark,
+                    checked: true
+                }
+            })
         tableConfig.tableData = fields
-        formData.value.outColumnList = [...fields]
+        formData.value.outColumnList = [ ...fields ]
         formData.value.inputEtl = mainItem.data.inputEtl
     } else {
         tableConfig.tableData = []
@@ -176,7 +222,7 @@ onMounted(() => {
 
 <style lang="scss">
 .config-components {
-    padding:  12px 20px;
+    padding: 12px 20px;
     box-sizing: border-box;
     &.data-join {
         .config-label {
@@ -242,7 +288,7 @@ onMounted(() => {
                     width: 100%;
                     margin-bottom: 12px;
                 }
-                .el-form-item+.el-form-item {
+                .el-form-item + .el-form-item {
                     margin-left: 4px;
                 }
 

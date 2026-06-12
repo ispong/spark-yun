@@ -1,16 +1,26 @@
 <template>
-    <div class="charts-item">
-        <el-icon v-if="renderSence !== 'readonly'" class="draggable-options__remove" @click="removeChart"><DeleteFilled /></el-icon>
-        <div class="charts-container" :class="{ 'moving-container': config.i === 'drop'}" :id="currentChartId"></div>
-    </div>
+  <div class="charts-item">
+    <el-icon
+      v-if="renderSence !== 'readonly'"
+      class="draggable-options__remove"
+      @click="removeChart"
+    >
+      <DeleteFilled />
+    </el-icon>
+    <div
+      :id="currentChartId"
+      class="charts-container"
+      :class="{ 'moving-container': config.i === 'drop' }"
+    />
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, defineProps, onMounted, computed, onUnmounted, defineEmits, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
 
-const props = defineProps(['config', 'renderSence', 'getPreviewOption', 'getRealDataOption'])
-const emit = defineEmits(['removeChart'])
+const props = defineProps([ 'config', 'renderSence', 'getPreviewOption', 'getRealDataOption' ])
+const emit = defineEmits([ 'removeChart' ])
 let myChart: any = null
 
 const timer = ref()
@@ -27,35 +37,38 @@ function removeChart() {
     emit('removeChart', props.config)
 }
 
-onMounted(async () => {
-	if (props.config.i !== 'drop') {
-		myChart = echarts.init(document.getElementById(currentChartId.value))
+onMounted(async() => {
+    if (props.config.i !== 'drop') {
+        myChart = echarts.init(document.getElementById(currentChartId.value))
 
         // 拖拽时获取预览数据
         if (props.renderSence === 'edit' && props.getPreviewOption && props.getPreviewOption instanceof Function) {
             const option = await props.getPreviewOption(props.config)
             props.config.webConfig = option.webConfig
-            myChart.setOption(option.exampleData);
+            myChart.setOption(option.exampleData)
             setTimeout(() => {
                 myChart.resize()
             })
-        } else if (props.renderSence === 'readonly' && props.getRealDataOption && props.getRealDataOption instanceof Function) {
+        } else if (
+            props.renderSence === 'readonly' &&
+            props.getRealDataOption &&
+            props.getRealDataOption instanceof Function
+        ) {
             const option = await props.getRealDataOption(props.config)
-            myChart.setOption(option);
+            myChart.setOption(option)
             setTimeout(() => {
                 myChart.resize()
             })
             if (props.config?.webConfig?.time) {
                 timer.value = setInterval(() => {
-                    props.getRealDataOption(props.config).then(res => {
-                        myChart.setOption(res);
+                    props.getRealDataOption(props.config).then((res) => {
+                        myChart.setOption(res)
                     })
                 }, props.config?.webConfig?.time * 1000)
             }
         }
-		window.addEventListener('resize', resizeChart)
-	}
-
+        window.addEventListener('resize', resizeChart)
+    }
 })
 
 onUnmounted(() => {
@@ -93,7 +106,7 @@ defineExpose({
         color: #f89898;
         transition: all 0.3s linear;
         &:hover {
-            color: #F56C6C;
+            color: #f56c6c;
             transition: all 0.3s linear;
         }
     }
@@ -107,9 +120,9 @@ defineExpose({
     .charts-container {
         height: 100%;
         width: 100%;
-		&.moving-container {
-			background-color: #fdd;
-		}
+        &.moving-container {
+            background-color: #fdd;
+        }
     }
 }
 </style>

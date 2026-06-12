@@ -1,30 +1,40 @@
 <template>
-    <BlockModal :model-config="modelConfig" top="10vh">
-        <div class="zqy-table-top">
-            <span></span>
-            <div class="zqy-seach">
-                <el-input
-                    v-model="keyword"
-                    placeholder="请输入搜索条件 回车进行搜索"
-                    :maxlength="200"
-                    clearable
-                    @input="inputEvent"
-                    @keyup.enter="initData()"
-                />
-            </div>
-        </div>
-        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
-            <div class="zqy-table">
-                <BlockTable
-                    :table-config="tableConfig"
-                >
-                    <template #booleanTag="scopeSlot">
-                        <el-checkbox disabled v-model="scopeSlot.row[scopeSlot.column.property]" true-label="ENABLE" false-label="DISABLE" />
-                    </template>
-                </BlockTable>
-            </div>
-        </LoadingPage>
-    </BlockModal>
+  <BlockModal
+    :model-config="modelConfig"
+    top="10vh"
+  >
+    <div class="zqy-table-top">
+      <span />
+      <div class="zqy-seach">
+        <el-input
+          v-model="keyword"
+          placeholder="请输入搜索条件 回车进行搜索"
+          :maxlength="200"
+          clearable
+          @input="inputEvent"
+          @keyup.enter="initData()"
+        />
+      </div>
+    </div>
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="initData(false)"
+    >
+      <div class="zqy-table">
+        <BlockTable :table-config="tableConfig">
+          <template #booleanTag="scopeSlot">
+            <el-checkbox
+              v-model="scopeSlot.row[scopeSlot.column.property]"
+              disabled
+              true-label="ENABLE"
+              false-label="DISABLE"
+            />
+          </template>
+        </BlockTable>
+      </div>
+    </LoadingPage>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -34,21 +44,21 @@ import { GetModelFieldList } from '@/services/data-model.service'
 import LoadingPage from '@/components/loading/index.vue'
 
 interface colConfig {
-    prop?: string;
-    title: string;
-    align?: string;
-    showOverflowTooltip?: boolean;
-    customSlot?: string;
-    width?: number;
-    minWidth?: number;
+    prop?: string
+    title: string
+    align?: string
+    showOverflowTooltip?: boolean
+    customSlot?: string
+    width?: number
+    minWidth?: number
     formatter?: any
-    fixed?: string;
+    fixed?: string
 }
 
 interface Pagination {
-    currentPage: number;
-    pageSize: number;
-    total: number;
+    currentPage: number
+    pageSize: number
+    total: number
 }
 
 interface TableConfig {
@@ -137,7 +147,7 @@ const modelConfig = reactive<any>({
     zIndex: 1100,
     cancelConfig: {
         title: '取消',
-        cancel: closeEvent,
+        cancel: closeEvent
     },
     closeOnClickModal: false
 })
@@ -173,17 +183,19 @@ function initData(tableLoading?: boolean) {
         pageSize: 10000,
         searchKeyWord: keyword.value,
         modelId: info.value.id
-    }).then((res: any) => {
-        tableConfig.tableData = res.data.content
-        loading.value = false
-        tableConfig.loading = false
-        networkError.value = false
-    }).catch(() => {
-        tableConfig.tableData = []
-        loading.value = false
-        tableConfig.loading = false
-        networkError.value = true
     })
+        .then((res: any) => {
+            tableConfig.tableData = res.data.content
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
+        })
+        .catch(() => {
+            tableConfig.tableData = []
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
 }
 
 function closeEvent() {
@@ -229,14 +241,14 @@ defineExpose({
         .el-checkbox {
             &.is-disabled {
                 .el-checkbox__inner {
-                    background-color: #FFFFFF;
+                    background-color: #ffffff;
                 }
                 &.is-checked {
                     .el-checkbox__inner {
                         background-color: getCssVar('color', 'primary');
                         border-color: getCssVar('color', 'primary');
                         &::after {
-                            border-color: #FFFFFF;
+                            border-color: #ffffff;
                         }
                     }
                 }

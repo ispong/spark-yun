@@ -1,9 +1,17 @@
 <template>
-    <div class="config-components data-custom">
-        <el-form-item prop="customSqlEtl.sql" label-width="0" :class="{ 'show-screen__full': fullStatus }">
-            <code-mirror v-model="formData.customSqlEtl.sql" basic :lang="sqlLang" />
-        </el-form-item>
-    </div>
+  <div class="config-components data-custom">
+    <el-form-item
+      prop="customSqlEtl.sql"
+      label-width="0"
+      :class="{ 'show-screen__full': fullStatus }"
+    >
+      <code-mirror
+        v-model="formData.customSqlEtl.sql"
+        basic
+        :lang="sqlLang"
+      />
+    </el-form-item>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -11,10 +19,10 @@ import { ref, defineEmits, computed, onMounted } from 'vue'
 import { sql } from '@codemirror/lang-sql'
 
 const props = defineProps<{
-    modelValue: any,
+    modelValue: any
     incomeNodes: any
 }>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits([ 'update:modelValue' ])
 
 const sqlLang = ref<any>(sql())
 const fullStatus = ref<boolean>(false)
@@ -30,7 +38,9 @@ const formData = computed({
 
 onMounted(() => {
     if (!formData.value.customSqlEtl) {
-        formData.value.customSqlEtl = { sql: '' }
+        formData.value.customSqlEtl = {
+ sql: '' 
+}
     }
     if (!formData.value.outColumnList) {
         formData.value.outColumnList = []

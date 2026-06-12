@@ -1,13 +1,13 @@
 export interface BreadCrumb {
-    name: string;
-    code: string;
-    hidden?: boolean;
+    name: string
+    code: string
+    hidden?: boolean
 }
 
 export interface Pagination {
-    currentPage: number;
-    pageSize: number;
-    total: number;
+    currentPage: number
+    pageSize: number
+    total: number
 }
 
 export const PaginationParam: Pagination = {

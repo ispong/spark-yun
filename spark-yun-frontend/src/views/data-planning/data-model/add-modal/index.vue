@@ -1,127 +1,159 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form
-            ref="form"
-            class="add-computer-group acquisition-task-add"
-            label-position="top"
-            :model="formData"
-            :rules="rules"
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group acquisition-task-add"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+    >
+      <el-form-item
+        label="名称"
+        prop="name"
+      >
+        <el-input
+          v-model="formData.name"
+          maxlength="200"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <el-form-item
+        label="数据分层"
+        prop="layerId"
+      >
+        <el-select
+          v-model="formData.layerId"
+          filterable
+          clearable
+          placeholder="请选择"
+          @change="layerChangeEvent"
         >
-            <el-form-item label="名称" prop="name">
-                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item label="数据分层" prop="layerId">
-                <el-select
-                    v-model="formData.layerId"
-                    filterable
-                    clearable
-                    @change="layerChangeEvent"
-                    placeholder="请选择"
-                >
-                    <el-option
-                        v-for="item in parentLayerIdList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="模型类型" prop="modelType">
-                <el-select
-                    v-model="formData.modelType"
-                    filterable
-                    :disabled="!!formData.id"
-                    clearable
-                    @change="modelTypeChangeEvent"
-                    placeholder="请选择"
-                >
-                    <el-option
-                        v-for="item in modelTypeList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="数据源类型" prop="dbType">
-                <el-select
-                    v-model="formData.dbType"
-                    placeholder="请选择"
-                    filterable
-                    clearable
-                    @change="dbTypeChangeEvent"
-                >
-                    <el-option
-                        v-for="item in dbTypeList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="数据源" prop="datasourceId">
-                <el-select
-                    v-model="formData.datasourceId"
-                    placeholder="请选择"
-                    filterable
-                    clearable
-                    @change="datasouceChangeEvent"
-                    @visible-change="getDataSourceList"
-                >
-                    <el-option
-                        v-for="item in dataSourceList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="表名" prop="tableName" :show-message="false">
-                <el-select
-                    v-if="formData.modelType === 'LINK_MODEL'"
-                    v-model="formData.tableName"
-                    placeholder="请选择"
-                    filterable
-                    clearable
-                    @visible-change="getDataSourceTable"
-                >
-                    <el-option
-                        v-for="item in tableNameList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    />
-                </el-select>
-                <el-input
-                    v-else-if="showPrefixRuleInput"
-                    v-model="formData.tableNameInput"
-                    maxlength="500"
-                    :placeholder="tableNamePlaceholder"
-                >
-                    <template #prepend>{{ currentLayerRule.input }}</template>
-                </el-input>
-                <el-input
-                    v-else-if="showSuffixRuleInput"
-                    v-model="formData.tableNameInput"
-                    maxlength="500"
-                    :placeholder="tableNamePlaceholder"
-                >
-                    <template #append>{{ currentLayerRule.input }}</template>
-                </el-input>
-                <el-input
-                    v-else
-                    v-model="formData.tableName"
-                    :disabled="showExactRuleTip"
-                    maxlength="500"
-                    :placeholder="tableNamePlaceholder"
-                />
-            </el-form-item>
-            <el-form-item label="备注">
-                <el-input v-model="formData.remark" type="textarea" maxlength="200"
-                    :autosize="{ minRows: 4, maxRows: 4 }" placeholder="请输入" />
-            </el-form-item>
-        </el-form>
-    </BlockModal>
+          <el-option
+            v-for="item in parentLayerIdList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        label="模型类型"
+        prop="modelType"
+      >
+        <el-select
+          v-model="formData.modelType"
+          filterable
+          :disabled="!!formData.id"
+          clearable
+          placeholder="请选择"
+          @change="modelTypeChangeEvent"
+        >
+          <el-option
+            v-for="item in modelTypeList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        label="数据源类型"
+        prop="dbType"
+      >
+        <el-select
+          v-model="formData.dbType"
+          placeholder="请选择"
+          filterable
+          clearable
+          @change="dbTypeChangeEvent"
+        >
+          <el-option
+            v-for="item in dbTypeList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        label="数据源"
+        prop="datasourceId"
+      >
+        <el-select
+          v-model="formData.datasourceId"
+          placeholder="请选择"
+          filterable
+          clearable
+          @change="datasouceChangeEvent"
+          @visible-change="getDataSourceList"
+        >
+          <el-option
+            v-for="item in dataSourceList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        label="表名"
+        prop="tableName"
+        :show-message="false"
+      >
+        <el-select
+          v-if="formData.modelType === 'LINK_MODEL'"
+          v-model="formData.tableName"
+          placeholder="请选择"
+          filterable
+          clearable
+          @visible-change="getDataSourceTable"
+        >
+          <el-option
+            v-for="item in tableNameList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+        <el-input
+          v-else-if="showPrefixRuleInput"
+          v-model="formData.tableNameInput"
+          maxlength="500"
+          :placeholder="tableNamePlaceholder"
+        >
+          <template #prepend>
+            {{ currentLayerRule.input }}
+          </template>
+        </el-input>
+        <el-input
+          v-else-if="showSuffixRuleInput"
+          v-model="formData.tableNameInput"
+          maxlength="500"
+          :placeholder="tableNamePlaceholder"
+        >
+          <template #append>
+            {{ currentLayerRule.input }}
+          </template>
+        </el-input>
+        <el-input
+          v-else
+          v-model="formData.tableName"
+          :disabled="showExactRuleTip"
+          maxlength="500"
+          :placeholder="tableNamePlaceholder"
+        />
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input
+          v-model="formData.remark"
+          type="textarea"
+          maxlength="200"
+          :autosize="{ minRows: 4, maxRows: 4 }"
+          placeholder="请输入"
+        />
+      </el-form-item>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -156,106 +188,106 @@ const modelTypeList = ref<Option[]>([
     }
 ])
 const dbTypeList = ref<Option[]>([
-  {
-    label: 'Clickhouse',
-    value: 'CLICKHOUSE'
-  },
-  {
-    label: 'Db2',
-    value: 'DB2'
-  },
-  {
-    label: 'Doris',
-    value: 'DORIS'
-  },
-  {
-    label: 'DuckDB',
-    value: 'DUCK_DB'
-  },
-  {
-    label: '达梦',
-    value: 'DM'
-  },
-  {
-    label: 'Gauss',
-    value: 'GAUSS'
-  },
-  {
-    label: 'Gbase',
-    value: 'GBASE'
-  },
-  {
-    label: 'Greenplum',
-    value: 'GREENPLUM'
-  },
-  {
-    label: 'H2',
-    value: 'H2'
-  },
-  {
-    label: 'HanaSap',
-    value: 'HANA_SAP'
-  },
-  {
-    label: 'Hive',
-    value: 'HIVE'
-  },
-  {
-    label: 'Impala',
-    value: 'IMPALA'
-  },
-  {
-    label: 'Mysql',
-    value: 'MYSQL'
-  },
-  {
-    label: 'OceanBase',
-    value: 'OCEANBASE'
-  },
-  {
-    label: 'OpenGauss',
-    value: 'OPEN_GAUSS'
-  },
-  {
-    label: 'Oracle',
-    value: 'ORACLE'
-  },
-  {
-    label: 'PostgreSql',
-    value: 'POSTGRE_SQL'
-  },
-  {
-    label: 'Presto',
-    value: 'PRESTO'
-  },
-  {
-    label: 'SelectDB',
-    value: 'SELECT_DB'
-  },
-  {
-    label: 'SqlServer',
-    value: 'SQL_SERVER'
-  },
-  {
-    label: 'StarRocks',
-    value: 'STAR_ROCKS'
-  },
-  {
-    label: 'Sybase',
-    value: 'SYBASE'
-  },
-  {
-    label: 'TDengine',
-    value: 'T_DENGINE'
-  },
-  {
-    label: 'TiDB',
-    value: 'TIDB'
-  },
-  {
-    label: 'Trino',
-    value: 'TRINO'
-  }
+    {
+        label: 'Clickhouse',
+        value: 'CLICKHOUSE'
+    },
+    {
+        label: 'Db2',
+        value: 'DB2'
+    },
+    {
+        label: 'Doris',
+        value: 'DORIS'
+    },
+    {
+        label: 'DuckDB',
+        value: 'DUCK_DB'
+    },
+    {
+        label: '达梦',
+        value: 'DM'
+    },
+    {
+        label: 'Gauss',
+        value: 'GAUSS'
+    },
+    {
+        label: 'Gbase',
+        value: 'GBASE'
+    },
+    {
+        label: 'Greenplum',
+        value: 'GREENPLUM'
+    },
+    {
+        label: 'H2',
+        value: 'H2'
+    },
+    {
+        label: 'HanaSap',
+        value: 'HANA_SAP'
+    },
+    {
+        label: 'Hive',
+        value: 'HIVE'
+    },
+    {
+        label: 'Impala',
+        value: 'IMPALA'
+    },
+    {
+        label: 'Mysql',
+        value: 'MYSQL'
+    },
+    {
+        label: 'OceanBase',
+        value: 'OCEANBASE'
+    },
+    {
+        label: 'OpenGauss',
+        value: 'OPEN_GAUSS'
+    },
+    {
+        label: 'Oracle',
+        value: 'ORACLE'
+    },
+    {
+        label: 'PostgreSql',
+        value: 'POSTGRE_SQL'
+    },
+    {
+        label: 'Presto',
+        value: 'PRESTO'
+    },
+    {
+        label: 'SelectDB',
+        value: 'SELECT_DB'
+    },
+    {
+        label: 'SqlServer',
+        value: 'SQL_SERVER'
+    },
+    {
+        label: 'StarRocks',
+        value: 'STAR_ROCKS'
+    },
+    {
+        label: 'Sybase',
+        value: 'SYBASE'
+    },
+    {
+        label: 'TDengine',
+        value: 'T_DENGINE'
+    },
+    {
+        label: 'TiDB',
+        value: 'TIDB'
+    },
+    {
+        label: 'Trino',
+        value: 'TRINO'
+    }
 ])
 const dataSourceList = ref<Option[]>([])
 const tableNameList = ref<Option[]>([])
@@ -282,12 +314,13 @@ const modelConfig = reactive({
 const formData = reactive<any>({
     name: '',
     layerId: '',
-    modelType: '',  // 模型类型 ORIGIN_MODEL | LINK_MODEL
-    dbType: '',     // 数据源类型
+    modelType: '', // 模型类型 ORIGIN_MODEL | LINK_MODEL
+    dbType: '', // 数据源类型
     datasourceId: '',
     tableName: '',
     tableNameInput: '',
-    tableConfig: {}, // 高级配置
+    tableConfig: {
+}, // 高级配置
     remark: '',
     id: ''
 })
@@ -297,20 +330,35 @@ const currentLayerRule = reactive<{ mode: TableRuleMode; input: string; raw: str
     raw: ''
 })
 const rules = reactive<FormRules>({
-    name: [{ required: true, message: '请输入采集任务名称', trigger: ['blur', 'change'] }],
-    layerId: [{ required: true, message: '请选择数据分层', trigger: ['blur', 'change'] }],
-    modelType: [{ required: true, message: '请选择模型类型', trigger: ['blur', 'change'] }],
-    dbType: [{ required: true, message: '请选择数据源类型', trigger: ['blur', 'change'] }],
-    datasourceId: [{ required: true, message: '请选择数据源', trigger: ['blur', 'change'] }],
+    name: [ {
+ required: true, message: '请输入采集任务名称', trigger: [ 'blur', 'change' ] 
+} ],
+    layerId: [ {
+ required: true, message: '请选择数据分层', trigger: [ 'blur', 'change' ] 
+} ],
+    modelType: [ {
+ required: true, message: '请选择模型类型', trigger: [ 'blur', 'change' ] 
+} ],
+    dbType: [ {
+ required: true, message: '请选择数据源类型', trigger: [ 'blur', 'change' ] 
+} ],
+    datasourceId: [ {
+ required: true, message: '请选择数据源', trigger: [ 'blur', 'change' ] 
+} ],
     tableName: [
-        { required: true, message: '请选择表名', trigger: ['blur', 'change'] },
+        {
+ required: true, message: '请选择表名', trigger: [ 'blur', 'change' ] 
+},
         {
             validator: (_rule, value, callback) => {
                 if (formData.modelType !== 'ORIGIN_MODEL') {
                     callback()
                     return
                 }
-                if ((currentLayerRule.mode === 'prefix' || currentLayerRule.mode === 'suffix') && !formData.tableNameInput?.trim()) {
+                if (
+                    (currentLayerRule.mode === 'prefix' || currentLayerRule.mode === 'suffix') &&
+                    !formData.tableNameInput?.trim()
+                ) {
                     callback(new Error('请输入表名可变部分'))
                     return
                 }
@@ -319,7 +367,11 @@ const rules = reactive<FormRules>({
                     return
                 }
 
-                if (currentLayerRule.mode === 'contains' && currentLayerRule.input && !value.includes(currentLayerRule.input)) {
+                if (
+                    currentLayerRule.mode === 'contains' &&
+                    currentLayerRule.input &&
+                    !value.includes(currentLayerRule.input)
+                ) {
                     callback(new Error(`表名需包含：${currentLayerRule.input}`))
                     return
                 }
@@ -340,7 +392,7 @@ const rules = reactive<FormRules>({
                 }
                 callback()
             },
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ]
 })
@@ -377,9 +429,12 @@ const tableNamePlaceholder = computed(() => {
     return '请输入'
 })
 
-watch(() => formData.tableNameInput, () => {
-    tableNameInputChange()
-})
+watch(
+    () => formData.tableNameInput,
+    () => {
+        tableNameInputChange()
+    }
+)
 
 function showModal(cb: () => void, data: any): void {
     if (data) {
@@ -410,16 +465,19 @@ function okEvent() {
     form.value?.validate((valid: boolean) => {
         if (valid) {
             modelConfig.okConfig.loading = true
-            callback.value(formData).then((res: any) => {
-                modelConfig.okConfig.loading = false
-                if (res === undefined) {
-                    modelConfig.visible = false
-                } else {
-                    modelConfig.visible = true
-                }
-            }).catch((err: any) => {
-                modelConfig.okConfig.loading = false
-            })
+            callback
+                .value(formData)
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
         } else {
             ElMessage.warning('请将表单输入完整')
         }
@@ -431,18 +489,22 @@ function getParentLayerIList() {
         page: 0,
         pageSize: 10000,
         searchKeyWord: ''
-    }).then((res: any) => {
-        parentLayerIdList.value = [...res.data.content.map((item: any) => {
-            return {
-                label: item.fullPathName,
-                value: item.id,
-                tableRule: item.tableRule
-            }
-        })]
-        fillDefaultTableNameByLayerRule(false)
-    }).catch(() => {
-        parentLayerIdList.value = []
     })
+        .then((res: any) => {
+            parentLayerIdList.value = [
+                ...res.data.content.map((item: any) => {
+                    return {
+                        label: item.fullPathName,
+                        value: item.id,
+                        tableRule: item.tableRule
+                    }
+                })
+            ]
+            fillDefaultTableNameByLayerRule(false)
+        })
+        .catch(() => {
+            parentLayerIdList.value = []
+        })
 }
 
 function closeEvent() {
@@ -516,30 +578,42 @@ function fillDefaultTableNameByLayerRule(force: boolean, resetInput?: boolean) {
 
 function parseTableRule(value: string): { mode: TableRuleMode; input: string } {
     if (!value) {
-        return { mode: 'none', input: '' }
+        return {
+ mode: 'none', input: '' 
+}
     }
 
     const prefixMatch = value.match(/^\^(.+)\.\*$/)
     if (prefixMatch?.[1]) {
-        return { mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) }
+        return {
+ mode: 'prefix', input: unEscapeRegexChar(prefixMatch[1]) 
+}
     }
 
     const suffixMatch = value.match(/^\.\*(.+)\$$/)
     if (suffixMatch?.[1]) {
-        return { mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) }
+        return {
+ mode: 'suffix', input: unEscapeRegexChar(suffixMatch[1]) 
+}
     }
 
     const containsMatch = value.match(/^\.\*(.+)\.\*$/)
     if (containsMatch?.[1]) {
-        return { mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) }
+        return {
+ mode: 'contains', input: unEscapeRegexChar(containsMatch[1]) 
+}
     }
 
     const exactMatch = value.match(/^\^(.+)\$$/)
     if (exactMatch?.[1]) {
-        return { mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) }
+        return {
+ mode: 'exact', input: unEscapeRegexChar(exactMatch[1]) 
+}
     }
 
-    return { mode: 'regex', input: value }
+    return {
+ mode: 'regex', input: value 
+}
 }
 
 function unEscapeRegexChar(value: string) {
@@ -595,16 +669,18 @@ function getDataSourceList(e: boolean, searchType?: string) {
             pageSize: 10000,
             searchKeyWord: searchType || '',
             datasourceType: formData.dbType
-        }).then((res: any) => {
-            dataSourceList.value = res.data.content.map((item: any) => {
-                return {
-                    label: item.name,
-                    value: item.id
-                }
-            })
-        }).catch(() => {
-            dataSourceList.value = []
         })
+            .then((res: any) => {
+                dataSourceList.value = res.data.content.map((item: any) => {
+                    return {
+                        label: item.name,
+                        value: item.id
+                    }
+                })
+            })
+            .catch(() => {
+                dataSourceList.value = []
+            })
     } else {
         dataSourceList.value = []
     }
@@ -614,17 +690,19 @@ function getDataSourceTable(e: boolean) {
     if (e && formData.datasourceId) {
         GetDataSourceTables({
             dataSourceId: formData.datasourceId,
-            tablePattern: ""
-        }).then((res: any) => {
-            tableNameList.value = res.data.tables.map((item: any) => {
-                return {
-                    label: item,
-                    value: item
-                }
-            })
-        }).catch(() => {
-            tableNameList.value = []
+            tablePattern: ''
         })
+            .then((res: any) => {
+                tableNameList.value = res.data.tables.map((item: any) => {
+                    return {
+                        label: item,
+                        value: item
+                    }
+                })
+            })
+            .catch(() => {
+                tableNameList.value = []
+            })
     } else {
         tableNameList.value = []
     }
@@ -647,7 +725,7 @@ defineExpose({
                 height: 36px;
 
                 .el-input-number__decrease {
-                    top: 16px
+                    top: 16px;
                 }
             }
         }

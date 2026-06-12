@@ -1,25 +1,53 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-tabs v-model="activeName" @tab-click="changeTypeEvent">
-            <el-tab-pane label="基础信息" name="basicInfo"></el-tab-pane>
-            <el-tab-pane label="字段信息" name="codeInfo"></el-tab-pane>
-            <el-tab-pane label="数据预览" name="dataPreview"></el-tab-pane>
-        </el-tabs>
-        <div class="info-container">
-            <component
-                ref="preTabRef"
-                :is="tabComponent"
-                :datasourceId="infoData.datasourceId"
-                :tableName="infoData.tableName"
-                @editEvent="editEvent"
-            ></component>
-        </div>
-        <template #customLeft>
-            <el-button @click="closeEvent">关闭</el-button>
-            <el-button v-if="activeName === 'basicInfo'" type="primary" :loading="exportLoading" @click="refreshEvent">刷新</el-button>
-            <el-button v-if="activeName === 'dataPreview'" type="primary" :loading="exportLoading" @click="exportEvent">导出</el-button>
-        </template>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <el-tabs
+      v-model="activeName"
+      @tab-click="changeTypeEvent"
+    >
+      <el-tab-pane
+        label="基础信息"
+        name="basicInfo"
+      />
+      <el-tab-pane
+        label="字段信息"
+        name="codeInfo"
+      />
+      <el-tab-pane
+        label="数据预览"
+        name="dataPreview"
+      />
+    </el-tabs>
+    <div class="info-container">
+      <component
+        :is="tabComponent"
+        ref="preTabRef"
+        :datasource-id="infoData.datasourceId"
+        :table-name="infoData.tableName"
+        @edit-event="editEvent"
+      />
+    </div>
+    <template #customLeft>
+      <el-button @click="closeEvent">
+        关闭
+      </el-button>
+      <el-button
+        v-if="activeName === 'basicInfo'"
+        type="primary"
+        :loading="exportLoading"
+        @click="refreshEvent"
+      >
+        刷新
+      </el-button>
+      <el-button
+        v-if="activeName === 'dataPreview'"
+        type="primary"
+        :loading="exportLoading"
+        @click="exportEvent"
+      >
+        导出
+      </el-button>
+    </template>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -31,7 +59,7 @@ import dataPreview from './data-preview.vue'
 import { ExportTableDetailData, RefreshTableDetailData } from '@/services/metadata-page.service'
 import { ElMessage } from 'element-plus'
 
-const emit = defineEmits(['editEvent'])
+const emit = defineEmits([ 'editEvent' ])
 
 const activeName = ref<string>('basicInfo')
 const exportLoading = ref<boolean>(false)
@@ -56,7 +84,9 @@ const modelConfig = reactive<any>({
 
 function showModal(data: any): void {
     activeName.value = 'basicInfo'
-    changeTypeEvent({ paneName: 'basicInfo' })
+    changeTypeEvent({
+ paneName: 'basicInfo' 
+})
     infoData.value = data
     modelConfig.visible = true
 }
@@ -75,13 +105,15 @@ function refreshEvent() {
     RefreshTableDetailData({
         datasourceId: infoData.value.datasourceId,
         tableName: infoData.value.tableName
-    }).then((res: any) => {
-        ElMessage.success('刷新成功')
-        exportLoading.value = false
-        preTabRef.value?.initData()
-    }).catch(() => {
-        exportLoading.value = false
     })
+        .then((res: any) => {
+            ElMessage.success('刷新成功')
+            exportLoading.value = false
+            preTabRef.value?.initData()
+        })
+        .catch(() => {
+            exportLoading.value = false
+        })
 }
 
 function exportEvent() {
@@ -89,23 +121,25 @@ function exportEvent() {
     ExportTableDetailData({
         datasourceId: infoData.value.datasourceId,
         tableName: infoData.value.tableName
-    }).then((res: any) => {
-        if (res.type === 'application/json') {
-            ElMessage.error('暂不支持10000条数据导出')
-        } else {
-            const blobURL = URL.createObjectURL(res)
-            // 创建一个链接元素并模拟点击下载
-            const link = document.createElement('a')
-            link.href = blobURL
-            link.download = `${infoData.value.tableName}.xls`  // 根据实际情况设置下载文件的名称和扩展名
-            link.click()
-            // 释放Blob URL
-            URL.revokeObjectURL(blobURL)
-        }
-        exportLoading.value = false
-    }).catch(() => {
-        exportLoading.value = false
     })
+        .then((res: any) => {
+            if (res.type === 'application/json') {
+                ElMessage.error('暂不支持10000条数据导出')
+            } else {
+                const blobURL = URL.createObjectURL(res)
+                // 创建一个链接元素并模拟点击下载
+                const link = document.createElement('a')
+                link.href = blobURL
+                link.download = `${infoData.value.tableName}.xls` // 根据实际情况设置下载文件的名称和扩展名
+                link.click()
+                // 释放Blob URL
+                URL.revokeObjectURL(blobURL)
+            }
+            exportLoading.value = false
+        })
+        .catch(() => {
+            exportLoading.value = false
+        })
 }
 
 function closeEvent() {
@@ -137,7 +171,6 @@ defineExpose({
                 background-color: getCssVar('border-color');
                 height: 1px;
             }
-
         }
 
         .info-container {
@@ -159,7 +192,7 @@ defineExpose({
                 cursor: pointer;
                 color: getCssVar('color', 'primary', 'light-5');
                 &:hover {
-                color: getCssVar('color', 'primary');;
+                    color: getCssVar('color', 'primary');
                 }
             }
         }

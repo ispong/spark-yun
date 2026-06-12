@@ -1,58 +1,59 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia'
 
 interface AuthState {
-  userInfo: Record<string, any>
-  token: string
-  tenantId: string
-  role: string
-  currentMenu: string
-  isCollapse: boolean
+    userInfo: Record<string, any>
+    token: string
+    tenantId: string
+    role: string
+    currentMenu: string
+    isCollapse: boolean
 }
 
 interface AuthResponse {
-  token?: string
-  tenantId?: string
-  role?: string
-  [key: string]: any
+    token?: string
+    tenantId?: string
+    role?: string
+    [key: string]: any
 }
 
 export const useAuthStore = defineStore('authStore', {
-  state: (): AuthState => ({
-    userInfo: {},
-    token: '',
-    tenantId: '',
-    role: '',
-    currentMenu: '',
-    isCollapse: false
-  }),
-  actions: {
-    setUserInfo(this: AuthState, userInfo: Record<string, any>): void {
-      this.userInfo = userInfo
+    state: (): AuthState => ({
+        userInfo: {
+},
+        token: '',
+        tenantId: '',
+        role: '',
+        currentMenu: '',
+        isCollapse: false
+    }),
+    actions: {
+        setUserInfo(this: AuthState, userInfo: Record<string, any>): void {
+            this.userInfo = userInfo
+        },
+        setToken(this: AuthState, data: string): void {
+            this.token = data
+        },
+        setTenantId(this: AuthState, tenantId: string): void {
+            this.tenantId = tenantId
+        },
+        setRole(this: AuthState, role: string): void {
+            this.role = role
+        },
+        setCurrentMenu(this: AuthState, menu: string): void {
+            this.currentMenu = menu
+        },
+        setCollapse(this: AuthState, isCollapse: boolean): void {
+            this.isCollapse = isCollapse
+        },
+        applyAuthResponse(this: AuthState, data: AuthResponse): void {
+            this.userInfo = {
+                ...this.userInfo,
+                ...data
+            }
+            this.token = data.token || ''
+            this.tenantId = data.tenantId || ''
+            this.role = data.role || ''
+        }
     },
-    setToken(this: AuthState, data: string): void {
-      this.token = data
-    },
-    setTenantId(this: AuthState, tenantId: string): void {
-      this.tenantId = tenantId
-    },
-    setRole(this: AuthState, role: string): void {
-      this.role = role
-    },
-    setCurrentMenu(this: AuthState, menu: string): void {
-      this.currentMenu = menu
-    },
-    setCollapse(this: AuthState, isCollapse: boolean): void {
-      this.isCollapse = isCollapse
-    },
-    applyAuthResponse(this: AuthState, data: AuthResponse): void {
-      this.userInfo = {
-        ...this.userInfo,
-        ...data
-      }
-      this.token = data.token || ''
-      this.tenantId = data.tenantId || ''
-      this.role = data.role || ''
-    }
-  },
-  persist: true
+    persist: true
 })

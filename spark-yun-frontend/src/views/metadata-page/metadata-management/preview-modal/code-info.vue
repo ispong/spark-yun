@@ -1,39 +1,42 @@
 <template>
-    <BlockTable :table-config="tableConfig">
-        <template #options="scopeSlot">
-            <div class="btn-group">
-                <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
-                <span @click="editEvent(scopeSlot.row)">备注</span>
-            </div>
-        </template>
-    </BlockTable>
-    <DataLineage :isCode="true" ref="dataLineageRef"></DataLineage>
+  <BlockTable :table-config="tableConfig">
+    <template #options="scopeSlot">
+      <div class="btn-group">
+        <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
+        <span @click="editEvent(scopeSlot.row)">备注</span>
+      </div>
+    </template>
+  </BlockTable>
+  <DataLineage
+    ref="dataLineageRef"
+    :is-code="true"
+  />
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, defineEmits, defineProps, reactive } from 'vue'
-import { GetTableCodeInfo, GetDataLineageByCode  } from '@/services/metadata-page.service';
+import { GetTableCodeInfo, GetDataLineageByCode } from '@/services/metadata-page.service'
 import DataLineage from '../data-lineage/index.vue'
 
 interface colConfig {
-    prop?: string;
-    title: string;
-    align?: string;
-    showOverflowTooltip?: boolean;
-    customSlot?: string;
-    width?: number;
-    minWidth?: number;
+    prop?: string
+    title: string
+    align?: string
+    showOverflowTooltip?: boolean
+    customSlot?: string
+    width?: number
+    minWidth?: number
     formatter?: any
 }
 
 interface TableConfig {
-    tableData: Array<any>;
-    colConfigs: Array<colConfig>;
-    seqType: string;
-    loading?: boolean; // 表格loading
+    tableData: Array<any>
+    colConfigs: Array<colConfig>
+    seqType: string
+    loading?: boolean // 表格loading
 }
 
-const guid = function () {
+const guid = function() {
     function S4() {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
@@ -41,11 +44,11 @@ const guid = function () {
 }
 
 const props = defineProps<{
-    datasourceId: string,
+    datasourceId: string
     tableName: string
 }>()
 
-const emit = defineEmits(['editEvent'])
+const emit = defineEmits([ 'editEvent' ])
 
 const normalCol = [
     {
@@ -124,13 +127,15 @@ function initData() {
     GetTableCodeInfo({
         datasourceId: props.datasourceId,
         tableName: props.tableName
-    }).then((res: any) => {
-        tableConfig.tableData = res.data
-        tableConfig.loading = false
-    }).catch(() => {
-        tableConfig.tableData = []
-        tableConfig.loading = false
     })
+        .then((res: any) => {
+            tableConfig.tableData = res.data
+            tableConfig.loading = false
+        })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.loading = false
+        })
 }
 
 function editEvent(data: any) {
@@ -144,27 +149,33 @@ function editEvent(data: any) {
 }
 
 function dataLineageEvent(data: any) {
-    dataLineageRef.value.showModal(data, (params?: any) => {
-        return new Promise((resolve: any, reject: any) => {
-            let requestParams = {
-                dbId: data.datasourceId,
-                tableName: data.tableName,
-                columnName: data.columnName,
-                lineageType: 'SON'
-            }
-            if (params) {
-                requestParams.dbId = params.data.dbId
-                requestParams.tableName = params.data.tableName,
-                requestParams.columnName = params.data.columnName,
-                requestParams.lineageType = params.lineageType
-            }
-            GetDataLineageByCode(requestParams).then((res: any) => {
-                resolve(getFinalData(res.data, 'code'))
-            }).catch((error: any) => {
-                reject(error)
+    dataLineageRef.value.showModal(
+        data,
+        (params?: any) => {
+            return new Promise((resolve: any, reject: any) => {
+                let requestParams = {
+                    dbId: data.datasourceId,
+                    tableName: data.tableName,
+                    columnName: data.columnName,
+                    lineageType: 'SON'
+                }
+                if (params) {
+                    requestParams.dbId = params.data.dbId
+                    ;(requestParams.tableName = params.data.tableName),
+                        (requestParams.columnName = params.data.columnName),
+                        (requestParams.lineageType = params.lineageType)
+                }
+                GetDataLineageByCode(requestParams)
+                    .then((res: any) => {
+                        resolve(getFinalData(res.data, 'code'))
+                    })
+                    .catch((error: any) => {
+                        reject(error)
+                    })
             })
-        })
-    }, 'code')
+        },
+        'code'
+    )
 }
 
 // 递归格式化树节点数据

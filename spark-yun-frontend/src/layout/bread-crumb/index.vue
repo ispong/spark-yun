@@ -23,29 +23,29 @@ import { ArrowRight } from '@element-plus/icons-vue'
 import { defineProps, withDefaults } from 'vue'
 
 interface BreadCrumb {
-  name: string;
-  code: string;
-  hidden?: boolean;
-  query?: any;
+    name: string
+    code: string
+    hidden?: boolean
+    query?: any
 }
 
 const props: any = withDefaults(
-  defineProps<{
-    breadCrumbList: any;
-  }>(),
-  {
-    breadCrumbList: []
-  }
+    defineProps<{
+        breadCrumbList: any
+    }>(),
+    {
+        breadCrumbList: []
+    }
 )
 </script>
 
 <style lang="scss">
 .zqy-breadcrumb {
-  height: 55px;
-  display: flex;
-  align-items: center;
-  padding-left: 20px;
-  background-color: getCssVar('color', 'white');
-  border-bottom: 1px solid getCssVar('border-color');
+    height: 55px;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    background-color: getCssVar('color', 'white');
+    border-bottom: 1px solid getCssVar('border-color');
 }
 </style>

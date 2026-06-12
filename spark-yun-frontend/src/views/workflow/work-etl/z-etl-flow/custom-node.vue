@@ -1,34 +1,56 @@
 <template>
-    <div class="etl-flow-node" :class="status" @mousedown="onMouseDown" @click="onClick">
-        <div class="flow-node-container" ref="content">
-            <el-tooltip
-                placement="top"
-                :show-after="300"
-            >
-                <template #content>
-                    <div>名称：{{ nodeConfigData?.name || '-' }}</div>
-                    <div>编码：{{ nodeConfigData?.aliaCode || '-' }}</div>
-                    <div>备注：{{ nodeConfigData?.remark || '暂无备注' }}</div>
-                </template>
-                <div class="info-container">
-                    <el-icon class="node-icon"><component :is="nodeIcon" /></el-icon>
-                    <span class="node-name">{{ nodeConfigData?.name || '-' }}</span>
-                </div>
-            </el-tooltip>
-            <el-icon class="node-edit-icon" @click.stop="handleCommand('task_edit')">
-                <component :is="EditIcon" />
-            </el-icon>
+  <div
+    class="etl-flow-node"
+    :class="status"
+    @mousedown="onMouseDown"
+    @click="onClick"
+  >
+    <div
+      ref="content"
+      class="flow-node-container"
+    >
+      <el-tooltip
+        placement="top"
+        :show-after="300"
+      >
+        <template #content>
+          <div>名称：{{ nodeConfigData?.name || '-' }}</div>
+          <div>编码：{{ nodeConfigData?.aliaCode || '-' }}</div>
+          <div>备注：{{ nodeConfigData?.remark || '暂无备注' }}</div>
+        </template>
+        <div class="info-container">
+          <el-icon class="node-icon">
+            <component :is="nodeIcon" />
+          </el-icon>
+          <span class="node-name">{{ nodeConfigData?.name || '-' }}</span>
         </div>
+      </el-tooltip>
+      <el-icon
+        class="node-edit-icon"
+        @click.stop="handleCommand('task_edit')"
+      >
+        <component :is="EditIcon" />
+      </el-icon>
     </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { inject, onMounted, ref, computed, markRaw, type Component } from 'vue'
 import { ElIcon } from 'element-plus'
-import { Download, Upload, Link, CopyDocument, Filter, Switch, CirclePlus, SetUp, Document, Edit } from '@element-plus/icons-vue'
+import { Download,
+    Upload,
+    Link,
+    CopyDocument,
+    Filter,
+    Switch,
+    CirclePlus,
+    SetUp,
+    Document,
+    Edit } from '@element-plus/icons-vue'
 
 const EditIcon = markRaw(Edit)
-import { RunAfterFlowData } from '@/services/workflow.service';
+import { RunAfterFlowData } from '@/services/workflow.service'
 import eventBus from '@/utils/eventBus'
 
 const getGraph = inject('getGraph')
@@ -39,7 +61,8 @@ const node = ref()
 const status = ref('')
 const isRunning = ref(false)
 const showMenu = ref(false)
-const nodeConfigData = ref({})
+const nodeConfigData = ref({
+})
 
 const nodeIconMap: Record<string, Component> = {
     DATA_INPUT: markRaw(Download),
@@ -49,7 +72,7 @@ const nodeIconMap: Record<string, Component> = {
     DATA_FILTER: markRaw(Filter),
     DATA_TRANSFORM: markRaw(Switch),
     DATA_ADD_COL: markRaw(CirclePlus),
-    DATA_CUSTOM: markRaw(SetUp),
+    DATA_CUSTOM: markRaw(SetUp)
 }
 
 const nodeIcon = computed(() => {
@@ -57,10 +80,14 @@ const nodeIcon = computed(() => {
 })
 
 let Node
-const mouseDownPos = ref({ x: 0, y: 0 })
+const mouseDownPos = ref({
+ x: 0, y: 0 
+})
 
 function onMouseDown(e: MouseEvent) {
-    mouseDownPos.value = { x: e.clientX, y: e.clientY }
+    mouseDownPos.value = {
+ x: e.clientX, y: e.clientY 
+}
 }
 
 function onClick(e: MouseEvent) {
@@ -83,11 +110,12 @@ onMounted(() => {
     node.value = Node = getNode()
     name.value = node.value.data.name
     nodeConfigData.value = node.value.data.nodeConfigData
-    node.value.on('change:data', ({ current }) => {
+    node.value.on('change:data', ({
+ current 
+}) => {
         nodeConfigData.value = current.nodeConfigData
     })
 })
-
 </script>
 
 <style lang="scss">
@@ -173,7 +201,7 @@ p {
     font-size: 20px;
     width: 20px;
     height: 20px;
-    background-color: #5F95FF;
+    background-color: #5f95ff;
     border-radius: 50%;
     cursor: pointer;
     color: #ffffff;
@@ -203,7 +231,7 @@ p {
     border-left: 4px solid #52c41a;
 }
 .zqy-flow-node.PENDING {
-    border-left: 4px solid #F5B041;
+    border-left: 4px solid #f5b041;
 }
 .zqy-flow-node.BREAK {
     border-left: 4px solid #3f3a24;
@@ -244,7 +272,7 @@ p {
 }
 
 .x6-node-selected .zqy-flow-node.PENDING {
-    border-color: #F5B041;
+    border-color: #f5b041;
     border-radius: 2px;
     box-shadow: 0 0 0 4px #ffe1b4;
 }

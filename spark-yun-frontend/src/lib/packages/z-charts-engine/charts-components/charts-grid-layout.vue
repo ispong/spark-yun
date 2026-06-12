@@ -1,50 +1,53 @@
 <template>
-    <div class="charts-components" id="chartsComponentsInstance">
-        <el-scrollbar>
-            <template v-if="componentList.length">
-                <grid-layout
-                    ref="gridlayoutRef"
-                    v-model:layout="componentList"
-                    :col-num="colNum"
-                    :row-height="10"
-                    :is-draggable="renderSence !== 'readonly'"
-                    :is-resizable="renderSence !== 'readonly'"
-                    :is-mirrored="false"
-                    :vertical-compact="true"
-                    :margin="[12, 12]"
-                    :use-css-transforms="true"
-                    @layout-updated="layoutUpdatedEvent"
-                >
-                    <grid-item
-                        v-for="(item, index) in componentList"
-                        :ref="(el) => gridItemRef[index] = el"
-                        :x="item.x"
-                        :y="item.y"
-                        :w="item.w"
-                        :h="item.h"
-                        :i="item.i"
-                        :minW="30"
-                        :minH="15"
-                        :key="item.i"
-                        :static="false"
-                        @resize="resizeEvent($event, index)"
-                    >
-                        <ChartsItem
-                            :ref="el => chartsItemRef[index] = el"
-                            :renderSence="renderSence"
-                            :config="item"
-                            :getPreviewOption="getPreviewOption"
-                            :getRealDataOption="getRealDataOption"
-                            @removeChart="removeChart"
-                        ></ChartsItem>
-                    </grid-item>
-                </grid-layout>
-            </template>
-            <template v-else>
-                <EmptyPage></EmptyPage>
-            </template>
-        </el-scrollbar>
-    </div>
+  <div
+    id="chartsComponentsInstance"
+    class="charts-components"
+  >
+    <el-scrollbar>
+      <template v-if="componentList.length">
+        <grid-layout
+          ref="gridlayoutRef"
+          v-model:layout="componentList"
+          :col-num="colNum"
+          :row-height="10"
+          :is-draggable="renderSence !== 'readonly'"
+          :is-resizable="renderSence !== 'readonly'"
+          :is-mirrored="false"
+          :vertical-compact="true"
+          :margin="[12, 12]"
+          :use-css-transforms="true"
+          @layout-updated="layoutUpdatedEvent"
+        >
+          <grid-item
+            v-for="(item, index) in componentList"
+            :ref="(el) => (gridItemRef[index] = el)"
+            :key="item.i"
+            :x="item.x"
+            :y="item.y"
+            :w="item.w"
+            :h="item.h"
+            :i="item.i"
+            :min-w="30"
+            :min-h="15"
+            :static="false"
+            @resize="resizeEvent($event, index)"
+          >
+            <ChartsItem
+              :ref="(el) => (chartsItemRef[index] = el)"
+              :render-sence="renderSence"
+              :config="item"
+              :get-preview-option="getPreviewOption"
+              :get-real-data-option="getRealDataOption"
+              @remove-chart="removeChart"
+            />
+          </grid-item>
+        </grid-layout>
+      </template>
+      <template v-else>
+        <EmptyPage />
+      </template>
+    </el-scrollbar>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -64,7 +67,7 @@ interface ChartLayout {
     h: number
     i: string
     active: boolean
-    option: any,
+    option: any
     webConfig?: any
 }
 
@@ -79,23 +82,31 @@ interface DragPos {
     h: number
     i: string
 }
-const props = defineProps(['renderSence', 'chartList', 'getPreviewOption', 'getRealDataOption'])
+const props = defineProps([ 'renderSence', 'chartList', 'getPreviewOption', 'getRealDataOption' ])
 
-const emit = defineEmits(['update:modelValue', 'componentListChange', 'chooseItem', 'removeInstance'])
+const emit = defineEmits([ 'update:modelValue', 'componentListChange', 'chooseItem', 'removeInstance' ])
 const colNum = ref(300)
 const chartsItemRef = ref<any[]>([])
 const gridlayoutRef = ref()
 const gridItemRef = ref<any[]>([])
 const componentList = ref<ChartLayout[]>([])
 
-watch(() => props.chartList, (v) => {
-    componentList.value = v
-}, {
-    immediate: true
-})
+watch(
+    () => props.chartList,
+    (v) => {
+        componentList.value = v
+    },
+    {
+        immediate: true
+    }
+)
 
-let mouseXY: MouseXY = {"x": null, "y": null};
-let DragPos: DragPos = {"x": null, "y": null, "w": 1, "h": 1, "i": null};
+let mouseXY: MouseXY = {
+ x: null, y: null 
+}
+let DragPos: DragPos = {
+ x: null, y: null, w: 1, h: 1, i: null 
+}
 
 function layoutUpdatedEvent(newLayout: any) {
     // console.log('newLayout', newLayout)
@@ -107,7 +118,11 @@ function resizeEvent(e: any, index: number) {
 
 function resizeAllCharts() {
     componentList.value.forEach((chart: any, index: number) => {
-        if (chartsItemRef.value[index] && chartsItemRef.value[index].resizeChart && chartsItemRef.value[index].resizeChart instanceof Function) {
+        if (
+            chartsItemRef.value[index] &&
+            chartsItemRef.value[index].resizeChart &&
+            chartsItemRef.value[index].resizeChart instanceof Function
+        ) {
             chartsItemRef.value[index].resizeChart()
         }
     })
@@ -119,38 +134,45 @@ function startMoveEvent(e: any) {
         return
     }
     let mouseInGrid = false
-    if (((mouseXY.x > parentRect.left) && (mouseXY.x < parentRect.right)) && ((mouseXY.y > parentRect.top) && (mouseXY.y < parentRect.bottom))) {
-        mouseInGrid = true;
+    if (
+        mouseXY.x > parentRect.left &&
+        mouseXY.x < parentRect.right &&
+        mouseXY.y > parentRect.top &&
+        mouseXY.y < parentRect.bottom
+    ) {
+        mouseInGrid = true
     }
-    if (mouseInGrid === true && (componentList.value.findIndex(item => item.i === 'drop')) === -1) {
+    if (mouseInGrid === true && componentList.value.findIndex((item) => item.i === 'drop') === -1) {
         componentList.value.push({
             ...e,
-            x: (componentList.value.length * 2) % (colNum.value),
-            y: componentList.value.length + (colNum.value),
+            x: (componentList.value.length * 2) % colNum.value,
+            y: componentList.value.length + colNum.value,
             i: 'drop'
         })
         console.log('这里塞值', componentList.value)
     }
-    let index = componentList.value.findIndex(item => item.i === 'drop')
+    let index = componentList.value.findIndex((item) => item.i === 'drop')
     if (index !== -1) {
         nextTick(() => {
             try {
-                gridItemRef.value[componentList.value.length - 1].style.display = "none"
+                gridItemRef.value[componentList.value.length - 1].style.display = 'none'
             } catch (error) {
                 console.error('拖拽获取子图表报错', error)
             }
             let el: any = gridItemRef.value[index]
-            el.dragging = {"top": mouseXY.y - parentRect.top, "left": mouseXY.x - parentRect.left};
-            let new_pos = el.calcXY(mouseXY.y - parentRect.top, mouseXY.x - parentRect.left);
+            el.dragging = {
+ top: mouseXY.y - parentRect.top, left: mouseXY.x - parentRect.left 
+}
+            let new_pos = el.calcXY(mouseXY.y - parentRect.top, mouseXY.x - parentRect.left)
             if (mouseInGrid === true) {
-                gridlayoutRef.value.dragEvent('dragstart', 'drop', new_pos.x, new_pos.y, 1, 1);
-                DragPos.i = String(index);
-                DragPos.x = componentList.value[index].x;
-                DragPos.y = componentList.value[index].y;
+                gridlayoutRef.value.dragEvent('dragstart', 'drop', new_pos.x, new_pos.y, 1, 1)
+                DragPos.i = String(index)
+                DragPos.x = componentList.value[index].x
+                DragPos.y = componentList.value[index].y
             }
             if (mouseInGrid === false) {
-                gridlayoutRef.value.dragEvent('dragend', 'drop', new_pos.x, new_pos.y, 1, 1);
-                componentList.value = componentList.value.filter(obj => obj.i !== 'drop');
+                gridlayoutRef.value.dragEvent('dragend', 'drop', new_pos.x, new_pos.y, 1, 1)
+                componentList.value = componentList.value.filter((obj) => obj.i !== 'drop')
             }
         })
     }
@@ -160,19 +182,23 @@ function endMoveEvent(e: any) {
     if (!parentRect) {
         return
     }
-    let mouseInGrid = false;
-    if (((mouseXY.x > parentRect.left) && (mouseXY.x < parentRect.right)) && ((mouseXY.y > parentRect.top) && (mouseXY.y < parentRect.bottom))) {
-        mouseInGrid = true;
+    let mouseInGrid = false
+    if (
+        mouseXY.x > parentRect.left &&
+        mouseXY.x < parentRect.right &&
+        mouseXY.y > parentRect.top &&
+        mouseXY.y < parentRect.bottom
+    ) {
+        mouseInGrid = true
     }
     if (mouseInGrid === true) {
-
-        componentList.value = componentList.value.filter(obj => obj.i !== 'drop');
+        componentList.value = componentList.value.filter((obj) => obj.i !== 'drop')
         componentList.value.push({
             ...e,
             x: DragPos.x,
             y: DragPos.y
-        });
-        gridlayoutRef.value.dragEvent('dragend', DragPos.i, DragPos.x,DragPos.y,1,1);
+        })
+        gridlayoutRef.value.dragEvent('dragend', DragPos.i, DragPos.x, DragPos.y, 1, 1)
         try {
             gridItemRef.value[componentList.value.length - 1].style.display = 'block'
         } catch (error) {
@@ -190,10 +216,14 @@ function getComponentList(): ChartLayout[] {
 }
 
 onMounted(() => {
-    document.addEventListener("dragover", function (e) {
-        mouseXY.x = e.clientX;
-        mouseXY.y = e.clientY;
-    }, false);
+    document.addEventListener(
+        'dragover',
+        function(e) {
+            mouseXY.x = e.clientX
+            mouseXY.y = e.clientY
+        },
+        false
+    )
 })
 
 defineExpose({
@@ -279,6 +309,6 @@ defineExpose({
         // -ms-user-select: none;
         // -o-user-select: none;
         // user-select: none;
-    }  
+    }
 }
 </style>

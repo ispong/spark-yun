@@ -1,33 +1,52 @@
 <template>
-    <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
-        <div class="zqy-table-top">
-            <el-button type="primary" @click="addData">
-                新建函数
-            </el-button>
-            <div class="zqy-seach">
-                <el-input v-model="keyword" placeholder="请输入备注 回车进行搜索" :maxlength="200" clearable @input="inputEvent"
-                    @keyup.enter="initData(false)" />
-            </div>
-        </div>
-        <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
-            <div class="zqy-table">
-                <BlockTable :table-config="tableConfig" @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange">
-                    <template #funcName="scopeSlot">
-                        <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.funcName }}</span>
-                    </template>
-                    <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <span @click="editData(scopeSlot.row)">编辑</span>
-                            <span @click="deleteData(scopeSlot.row)">删除</span>
-                        </div>
-                    </template>
-                </BlockTable>
-            </div>
-        </LoadingPage>
-        <AddModal ref="addModalRef" />
+  <Breadcrumb :bread-crumb-list="breadCrumbList" />
+  <div class="zqy-seach-table">
+    <div class="zqy-table-top">
+      <el-button
+        type="primary"
+        @click="addData"
+      >
+        新建函数
+      </el-button>
+      <div class="zqy-seach">
+        <el-input
+          v-model="keyword"
+          placeholder="请输入备注 回车进行搜索"
+          :maxlength="200"
+          clearable
+          @input="inputEvent"
+          @keyup.enter="initData(false)"
+        />
+      </div>
     </div>
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="initData(false)"
+    >
+      <div class="zqy-table">
+        <BlockTable
+          :table-config="tableConfig"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        >
+          <template #funcName="scopeSlot">
+            <span
+              class="name-click"
+              @click="editData(scopeSlot.row)"
+            >{{ scopeSlot.row.funcName }}</span>
+          </template>
+          <template #options="scopeSlot">
+            <div class="btn-group">
+              <span @click="editData(scopeSlot.row)">编辑</span>
+              <span @click="deleteData(scopeSlot.row)">删除</span>
+            </div>
+          </template>
+        </BlockTable>
+      </div>
+    </LoadingPage>
+    <AddModal ref="addModalRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -38,7 +57,10 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './custom-func.config'
-import { GetCustomFuncList, SaveCustomFuncData, UpdateCustomFuncData, DeleteFuncData } from '@/services/custom-func.service'
+import { GetCustomFuncList,
+    SaveCustomFuncData,
+    UpdateCustomFuncData,
+    DeleteFuncData } from '@/services/custom-func.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 
@@ -51,19 +73,19 @@ const addModalRef = ref(null)
 const typeList = ref([
     {
         label: '作业',
-        value: 'JOB',
+        value: 'JOB'
     },
     {
         label: '函数',
-        value: 'FUNC',
+        value: 'FUNC'
     },
     {
         label: '依赖',
-        value: 'LIB',
+        value: 'LIB'
     },
     {
         label: 'Excel',
-        value: 'EXCEL',
+        value: 'EXCEL'
     }
 ])
 
@@ -94,26 +116,30 @@ function initData(tableLoading?: boolean) {
 function addData() {
     addModalRef.value.showModal((data: any) => {
         return new Promise((resolve: any, reject: any) => {
-            SaveCustomFuncData(data).then((res: any) => {
-                ElMessage.success(res.msg)
-                initData()
-                resolve()
-            }).catch((error: any) => {
-                reject(error)
-            })
+            SaveCustomFuncData(data)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     })
 }
 function editData(data: any) {
     addModalRef.value.showModal((data: any) => {
         return new Promise((resolve: any, reject: any) => {
-            UpdateCustomFuncData(data).then((res: any) => {
-                ElMessage.success(res.msg)
-                initData()
-                resolve()
-            }).catch((error: any) => {
-                reject(error)
-            })
+            UpdateCustomFuncData(data)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     }, data)
 }
@@ -127,10 +153,12 @@ function deleteData(data: any) {
     }).then(() => {
         DeleteFuncData({
             id: data.id
-        }).then((res: any) => {
-            ElMessage.success(res.msg)
-            initData()
-        }).catch(() => { })
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch(() => {})
     })
 }
 

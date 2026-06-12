@@ -59,7 +59,10 @@
             </el-tag>
           </template>
           <template #options="scopeSlot">
-            <div v-if="scopeSlot.row.roleCode !== 'ROLE_TENANT_ADMIN'" class="btn-group">
+            <div
+              v-if="scopeSlot.row.roleCode !== 'ROLE_TENANT_ADMIN'"
+              class="btn-group"
+            >
               <template v-if="!scopeSlot.row.normalAdmin">
                 <span
                   v-if="!scopeSlot.row.authLoading"
@@ -76,7 +79,9 @@
                 <span
                   v-if="!scopeSlot.row.authLoading"
                   @click="removeAuth(scopeSlot.row)"
-                >取消授权</span>
+                >
+                  取消授权
+                </span>
                 <el-icon
                   v-else
                   class="is-loading"
@@ -90,21 +95,40 @@
               </span>
               <span @click="deleteData(scopeSlot.row)">移除</span>
             </div>
-            <span v-else class="tenant-admin-tip">平台管理维护</span>
+            <span
+              v-else
+              class="tenant-admin-tip"
+            >平台管理维护</span>
           </template>
         </BlockTable>
       </div>
     </LoadingPage>
     <AddModal ref="addModalRef" />
-    <el-dialog v-model="roleDialogVisible" title="分配业务角色" width="480px">
+    <el-dialog
+      v-model="roleDialogVisible"
+      title="分配业务角色"
+      width="480px"
+    >
       <el-checkbox-group v-model="selectedRoleIds">
-        <el-checkbox v-for="role in availableRoles" :key="role.id" :label="role.id">
+        <el-checkbox
+          v-for="role in availableRoles"
+          :key="role.id"
+          :label="role.id"
+        >
           {{ role.name }}
         </el-checkbox>
       </el-checkbox-group>
       <template #footer>
-        <el-button @click="roleDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="roleSaving" @click="saveMemberRoles">保存</el-button>
+        <el-button @click="roleDialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="roleSaving"
+          @click="saveMemberRoles"
+        >
+          保存
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -118,15 +142,13 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './tenant-user.config'
-import {
-  GetUserList,
-  AddTenantUserData,
-  DeleteTenantUser,
-  GiveAuth,
-  RemoveAuth,
-  SetMemberRoles,
-  SetTenantMemberStatus
-} from '@/services/tenant-user.service'
+import { GetUserList,
+    AddTenantUserData,
+    DeleteTenantUser,
+    GiveAuth,
+    RemoveAuth,
+    SetMemberRoles,
+    SetTenantMemberStatus } from '@/services/tenant-user.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { useSwitchTenant } from '@/hooks/switch-tenant'
@@ -134,8 +156,8 @@ import { useAuthStore } from '@/store/useAuth'
 import { ListRole } from '@/services/authorization.service'
 
 interface FormUser {
-  isTenantAdmin: boolean;
-  userId: string;
+    isTenantAdmin: boolean
+    userId: string
 }
 
 const breadCrumbList = reactive(BreadCrumbList)
@@ -151,202 +173,204 @@ const selectedRoleIds = ref<string[]>([])
 const selectedMember = ref<any>()
 const availableRoles = ref<any[]>([])
 
-const { currentTenant, tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
+const {
+ currentTenant, tenantList, initSwitchTenant, onTenantChange 
+} = useSwitchTenant()
 
 function initData(tableLoading?: boolean) {
-  if (!currentTenant.value.id) {
-    tableConfig.tableData = []
-    tableConfig.pagination.total = 0
-    loading.value = false
-    tableConfig.loading = false
-    networkError.value = false
-    return
-  }
-
-  loading.value = tableLoading ? false : true
-  networkError.value = networkError.value || false
-  GetUserList({
-    page: tableConfig.pagination.currentPage - 1,
-    pageSize: tableConfig.pagination.pageSize,
-    searchKeyWord: keyword.value,
-    tenantId: currentTenant.value.id
-  })
-    .then((res: any) => {
-      tableConfig.tableData = res.data.content
-      tableConfig.pagination.total = res.data.totalElements
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = false
-    })
-    .catch(() => {
-      tableConfig.tableData = []
-      tableConfig.pagination.total = 0
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = true
-    })
-}
-
-function initDefaultTenantUserData() {
-  initSwitchTenant()
-    .then(() => {
-      if (!tenantList.value.length) {
+    if (!currentTenant.value.id) {
         tableConfig.tableData = []
         tableConfig.pagination.total = 0
         loading.value = false
         tableConfig.loading = false
         networkError.value = false
         return
-      }
-      const activeTenant = tenantList.value.find(item => item.id === authStore.tenantId) || tenantList.value[0]
-      onTenantChange(activeTenant.id)
-      initData()
+    }
+
+    loading.value = tableLoading ? false : true
+    networkError.value = networkError.value || false
+    GetUserList({
+        page: tableConfig.pagination.currentPage - 1,
+        pageSize: tableConfig.pagination.pageSize,
+        searchKeyWord: keyword.value,
+        tenantId: currentTenant.value.id
     })
-    .catch(() => {
-      tableConfig.tableData = []
-      tableConfig.pagination.total = 0
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = true
-    })
+        .then((res: any) => {
+            tableConfig.tableData = res.data.content
+            tableConfig.pagination.total = res.data.totalElements
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
+        })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
+}
+
+function initDefaultTenantUserData() {
+    initSwitchTenant()
+        .then(() => {
+            if (!tenantList.value.length) {
+                tableConfig.tableData = []
+                tableConfig.pagination.total = 0
+                loading.value = false
+                tableConfig.loading = false
+                networkError.value = false
+                return
+            }
+            const activeTenant = tenantList.value.find((item) => item.id === authStore.tenantId) || tenantList.value[0]
+            onTenantChange(activeTenant.id)
+            initData()
+        })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
 }
 
 function addData() {
-  addModalRef.value.showModal((formData: FormUser) => {
-    return new Promise((resolve: any, reject: any) => {
-      AddTenantUserData({
-        ...formData,
-        tenantId: currentTenant.value.id
-      })
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
-        })
-        .catch((error: any) => {
-          reject(error)
+    addModalRef.value.showModal((formData: FormUser) => {
+        return new Promise((resolve: any, reject: any) => {
+            AddTenantUserData({
+                ...formData,
+                tenantId: currentTenant.value.id
+            })
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     })
-  })
 }
 
 // 授权
 function giveAuth(data: any) {
-  data.authLoading = true
-  GiveAuth({
-    tenantUserId: data.id
-  })
-    .then((res: any) => {
-      data.authLoading = false
-      ElMessage.success(res.msg)
-      initData(true)
+    data.authLoading = true
+    GiveAuth({
+        tenantUserId: data.id
     })
-    .catch(() => {
-      data.authLoading = false
-    })
+        .then((res: any) => {
+            data.authLoading = false
+            ElMessage.success(res.msg)
+            initData(true)
+        })
+        .catch(() => {
+            data.authLoading = false
+        })
 }
 
 // 取消授权
 function removeAuth(data: any) {
-  data.authLoading = true
-  RemoveAuth({
-    tenantUserId: data.id
-  })
-    .then((res: any) => {
-      data.authLoading = false
-      ElMessage.success(res.msg)
-      initData(true)
+    data.authLoading = true
+    RemoveAuth({
+        tenantUserId: data.id
     })
-    .catch(() => {
-      data.authLoading = false
-    })
+        .then((res: any) => {
+            data.authLoading = false
+            ElMessage.success(res.msg)
+            initData(true)
+        })
+        .catch(() => {
+            data.authLoading = false
+        })
 }
 
 function changeMemberStatus(data: any) {
-  SetTenantMemberStatus({
-    tenantUserId: data.id,
-    status: data.status === 'ENABLE' ? 'DISABLE' : 'ENABLE'
-  }).then((res: any) => {
-    ElMessage.success(res.msg)
-    initData(true)
-  })
+    SetTenantMemberStatus({
+        tenantUserId: data.id,
+        status: data.status === 'ENABLE' ? 'DISABLE' : 'ENABLE'
+    }).then((res: any) => {
+        ElMessage.success(res.msg)
+        initData(true)
+    })
 }
 
 function openRoleDialog(data: any) {
-  selectedMember.value = data
-  selectedRoleIds.value = [...(data.roleIds || [])]
-  roleDialogVisible.value = true
+    selectedMember.value = data
+    selectedRoleIds.value = [ ...(data.roleIds || []) ]
+    roleDialogVisible.value = true
 }
 
 function saveMemberRoles() {
-  roleSaving.value = true
-  SetMemberRoles({
-    userId: selectedMember.value.userId,
-    roleIds: selectedRoleIds.value
-  })
-    .then((res: any) => {
-      ElMessage.success(res.msg)
-      roleDialogVisible.value = false
-      initData(true)
+    roleSaving.value = true
+    SetMemberRoles({
+        userId: selectedMember.value.userId,
+        roleIds: selectedRoleIds.value
     })
-    .finally(() => {
-      roleSaving.value = false
-    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            roleDialogVisible.value = false
+            initData(true)
+        })
+        .finally(() => {
+            roleSaving.value = false
+        })
 }
 
 // 删除
 function deleteData(data: any) {
-  ElMessageBox.confirm('确定移除该成员吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    DeleteTenantUser({
-      tenantUserId: data.id
+    ElMessageBox.confirm('确定移除该成员吗？', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        DeleteTenantUser({
+            tenantUserId: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch(() => {})
     })
-      .then((res: any) => {
-        ElMessage.success(res.msg)
-        initData()
-      })
-      .catch(() => {})
-  })
 }
 
 function inputEvent(e: string) {
-  if (e === '') {
-    initData()
-  }
+    if (e === '') {
+        initData()
+    }
 }
 
 function handleSizeChange(e: number) {
-  tableConfig.pagination.pageSize = e
-  initData()
+    tableConfig.pagination.pageSize = e
+    initData()
 }
 
 function handleCurrentChange(e: number) {
-  tableConfig.pagination.currentPage = e
-  initData()
+    tableConfig.pagination.currentPage = e
+    initData()
 }
 
 onMounted(() => {
-  tableConfig.pagination.currentPage = 1
-  tableConfig.pagination.pageSize = 10
-  initDefaultTenantUserData()
-  ListRole().then((res: any) => {
-    availableRoles.value = res.data || []
-  })
+    tableConfig.pagination.currentPage = 1
+    tableConfig.pagination.pageSize = 10
+    initDefaultTenantUserData()
+    ListRole().then((res: any) => {
+        availableRoles.value = res.data || []
+    })
 })
 </script>
 
 <style lang="scss">
 .zqy-tenant__select {
-  flex: 1;
-  display: flex;
-  justify-content: flex-start;
-  margin-left: 12px;
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    margin-left: 12px;
 }
 
 .tenant-admin-tip {
-  color: var(--el-text-color-secondary);
+    color: var(--el-text-color-secondary);
 }
 </style>

@@ -1,81 +1,168 @@
 <template>
-    <div class="custom-node" :class="[`custom-node__${config.data.pageType}`]">
-        <div class="flow-node-container" ref="content">
-            <!-- <p class="text">{{ config.name }}</p > -->
-            <div class="box-container" v-if="config.data.pageType === 'datasource'">
-                <p class="text" v-if="config.data.dbName">
-                    <span class="label-3">数据源：</span>
-                    <EllipsisTooltip class="ellipsis-3" :label="config.data.dbName" />
-                </p >
-                <p class="text" v-if="config.data.dbType">
-                    <span class="label-2">类型：</span>
-                    <EllipsisTooltip class="ellipsis-2" :label="config.data.dbType" />
-                </p >
-            </div>
-            <div class="box-container" v-if="config.data.pageType === 'table'">
-                <p class="text" v-if="config.data.dbType">
-                    <span class="label-5">数据源类型：</span>
-                    <EllipsisTooltip class="ellipsis-5" :label="config.data.dbType" />
-                </p >
-                <p class="text" v-if="config.data.dbName">
-                    <span class="label-3">数据源：</span>
-                    <EllipsisTooltip class="ellipsis-3" :label="config.data.dbName" />
-                </p >
-                <p class="text" v-if="config.data.tableName">
-                    <span class="label-2">表名：</span>
-                    <EllipsisTooltip class="ellipsis-2" :label="config.data.tableName" />
-                </p >
-            </div>
-            <div class="box-container" v-if="config.data.pageType === 'code'">
-                <p class="text" v-if="config.data.dbType">
-                    <span class="label-5">数据源类型：</span>
-                    <EllipsisTooltip class="ellipsis-5" :label="config.data.dbType" />
-                </p >
-                <p class="text" v-if="config.data.dbName">
-                    <span class="label-3">数据源：</span>
-                    <EllipsisTooltip class="ellipsis-3" :label="config.data.dbName" />
-                </p >
-                <p class="text" v-if="config.data.tableName">
-                    <span class="label-2">表名：</span>
-                    <EllipsisTooltip class="ellipsis-2" :label="config.data.tableName" />
-                </p >
-                <p class="text" v-if="config.data.columnName">
-                    <span class="label-2">字段：</span>
-                    <EllipsisTooltip class="ellipsis-2" :label="config.data.columnName" />
-                </p >
-            </div>
+  <div
+    class="custom-node"
+    :class="[`custom-node__${config.data.pageType}`]"
+  >
+    <div
+      ref="content"
+      class="flow-node-container"
+    >
+      <!-- <p class="text">{{ config.name }}</p > -->
+      <div
+        v-if="config.data.pageType === 'datasource'"
+        class="box-container"
+      >
+        <p
+          v-if="config.data.dbName"
+          class="text"
+        >
+          <span class="label-3">数据源：</span>
+          <EllipsisTooltip
+            class="ellipsis-3"
+            :label="config.data.dbName"
+          />
+        </p>
+        <p
+          v-if="config.data.dbType"
+          class="text"
+        >
+          <span class="label-2">类型：</span>
+          <EllipsisTooltip
+            class="ellipsis-2"
+            :label="config.data.dbType"
+          />
+        </p>
+      </div>
+      <div
+        v-if="config.data.pageType === 'table'"
+        class="box-container"
+      >
+        <p
+          v-if="config.data.dbType"
+          class="text"
+        >
+          <span class="label-5">数据源类型：</span>
+          <EllipsisTooltip
+            class="ellipsis-5"
+            :label="config.data.dbType"
+          />
+        </p>
+        <p
+          v-if="config.data.dbName"
+          class="text"
+        >
+          <span class="label-3">数据源：</span>
+          <EllipsisTooltip
+            class="ellipsis-3"
+            :label="config.data.dbName"
+          />
+        </p>
+        <p
+          v-if="config.data.tableName"
+          class="text"
+        >
+          <span class="label-2">表名：</span>
+          <EllipsisTooltip
+            class="ellipsis-2"
+            :label="config.data.tableName"
+          />
+        </p>
+      </div>
+      <div
+        v-if="config.data.pageType === 'code'"
+        class="box-container"
+      >
+        <p
+          v-if="config.data.dbType"
+          class="text"
+        >
+          <span class="label-5">数据源类型：</span>
+          <EllipsisTooltip
+            class="ellipsis-5"
+            :label="config.data.dbType"
+          />
+        </p>
+        <p
+          v-if="config.data.dbName"
+          class="text"
+        >
+          <span class="label-3">数据源：</span>
+          <EllipsisTooltip
+            class="ellipsis-3"
+            :label="config.data.dbName"
+          />
+        </p>
+        <p
+          v-if="config.data.tableName"
+          class="text"
+        >
+          <span class="label-2">表名：</span>
+          <EllipsisTooltip
+            class="ellipsis-2"
+            :label="config.data.tableName"
+          />
+        </p>
+        <p
+          v-if="config.data.columnName"
+          class="text"
+        >
+          <span class="label-2">字段：</span>
+          <EllipsisTooltip
+            class="ellipsis-2"
+            :label="config.data.columnName"
+          />
+        </p>
+      </div>
 
-            <!-- <el-icon @click="handleCommand('checkDown')" class="check-children"><CirclePlus /></el-icon> -->
-            <el-dropdown
-                trigger="click"
-                @command="handleCommand"
-                v-if="!parentStatus && !config.data.parentStatus || !childrenStatus && !config.data.childrenStatus ||
-                    config.data.pageType === 'code' && !isCode"
-                >
-                <el-icon class="node-option-more">
-                    <MoreFilled />
-                </el-icon>
-                <template #dropdown>
-                    <el-dropdown-menu>
-                        <el-dropdown-item v-if="!parentStatus && !config.data.parentStatus" command="checkUp">查看上游</el-dropdown-item>
-                        <el-dropdown-item v-if="!childrenStatus && !config.data.childrenStatus" command="checkDown">查看下游</el-dropdown-item>
-                        <el-dropdown-item v-if="config.data.pageType === 'code' && !isCode" command="showDetail">详情</el-dropdown-item>
-                    </el-dropdown-menu>
-                </template>
-            </el-dropdown>
-        </div>
+      <!-- <el-icon @click="handleCommand('checkDown')" class="check-children"><CirclePlus /></el-icon> -->
+      <el-dropdown
+        v-if="
+          (!parentStatus && !config.data.parentStatus) ||
+            (!childrenStatus && !config.data.childrenStatus) ||
+            (config.data.pageType === 'code' && !isCode)
+        "
+        trigger="click"
+        @command="handleCommand"
+      >
+        <el-icon class="node-option-more">
+          <MoreFilled />
+        </el-icon>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item
+              v-if="!parentStatus && !config.data.parentStatus"
+              command="checkUp"
+            >
+              查看上游
+            </el-dropdown-item>
+            <el-dropdown-item
+              v-if="!childrenStatus && !config.data.childrenStatus"
+              command="checkDown"
+            >
+              查看下游
+            </el-dropdown-item>
+            <el-dropdown-item
+              v-if="config.data.pageType === 'code' && !isCode"
+              command="showDetail"
+            >
+              详情
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed, ref } from 'vue'
 import { ElIcon, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus'
 import { MoreFilled, Loading, Clock, VideoPause, CirclePlus } from '@element-plus/icons-vue'
 import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import eventBus from '@/utils/eventBus'
 
 const props = defineProps<{
-    config: any,
+    config: any
     isCode: boolean
 }>()
 
@@ -113,7 +200,7 @@ onMounted(() => {
     height: 100%;
     background-color: #fff;
     border: 1px solid #c2c8d5;
-    border-left: 4px solid #5F95FF;
+    border-left: 4px solid #5f95ff;
     border-radius: 4px;
     box-shadow: 0 2px 5px 1px rgba(0, 0, 0, 0.06);
     &.custom-node__datasource {
@@ -182,5 +269,4 @@ onMounted(() => {
         }
     }
 }
-
 </style>

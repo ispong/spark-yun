@@ -1,40 +1,55 @@
 <template>
-    <div class="default-output">
-        <div style="max-height: 444px;">
-            <BlockTable
-              :table-config="tableConfig"
-              @rowDragendEvent="onRowDragend"
-            >
-                <template #checkboxHeaderSlot>
-                    <el-checkbox :model-value="isAllChecked" @change="toggleSelectAll" />
-                </template>
-                <template #checkboxSlot="scopeSlot">
-                    <el-checkbox v-model="scopeSlot.row.checked" @change="updateAllChecked" />
-                </template>
-                <template #fromSource="scopeSlot">
-                    <span>【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}</span>
-                </template>
-                <template #options="scopeSlot">
-                    <div class="btn-group">
-                        <el-dropdown trigger="click">
-                            <el-icon class="option-more" @click.stop>
-                                <MoreFilled />
-                            </el-icon>
-                            <template #dropdown>
-                                <el-dropdown-menu>
-                                    <el-dropdown-item @click="addNewCode">添加</el-dropdown-item>
-                                    <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">编辑</el-dropdown-item>
-                                    <el-dropdown-item @click="removeCode(scopeSlot)">删除</el-dropdown-item>
-                                </el-dropdown-menu>
-                            </template>
-                        </el-dropdown>
-                    </div>
-                </template>
-            </BlockTable>
-        </div>
-        <!-- 添加字段 -->
-        <add-code ref="addCodeRef"></add-code>
+  <div class="default-output">
+    <div style="max-height: 444px">
+      <BlockTable
+        :table-config="tableConfig"
+        @row-dragend-event="onRowDragend"
+      >
+        <template #checkboxHeaderSlot>
+          <el-checkbox
+            :model-value="isAllChecked"
+            @change="toggleSelectAll"
+          />
+        </template>
+        <template #checkboxSlot="scopeSlot">
+          <el-checkbox
+            v-model="scopeSlot.row.checked"
+            @change="updateAllChecked"
+          />
+        </template>
+        <template #fromSource="scopeSlot">
+          <span>【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}</span>
+        </template>
+        <template #options="scopeSlot">
+          <div class="btn-group">
+            <el-dropdown trigger="click">
+              <el-icon
+                class="option-more"
+                @click.stop
+              >
+                <MoreFilled />
+              </el-icon>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="addNewCode">
+                    添加
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">
+                    编辑
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="removeCode(scopeSlot)">
+                    删除
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </template>
+      </BlockTable>
     </div>
+    <!-- 添加字段 -->
+    <add-code ref="addCodeRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -44,14 +59,14 @@ import AddCode from '../data-join-output/add-code/index.vue'
 import { GetTableColumnsByTableId } from '@/services/data-sync.service'
 
 const props = defineProps<{
-    modelValue: any,
-    preNodes: any,
+    modelValue: any
+    preNodes: any
     nodeFormData?: any
 }>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits([ 'update:modelValue' ])
 
 const addCodeRef = ref()
-const hideOperations = computed(() => ['DATA_INPUT', 'DATA_UNION'].includes(props.nodeFormData?.type))
+const hideOperations = computed(() => [ 'DATA_INPUT', 'DATA_UNION' ].includes(props.nodeFormData?.type))
 
 const baseColConfigs = [
     {
@@ -59,7 +74,7 @@ const baseColConfigs = [
         customSlot: 'checkboxSlot',
         customHeaderSlot: 'checkboxHeaderSlot',
         width: 44,
-        align: 'center',
+        align: 'center'
     },
     {
         prop: 'colName',
@@ -130,35 +145,47 @@ const effectivePreNodes = computed(() => {
         return props.preNodes
     }
     if (props.nodeFormData && props.nodeFormData.aliaCode) {
-        return [{
-            data: {
-                nodeConfigData: props.nodeFormData
+        return [
+            {
+                data: {
+                    nodeConfigData: props.nodeFormData
+                }
             }
-        }]
+        ]
     }
     return []
 })
 
 function getNodeName(aliaCode: string): string {
-    if (!effectivePreNodes.value.length) return ''
+    if (!effectivePreNodes.value.length) { return '' }
     const node = effectivePreNodes.value.find((n: any) => n.data.nodeConfigData.aliaCode === aliaCode)
     return node ? node.data.nodeConfigData.name : ''
 }
 
 function addNewCode() {
-    addCodeRef.value.showModal((params: any) => {
-        tableConfig.tableData.push({ ...params, checked: true })
-    }, null, effectivePreNodes.value)
+    addCodeRef.value.showModal(
+        (params: any) => {
+            tableConfig.tableData.push({
+ ...params, checked: true 
+})
+        },
+        null,
+        effectivePreNodes.value
+    )
 }
 
 function editCode(row: any, index: number) {
-    addCodeRef.value.showModal((params: any) => {
-        row.colName = params.colName
-        row.fromAliaCode = params.fromAliaCode
-        row.fromColName = params.fromColName
-        row.colType = params.colType
-        row.remark = params.remark
-    }, row, effectivePreNodes.value)
+    addCodeRef.value.showModal(
+        (params: any) => {
+            row.colName = params.colName
+            row.fromAliaCode = params.fromAliaCode
+            row.fromColName = params.fromColName
+            row.colType = params.colType
+            row.remark = params.remark
+        },
+        row,
+        effectivePreNodes.value
+    )
 }
 
 // 删除来源编码
@@ -192,22 +219,24 @@ function refreshFields() {
         GetTableColumnsByTableId({
             dataSourceId: inputEtl.datasourceId,
             tableName: inputEtl.tableName
-        }).then((res: any) => {
-            const defaultFromAliaCode = getDefaultFromAliaCode()
-            tableConfig.tableData = (res.data.columns || []).map((column: any) => ({
-                colName: column.name,
-                colType: column.type,
-                remark: column.columnComment,
-                fromAliaCode: defaultFromAliaCode,
-                fromColName: column.name,
-                checked: true
-            }))
-            isAllChecked.value = true
-            tableConfig.loading = false
-        }).catch((err: any) => {
-            console.error(err)
-            tableConfig.loading = false
         })
+            .then((res: any) => {
+                const defaultFromAliaCode = getDefaultFromAliaCode()
+                tableConfig.tableData = (res.data.columns || []).map((column: any) => ({
+                    colName: column.name,
+                    colType: column.type,
+                    remark: column.columnComment,
+                    fromAliaCode: defaultFromAliaCode,
+                    fromColName: column.name,
+                    checked: true
+                }))
+                isAllChecked.value = true
+                tableConfig.loading = false
+            })
+            .catch((err: any) => {
+                console.error(err)
+                tableConfig.loading = false
+            })
         return
     }
 
@@ -264,9 +293,10 @@ function refreshFields() {
 function getDefaultFromAliaCode(): string {
     // 数据合并节点：来源使用主表节点的aliaCode
     if (props.nodeFormData?.mainAliaCode && props.preNodes && props.preNodes.length) {
-        const mainNode = props.preNodes.find((n: any) =>
-            n.data.nodeConfigData.inputEtl?.tableName === props.nodeFormData.mainAliaCode
-                || n.data.nodeConfigData.aliaCode === props.nodeFormData.mainAliaCode
+        const mainNode = props.preNodes.find(
+            (n: any) =>
+                n.data.nodeConfigData.inputEtl?.tableName === props.nodeFormData.mainAliaCode ||
+                n.data.nodeConfigData.aliaCode === props.nodeFormData.mainAliaCode
         )
         if (mainNode) {
             return mainNode.data.nodeConfigData.aliaCode
@@ -298,7 +328,7 @@ defineExpose({
 
 <style lang="scss">
 .default-output {
-    padding:  12px 20px;
+    padding: 12px 20px;
     box-sizing: border-box;
     .el-form-item {
         .el-form-item__content {
@@ -316,7 +346,7 @@ defineExpose({
             cursor: pointer;
             color: getCssVar('color', 'primary', 'light-5');
             &:hover {
-                color: getCssVar('color', 'primary');;
+                color: getCssVar('color', 'primary');
             }
         }
         .el-dropdown {

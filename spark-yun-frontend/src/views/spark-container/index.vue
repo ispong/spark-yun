@@ -2,32 +2,62 @@
   <Breadcrumb :bread-crumb-list="breadCrumbList" />
   <div class="zqy-seach-table">
     <div class="zqy-table-top">
-      <el-button type="primary" @click="addData">
+      <el-button
+        type="primary"
+        @click="addData"
+      >
         新建容器
       </el-button>
       <div class="zqy-seach">
-        <el-input v-model="keyword" placeholder="请输入名称 回车进行搜索" :maxlength="200" clearable
-          @input="inputEvent" @keyup.enter="initData(false)" />
+        <el-input
+          v-model="keyword"
+          placeholder="请输入名称 回车进行搜索"
+          :maxlength="200"
+          clearable
+          @input="inputEvent"
+          @keyup.enter="initData(false)"
+        />
       </div>
     </div>
-    <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="initData(false)"
+    >
       <div class="zqy-table">
-        <BlockTable :table-config="tableConfig" @size-change="handleSizeChange" @current-change="handleCurrentChange">
+        <BlockTable
+          :table-config="tableConfig"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        >
           <template #name="scopeSlot">
-            <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+            <span
+              class="name-click"
+              @click="editData(scopeSlot.row)"
+            >{{ scopeSlot.row.name }}</span>
           </template>
           <template #statusTag="scopeSlot">
-            <ZStatusTag :status="
-              scopeSlot.row.status === 'STOP' ?
-               'STOP_S' : scopeSlot.row.status === 'RUNNING' ?
-                'RUNNING_S' : scopeSlot.row.status === 'DEPLOYING' ? 'STARTING' : scopeSlot.row.status"></ZStatusTag>
+            <ZStatusTag
+              :status="
+                scopeSlot.row.status === 'STOP'
+                  ? 'STOP_S'
+                  : scopeSlot.row.status === 'RUNNING'
+                    ? 'RUNNING_S'
+                    : scopeSlot.row.status === 'DEPLOYING'
+                      ? 'STARTING'
+                      : scopeSlot.row.status
+              "
+            />
           </template>
           <template #options="scopeSlot">
             <div class="btn-group">
-              <span v-if="!scopeSlot.row.checkLoading" @click="checkData(scopeSlot.row)">检测</span>
+              <span
+                v-if="!scopeSlot.row.checkLoading"
+                @click="checkData(scopeSlot.row)"
+              >检测</span>
               <el-icon
-                  v-else
-                  class="is-loading"
+                v-else
+                class="is-loading"
               >
                 <Loading />
               </el-icon>
@@ -75,7 +105,14 @@ import AddModal from './add-modal/index.vue'
 import ShowLog from './log-modal/index.vue'
 
 import { BreadCrumbList, TableConfig, FormData } from './spark-container.config.ts'
-import { GetSparkContainerList, AddSparkContainerData, UpdateSparkContainerData, ChecSparkContainerkData, DeleteSparkContainerkData, StartSparkContainerkData, StopSparkContainerkData, GetSparkContainerkDetail } from '@/services/spark-container.service.ts'
+import { GetSparkContainerList,
+    AddSparkContainerData,
+    UpdateSparkContainerData,
+    ChecSparkContainerkData,
+    DeleteSparkContainerkData,
+    StartSparkContainerkData,
+    StopSparkContainerkData,
+    GetSparkContainerkDetail } from '@/services/spark-container.service.ts'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 
@@ -90,171 +127,176 @@ const breadCrumbList = reactive(BreadCrumbList)
 const tableConfig: any = reactive(TableConfig)
 
 function initData(tableLoading?: boolean, type?: string) {
-  loading.value = tableLoading ? false : true
-  networkError.value = networkError.value || false
-  GetSparkContainerList({
-    page: tableConfig.pagination.currentPage - 1,
-    pageSize: tableConfig.pagination.pageSize,
-    searchKeyWord: keyword.value
-  }).then((res: any) => {
-    if (type) {
-      res.data.content.forEach((item: any) => {
-        tableConfig.tableData.forEach((col: any) => {
-          if (item.id === col.id) {
-            col.status = item.status
-          }
+    loading.value = tableLoading ? false : true
+    networkError.value = networkError.value || false
+    GetSparkContainerList({
+        page: tableConfig.pagination.currentPage - 1,
+        pageSize: tableConfig.pagination.pageSize,
+        searchKeyWord: keyword.value
+    })
+        .then((res: any) => {
+            if (type) {
+                res.data.content.forEach((item: any) => {
+                    tableConfig.tableData.forEach((col: any) => {
+                        if (item.id === col.id) {
+                            col.status = item.status
+                        }
+                    })
+                })
+            } else {
+                tableConfig.tableData = res.data.content
+                tableConfig.pagination.total = res.data.totalElements
+            }
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
+            // if (!tableConfig.tableData.some(item => item.status === 'DEPLOYING')) {
+            //   if (timer.value) {
+            //     clearInterval(timer.value)
+            //   }
+            //   timer.value = null
+            // }
         })
-      })
-    } else {
-      tableConfig.tableData = res.data.content
-      tableConfig.pagination.total = res.data.totalElements
-    }
-    loading.value = false
-    tableConfig.loading = false
-    networkError.value = false
-    // if (!tableConfig.tableData.some(item => item.status === 'DEPLOYING')) {
-    //   if (timer.value) {
-    //     clearInterval(timer.value)
-    //   }
-    //   timer.value = null
-    // }
-  }).catch(() => {
-    tableConfig.tableData = []
-    tableConfig.pagination.total = 0
-    loading.value = false
-    tableConfig.loading = false
-    networkError.value = true
-  })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
 }
 
 function addData() {
-  addModalRef.value.showModal((formData: FormData) => {
-    return new Promise((resolve: any, reject: any) => {
-      AddSparkContainerData(formData)
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
-        })
-        .catch((error: any) => {
-          reject(error)
+    addModalRef.value.showModal((formData: FormData) => {
+        return new Promise((resolve: any, reject: any) => {
+            AddSparkContainerData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     })
-  })
 }
 
 // 查看日志
 function showLog(e: any) {
-  showLogRef.value.showModal(e)
+    showLogRef.value.showModal(e)
 }
 
 function showRunningLog(e: any) {
-  showLogRef.value.showModal(e, 'runningLog')
+    showLogRef.value.showModal(e, 'runningLog')
 }
 
 function editData(data: any) {
-  addModalRef.value.showModal((formData: FormData) => {
-    return new Promise((resolve: any, reject: any) => {
-      UpdateSparkContainerData(formData)
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
+    addModalRef.value.showModal((formData: FormData) => {
+        return new Promise((resolve: any, reject: any) => {
+            UpdateSparkContainerData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
-        .catch((error: any) => {
-          reject(error)
-        })
-    })
-  }, data)
+    }, data)
 }
 
 // 检测
 function checkData(data: any) {
-  data.checkLoading = true
-  ChecSparkContainerkData({
-    id: data.id
-  }).then((res: any) => {
-    data.checkLoading = false
-    ElMessage.success(res.msg)
-    initData(true)
-  })
-  .catch(() => {
-    data.checkLoading = false
-  })
+    data.checkLoading = true
+    ChecSparkContainerkData({
+        id: data.id
+    })
+        .then((res: any) => {
+            data.checkLoading = false
+            ElMessage.success(res.msg)
+            initData(true)
+        })
+        .catch(() => {
+            data.checkLoading = false
+        })
 }
 // 启动
 function startContainer(data: any) {
-  StartSparkContainerkData({
-    id: data.id
-  }).then((res: any) => {
-    ElMessage.success(res.msg)
-    initData(true)
-    // if (tableConfig.tableData.some(item => item.status === 'DEPLOYING')) {
-    //   timer.value = setInterval(() => {
-    //     initData(true, 'interval')
-    //   }, 3000)
-    // }
-  })
-  .catch(() => {
-  })
+    StartSparkContainerkData({
+        id: data.id
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            initData(true)
+            // if (tableConfig.tableData.some(item => item.status === 'DEPLOYING')) {
+            //   timer.value = setInterval(() => {
+            //     initData(true, 'interval')
+            //   }, 3000)
+            // }
+        })
+        .catch(() => {})
 }
 // 停止
 function stopContainer(data: any) {
-  StopSparkContainerkData({
-    id: data.id
-  }).then((res: any) => {
-    ElMessage.success(res.msg)
-    initData(true)
-  })
-  .catch(() => {
-  })
+    StopSparkContainerkData({
+        id: data.id
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            initData(true)
+        })
+        .catch(() => {})
 }
 
 // 删除
 function deleteData(data: any) {
-  ElMessageBox.confirm('确定删除该容器吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    DeleteSparkContainerkData({
-      id: data.id
-    }).then((res: any) => {
-      ElMessage.success(res.msg)
-      initData()
-    }).catch(() => { })
-  })
+    ElMessageBox.confirm('确定删除该容器吗？', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        DeleteSparkContainerkData({
+            id: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch(() => {})
+    })
 }
 
 function inputEvent(e: string) {
-  if (e === '') {
-    initData()
-  }
+    if (e === '') {
+        initData()
+    }
 }
 
 function handleSizeChange(e: number) {
-  tableConfig.pagination.pageSize = e
-  initData(true)
+    tableConfig.pagination.pageSize = e
+    initData(true)
 }
 
 function handleCurrentChange(e: number) {
-  tableConfig.pagination.currentPage = e
-  initData(true)
+    tableConfig.pagination.currentPage = e
+    initData(true)
 }
 
 onMounted(() => {
-  tableConfig.pagination.currentPage = 1
-  tableConfig.pagination.pageSize = 10
-  initData()
-  timer.value = setInterval(() => {
-    initData(true, 'interval')
-  }, 3000)
+    tableConfig.pagination.currentPage = 1
+    tableConfig.pagination.pageSize = 10
+    initData()
+    timer.value = setInterval(() => {
+        initData(true, 'interval')
+    }, 3000)
 })
 onUnmounted(() => {
-  if (timer.value) {
-    clearInterval(timer.value)
-  }
-  timer.value = null
+    if (timer.value) {
+        clearInterval(timer.value)
+    }
+    timer.value = null
 })
 </script>
 ./spark-container.config

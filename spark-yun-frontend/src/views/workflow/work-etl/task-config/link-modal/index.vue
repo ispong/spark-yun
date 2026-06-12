@@ -1,12 +1,18 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <div style="padding: 12px 20px;">
-            <data-sync-table ref="dataSyncTableRef"></data-sync-table>
-        </div>
-        <template #customLeft>
-            <el-button type="primary" @click="refreshSourceFields" style="margin-right: auto;">刷新</el-button>
-        </template>
-    </BlockModal>
+  <BlockModal :model-config="modelConfig">
+    <div style="padding: 12px 20px">
+      <data-sync-table ref="dataSyncTableRef" />
+    </div>
+    <template #customLeft>
+      <el-button
+        type="primary"
+        style="margin-right: auto"
+        @click="refreshSourceFields"
+      >
+        刷新
+      </el-button>
+    </template>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -28,15 +34,15 @@ const modelConfig = reactive({
         title: '确定',
         ok: okEvent,
         disabled: false,
-        loading: false,
+        loading: false
     },
     cancelConfig: {
         title: '关闭',
         cancel: closeEvent,
-        disabled: false,
+        disabled: false
     },
     zIndex: 1200,
-    closeOnClickModal: false,
+    closeOnClickModal: false
 })
 
 function showModal(formData: any, incomeNodes: any) {
@@ -65,11 +71,13 @@ function initMappingData() {
         // Set source columns from income nodes
         if (incomeNodesRef.value && incomeNodesRef.value[0]) {
             dataSyncTableRef.value.setSourceTableColumn(
-                incomeNodesRef.value[0].data.nodeConfigData.outColumnList.filter((item: any) => item.checked !== false).map((column: any) => ({
-                    colName: column.colName,
-                    colType: column.colType,
-                    remark: column.remark
-                }))
+                incomeNodesRef.value[0].data.nodeConfigData.outColumnList
+                    .filter((item: any) => item.checked !== false)
+                    .map((column: any) => ({
+                        colName: column.colName,
+                        colType: column.colType,
+                        remark: column.remark
+                    }))
             )
         }
         // Set target columns from selected table
@@ -77,16 +85,18 @@ function initMappingData() {
             GetTableColumnsByTableId({
                 dataSourceId: outputEtl.datasourceId,
                 tableName: outputEtl.tableName
-            }).then((res: any) => {
-                const tableData = (res.data.columns || []).map((column: any) => ({
-                    colName: column.name,
-                    colType: column.type,
-                    remark: column.columnComment
-                }))
-                dataSyncTableRef.value.setTargetTableColumn(tableData)
-            }).catch((err: any) => {
-                console.error(err)
             })
+                .then((res: any) => {
+                    const tableData = (res.data.columns || []).map((column: any) => ({
+                        colName: column.name,
+                        colType: column.type,
+                        remark: column.columnComment
+                    }))
+                    dataSyncTableRef.value.setTargetTableColumn(tableData)
+                })
+                .catch((err: any) => {
+                    console.error(err)
+                })
         }
     }
 }
@@ -95,7 +105,7 @@ function okEvent() {
     const data = dataSyncTableRef.value.getConnect()
     formDataRef.value.outputEtl.fromColumnList = data.fromColumnList
     formDataRef.value.outputEtl.toColumnList = data.toColumnList
-    formDataRef.value.outputEtl.colMapping = data.columnMap.map((item: any) => [item.source, item.target])
+    formDataRef.value.outputEtl.colMapping = data.columnMap.map((item: any) => [ item.source, item.target ])
     modelConfig.visible = false
 }
 
@@ -103,11 +113,13 @@ function refreshSourceFields() {
     dataSyncTableRef.value.clearConnections()
     if (incomeNodesRef.value && incomeNodesRef.value[0]) {
         dataSyncTableRef.value.setSourceTableColumn(
-            incomeNodesRef.value[0].data.nodeConfigData.outColumnList.filter((item: any) => item.checked !== false).map((column: any) => ({
-                colName: column.colName,
-                colType: column.colType,
-                remark: column.remark
-            }))
+            incomeNodesRef.value[0].data.nodeConfigData.outColumnList
+                .filter((item: any) => item.checked !== false)
+                .map((column: any) => ({
+                    colName: column.colName,
+                    colType: column.colType,
+                    remark: column.remark
+                }))
         )
     }
 }

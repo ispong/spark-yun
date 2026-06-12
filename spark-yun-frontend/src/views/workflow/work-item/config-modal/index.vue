@@ -92,146 +92,146 @@ const callback = ref<any>()
 const typeList = ref([])
 const workType = ref('')
 const modelConfig = reactive({
-  title: '作业属性配置',
-  visible: false,
-  width: '520px',
-  okConfig: {
-    title: '确定',
-    ok: okEvent,
-    disabled: false,
-    loading: false
-  },
-  cancelConfig: {
-    title: '取消',
-    cancel: closeEvent,
-    disabled: false
-  },
-  needScale: false,
-  zIndex: 1100,
-  closeOnClickModal: false
+    title: '作业属性配置',
+    visible: false,
+    width: '520px',
+    okConfig: {
+        title: '确定',
+        ok: okEvent,
+        disabled: false,
+        loading: false
+    },
+    cancelConfig: {
+        title: '取消',
+        cancel: closeEvent,
+        disabled: false
+    },
+    needScale: false,
+    zIndex: 1100,
+    closeOnClickModal: false
 })
 const formData = reactive({
-  clusterId: '',
-  datasourceId: '',
-  sparkConfig: '',
-  flinkConfig: '',
-  corn: ''
+    clusterId: '',
+    datasourceId: '',
+    sparkConfig: '',
+    flinkConfig: '',
+    corn: ''
 })
 const rules = reactive<FormRules>({
-  datasourceId: [
-    {
-      required: true,
-      message: '请选择数据源',
-      trigger: [ 'blur', 'change' ]
-    }
-  ],
-  clusterId: [
-    {
-      required: true,
-      message: '请选择计算引擎',
-      trigger: [ 'blur', 'change' ]
-    }
-  ]
+    datasourceId: [
+        {
+            required: true,
+            message: '请选择数据源',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    clusterId: [
+        {
+            required: true,
+            message: '请选择计算引擎',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {
-  callback.value = cb
-  workType.value = data.workType
-  modelConfig.visible = true
+    callback.value = cb
+    workType.value = data.workType
+    modelConfig.visible = true
 
-  if (workType.value === 'SPARK_SQL') {
-    formData.clusterId = data.clusterId
-    formData.sparkConfig = data.sparkConfig
-    getComputeEngine()
-  } else if (workType.value === 'FLINK_SQL') {
-    formData.clusterId = data.clusterId
-    formData.flinkConfig = data.flinkConfig
-    getComputeEngine()
-  } else {
-    formData.datasourceId = data.datasourceId
-    getDataSourceList()
-  }
-  formData.corn = data.corn
-  nextTick(() => {
-    form.value?.resetFields()
-  })
+    if (workType.value === 'SPARK_SQL') {
+        formData.clusterId = data.clusterId
+        formData.sparkConfig = data.sparkConfig
+        getComputeEngine()
+    } else if (workType.value === 'FLINK_SQL') {
+        formData.clusterId = data.clusterId
+        formData.flinkConfig = data.flinkConfig
+        getComputeEngine()
+    } else {
+        formData.datasourceId = data.datasourceId
+        getDataSourceList()
+    }
+    formData.corn = data.corn
+    nextTick(() => {
+        form.value?.resetFields()
+    })
 }
 
 function getDataSourceList() {
-  GetDatasourceList({
-    page: 0,
-    pageSize: 10000,
-    searchKeyWord: ''
-  })
-    .then((res: any) => {
-      typeList.value = res.data.content.map((item: any) => {
-        return {
-          label: item.name,
-          value: item.id
-        }
-      })
+    GetDatasourceList({
+        page: 0,
+        pageSize: 10000,
+        searchKeyWord: ''
     })
-    .catch(() => {
-      typeList.value = []
-    })
+        .then((res: any) => {
+            typeList.value = res.data.content.map((item: any) => {
+                return {
+                    label: item.name,
+                    value: item.id
+                }
+            })
+        })
+        .catch(() => {
+            typeList.value = []
+        })
 }
 
 function getComputeEngine() {
-  GetComputerGroupList({
-    page: 0,
-    pageSize: 10000,
-    searchKeyWord: ''
-  })
-    .then((res: any) => {
-      typeList.value = res.data.content.map((item: any) => {
-        return {
-          label: item.name,
-          value: item.id
-        }
-      })
+    GetComputerGroupList({
+        page: 0,
+        pageSize: 10000,
+        searchKeyWord: ''
     })
-    .catch(() => {
-      typeList.value = []
-    })
+        .then((res: any) => {
+            typeList.value = res.data.content.map((item: any) => {
+                return {
+                    label: item.name,
+                    value: item.id
+                }
+            })
+        })
+        .catch(() => {
+            typeList.value = []
+        })
 }
 
 function okEvent() {
-  form.value?.validate((valid) => {
-    if (valid) {
-      modelConfig.okConfig.loading = true
-      callback
-        .value({
-          ...formData
-        })
-        .then((res: any) => {
-          modelConfig.okConfig.loading = false
-          if (res === undefined) {
-            modelConfig.visible = false
-          } else {
-            modelConfig.visible = true
-          }
-        })
-        .catch((err: any) => {
-          modelConfig.okConfig.loading = false
-        })
-    } else {
-      ElMessage.warning('请将表单输入完整')
-    }
-  })
+    form.value?.validate((valid) => {
+        if (valid) {
+            modelConfig.okConfig.loading = true
+            callback
+                .value({
+                    ...formData
+                })
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
+        } else {
+            ElMessage.warning('请将表单输入完整')
+        }
+    })
 }
 
 function closeEvent() {
-  modelConfig.visible = false
+    modelConfig.visible = false
 }
 
 defineExpose({
-  showModal
+    showModal
 })
 </script>
 
 <style lang="scss">
 .add-computer-group {
-  padding: 12px 20px 0 20px;
-  box-sizing: border-box;
+    padding: 12px 20px 0 20px;
+    box-sizing: border-box;
 }
 </style>

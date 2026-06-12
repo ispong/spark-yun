@@ -1,11 +1,17 @@
 <template>
-    <BlockModal :model-config="modelConfig" @close="closeEvent">
-        <div id="content" class="content-box">
-            <BlockTable :table-config="tableConfig" />
-        </div>
-    </BlockModal>
+  <BlockModal
+    :model-config="modelConfig"
+    @close="closeEvent"
+  >
+    <div
+      id="content"
+      class="content-box"
+    >
+      <BlockTable :table-config="tableConfig" />
+    </div>
+  </BlockModal>
 </template>
-  
+
 <script lang="ts" setup>
 import { reactive, defineExpose, ref } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
@@ -61,15 +67,16 @@ function showApiModal(data: ApiPreviewData): void {
 // 获取结果
 function getResultDatalist() {
     tableConfig.loading = true
-    GetSourceTablesDetail(info.value).then((res: any) => {
-        renderTable(res.data.columns || [], res.data.rows || [])
-        tableConfig.loading = false
-    })
-    .catch(() => {
-        tableConfig.colConfigs = []
-        tableConfig.tableData = []
-        tableConfig.loading = false
-    })
+    GetSourceTablesDetail(info.value)
+        .then((res: any) => {
+            renderTable(res.data.columns || [], res.data.rows || [])
+            tableConfig.loading = false
+        })
+        .catch(() => {
+            tableConfig.colConfigs = []
+            tableConfig.tableData = []
+            tableConfig.loading = false
+        })
 }
 
 function renderTable(columns: string[], rows: Array<Array<string | null>>) {
@@ -84,7 +91,8 @@ function renderTable(columns: string[], rows: Array<Array<string | null>>) {
     })
     tableConfig.tableData = []
     rows.forEach((rowData: any) => {
-        const columnData = {}
+        const columnData = {
+}
         columns.forEach((column: any, index: number) => {
             columnData[column] = rowData?.[index]
         })
@@ -115,4 +123,3 @@ defineExpose({
     }
 }
 </style>
-  

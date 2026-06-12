@@ -1,48 +1,61 @@
 <template>
-    <div class="form-components" :class="{ 'form-components__dragger': isDragger }">
-        <el-scrollbar>
-            <el-form
-                class="form-component-container"
-                ref="ZFormEngineRef"
-                :model="formData"
-                :label-position="'top'"
-                :disabled="renderSence === 'readonly'"
+  <div
+    class="form-components"
+    :class="{ 'form-components__dragger': isDragger }"
+  >
+    <el-scrollbar>
+      <el-form
+        ref="ZFormEngineRef"
+        class="form-component-container"
+        :model="formData"
+        :label-position="'top'"
+        :disabled="renderSence === 'readonly'"
+      >
+        <draggable
+          class="form-dragger-component"
+          item-key="uuid"
+          group="ZFormEngineConfig"
+          :ghost-class="ghostClass"
+          :animation="150"
+          :list="componentList"
+          :force-fallback="true"
+          :fallback-class="true"
+          :disabled="!isDragger"
+          :touch-start-threshold="2"
+          :scroll="false"
+          @start="startMoveEvent"
+          @end="endMoveEvent"
+        >
+          <template #item="{ element }">
+            <span
+              :class="{ 'form-item-container__error': !element.valid }"
+              class="form-item-container"
+              :style="{ width: componentWidth(element.width) }"
             >
-                <draggable
-                    class="form-dragger-component"
-                    itemKey="uuid"
-                    group="ZFormEngineConfig"
-                    :ghost-class="ghostClass"
-                    :animation="150"
-                    :list="componentList"
-                    :force-fallback="true"
-                    :fallback-class="true"
-                    :disabled="!isDragger"
-                    :touchStartThreshold="2"
-                    :scroll="false"
-                    @start="startMoveEvent"
-                    @end="endMoveEvent"
-                >
-                    <template #item="{ element }">
-                        <span :class="{'form-item-container__error': !element.valid}" class="form-item-container" :style="{ 'width': componentWidth(element.width) }">
-                            <component
-                                :class="{ 'choose-item__active': chooseItemData.uuid === element.uuid && isDragger, 'choose-item': isDragger }"
-                                v-model="formData[element.uuid]"
-                                :is="computedRenderSenceComponent(element.componentType)"
-                                :formConfig="element"
-                                :formData="formData"
-                                :isDragger="isDragger"
-                                :renderSence="renderSence"
-                                @removeInstance="removeInstance"
-                                @mousedown="mousedownEvent($event, element)"
-                            ></component>
-                        </span>
-                    </template>
-                </draggable>
-                <EmptyPage class="form-component-container__empty" v-if="!componentList.length"></EmptyPage>
-            </el-form>
-        </el-scrollbar>
-    </div>
+              <component
+                :is="computedRenderSenceComponent(element.componentType)"
+                v-model="formData[element.uuid]"
+                :class="{
+                  'choose-item__active': chooseItemData.uuid === element.uuid && isDragger,
+                  'choose-item': isDragger
+                }"
+                :form-config="element"
+                :form-data="formData"
+                :is-dragger="isDragger"
+                :render-sence="renderSence"
+                @remove-instance="removeInstance"
+                @mousedown="mousedownEvent($event, element)"
+              />
+            </span>
+          </template>
+        </draggable>
+        <EmptyPage
+          v-if="!componentList.length"
+          class="form-component-container__empty"
+        />
+      </el-form>
+    </el-scrollbar>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -51,10 +64,18 @@ import draggable from 'vuedraggable'
 import FormInstance from './form-instance'
 import { ComponentInstance } from '../form-engine.interface'
 
-const props = defineProps(['modelValue', 'componentList', 'currentInstance', 'isDragger', 'renderSence', 'movingInstance'])
-const emit = defineEmits(['update:modelValue', 'componentListChange', 'chooseItem', 'removeInstance'])
+const props = defineProps([
+    'modelValue',
+    'componentList',
+    'currentInstance',
+    'isDragger',
+    'renderSence',
+    'movingInstance'
+])
+const emit = defineEmits([ 'update:modelValue', 'componentListChange', 'chooseItem', 'removeInstance' ])
 const formInstance = shallowRef<any>(FormInstance)
-const chooseItemData = ref<ComponentInstance>({})
+const chooseItemData = ref<ComponentInstance>({
+})
 
 const ZFormEngineRef = ref()
 const componentWidth = computed(() => {
@@ -73,16 +94,23 @@ const formData = computed({
 const ghostClass = computed(() => {
     return props?.movingInstance?.width === 4 ? 'ghost__all' : 'ghost'
 })
-watch(() => props.componentList, (e) => {
-    emit('componentListChange', e)
-}, {
-    deep: true
-})
-watch(() => props.currentInstance?.uuid, (e: ComponentInstance) => {
-    if (e) {
-        chooseItemData.value = props.currentInstance
+watch(
+    () => props.componentList,
+    (e) => {
+        emit('componentListChange', e)
+    },
+    {
+        deep: true
     }
-})
+)
+watch(
+    () => props.currentInstance?.uuid,
+    (e: ComponentInstance) => {
+        if (e) {
+            chooseItemData.value = props.currentInstance
+        }
+    }
+)
 const computedRenderSenceComponent = computed(() => {
     return (componentType: string) => {
         return markRaw(formInstance.value[componentType])
@@ -95,7 +123,7 @@ const mousedownEvent = (e: EventListener, data: ComponentInstance) => {
 
 function endMoveEvent(e: any) {
     let path = e.originalEvent.path || (e.originalEvent.composedPath && e.originalEvent.composedPath())
-    if (path && !path.some(el => el.className === 'form-dragger-component')) {
+    if (path && !path.some((el) => el.className === 'form-dragger-component')) {
         emit('removeInstance', chooseItemData.value)
     }
 }
@@ -152,7 +180,7 @@ defineExpose({
             .ghost {
                 width: 50%;
                 display: inline-block;
-                opacity: .7;
+                opacity: 0.7;
                 background-color: getCssVar('color', 'white');
                 .draggable-icon {
                     display: none;
@@ -179,7 +207,7 @@ defineExpose({
             .ghost__all {
                 width: 100%;
                 display: inline-block;
-                opacity: .7;
+                opacity: 0.7;
                 background-color: getCssVar('color', 'white');
                 .draggable-icon {
                     display: none;

@@ -1,18 +1,20 @@
 <template>
-    <el-form-item label="是否可填" class="form-fillable form-config-switch">
-        <el-switch
-            v-model="formData"
-            :width="32"
-        >
-        </el-switch>
-    </el-form-item>
+  <el-form-item
+    label="是否可填"
+    class="form-fillable form-config-switch"
+  >
+    <el-switch
+      v-model="formData"
+      :width="32"
+    />
+  </el-form-item>
 </template>
 
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed } from 'vue'
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig'])
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps([ 'renderSence', 'modelValue', 'formConfig' ])
+const emit = defineEmits([ 'update:modelValue' ])
 const formData = computed({
     get() {
         return props.modelValue

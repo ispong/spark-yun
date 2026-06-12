@@ -14,19 +14,19 @@ import { isString } from '@/utils/checkType'
  * @param {*} errorMsg 错误提示
  */
 const RegexValidator = (regex: RegExp, errorMsg: string) => {
-  let reg: RegExp
-  if (isString(regex)) {
-    reg = new RegExp(regex)
-  } else {
-    reg = regex
-  }
-  return (rule: any, value: any, callback: any) => {
-    if (!reg.test(value)) {
-      callback(new Error(errorMsg))
+    let reg: RegExp
+    if (isString(regex)) {
+        reg = new RegExp(regex)
     } else {
-      callback()
+        reg = regex
     }
-  }
+    return (rule: any, value: any, callback: any) => {
+        if (!reg.test(value)) {
+            callback(new Error(errorMsg))
+        } else {
+            callback()
+        }
+    }
 }
 
 export default RegexValidator

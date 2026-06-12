@@ -1,36 +1,64 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="form-container" label-position="top" :model="formData" :rules="rules">
-            <el-form-item label="名称" prop="name">
-                <el-input v-model="formData.name" maxlength="100" placeholder="请输入" show-word-limit />
-            </el-form-item>
-            <el-form-item label="编码" prop="aliaCode">
-                <el-input v-model="formData.aliaCode" maxlength="100" placeholder="请输入" show-word-limit />
-            </el-form-item>
-            <el-form-item label="备注">
-                <el-input v-model="formData.remark" show-word-limit type="textarea" maxlength="200"
-                    :autosize="{ minRows: 4, maxRows: 4 }" placeholder="请输入" />
-            </el-form-item>
-            <!-- <el-form-item>
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="form-container"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+    >
+      <el-form-item
+        label="名称"
+        prop="name"
+      >
+        <el-input
+          v-model="formData.name"
+          maxlength="100"
+          placeholder="请输入"
+          show-word-limit
+        />
+      </el-form-item>
+      <el-form-item
+        label="编码"
+        prop="aliaCode"
+      >
+        <el-input
+          v-model="formData.aliaCode"
+          maxlength="100"
+          placeholder="请输入"
+          show-word-limit
+        />
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input
+          v-model="formData.remark"
+          show-word-limit
+          type="textarea"
+          maxlength="200"
+          :autosize="{ minRows: 4, maxRows: 4 }"
+          placeholder="请输入"
+        />
+      </el-form-item>
+      <!-- <el-form-item>
                 <el-button type="primary" @click="showConfigEvent">任务配置</el-button>
             </el-form-item> -->
-        </el-form>
-        <TaskConfig ref="taskConfigRef"></TaskConfig>
-    </BlockModal>
+    </el-form>
+    <TaskConfig ref="taskConfigRef" />
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList } from '@/services/computer-group.service';
+import { GetComputerGroupList } from '@/services/computer-group.service'
 import TaskConfig from '../task-config/index.vue'
 
 interface FormData {
-    name: string        // 名称
-    type: string        // 类型
-    aliaCode: string    // 编码
-    remark: string      // 备注
+    name: string // 名称
+    type: string // 类型
+    aliaCode: string // 编码
+    remark: string // 备注
 }
 
 const form = ref<FormInstance>()
@@ -63,8 +91,12 @@ const formData = reactive<FormData>({
     id: ''
 })
 const rules = reactive<FormRules>({
-    name: [{ required: true, message: '请输入名称', trigger: ['blur', 'change'] }],
-    aliaCode: [{ required: true, message: '请输入编码', trigger: ['blur', 'change'] }],
+    name: [ {
+ required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
+} ],
+    aliaCode: [ {
+ required: true, message: '请输入编码', trigger: [ 'blur', 'change' ] 
+} ]
 })
 
 function showModal(cb: () => void, data?: any, onCancel?: () => void): void {
@@ -94,21 +126,24 @@ function okEvent() {
     form.value?.validate((valid) => {
         if (valid) {
             modelConfig.okConfig.loading = true
-            callback.value({
-                ...formData,
-                id: formData.id ? formData.id : undefined
-            }).then((res: any) => {
-                modelConfig.okConfig.loading = false
-                if (res === undefined) {
-                    // 确定成功，清除取消回调，防止关闭弹窗时误删节点
-                    cancelCallback.value = null
-                    modelConfig.visible = false
-                } else {
-                    modelConfig.visible = true
-                }
-            }).catch((err: any) => {
-                modelConfig.okConfig.loading = false
-            })
+            callback
+                .value({
+                    ...formData,
+                    id: formData.id ? formData.id : undefined
+                })
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        // 确定成功，清除取消回调，防止关闭弹窗时误删节点
+                        cancelCallback.value = null
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
         } else {
             ElMessage.warning('请将表单输入完整')
         }

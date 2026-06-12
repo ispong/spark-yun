@@ -1,17 +1,25 @@
 <template>
-    <div class="z-etl-flow">
-        <section class="section-cot">
-            <div id="container">
-                <div id="draw-cot" />
-            </div>
-            <div class="btn-container">
-                <el-icon @click="zoomOut"><ZoomOut /></el-icon>
-                <el-icon @click="zoomIn"><ZoomIn /></el-icon>
-                <el-icon @click="locationCenter"><MapLocation /></el-icon>
-                <el-icon @click="refresh"><Refresh /></el-icon>
-            </div>
-            <!-- 后续动态注入 -->
-            <!-- <div class="status-container">
+  <div class="z-etl-flow">
+    <section class="section-cot">
+      <div id="container">
+        <div id="draw-cot" />
+      </div>
+      <div class="btn-container">
+        <el-icon @click="zoomOut">
+          <ZoomOut />
+        </el-icon>
+        <el-icon @click="zoomIn">
+          <ZoomIn />
+        </el-icon>
+        <el-icon @click="locationCenter">
+          <MapLocation />
+        </el-icon>
+        <el-icon @click="refresh">
+          <Refresh />
+        </el-icon>
+      </div>
+      <!-- 后续动态注入 -->
+      <!-- <div class="status-container">
                 <span class="status-tag status-SUCCESS">成功</span>
                 <span class="status-tag status-PENDING">等待中</span>
                 <span class="status-tag status-RUNNING">运行中</span>
@@ -20,23 +28,23 @@
                 <span class="status-tag status-ABORT">已中止</span>
                 <span class="status-tag status-ABORTING">中止中</span>
             </div> -->
-        </section>
-    </div>
+    </section>
+  </div>
 </template>
 
-<script setup lang='ts'>
+<script setup lang="ts">
 import { nextTick, onMounted, createVNode, ref, defineEmits } from 'vue'
 import { Graph, Path, Addon, Cell } from '@antv/x6'
 import CustomNode from './custom-node.vue'
 
 let _Graph: any
 let dnd: any
-let container: HTMLElement | undefined;
+let container: HTMLElement | undefined
 
 const runningStatus = ref(false)
 const hideGridStatus = ref(false)
 
-const emit = defineEmits(['refresh', 'nodeDropped'])
+const emit = defineEmits([ 'refresh', 'nodeDropped' ])
 
 function initGraph() {
     Graph.registerNode(
@@ -46,21 +54,19 @@ function initGraph() {
             width: 180,
             height: 36,
             component: {
-                render: ()=>{
-                   return createVNode(CustomNode);
+                render: () => {
+                    return createVNode(CustomNode)
                 }
             },
             ports: {
                 groups: {
                     top: {
                         position: 'top',
-                        attrs:
-                        {
+                        attrs: {
                             circle: {
                                 r: 4,
                                 magnet: true,
-                                stroke:
-                                    '#C2C8D5',
+                                stroke: '#C2C8D5',
                                 strokeWidth: 1,
                                 fill: '#fff'
                             }
@@ -71,8 +77,7 @@ function initGraph() {
                         attrs: {
                             circle: {
                                 r: 4,
-                                magnet:
-                                    true,
+                                magnet: true,
                                 stroke: '#C2C8D5',
                                 strokeWidth: 1,
                                 fill: '#fff'
@@ -109,8 +114,12 @@ function initGraph() {
             const deltaY = Math.abs(e.y - s.y)
             const control = Math.floor((deltaY / 3) * 2)
 
-            const v1 = { x: s.x, y: s.y + offset + control }
-            const v2 = { x: e.x, y: e.y - offset - control }
+            const v1 = {
+ x: s.x, y: s.y + offset + control 
+}
+            const v2 = {
+ x: e.x, y: e.y - offset - control 
+}
 
             return Path.normalize(
                 `M ${s.x} ${s.y}
@@ -138,7 +147,7 @@ function initGraph() {
         container: container,
         panning: {
             enabled: true,
-            eventTypes: ['leftMouseDown', 'mouseWheel']
+            eventTypes: [ 'leftMouseDown', 'mouseWheel' ]
         },
         mousewheel: {
             enabled: true,
@@ -171,7 +180,9 @@ function initGraph() {
             targetAnchor: 'top',
             allowNode: false,
             allowEdge: false,
-            validateMagnet({ magnet, cell }) {
+            validateMagnet({
+ magnet, cell 
+}) {
                 // 只能从底部端口开始连线
                 if (magnet.getAttribute('port-group') !== 'bottom') {
                     return false
@@ -183,14 +194,16 @@ function initGraph() {
                 }
                 return true
             },
-            validateConnection({ targetCell }) {
+            validateConnection({
+ targetCell 
+}) {
                 // 数据输入节点不能被其他节点连线指向
                 const targetData = targetCell?.getData()
                 if (targetData?.nodeConfigData?.type === 'DATA_INPUT') {
                     return false
                 }
                 // 数据过滤/数据转换/新增字段节点只能被一个节点指向
-                const singleInputTypes = ['DATA_FILTER', 'DATA_TRANSFORM', 'DATA_ADD_COL', 'DATA_OUTPUT']
+                const singleInputTypes = [ 'DATA_FILTER', 'DATA_TRANSFORM', 'DATA_ADD_COL', 'DATA_OUTPUT' ]
                 if (singleInputTypes.includes(targetData?.nodeConfigData?.type)) {
                     const incomingEdges = _Graph.getIncomingEdges(targetCell)
                     if (incomingEdges && incomingEdges.length >= 1) {
@@ -226,8 +239,12 @@ function initGraph() {
     })
     dnd = new Addon.Dnd({
         target: _Graph,
-        getDragNode: (node: any) => node.clone({ keepId: true }),
-        getDropNode: (node: any) => node.clone({ keepId: true }),
+        getDragNode: (node: any) => node.clone({
+ keepId: true 
+}),
+        getDropNode: (node: any) => node.clone({
+ keepId: true 
+}),
         validateNode(droppingNode: any) {
             // 节点真正放到画布后，通知父组件
             nextTick(() => {
@@ -237,30 +254,42 @@ function initGraph() {
             return true
         }
     })
-    _Graph.on('node:mouseenter', ({ node }) => {
+    _Graph.on('node:mouseenter', ({
+ node 
+}) => {
         if (!runningStatus.value && !hideGridStatus.value) {
             node.addTools({
                 name: 'button-remove',
                 args: {
                     x: 175,
                     y: -5,
-                    offset: { x: 10, y: 10 },
+                    offset: {
+ x: 10, y: 10 
+}
                 }
             })
         }
     })
-    _Graph.on('node:mouseleave', ({ node }) => {
+    _Graph.on('node:mouseleave', ({
+ node 
+}) => {
         node.removeTools()
     })
-    _Graph.on('edge:mouseenter', ({ edge }) => {
+    _Graph.on('edge:mouseenter', ({
+ edge 
+}) => {
         if (!runningStatus.value && !hideGridStatus.value) {
             edge.addTools({
                 name: 'button-remove',
-                args: { distance: '50%' }
+                args: {
+ distance: '50%' 
+}
             })
         }
     })
-    _Graph.on('edge:mouseleave', ({ edge }) => {
+    _Graph.on('edge:mouseleave', ({
+ edge 
+}) => {
         edge.removeTools()
     })
     _Graph.bindKey('backspace', () => {
@@ -318,7 +347,9 @@ function updateNodeFn(item: any) {
             ...item
         }
     }
-    node.setData(params, { overwrite: true })
+    node.setData(params, {
+ overwrite: true 
+})
 }
 
 // 获取所有节点以及连线的数据
@@ -328,7 +359,9 @@ function getAllCellData() {
 
 // 获取上游的上一层节点
 function getIncomeNodes(cell: Cell) {
-    return _Graph.getNeighbors(_Graph.getCellById(cell.id), { incoming: true })
+    return _Graph.getNeighbors(_Graph.getCellById(cell.id), {
+ incoming: true 
+})
 }
 
 // 选中某一个边
@@ -384,7 +417,7 @@ function refresh() {
     emit('refresh')
 }
 function locationContentCenter() {
-  _Graph.center()
+    _Graph.center()
 }
 
 onMounted(() => {
@@ -417,7 +450,7 @@ defineExpose({
 
 <style lang="scss" scoped>
 $--status-SUCCESS: #52c41a;
-$--status-PENDING: #F5B041;
+$--status-PENDING: #f5b041;
 $--status-BREAK: #3f3a24;
 $--status-FAIL: #ff4d4f;
 $--status-ABORT: #9f26e1;
@@ -478,7 +511,7 @@ $--status-RUNNING: #1890ff;
                 position: relative;
                 margin: 2px 0;
                 &::before {
-                    content: "";
+                    content: '';
                     width: 6px;
                     height: 6px;
                     border-radius: 4px;
@@ -552,7 +585,7 @@ $--status-RUNNING: #1890ff;
         margin-right: 8px;
         cursor: pointer;
         &:hover {
-            color: getCssVar('color', 'primary');;
+            color: getCssVar('color', 'primary');
         }
     }
 
@@ -572,7 +605,6 @@ $--status-RUNNING: #1890ff;
     }
 }
 
-
 @keyframes running-line {
     to {
         stroke-dashoffset: -1000;
@@ -589,4 +621,3 @@ $--status-RUNNING: #1890ff;
     }
 }
 </style>
-  

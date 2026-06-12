@@ -8,66 +8,69 @@
  */
 import { http } from '@/utils/http'
 interface SerchParams {
-  page: number;
-  pageSize: number;
-  searchKeyWord: string;
+    page: number
+    pageSize: number
+    searchKeyWord: string
 }
 
 interface LicenseIdParam {
-  licenseId: string;
+    licenseId: string
 }
 
 export function GetLicenseList(params: SerchParams): Promise<any> {
-  return http.request({
-    method: 'post',
-    url: '/vip/license/queryLicense',
-    params: params
-  })
+    return http.request({
+        method: 'post',
+        url: '/vip/license/queryLicense',
+        params: params
+    })
 }
 
 // 上传license证书
 export function UploadLicenseFile(params: any): Promise<any> {
-  return http.uploadFile({
-    method: 'post',
-    url: '/vip/license/uploadLicense',
-    params
-  })
+    return http.uploadFile({
+        method: 'post',
+        url: '/vip/license/uploadLicense',
+        params
+    })
 }
 
 // 启用
 export function DisableLicense(params: LicenseIdParam): Promise<any> {
-  return http.request({
-    method: 'get',
-    url: '/vip/license/disableLicense',
-    params: params
-  })
+    return http.request({
+        method: 'get',
+        url: '/vip/license/disableLicense',
+        params: params
+    })
 }
 
 // 禁用
 export function EnableLicense(params: LicenseIdParam): Promise<any> {
-  return http.request({
-    method: 'get',
-    url: '/vip/license/enableLicense',
-    params: params
-  })
+    return http.request({
+        method: 'get',
+        url: '/vip/license/enableLicense',
+        params: params
+    })
 }
 
 // 删除
 export function DeleteLicense(params: LicenseIdParam): Promise<any> {
-  return http.request({
-    method: 'get',
-    url: '/vip/license/deleteLicense',
-    params: params
-  })
+    return http.request({
+        method: 'get',
+        url: '/vip/license/deleteLicense',
+        params: params
+    })
 }
 
 // 检查license状态
 export function CheckLicenseStatus(): Promise<any> {
-  return http.request({
-    method: 'get',
-    url: '/vip/license/open/checkLicense'
-  }, {
-    // 404 场景由上层按“许可证未生效”处理，不弹全局错误提示
-    isShowErrorMessage: false
-  })
+    return http.request(
+        {
+            method: 'get',
+            url: '/vip/license/open/checkLicense'
+        },
+        {
+            // 404 场景由上层按“许可证未生效”处理，不弹全局错误提示
+            isShowErrorMessage: false
+        }
+    )
 }

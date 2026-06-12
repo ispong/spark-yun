@@ -15,112 +15,118 @@ import { useAuthStore } from '@/store/useAuth'
 
 const message = ElMessage
 
-const whiteList = ['/vip/auth/open/querySsoAuth', '/vip/license/open/checkLicense']
+const whiteList = [ '/vip/auth/open/querySsoAuth', '/vip/license/open/checkLicense' ]
 let isRefreshingLicense = false
 
 function isLicenseMissingError(msg: string): boolean {
-  return typeof msg === 'string' && msg.includes('请上传许可证')
+    return typeof msg === 'string' && msg.includes('请上传许可证')
 }
 
 async function refreshLicenseAndReload(): Promise<void> {
-  if (isRefreshingLicense || typeof window === 'undefined') {
-    return
-  }
-  isRefreshingLicense = true
+    if (isRefreshingLicense || typeof window === 'undefined') {
+        return
+    }
+    isRefreshingLicense = true
 
-  try {
-    const authStore = useAuthStore()
-    const urlPrefix = import.meta.env.VITE_VUE_APP_BASE_DOMAIN || ''
-    await fetch(`${urlPrefix}/vip/license/open/checkLicense`, {
-      method: 'GET',
-      headers: {
-        authorization: authStore.token || '',
-        tenant: authStore.tenantId || ''
-      }
-    })
-  } catch (error) {
-    console.error('refresh license error', error)
-  } finally {
-    window.location.reload()
-  }
+    try {
+        const authStore = useAuthStore()
+        const urlPrefix = import.meta.env.VITE_VUE_APP_BASE_DOMAIN || ''
+        await fetch(`${urlPrefix}/vip/license/open/checkLicense`, {
+            method: 'GET',
+            headers: {
+                authorization: authStore.token || '',
+                tenant: authStore.tenantId || ''
+            }
+        })
+    } catch (error) {
+        console.error('refresh license error', error)
+    } finally {
+        window.location.reload()
+    }
 }
 
 export const httpOption = {
-  transform: {
-    requestInterceptors: (config: any) => {
-      const authStore = useAuthStore()
-      config.headers['authorization'] = config.headers['authorization'] || authStore.token
-      config.headers['tenant'] = config.headers['tenant'] || authStore.tenantId
+    transform: {
+        requestInterceptors: (config: any) => {
+            const authStore = useAuthStore()
+            config.headers['authorization'] = config.headers['authorization'] || authStore.token
+            config.headers['tenant'] = config.headers['tenant'] || authStore.tenantId
 
-      return config
-    },
-    responseInterceptors: (config: any): any => {
-      // getTokenFromResponse(config);
+            return config
+        },
+        responseInterceptors: (config: any): any => {
+            // getTokenFromResponse(config);
 
-      return config
-    }
-  },
-  requestOptions: {
-    // urlPrefix: 'http://isxcode.com:30211',
-    urlPrefix: import.meta.env.VITE_VUE_APP_BASE_DOMAIN,
-    showSuccessMessage: (msg: string): void => {
-      message.success(msg)
-    },
-    showErrorMessage: (msg: string): void => {
-      message.error(msg)
-      if (isLicenseMissingError(msg)) {
-        refreshLicenseAndReload()
-      }
-    },
-    checkStatus: (status: number, msg: string, showMsg: any, response: any): void => {
-      try {
-        if (status == 401) {
-          const authStore = useAuthStore()
-          const tenantUnavailable = ['租户', '成员', '不在租户'].some(keyword => msg?.includes(keyword))
-          router.push(tenantUnavailable && authStore.token ? { name: 'no-tenant' } : { name: 'login' })
-        } else if (status == 403) {
-          message.error(msg || '暂无权限')
-          router.push({ name: 'forbidden' })
-        } else if (status == 404) {
-          if (response.config.url.match('/vip/')) {
-            if (!whiteList.some(url => response.config.url.match(url))) {
-              message.error('请升级到企业版')
-            }
-          } else {
-            showMsg(msg)
-          }
-        } else {
-          showMsg(msg)
+            return config
         }
-      } catch (error) {
-        console.error('error', error)
-        // console.log('err', error);
-        // router.replace({
-        //     name: LOGIN_NAME,
-        //     query: {
-        //         redirect: '/home'
-        //     }
-        // });
-      }
-    }
-  },
-  timeout: 30 * 1e3
+    },
+    requestOptions: {
+        // urlPrefix: 'http://isxcode.com:30211',
+        urlPrefix: import.meta.env.VITE_VUE_APP_BASE_DOMAIN,
+        showSuccessMessage: (msg: string): void => {
+            message.success(msg)
+        },
+        showErrorMessage: (msg: string): void => {
+            message.error(msg)
+            if (isLicenseMissingError(msg)) {
+                refreshLicenseAndReload()
+            }
+        },
+        checkStatus: (status: number, msg: string, showMsg: any, response: any): void => {
+            try {
+                if (status == 401) {
+                    const authStore = useAuthStore()
+                    const tenantUnavailable = [ '租户', '成员', '不在租户' ].some((keyword) => msg?.includes(keyword))
+                    router.push(tenantUnavailable && authStore.token ? {
+ name: 'no-tenant' 
+} : {
+ name: 'login' 
+})
+                } else if (status == 403) {
+                    message.error(msg || '暂无权限')
+                    router.push({
+ name: 'forbidden' 
+})
+                } else if (status == 404) {
+                    if (response.config.url.match('/vip/')) {
+                        if (!whiteList.some((url) => response.config.url.match(url))) {
+                            message.error('请升级到企业版')
+                        }
+                    } else {
+                        showMsg(msg)
+                    }
+                } else {
+                    showMsg(msg)
+                }
+            } catch (error) {
+                console.error('error', error)
+                // console.log('err', error);
+                // router.replace({
+                //     name: LOGIN_NAME,
+                //     query: {
+                //         redirect: '/home'
+                //     }
+                // });
+            }
+        }
+    },
+    timeout: 30 * 1e3
 }
 
 export const createHttp = (option = {
 }) => {
-  return createAxios(
-    merge(
-      {
-      },
-      {
-        ...httpOption
-      },
-      {
-        ...option
-      }
+    return createAxios(
+        merge(
+            {
+},
+            {
+                ...httpOption
+            },
+            {
+                ...option
+            }
+        )
     )
-  )
 }
 
 export const http = createHttp()

@@ -1,29 +1,31 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <div class="form-setting-more">
-            <div class="item-title">分享设置</div>
-            <div class="set-item-container">
-                <div class="set-item">
-                    <span class="label">匿名分享</span>
-                    <el-switch v-model="shareConfig.nmShareStatus" />
-                </div>
-                <div class="set-item">
-                    <span class="label">列表分享</span>
-                    <el-switch v-model="shareConfig.listShareStatus" />
-                </div>
-                <div class="set-item">
-                    <span class="label">登录分享</span>
-                    <el-switch v-model="shareConfig.loginShareStatus" />
-                </div>
-            </div>
-            <!-- <div class="item-title">权限设置</div>
+  <BlockModal :model-config="modelConfig">
+    <div class="form-setting-more">
+      <div class="item-title">
+        分享设置
+      </div>
+      <div class="set-item-container">
+        <div class="set-item">
+          <span class="label">匿名分享</span>
+          <el-switch v-model="shareConfig.nmShareStatus" />
+        </div>
+        <div class="set-item">
+          <span class="label">列表分享</span>
+          <el-switch v-model="shareConfig.listShareStatus" />
+        </div>
+        <div class="set-item">
+          <span class="label">登录分享</span>
+          <el-switch v-model="shareConfig.loginShareStatus" />
+        </div>
+      </div>
+      <!-- <div class="item-title">权限设置</div>
             <div class="set-item-container">
                 暂无
             </div> -->
-        </div>
-    </BlockModal>
+    </div>
+  </BlockModal>
 </template>
-  
+
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
@@ -92,19 +94,19 @@ defineExpose({
     showModal
 })
 </script>
-  
+
 <style lang="scss">
 .form-setting-more {
     padding: 12px 20px 0 20px;
     box-sizing: border-box;
     .item-title {
-      font-size: 13px;
-      padding-bottom: 12px;
-      margin-bottom: 12px;
-      box-sizing: border-box;
-      border-bottom: 1px solid #ebeef5;
-      font-weight: bolder;
-      color: getCssVar('color', 'primary');
+        font-size: 13px;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+        box-sizing: border-box;
+        border-bottom: 1px solid #ebeef5;
+        font-weight: bolder;
+        color: getCssVar('color', 'primary');
     }
     .set-item-container {
         margin-bottom: 12px;
@@ -119,4 +121,3 @@ defineExpose({
     }
 }
 </style>
-  

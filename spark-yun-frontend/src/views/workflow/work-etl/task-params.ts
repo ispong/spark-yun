@@ -1,6 +1,6 @@
 export const TaskParams = {
     // 数据输入
-    'DATA_INPUT': {
+    DATA_INPUT: {
         inputEtl: {
             datasourceId: '',
             dbType: '',
@@ -11,7 +11,7 @@ export const TaskParams = {
         outColumnList: []
     },
     // 数据输出
-    'DATA_OUTPUT': {
+    DATA_OUTPUT: {
         outputEtl: {
             datasourceId: '',
             dbType: '',
@@ -24,64 +24,76 @@ export const TaskParams = {
         colMapping: []
     },
     // 数据转换
-    'DATA_TRANSFORM': {
-        transformEtl: [{
-            colName: '',
-            transformWay: 'FUNCTION_TRANSFORM',
-            transformFunc: '',
-            transformSql: '',
-            inputValue: []
-        }],
+    DATA_TRANSFORM: {
+        transformEtl: [
+            {
+                colName: '',
+                transformWay: 'FUNCTION_TRANSFORM',
+                transformFunc: '',
+                transformSql: '',
+                inputValue: []
+            }
+        ],
         outColumnList: []
     },
     // 数据关联
-    'DATA_JOIN': {
-        joinEtl: [{
-            joinWay: 'LEFT_JOIN',
-            joinAliaCode: '',
-            joinConditions: [{
-                joinType: 'COLUMN_JOIN',
-                joinLeftColumn: '',
-                joinCondition: '',
-                joinRightColumn: '',
-                joinValue: '',
-                joinSql: ''
-            }]
-        }],
+    DATA_JOIN: {
+        joinEtl: [
+            {
+                joinWay: 'LEFT_JOIN',
+                joinAliaCode: '',
+                joinConditions: [
+                    {
+                        joinType: 'COLUMN_JOIN',
+                        joinLeftColumn: '',
+                        joinCondition: '',
+                        joinRightColumn: '',
+                        joinValue: '',
+                        joinSql: ''
+                    }
+                ]
+            }
+        ],
         outColumnList: [],
         mainAliaCode: ''
     },
     // 数据过滤
-    'DATA_FILTER': {
-        filterEtl: [{
-            filterType: 'CONDITION_FILTER',
-            filterColumn: '',
-            filterCondition: '',
-            filterValue: '',
-            customFilter: ''
-        }],
+    DATA_FILTER: {
+        filterEtl: [
+            {
+                filterType: 'CONDITION_FILTER',
+                filterColumn: '',
+                filterCondition: '',
+                filterValue: '',
+                customFilter: ''
+            }
+        ],
         outColumnList: []
     },
     // 数据合并
-    'DATA_UNION': {
-        unionEtl: [{
-            aliaCode: '',
-            unionWay: 'UNION'
-        }],
+    DATA_UNION: {
+        unionEtl: [
+            {
+                aliaCode: '',
+                unionWay: 'UNION'
+            }
+        ],
         outColumnList: [],
         mainAliaCode: ''
     },
     // 新增字段
-    'DATA_ADD_COL': {
-        addColEtl: [{
-            colName: '',
-            colType: '',
-            remark: ''
-        }],
+    DATA_ADD_COL: {
+        addColEtl: [
+            {
+                colName: '',
+                colType: '',
+                remark: ''
+            }
+        ],
         outColumnList: []
     },
     // 数据自定义
-    'DATA_CUSTOM': {
+    DATA_CUSTOM: {
         customSqlEtl: {
             sql: ''
         },

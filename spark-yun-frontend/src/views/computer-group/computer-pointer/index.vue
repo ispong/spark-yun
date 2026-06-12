@@ -2,19 +2,39 @@
   <Breadcrumb :bread-crumb-list="breadCrumbList" />
   <div class="zqy-seach-table zqy-computer-node">
     <div class="zqy-table-top">
-      <el-button type="primary" @click="addData">
+      <el-button
+        type="primary"
+        @click="addData"
+      >
         添加节点
       </el-button>
       <div class="zqy-seach">
-        <el-input v-model="keyword" placeholder="请输入节点名称/地址/备注 回车进行搜索" :maxlength="200" clearable @input="inputEvent"
-          @keyup.enter="initData(false)" />
+        <el-input
+          v-model="keyword"
+          placeholder="请输入节点名称/地址/备注 回车进行搜索"
+          :maxlength="200"
+          clearable
+          @input="inputEvent"
+          @keyup.enter="initData(false)"
+        />
       </div>
     </div>
-    <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
+    <LoadingPage
+      :visible="loading"
+      :network-error="networkError"
+      @loading-refresh="initData(false)"
+    >
       <div class="zqy-table">
-        <BlockTable :table-config="tableConfig" @size-change="handleSizeChange" @current-change="handleCurrentChange">
+        <BlockTable
+          :table-config="tableConfig"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        >
           <template #nameSlot="scopeSlot">
-            <span class="name-click" @click="editNodeData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+            <span
+              class="name-click"
+              @click="editNodeData(scopeSlot.row)"
+            >{{ scopeSlot.row.name }}</span>
           </template>
           <template #cpuSlot="scopeSlot">
             <div class="resource-progress">
@@ -50,14 +70,22 @@
             </div>
           </template>
           <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status"></ZStatusTag>
+            <ZStatusTag :status="scopeSlot.row.status" />
           </template>
           <template #defaultNodeTag="scopeSlot">
             <div class="btn-group">
-              <el-tag v-if="scopeSlot.row.defaultClusterNode" class="ml-2" type="success">
+              <el-tag
+                v-if="scopeSlot.row.defaultClusterNode"
+                class="ml-2"
+                type="success"
+              >
                 是
               </el-tag>
-              <el-tag v-if="!scopeSlot.row.defaultClusterNode" class="ml-2" type="danger">
+              <el-tag
+                v-if="!scopeSlot.row.defaultClusterNode"
+                class="ml-2"
+                type="danger"
+              >
                 否
               </el-tag>
             </div>
@@ -75,13 +103,25 @@
                     <el-dropdown-item @click="showLog(scopeSlot.row)">
                       日志
                     </el-dropdown-item>
-                    <el-dropdown-item v-if="scopeSlot.row.status === 'RUNNING'" @click="stopAgent(scopeSlot.row)">
+                    <el-dropdown-item
+                      v-if="scopeSlot.row.status === 'RUNNING'"
+                      @click="stopAgent(scopeSlot.row)"
+                    >
                       停止
                     </el-dropdown-item>
-                    <el-dropdown-item v-if="scopeSlot.row.status === 'STOP'" @click="startAgent(scopeSlot.row)">
+                    <el-dropdown-item
+                      v-if="scopeSlot.row.status === 'STOP'"
+                      @click="startAgent(scopeSlot.row)"
+                    >
                       激活
                     </el-dropdown-item>
-                    <el-dropdown-item v-if="scopeSlot.row.status === 'UN_INSTALL'|| scopeSlot.row.status === 'INSTALL_ERROR'" @click="installData(scopeSlot.row)">
+                    <el-dropdown-item
+                      v-if="
+                        scopeSlot.row.status === 'UN_INSTALL' ||
+                          scopeSlot.row.status === 'INSTALL_ERROR'
+                      "
+                      @click="installData(scopeSlot.row)"
+                    >
                       安装
                     </el-dropdown-item>
                     <el-dropdown-item @click="uninstallData(scopeSlot.row)">
@@ -115,32 +155,30 @@ import AddModal from './add-modal/index.vue'
 import ShowLog from './show-log/index.vue'
 
 import { PointTableConfig, FormData } from '../computer-group.config'
-import {
-  GetComputerPointData,
-  CheckComputerPointData,
-  AddComputerPointData,
-  InstallComputerPointData,
-  UninstallComputerPointData,
-  DeleteComputerPointData,
-  StopComputerPointData,
-  StartComputerPointData,
-  EditComputerPointData,
-  CleanComputerPointData,
-SetDefaultComputerPointNode
-} from '@/services/computer-group.service'
+import { GetComputerPointData,
+    CheckComputerPointData,
+    AddComputerPointData,
+    InstallComputerPointData,
+    UninstallComputerPointData,
+    DeleteComputerPointData,
+    StopComputerPointData,
+    StartComputerPointData,
+    EditComputerPointData,
+    CleanComputerPointData,
+    SetDefaultComputerPointNode } from '@/services/computer-group.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const breadCrumbList = reactive([
-  {
-    name: '计算集群',
-    code: 'computer-group'
-  },
-  {
-    name: '节点',
-    code: 'computer-pointer'
-  }
+    {
+        name: '计算集群',
+        code: 'computer-group'
+    },
+    {
+        name: '节点',
+        code: 'computer-pointer'
+    }
 ])
 const tableConfig: any = reactive(PointTableConfig)
 const keyword = ref('')
@@ -151,331 +189,336 @@ const showLogRef = ref(null)
 const timer = ref()
 
 function normalizePercent(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0
-  }
-  return Math.max(0, Math.min(100, Math.round(value)))
+    if (!Number.isFinite(value)) {
+        return 0
+    }
+    return Math.max(0, Math.min(100, Math.round(value)))
 }
 
 function getPercentFromCpu(cpuValue: string): number {
-  if (!cpuValue) {
-    return 0
-  }
-  const percent = parseFloat(String(cpuValue).replace('%', '').trim())
-  return normalizePercent(percent)
+    if (!cpuValue) {
+        return 0
+    }
+    const percent = parseFloat(String(cpuValue).replace('%', '').trim())
+    return normalizePercent(percent)
 }
 
 function getPercentFromUsage(usageText: string): number {
-  if (!usageText) {
-    return 0
-  }
-  const ratioMatch = String(usageText)
-    .replace(/\s/g, '')
-    .match(/^([\d.]+)[a-zA-Z]*\/([\d.]+)[a-zA-Z]*$/)
-  if (!ratioMatch) {
-    return getPercentFromCpu(usageText)
-  }
-  const used = Number(ratioMatch[1])
-  const total = Number(ratioMatch[2])
-  if (!Number.isFinite(used) || !Number.isFinite(total) || total <= 0) {
-    return 0
-  }
-  return normalizePercent((used / total) * 100)
+    if (!usageText) {
+        return 0
+    }
+    const ratioMatch = String(usageText)
+        .replace(/\s/g, '')
+        .match(/^([\d.]+)[a-zA-Z]*\/([\d.]+)[a-zA-Z]*$/)
+    if (!ratioMatch) {
+        return getPercentFromCpu(usageText)
+    }
+    const used = Number(ratioMatch[1])
+    const total = Number(ratioMatch[2])
+    if (!Number.isFinite(used) || !Number.isFinite(total) || total <= 0) {
+        return 0
+    }
+    return normalizePercent((used / total) * 100)
 }
 
 function getPercentColor(percent: number): string {
-  return 'var(--el-color-primary-light-3)'
+    return 'var(--el-color-primary-light-3)'
 }
 
 function getUsageDisplay(usageText: string): string {
-  if (!usageText) {
-    return '--'
-  }
-  return String(usageText)
+    if (!usageText) {
+        return '--'
+    }
+    return String(usageText)
 }
 
 function getCpuDisplay(cpuValue: string): string {
-  if (!cpuValue) {
-    return '--'
-  }
-  const text = String(cpuValue).trim()
-  if (!text) {
-    return '--'
-  }
-  return text.includes('%') ? text : `${text}%`
+    if (!cpuValue) {
+        return '--'
+    }
+    const text = String(cpuValue).trim()
+    if (!text) {
+        return '--'
+    }
+    return text.includes('%') ? text : `${text}%`
 }
 
 function initData(tableLoading?: boolean, type?: string) {
-  loading.value = tableLoading ? false : true
-  networkError.value = networkError.value || false
-  GetComputerPointData({
-    page: tableConfig.pagination.currentPage - 1,
-    pageSize: tableConfig.pagination.pageSize,
-    searchKeyWord: keyword.value,
-    clusterId: route.query.id
-  })
-    .then((res: any) => {
-      if (type) {
-        res.data.content.forEach((item: any) => {
-          tableConfig.tableData.forEach((col: any) => {
-            if (item.id === col.id) {
-              col.status = item.status
-              col.cpu=item.cpu
-              col.memory=item.memory
-              col.storage=item.storage
+    loading.value = tableLoading ? false : true
+    networkError.value = networkError.value || false
+    GetComputerPointData({
+        page: tableConfig.pagination.currentPage - 1,
+        pageSize: tableConfig.pagination.pageSize,
+        searchKeyWord: keyword.value,
+        clusterId: route.query.id
+    })
+        .then((res: any) => {
+            if (type) {
+                res.data.content.forEach((item: any) => {
+                    tableConfig.tableData.forEach((col: any) => {
+                        if (item.id === col.id) {
+                            col.status = item.status
+                            col.cpu = item.cpu
+                            col.memory = item.memory
+                            col.storage = item.storage
+                        }
+                    })
+                })
+            } else {
+                tableConfig.tableData = res.data.content
+                tableConfig.pagination.total = res.data.totalElements
             }
-          })
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
         })
-      } else {
-        tableConfig.tableData = res.data.content
-        tableConfig.pagination.total = res.data.totalElements
-      }
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = false
-    })
-    .catch(() => {
-      tableConfig.tableData = []
-      tableConfig.pagination.total = 0
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = true
-    })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
 }
 
 // 添加节点数据
 function addData() {
-  addModalRef.value.showModal((formData: FormData) => {
-    return new Promise((resolve: any, reject: any) => {
-      AddComputerPointData({
-        ...formData,
-        clusterId: route.query.id
-      })
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
-        })
-        .catch((error: any) => {
-          reject(error)
+    addModalRef.value.showModal((formData: FormData) => {
+        return new Promise((resolve: any, reject: any) => {
+            AddComputerPointData({
+                ...formData,
+                clusterId: route.query.id
+            })
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
     })
-  })
 }
 
 // 编辑节点数据
 function editNodeData(data: any) {
-  addModalRef.value.showModal((formData: FormData) => {
-    return new Promise((resolve: any, reject: any) => {
-      EditComputerPointData({
-        ...formData,
-        clusterId: route.query.id
-      })
-        .then((res: any) => {
-          ElMessage.success(res.msg)
-          initData()
-          resolve()
+    addModalRef.value.showModal((formData: FormData) => {
+        return new Promise((resolve: any, reject: any) => {
+            EditComputerPointData({
+                ...formData,
+                clusterId: route.query.id
+            })
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
         })
-        .catch((error: any) => {
-          reject(error)
-        })
-    })
-  }, data)
+    }, data)
 }
 
 // 查看日志
 function showLog(e: any) {
-  showLogRef.value.showModal(e.id, 'cluster')
+    showLogRef.value.showModal(e.id, 'cluster')
 }
 
 // 停止
 function stopAgent(data: any) {
-  data.stopAgentLoading = true
-  StopComputerPointData({
-    engineNodeId: data.id
-  }).then((res: any) => {
-    ElMessage.success(res.msg)
-    data.stopAgentLoading = false
-    initData(true)
-  }).catch(() => {
-    data.stopAgentLoading = false
-  })
+    data.stopAgentLoading = true
+    StopComputerPointData({
+        engineNodeId: data.id
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            data.stopAgentLoading = false
+            initData(true)
+        })
+        .catch(() => {
+            data.stopAgentLoading = false
+        })
 }
 
 // 停止
 function startAgent(data: any) {
-  data.stopAgentLoading = true
-  StartComputerPointData({
-    engineNodeId: data.id
-  }).then((res: any) => {
-    ElMessage.success(res.msg)
-    data.stopAgentLoading = false
-    initData(true)
-  }).catch(() => {
-    data.stopAgentLoading = false
-  })
+    data.stopAgentLoading = true
+    StartComputerPointData({
+        engineNodeId: data.id
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            data.stopAgentLoading = false
+            initData(true)
+        })
+        .catch(() => {
+            data.stopAgentLoading = false
+        })
 }
 
 // 安装
 function installData(data: any) {
-  data.installLoading = true
-  InstallComputerPointData({
-    engineNodeId: data.id
-  })
-    .then((res: any) => {
-      ElMessage.success(res.msg)
-      data.installLoading = false
-      initData(true)
+    data.installLoading = true
+    InstallComputerPointData({
+        engineNodeId: data.id
     })
-    .catch(() => {
-      data.installLoading = false
-    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            data.installLoading = false
+            initData(true)
+        })
+        .catch(() => {
+            data.installLoading = false
+        })
 }
 
 // 卸载
 function uninstallData(data: any) {
-  data.uninstallLoading = true
-  UninstallComputerPointData({
-    engineNodeId: data.id
-  })
-    .then((res: any) => {
-      ElMessage.success(res.msg)
-      data.uninstallLoading = false
-      initData(true)
+    data.uninstallLoading = true
+    UninstallComputerPointData({
+        engineNodeId: data.id
     })
-    .catch(() => {
-      data.uninstallLoading = false
-    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            data.uninstallLoading = false
+            initData(true)
+        })
+        .catch(() => {
+            data.uninstallLoading = false
+        })
 }
 
 // 清理
 function cleanData(data: any) {
-  data.cleanLoading = true
-  CleanComputerPointData({
-    engineNodeId: data.id
-  })
-    .then((res: any) => {
-      ElMessage.success(res.msg)
-      data.cleanLoading = false
-      initData(true)
+    data.cleanLoading = true
+    CleanComputerPointData({
+        engineNodeId: data.id
     })
-    .catch(() => {
-      data.cleanLoading = false
-    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            data.cleanLoading = false
+            initData(true)
+        })
+        .catch(() => {
+            data.cleanLoading = false
+        })
 }
 
 // 检测
 function checkData(data: any) {
-  data.checkLoading = true
-  CheckComputerPointData({
-    engineNodeId: data.id
-  })
-    .then((res: any) => {
-      data.checkLoading = false
-      ElMessage.success(res.msg)
-      initData(true)
+    data.checkLoading = true
+    CheckComputerPointData({
+        engineNodeId: data.id
     })
-    .catch(() => {
-      data.checkLoading = false
-    })
+        .then((res: any) => {
+            data.checkLoading = false
+            ElMessage.success(res.msg)
+            initData(true)
+        })
+        .catch(() => {
+            data.checkLoading = false
+        })
 }
 
 // 设置默认节点
 function setDefaultNode(data: any) {
-  SetDefaultComputerPointNode({
-    clusterNodeId: data.id
-  }).then((res: any) => {
-    data.checkLoading = false
-    ElMessage.success(res.msg)
-    initData(true)
-  })
-  .catch(() => {
-    data.checkLoading = false
-  })
+    SetDefaultComputerPointNode({
+        clusterNodeId: data.id
+    })
+        .then((res: any) => {
+            data.checkLoading = false
+            ElMessage.success(res.msg)
+            initData(true)
+        })
+        .catch(() => {
+            data.checkLoading = false
+        })
 }
 
 // 删除
 function deleteData(data: any) {
-  ElMessageBox.confirm('确定删除该节点吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    DeleteComputerPointData({
-      engineNodeId: data.id
+    ElMessageBox.confirm('确定删除该节点吗？', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        DeleteComputerPointData({
+            engineNodeId: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch(() => {})
     })
-      .then((res: any) => {
-        ElMessage.success(res.msg)
-        initData()
-      })
-      .catch(() => { })
-  })
 }
 
 function inputEvent(e: string) {
-  if (e === '') {
-    initData()
-  }
+    if (e === '') {
+        initData()
+    }
 }
 
 function handleSizeChange(e: number) {
-  tableConfig.pagination.pageSize = e
-  initData()
+    tableConfig.pagination.pageSize = e
+    initData()
 }
 
 function handleCurrentChange(e: number) {
-  tableConfig.pagination.currentPage = e
-  initData()
+    tableConfig.pagination.currentPage = e
+    initData()
 }
 
 onMounted(() => {
-  tableConfig.pagination.currentPage = 1
-  tableConfig.pagination.pageSize = 10
-  initData()
-  timer.value = setInterval(() => {
-    initData(true, 'interval')
-  }, 3000)
+    tableConfig.pagination.currentPage = 1
+    tableConfig.pagination.pageSize = 10
+    initData()
+    timer.value = setInterval(() => {
+        initData(true, 'interval')
+    }, 3000)
 })
 onUnmounted(() => {
-  if (timer.value) {
-    clearInterval(timer.value)
-  }
-  timer.value = null
+    if (timer.value) {
+        clearInterval(timer.value)
+    }
+    timer.value = null
 })
 </script>
 
 <style lang="scss">
 .zqy-seach-table {
-  .click-show-more {
-    font-size: getCssVar('font-size', 'extra-small');
-  }
-
-  &.zqy-computer-node {
-    .resource-progress {
-      min-width: 120px;
-      padding-right: 6px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      .el-progress {
-        flex: 1;
-      }
+    .click-show-more {
+        font-size: getCssVar('font-size', 'extra-small');
     }
 
-    .resource-progress__value {
-      color: getCssVar('text-color', 'secondary');
-      white-space: nowrap;
-      font-size: getCssVar('font-size', 'extra-small');
-    }
+    &.zqy-computer-node {
+        .resource-progress {
+            min-width: 120px;
+            padding-right: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
 
-    .zqy-seach {
-      display: flex;
-      align-items: center;
-      .el-button {
-        margin-left: 12px;
-      }
+            .el-progress {
+                flex: 1;
+            }
+        }
+
+        .resource-progress__value {
+            color: getCssVar('text-color', 'secondary');
+            white-space: nowrap;
+            font-size: getCssVar('font-size', 'extra-small');
+        }
+
+        .zqy-seach {
+            display: flex;
+            align-items: center;
+            .el-button {
+                margin-left: 12px;
+            }
+        }
     }
-  }
 }
 </style>

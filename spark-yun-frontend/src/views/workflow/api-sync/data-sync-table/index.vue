@@ -1,70 +1,168 @@
 <template>
-    <div class="select-link-type" v-if="!props.disabled">
-        <el-button v-for="button in buttons" :key="button.text" :type="button.type" link
-                   @click="clickSelectLinkConnect(button.code)">{{ button.text }}
-        </el-button>
+  <div
+    v-if="!props.disabled"
+    class="select-link-type"
+  >
+    <el-button
+      v-for="button in buttons"
+      :key="button.text"
+      :type="button.type"
+      link
+      @click="clickSelectLinkConnect(button.code)"
+    >
+      {{ button.text }}
+    </el-button>
+  </div>
+  <div
+    v-if="showDataSync"
+    id="container"
+    class="data-sync-body"
+  >
+    <div class="source-table-container">
+      <el-table
+        v-if="formData.sourceDBType === 'API'"
+        ref="sourceTableRef"
+        :data="sourceTableColumn"
+        row-key="code"
+      >
+        <el-table-column
+          width="80"
+          prop="code"
+          :show-overflow-tooltip="true"
+          label="字段名"
+        />
+        <el-table-column
+          width="100"
+          prop="type"
+          :show-overflow-tooltip="true"
+          label="类型"
+        />
+        <el-table-column
+          prop="jsonPath"
+          :show-overflow-tooltip="true"
+          label="jsonPath"
+        />
+        <el-table-column
+          prop="sql"
+          :show-overflow-tooltip="true"
+          label="转换"
+        />
+        <el-table-column
+          v-if="!props.disabled"
+          label=""
+          width="8px"
+        >
+          <template #default="scope">
+            <el-dropdown trigger="click">
+              <el-icon
+                class="option-more"
+                @click.stop
+              >
+                <MoreFilled />
+              </el-icon>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="addNewCode">
+                    添加
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="removeCode(scope)">
+                    删除
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="editCode(scope.row)">
+                    转换
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-table
+        v-else
+        ref="sourceTableRef"
+        :data="sourceTableColumn"
+        row-key="code"
+      >
+        <el-table-column
+          prop="code"
+          :show-overflow-tooltip="true"
+          label="字段名"
+        />
+        <el-table-column
+          prop="type"
+          :show-overflow-tooltip="true"
+          label="类型"
+        />
+      </el-table>
+      <ul class="source-link-pointer">
+        <li
+          v-for="row in sourceTableColumn"
+          :key="row.code"
+        >
+          <div
+            class="lint-pointer"
+            :class="`leftRow code-source-${row.code}`"
+          />
+        </li>
+      </ul>
     </div>
-    <div class="data-sync-body" id="container" v-if="showDataSync">
-        <div class="source-table-container">
-            <el-table v-if="formData.sourceDBType === 'API'" ref="sourceTableRef" :data="sourceTableColumn" row-key="code">
-                <el-table-column width="80" prop="code" :show-overflow-tooltip="true" label="字段名" />
-                <el-table-column width="100" prop="type" :show-overflow-tooltip="true" label="类型" />
-                <el-table-column prop="jsonPath" :show-overflow-tooltip="true" label="jsonPath" />
-                <el-table-column prop="sql" :show-overflow-tooltip="true" label="转换" />
-                <el-table-column label="" width="8px" v-if="!props.disabled">
-                    <template #default="scope">
-                        <el-dropdown trigger="click">
-                            <el-icon class="option-more" @click.stop>
-                                <MoreFilled />
-                            </el-icon>
-                            <template #dropdown>
-                                <el-dropdown-menu>
-                                    <el-dropdown-item @click="addNewCode">
-                                        添加
-                                    </el-dropdown-item>
-                                    <el-dropdown-item @click="removeCode(scope)">
-                                        删除
-                                    </el-dropdown-item>
-                                    <el-dropdown-item @click="editCode(scope.row)">
-                                        转换
-                                    </el-dropdown-item>
-                                </el-dropdown-menu>
-                            </template>
-                        </el-dropdown>
-                    </template>
-                </el-table-column>
-            </el-table>
-            <el-table v-else ref="sourceTableRef" :data="sourceTableColumn" row-key="code">
-                <el-table-column prop="code" :show-overflow-tooltip="true" label="字段名" />
-                <el-table-column prop="type" :show-overflow-tooltip="true" label="类型" />
-            </el-table>
-            <ul class="source-link-pointer">
-                <li v-for="row in sourceTableColumn" :key="row.code">
-                    <div class="lint-pointer" :class="`leftRow code-source-${row.code}`"></div>
-                </li>
-            </ul>
-        </div>
-        <div class="target-link-line">
-            <ul class="target-link-pointer">
-                <li v-for="row in targetTableColumn" :key="row.code">
-                    <div class="lint-pointer" :class="`rightRow code-target-${row.code}`"></div>
-                </li>
-            </ul>
-        </div>
-        <div class="target-table-container">
-            <el-table v-if="formData.targetDBType === 'API'" ref="targetTableRef" :data="targetTableColumn" row-key="code">
-                <el-table-column prop="code" :show-overflow-tooltip="true" label="字段名" />
-                <el-table-column prop="type" :show-overflow-tooltip="true" label="类型" />
-                <el-table-column prop="jsonPath" :show-overflow-tooltip="true" label="jsonPath" />
-            </el-table>
-            <el-table v-else ref="targetTableRef" :data="targetTableColumn" row-key="code">
-                <el-table-column prop="code" :show-overflow-tooltip="true" label="字段名" />
-                <el-table-column prop="type" :show-overflow-tooltip="true" label="类型" />
-            </el-table>
-        </div>
+    <div class="target-link-line">
+      <ul class="target-link-pointer">
+        <li
+          v-for="row in targetTableColumn"
+          :key="row.code"
+        >
+          <div
+            class="lint-pointer"
+            :class="`rightRow code-target-${row.code}`"
+          />
+        </li>
+      </ul>
     </div>
-    <!-- 添加字段 -->
-    <add-code ref="addCodeRef"></add-code>
+    <div class="target-table-container">
+      <el-table
+        v-if="formData.targetDBType === 'API'"
+        ref="targetTableRef"
+        :data="targetTableColumn"
+        row-key="code"
+      >
+        <el-table-column
+          prop="code"
+          :show-overflow-tooltip="true"
+          label="字段名"
+        />
+        <el-table-column
+          prop="type"
+          :show-overflow-tooltip="true"
+          label="类型"
+        />
+        <el-table-column
+          prop="jsonPath"
+          :show-overflow-tooltip="true"
+          label="jsonPath"
+        />
+      </el-table>
+      <el-table
+        v-else
+        ref="targetTableRef"
+        :data="targetTableColumn"
+        row-key="code"
+      >
+        <el-table-column
+          prop="code"
+          :show-overflow-tooltip="true"
+          label="字段名"
+        />
+        <el-table-column
+          prop="type"
+          :show-overflow-tooltip="true"
+          label="类型"
+        />
+      </el-table>
+    </div>
+  </div>
+  <!-- 添加字段 -->
+  <add-code ref="addCodeRef" />
 </template>
 
 <script lang="ts" setup>
@@ -73,7 +171,7 @@ import { jsPlumb } from 'jsplumb'
 import { GetTableColumnsByTableId } from '@/services/data-sync.service'
 import { ElMessageBox } from 'element-plus'
 import AddCode from '../add-code/index.vue'
-import { useAuthStore } from "@/store/useAuth"
+import { useAuthStore } from '@/store/useAuth'
 import { GetJsonParamNodeList } from '@/services/realtime-computing.service'
 
 interface connect {
@@ -86,16 +184,16 @@ interface TableDetailParam {
 }
 
 interface FormData {
-    workId: string     // 作业id
-    sourceDBType: string    // 来源数据源类型
-    sourceDBId: string      // 来源数据源
-    sourceTable: string      // 来源数据库表名
-    queryCondition: string   // 来源数据库查询条件
+    workId: string // 作业id
+    sourceDBType: string // 来源数据源类型
+    sourceDBId: string // 来源数据源
+    sourceTable: string // 来源数据库表名
+    queryCondition: string // 来源数据库查询条件
 
-    targetDBType: string    // 目标数据库类型
-    targetDBId: string     // 目标数据源
-    targetTable: string     // 目标数据库表名
-    overMode: string         // 写入模式
+    targetDBType: string // 目标数据库类型
+    targetDBId: string // 目标数据源
+    targetTable: string // 目标数据库表名
+    overMode: string // 写入模式
 }
 
 interface codeParam {
@@ -121,31 +219,44 @@ const connectNodeLoading = ref<boolean>(false)
 const sourceTableColumn = ref([])
 const targetTableColumn = ref([])
 const buttons = ref([
-  {type: 'primary', text: '同行映射', code: 'SameLine'},
-  {type: 'primary', text: '同名映射', code: 'SameName'},
-  //   { type: 'primary', text: '智能映射', code: 'SameLine' },
-  {type: 'primary', text: '取消映射', code: 'quitLine'},
-  {type: 'primary', text: '重置映射', code: 'resetLine'},
-  {type: 'primary', text: '刷新字段', code: 'refrashCodes'},
+    {
+ type: 'primary', text: '同行映射', code: 'SameLine' 
+},
+    {
+ type: 'primary', text: '同名映射', code: 'SameName' 
+},
+    //   { type: 'primary', text: '智能映射', code: 'SameLine' },
+    {
+ type: 'primary', text: '取消映射', code: 'quitLine' 
+},
+    {
+ type: 'primary', text: '重置映射', code: 'resetLine' 
+},
+    {
+ type: 'primary', text: '刷新字段', code: 'refrashCodes' 
+}
 ])
 const connectCopy = ref()
 
-watch(() => authStore.isCollapse, (newVal) => {
-    if (newVal) {
-        getLinkData()
-        instance.deleteEveryConnection()
-        nextTick(() => {
-            setTimeout(() => {
-                connectNodeList.value.forEach((data: any) => {
-                    instance.connect({
-                        source: document.querySelector(`.code-source-${data.source}`),
-                        target: document.querySelector(`.code-target-${data.target}`)
+watch(
+    () => authStore.isCollapse,
+    (newVal) => {
+        if (newVal) {
+            getLinkData()
+            instance.deleteEveryConnection()
+            nextTick(() => {
+                setTimeout(() => {
+                    connectNodeList.value.forEach((data: any) => {
+                        instance.connect({
+                            source: document.querySelector(`.code-source-${data.source}`),
+                            target: document.querySelector(`.code-target-${data.target}`)
+                        })
                     })
-                })
-            }, 300)
-        })
+                }, 300)
+            })
+        }
     }
-})
+)
 
 function getSourceTableColumn() {
     return sourceTableColumn.value
@@ -179,51 +290,16 @@ function initPageData(data: any) {
 // 根据表名获取映射表字段
 function getCurrentTableColumn(params: any, type: string, onlyInit?: boolean) {
     return new Promise((resolve, reject) => {
-        GetJsonParamNodeList(params).then((res: any) => {
-            sourceTableColumn.value = (res.data || []).map((column: any) => {
-                return {
-                    code: column.name,
-                    type: column.type,
-                    jsonPath: column.jsonPath,
-                    sql: ''
-                }
-            })
-            if (!onlyInit) {
-                instance.deleteEveryConnection()
-                connectCopy.value = []
-                nextTick(() => {
-                    initJsPlumb()
+        GetJsonParamNodeList(params)
+            .then((res: any) => {
+                sourceTableColumn.value = (res.data || []).map((column: any) => {
+                    return {
+                        code: column.name,
+                        type: column.type,
+                        jsonPath: column.jsonPath,
+                        sql: ''
+                    }
                 })
-            }
-            resolve(true)
-        }).catch(err => {
-            reject(err)
-            console.error(err)
-        })
-    })
-}
-
-// 根据表名获取映射表字段
-function getTableColumnData(params: TableDetailParam, type: string, onlyInit?: boolean) {
-    return new Promise((resolve, reject) => {
-        if (params.dataSourceId && params.tableName) {
-            GetTableColumnsByTableId(params).then((res: any) => {
-                if (type === 'source') {
-                    sourceTableColumn.value = (res.data.columns || []).map((column: any) => {
-                        return {
-                            code: column.name,
-                            type: column.type,
-                            sql: ''
-                        }
-                    })
-                } else {
-                    targetTableColumn.value = (res.data.columns || []).map((column: any) => {
-                        return {
-                            code: column.name,
-                            type: column.type
-                        }
-                    })
-                }
                 if (!onlyInit) {
                     instance.deleteEveryConnection()
                     connectCopy.value = []
@@ -232,10 +308,49 @@ function getTableColumnData(params: TableDetailParam, type: string, onlyInit?: b
                     })
                 }
                 resolve(true)
-            }).catch(err => {
+            })
+            .catch((err) => {
                 reject(err)
                 console.error(err)
             })
+    })
+}
+
+// 根据表名获取映射表字段
+function getTableColumnData(params: TableDetailParam, type: string, onlyInit?: boolean) {
+    return new Promise((resolve, reject) => {
+        if (params.dataSourceId && params.tableName) {
+            GetTableColumnsByTableId(params)
+                .then((res: any) => {
+                    if (type === 'source') {
+                        sourceTableColumn.value = (res.data.columns || []).map((column: any) => {
+                            return {
+                                code: column.name,
+                                type: column.type,
+                                sql: ''
+                            }
+                        })
+                    } else {
+                        targetTableColumn.value = (res.data.columns || []).map((column: any) => {
+                            return {
+                                code: column.name,
+                                type: column.type
+                            }
+                        })
+                    }
+                    if (!onlyInit) {
+                        instance.deleteEveryConnection()
+                        connectCopy.value = []
+                        nextTick(() => {
+                            initJsPlumb()
+                        })
+                    }
+                    resolve(true)
+                })
+                .catch((err) => {
+                    reject(err)
+                    console.error(err)
+                })
         } else {
             if (type === 'source') {
                 sourceTableColumn.value = []
@@ -249,23 +364,37 @@ function getTableColumnData(params: TableDetailParam, type: string, onlyInit?: b
 
 function tableLinkInit() {
     instance = jsPlumb.getInstance({
-        Connector: 'Straight', //连接线形状 Bezier: 贝塞尔曲线 Flowchart: 具有90度转折点的流程线 StateMachine: 状态机 Straight: 直线
-        PaintStyle: { strokeWidth: 2, stroke: '#ff7c06' }, //连接线样式
-        Endpoint: ['Blank', { radius: 1 }], //端点
+        Connector: 'Straight', // 连接线形状 Bezier: 贝塞尔曲线 Flowchart: 具有90度转折点的流程线 StateMachine: 状态机 Straight: 直线
+        PaintStyle: {
+ strokeWidth: 2, stroke: '#ff7c06' 
+}, // 连接线样式
+        Endpoint: [ 'Blank', {
+ radius: 1 
+} ], // 端点
         Anchor: 'Right',
         // 绘制箭头
-        ConnectionOverlays: props.disabled ? [] : [['Arrow', { width: 6, length: 6, location: 1 }],
-        ['Label', {
-            label: '<span class="delete-node-btn"><svg t="1695102875148" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5710" width="64" height="64"><path d="M512.42496 512.28672m-336.20992 0a336.20992 336.20992 0 1 0 672.41984 0 336.20992 336.20992 0 1 0-672.41984 0Z" fill="#FFFFFF" p-id="5711"></path><path d="M512.667 1012.954c-276.425 0-500.513-224.090-500.513-500.513s224.090-500.513 500.513-500.513 500.513 224.090 500.513 500.513-224.090 500.513-500.513 500.513zM751.919 326.369c6.81-6.8 11.022-16.197 11.022-26.58s-4.212-19.781-11.022-26.58c-6.8-6.81-16.198-11.022-26.58-11.022-10.383 0-19.781 4.212-26.58 11.022l-186.081 186.081-186.089-186.081c-6.8-6.81-16.197-11.022-26.58-11.022s-19.781 4.212-26.58 11.022c-6.81 6.8-11.022 16.198-11.022 26.58 0 10.383 4.212 19.781 11.022 26.58l186.081 186.081-186.081 186.081c-6.996 6.834-11.334 16.365-11.334 26.908 0 20.769 16.837 37.607 37.607 37.607 10.535 0 20.057-4.332 26.885-11.31l186.087-186.122 186.081 186.123c6.833 6.986 16.355 11.317 26.891 11.317 20.769 0 37.607-16.837 37.607-37.607 0-10.542-4.336-20.074-11.327-26.9l-186.089-186.098 186.089-186.081z" fill="#eb5463" p-id="5712"></path></svg></span>',
-            location: 0.8,
-            labelStyle: {
-                color: 'red'
-            },
-            cssClass: 'endpointLabel'
-        }]
-        ],
-        EndpointStyle: { fill: '#000000' }, //端点样式
-        Container: 'container' //目标容器id
+        ConnectionOverlays: props.disabled
+            ? []
+            : [
+                  [ 'Arrow', {
+ width: 6, length: 6, location: 1 
+} ],
+                  [
+                      'Label',
+                      {
+                          label: '<span class="delete-node-btn"><svg t="1695102875148" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5710" width="64" height="64"><path d="M512.42496 512.28672m-336.20992 0a336.20992 336.20992 0 1 0 672.41984 0 336.20992 336.20992 0 1 0-672.41984 0Z" fill="#FFFFFF" p-id="5711"></path><path d="M512.667 1012.954c-276.425 0-500.513-224.090-500.513-500.513s224.090-500.513 500.513-500.513 500.513 224.090 500.513 500.513-224.090 500.513-500.513 500.513zM751.919 326.369c6.81-6.8 11.022-16.197 11.022-26.58s-4.212-19.781-11.022-26.58c-6.8-6.81-16.198-11.022-26.58-11.022-10.383 0-19.781 4.212-26.58 11.022l-186.081 186.081-186.089-186.081c-6.8-6.81-16.197-11.022-26.58-11.022s-19.781 4.212-26.58 11.022c-6.81 6.8-11.022 16.198-11.022 26.58 0 10.383 4.212 19.781 11.022 26.58l186.081 186.081-186.081 186.081c-6.996 6.834-11.334 16.365-11.334 26.908 0 20.769 16.837 37.607 37.607 37.607 10.535 0 20.057-4.332 26.885-11.31l186.087-186.122 186.081 186.123c6.833 6.986 16.355 11.317 26.891 11.317 20.769 0 37.607-16.837 37.607-37.607 0-10.542-4.336-20.074-11.327-26.9l-186.089-186.098 186.089-186.081z" fill="#eb5463" p-id="5712"></path></svg></span>',
+                          location: 0.8,
+                          labelStyle: {
+                              color: 'red'
+                          },
+                          cssClass: 'endpointLabel'
+                      }
+                  ]
+              ],
+        EndpointStyle: {
+ fill: '#000000' 
+}, // 端点样式
+        Container: 'container' // 目标容器id
     })
 }
 // 设置可以连线的元素
@@ -273,19 +402,19 @@ function setContainer() {
     const leftElList = document.querySelectorAll('.leftRow') // 左侧行元素集合
     const rightElList = document.querySelectorAll('.rightRow') // 右侧行元素集合
     // 将dom元素设置为连线的起点或者终点 设置了起点的元素才能开始连线 设置为终点的元素才能为连线终点
-    instance.batch(function () {
-        [leftElList, rightElList].forEach((trList, index) => {
+    instance.batch(function() {
+        ;[ leftElList, rightElList ].forEach((trList, index) => {
             trList.forEach((tr) => {
                 if (index === 0) {
                     instance.makeSource(tr, {
                         allowLoopback: false,
-                        anchor: ['Right'], // 设置端点位置
+                        anchor: [ 'Right' ], // 设置端点位置
                         maxConnections: -1
                     })
                 } else {
                     // 判断是否有子项,若没有则设置为终点
                     instance.makeTarget(tr, {
-                        anchor: ['Left'],
+                        anchor: [ 'Left' ],
                         maxConnections: 1
                     })
                 }
@@ -298,7 +427,7 @@ const interceptId = (className: string) => {
     return className.slice(className.indexOf('-') + 1)
 }
 const initJsPlumb = () => {
-    jsPlumb.ready(function () {
+    jsPlumb.ready(function() {
         // 初始化jsPlumb 创建jsPlumb实例
         tableLinkInit()
         // 设置可以为连线起点和连线终点的元素
@@ -325,8 +454,14 @@ function getLinkData() {
     const connectList: connect[] = []
     instance.getConnections().forEach((con: any) => {
         const conItem = {
-            source: con.source.className.split(' ').filter((cls: string) => cls.match('code-source-'))[0].slice(12),
-            target: con.target.className.split(' ').filter((cls: string) => cls.match('code-target-'))[0].slice(12)
+            source: con.source.className
+                .split(' ')
+                .filter((cls: string) => cls.match('code-source-'))[0]
+                .slice(12),
+            target: con.target.className
+                .split(' ')
+                .filter((cls: string) => cls.match('code-target-'))[0]
+                .slice(12)
         }
         connectList.push(conItem)
     })
@@ -337,7 +472,7 @@ function getLinkData() {
 function clickSelectLinkConnect(type: string) {
     connectNodeList.value = []
     instance.deleteEveryConnection()
-    if (['SameLine', 'SameName'].includes(type)) {
+    if ([ 'SameLine', 'SameName' ].includes(type)) {
         sourceTableColumn.value.forEach((column: any, index: number) => {
             if (type === 'SameLine' && targetTableColumn.value[index]) {
                 connectNodeList.value.push({
@@ -345,7 +480,7 @@ function clickSelectLinkConnect(type: string) {
                     target: targetTableColumn.value[index].code
                 })
             }
-            const currentCode = targetTableColumn.value.find(c => c.code.toUpperCase() === column.code.toUpperCase())
+            const currentCode = targetTableColumn.value.find((c) => c.code.toUpperCase() === column.code.toUpperCase())
             if (type === 'SameName' && currentCode) {
                 connectNodeList.value.push({
                     source: column.code,
@@ -376,37 +511,51 @@ function clickSelectLinkConnect(type: string) {
     } else if (type === 'refrashCodes') {
         connectNodeInit.value = connectCopy.value
         connectNodeLoading.value = true
-        const sourceRefreshPromise = props.formData.sourceDBType === 'API'
-            ? getCurrentTableColumn({
-                jsonStr: (props.formData as any).jsonTemplate,
-                rootPath: (props.formData as any).rootJsonPath
-            }, 'source', true)
-            : getTableColumnData({
-                dataSourceId: props.formData.sourceDBId,
-                tableName: props.formData.sourceTable
-            }, 'source', true)
+        const sourceRefreshPromise =
+            props.formData.sourceDBType === 'API'
+                ? getCurrentTableColumn(
+                      {
+                          jsonStr: (props.formData as any).jsonTemplate,
+                          rootPath: (props.formData as any).rootJsonPath
+                      },
+                      'source',
+                      true
+                  )
+                : getTableColumnData(
+                      {
+                          dataSourceId: props.formData.sourceDBId,
+                          tableName: props.formData.sourceTable
+                      },
+                      'source',
+                      true
+                  )
 
         Promise.all([
             sourceRefreshPromise,
-            getTableColumnData({
-                dataSourceId: props.formData.targetDBId,
-                tableName: props.formData.targetTable
-            }, 'target', true)
-        ]).then(() => {
-            connectNodeLoading.value = false
-            connectNodeInit.value.forEach((data: any) => {
-                instance.connect({
-                    source: document.querySelector(`.code-source-${data.source}`),
-                    target: document.querySelector(`.code-target-${data.target}`)
+            getTableColumnData(
+                {
+                    dataSourceId: props.formData.targetDBId,
+                    tableName: props.formData.targetTable
+                },
+                'target',
+                true
+            )
+        ])
+            .then(() => {
+                connectNodeLoading.value = false
+                connectNodeInit.value.forEach((data: any) => {
+                    instance.connect({
+                        source: document.querySelector(`.code-source-${data.source}`),
+                        target: document.querySelector(`.code-target-${data.target}`)
+                    })
                 })
             })
-        }).catch((err: any) => {
-            connectNodeLoading.value = false
-            console.error(err)
-        })
+            .catch((err: any) => {
+                connectNodeLoading.value = false
+                console.error(err)
+            })
     }
 }
-
 
 // 删除来源编码
 function removeCode(cData: codeParam) {
@@ -434,21 +583,27 @@ function removeCode(cData: codeParam) {
 
 function addNewCode() {
     addCodeRef.value.showModal((formData: codeParam) => {
-        sourceTableColumn.value.push({ ...formData })
+        sourceTableColumn.value.push({
+ ...formData 
+})
         nextTick(() => {
             initJsPlumb()
         })
     })
 }
 function editCode(row: codeParam) {
-    addCodeRef.value.showModal((formData: codeParam) => {
-        row.sql = formData.sql
-    }, row, 'edit')
+    addCodeRef.value.showModal(
+        (formData: codeParam) => {
+            row.sql = formData.sql
+        },
+        row,
+        'edit'
+    )
 }
 
 onMounted(() => {
     initJsPlumb()
-    window.addEventListener('resize', function () {
+    window.addEventListener('resize', function() {
         // 在窗口大小调整时执行的操作
         nextTick(() => {
             setTimeout(() => {
@@ -462,7 +617,7 @@ onMounted(() => {
                 })
             })
         })
-    });
+    })
 })
 
 defineExpose({
@@ -578,7 +733,6 @@ defineExpose({
         width: 100%;
         overflow: auto;
 
-
         .el-table {
             border-top: 1px solid #ebeef5;
             border-left: 1px solid #ebeef5;
@@ -594,7 +748,6 @@ defineExpose({
                 }
             }
         }
-
     }
 
     .el-dropdown {
@@ -609,7 +762,6 @@ defineExpose({
             color: getCssVar('color', 'info');
         }
     }
-
 
     .jtk-overlay {
         &.jtk-hover {
@@ -631,13 +783,13 @@ defineExpose({
             justify-content: center;
             align-items: center;
             color: #ffffff;
-            background-color: #F56C6C !important;
-            border: 1px solid #F56C6C;
+            background-color: #f56c6c !important;
+            border: 1px solid #f56c6c;
             outline: none;
             cursor: pointer;
             transition: all 0.15s linear;
             background-color: #ffffff;
-            transform: scale(.72);
+            transform: scale(0.72);
             visibility: hidden;
             opacity: 0;
 

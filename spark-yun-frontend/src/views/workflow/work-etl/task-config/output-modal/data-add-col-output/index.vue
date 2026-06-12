@@ -1,40 +1,57 @@
 <template>
-    <div class="data-add-col-output">
-        <div style="max-height: 444px;">
-            <BlockTable
-                :table-config="tableConfig"
-                @rowDragendEvent="onRowDragend"
-            >
-                <template #checkboxHeaderSlot>
-                    <el-checkbox :model-value="isAllChecked" @change="toggleSelectAll" />
-                </template>
-                <template #checkboxSlot="scopeSlot">
-                    <el-checkbox v-model="scopeSlot.row.checked" @change="updateAllChecked" />
-                </template>
-                <template #fromSource="scopeSlot">
-                    <span v-if="scopeSlot.row.fromAliaCode">【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}</span>
-                    <span v-else>【手动添加】{{ scopeSlot.row.colName }}</span>
-                </template>
-                <template #options="scopeSlot">
-                    <div class="btn-group">
-                        <el-dropdown trigger="click">
-                            <el-icon class="option-more" @click.stop>
-                                <MoreFilled />
-                            </el-icon>
-                            <template #dropdown>
-                                <el-dropdown-menu>
-                                    <el-dropdown-item @click="addNewCode">添加</el-dropdown-item>
-                                    <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">编辑</el-dropdown-item>
-                                    <el-dropdown-item @click="removeCode(scopeSlot)">删除</el-dropdown-item>
-                                </el-dropdown-menu>
-                            </template>
-                        </el-dropdown>
-                    </div>
-                </template>
-            </BlockTable>
-        </div>
-        <add-code ref="addCodeRef"></add-code>
+  <div class="data-add-col-output">
+    <div style="max-height: 444px">
+      <BlockTable
+        :table-config="tableConfig"
+        @row-dragend-event="onRowDragend"
+      >
+        <template #checkboxHeaderSlot>
+          <el-checkbox
+            :model-value="isAllChecked"
+            @change="toggleSelectAll"
+          />
+        </template>
+        <template #checkboxSlot="scopeSlot">
+          <el-checkbox
+            v-model="scopeSlot.row.checked"
+            @change="updateAllChecked"
+          />
+        </template>
+        <template #fromSource="scopeSlot">
+          <span v-if="scopeSlot.row.fromAliaCode">
+            【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}
+          </span>
+          <span v-else>【手动添加】{{ scopeSlot.row.colName }}</span>
+        </template>
+        <template #options="scopeSlot">
+          <div class="btn-group">
+            <el-dropdown trigger="click">
+              <el-icon
+                class="option-more"
+                @click.stop
+              >
+                <MoreFilled />
+              </el-icon>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="addNewCode">
+                    添加
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">
+                    编辑
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="removeCode(scopeSlot)">
+                    删除
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </template>
+      </BlockTable>
     </div>
+    <add-code ref="addCodeRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -43,11 +60,11 @@ import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import AddCode from './add-code/index.vue'
 
 const props = defineProps<{
-    modelValue: any,
-    preNodes: any,
+    modelValue: any
+    preNodes: any
     nodeFormData?: any
 }>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits([ 'update:modelValue' ])
 
 const addCodeRef = ref()
 const tableConfig = reactive({
@@ -58,7 +75,7 @@ const tableConfig = reactive({
             customSlot: 'checkboxSlot',
             customHeaderSlot: 'checkboxHeaderSlot',
             width: 44,
-            align: 'center',
+            align: 'center'
         },
         {
             prop: 'colName',
@@ -120,7 +137,7 @@ function toggleSelectAll(val: boolean) {
 }
 
 function getNodeName(aliaCode: string): string {
-    if (!props.preNodes) return ''
+    if (!props.preNodes) { return '' }
     const node = props.preNodes.find((n: any) => n.data.nodeConfigData.aliaCode === aliaCode)
     return node ? node.data.nodeConfigData.name : ''
 }
@@ -164,7 +181,7 @@ function buildAddColFields() {
 }
 
 function mergeFields(baseFields: any[], appendFields: any[]) {
-    const merged = [...baseFields]
+    const merged = [ ...baseFields ]
     const existingNames = new Set(merged.map((item: any) => item.colName))
     appendFields.forEach((field: any) => {
         if (!existingNames.has(field.colName)) {
@@ -191,19 +208,29 @@ function removeCode(scopeSlot: any) {
 }
 
 function addNewCode() {
-    addCodeRef.value.showModal((params: any) => {
-        tableConfig.tableData.push({ ...params, checked: true })
-    }, null, props.preNodes)
+    addCodeRef.value.showModal(
+        (params: any) => {
+            tableConfig.tableData.push({
+ ...params, checked: true 
+})
+        },
+        null,
+        props.preNodes
+    )
 }
 
 function editCode(row: any, index: number) {
-    addCodeRef.value.showModal((params: any) => {
-        row.colName = params.colName
-        row.fromAliaCode = params.fromAliaCode
-        row.fromColName = params.fromColName
-        row.colType = params.colType
-        row.remark = params.remark
-    }, row, props.preNodes)
+    addCodeRef.value.showModal(
+        (params: any) => {
+            row.colName = params.colName
+            row.fromAliaCode = params.fromAliaCode
+            row.fromColName = params.fromColName
+            row.colType = params.colType
+            row.remark = params.remark
+        },
+        row,
+        props.preNodes
+    )
 }
 
 onMounted(() => {
@@ -238,7 +265,7 @@ defineExpose({
 
 <style lang="scss">
 .data-add-col-output {
-    padding:  12px 20px;
+    padding: 12px 20px;
     box-sizing: border-box;
     .el-form-item {
         .el-form-item__content {
@@ -256,7 +283,7 @@ defineExpose({
             cursor: pointer;
             color: getCssVar('color', 'primary', 'light-5');
             &:hover {
-                color: getCssVar('color', 'primary');;
+                color: getCssVar('color', 'primary');
             }
         }
         .el-dropdown {

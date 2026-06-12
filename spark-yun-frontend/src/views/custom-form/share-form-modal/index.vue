@@ -1,33 +1,61 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <template #customLeft>
-            <el-button class="footer-share-copy-btn" :disabled="!url" id="share-url" :data-clipboard-text="url" @click="copyUrlEvent('share-url')">一键复制</el-button>
-            <el-button class="footer-share-generate-btn" :loading="loading" type="primary" @click="getShareFormUrl">生成链接</el-button>
-        </template>
-        <div class="share-form-container">
-            <!-- <div class="img-code">
+  <BlockModal :model-config="modelConfig">
+    <template #customLeft>
+      <el-button
+        id="share-url"
+        class="footer-share-copy-btn"
+        :disabled="!url"
+        :data-clipboard-text="url"
+        @click="copyUrlEvent('share-url')"
+      >
+        一键复制
+      </el-button>
+      <el-button
+        class="footer-share-generate-btn"
+        :loading="loading"
+        type="primary"
+        @click="getShareFormUrl"
+      >
+        生成链接
+      </el-button>
+    </template>
+    <div class="share-form-container">
+      <!-- <div class="img-code">
 
             </div> -->
-            <div class="share-form">
-                <span class="url">
-                    <a v-if="url" class="url-link" :href="url" target="_blank" rel="noopener noreferrer">
-                        <EllipsisTooltip class="url-show" :label="url" />
-                    </a>
-                    <EllipsisTooltip v-else class="url-show" label="暂无链接" />
-                </span>
-            </div>
-        </div>
-        <div class="share-option-container">
-            <div class="valid-day-input">
-                <span>有效时间（天）</span>
-                <el-input-number
-                    v-model="validDay"
-                    :min="1"
-                    controls-position="right"
-                />
-            </div>
-        </div>
-    </BlockModal>
+      <div class="share-form">
+        <span class="url">
+          <a
+            v-if="url"
+            class="url-link"
+            :href="url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <EllipsisTooltip
+              class="url-show"
+              :label="url"
+            />
+          </a>
+          <EllipsisTooltip
+            v-else
+            class="url-show"
+            label="暂无链接"
+          />
+        </span>
+      </div>
+    </div>
+    <div class="share-option-container">
+      <div class="valid-day-input">
+        <span>有效时间（天）</span>
+        <el-input-number
+          v-model="validDay"
+          :min="1"
+          controls-position="right"
+        />
+      </div>
+    </div>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -70,19 +98,21 @@ function getShareFormUrl() {
     GetFormLinkConfig({
         formId: cardInfo.value.id,
         validDay: validDay.value
-    }).then((res: any) => {
-        // token.value = res.data.token
-        loading.value = false
-        // const params = {
-        //     formId: cardInfo.value.id,
-        //     formVersion: cardInfo.value.formVersion,
-        //     tenantId: authStore.tenantId,
-        //     token: token.value
-        // }
-        url.value = `${location.origin}/share/${res.data.formLinkId}`
-    }).catch(() => {
-        loading.value = false
     })
+        .then((res: any) => {
+            // token.value = res.data.token
+            loading.value = false
+            // const params = {
+            //     formId: cardInfo.value.id,
+            //     formVersion: cardInfo.value.formVersion,
+            //     tenantId: authStore.tenantId,
+            //     token: token.value
+            // }
+            url.value = `${location.origin}/share/${res.data.formLinkId}`
+        })
+        .catch(() => {
+            loading.value = false
+        })
 }
 
 function copyUrlEvent(id: string) {
@@ -119,13 +149,13 @@ defineExpose({
         align-items: center;
         height: 160px;
         padding: 0 20px;
-    
+
         .img-code {
             border: 1px solid red;
             height: 100px;
             width: 100px;
         }
-    
+
         .share-form {
             width: 100%;
             background: getCssVar('fill-color', 'light');
@@ -138,7 +168,7 @@ defineExpose({
                 color: getCssVar('text-color', 'regular');
                 font-size: 12px;
                 width: 100%;
-    
+
                 .url-show {
                     max-width: 100%;
                 }
@@ -152,10 +182,9 @@ defineExpose({
                     text-decoration: underline;
                 }
             }
-
         }
     }
-    
+
     .share-option-container {
         padding: 20px;
         box-sizing: border-box;
@@ -173,7 +202,8 @@ defineExpose({
                 color: getCssVar('text-color', 'primary');
             }
             .el-input-number {
-                .el-input-number__decrease,.el-input-number__increase {
+                .el-input-number__decrease,
+                .el-input-number__increase {
                     border: 0;
                     background-color: unset;
                 }

@@ -1,8 +1,8 @@
 export interface BreadCrumb {
-    name: string;
-    code: string;
-    hidden?: boolean;
-    query?: any;
+    name: string
+    code: string
+    hidden?: boolean
+    query?: any
 }
 
 export const BreadCrumbList: Array<BreadCrumb> = [
@@ -35,18 +35,25 @@ const validateSqls = (rule: any, value: any, callback: any) => {
     // debugger
     const status = (value || []).some((v: string) => !v)
     if (status) {
-      callback(new Error('请将sql填写完整'))
+        callback(new Error('请将sql填写完整'))
     } else {
-      callback()
+        callback()
     }
 }
 
-
 export const BaseConfigRules = {
-    name: [{ required: true, message: '请输入名称', trigger: ['blur', 'change'] }],
-    datasourceId: [{ required: true, message: '请选择数据源', trigger: ['blur', 'change'] }],
+    name: [ {
+ required: true, message: '请输入名称', trigger: [ 'blur', 'change' ] 
+} ],
+    datasourceId: [ {
+ required: true, message: '请选择数据源', trigger: [ 'blur', 'change' ] 
+} ],
     sqls: [
-        { validator: validateSqls, trigger: ['blur', 'change'] },
-        { required: true, message: '请输入聚合Sql', trigger: ['blur', 'change'] }
-    ],
+        {
+ validator: validateSqls, trigger: [ 'blur', 'change' ] 
+},
+        {
+ required: true, message: '请输入聚合Sql', trigger: [ 'blur', 'change' ] 
+}
+    ]
 }

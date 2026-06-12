@@ -1,20 +1,35 @@
 <template>
-    <BlockModal :model-config="modelConfig" @close="closeEvent">
-        <div class="create-table-sql-content">
-            <div class="sql-body">
-                <el-scrollbar v-if="!loading && sqlContent" height="400px">
-                    <pre class="sql-pre">{{ sqlContent }}</pre>
-                </el-scrollbar>
-                <div v-else-if="loading" class="loading-container">
-                    <el-icon class="is-loading" :size="40">
-                        <Loading />
-                    </el-icon>
-                    <p>正在生成建表语句...</p>
-                </div>
-                <el-empty v-else description="暂无数据" />
-            </div>
+  <BlockModal
+    :model-config="modelConfig"
+    @close="closeEvent"
+  >
+    <div class="create-table-sql-content">
+      <div class="sql-body">
+        <el-scrollbar
+          v-if="!loading && sqlContent"
+          height="400px"
+        >
+          <pre class="sql-pre">{{ sqlContent }}</pre>
+        </el-scrollbar>
+        <div
+          v-else-if="loading"
+          class="loading-container"
+        >
+          <el-icon
+            class="is-loading"
+            :size="40"
+          >
+            <Loading />
+          </el-icon>
+          <p>正在生成建表语句...</p>
         </div>
-    </BlockModal>
+        <el-empty
+          v-else
+          description="暂无数据"
+        />
+      </div>
+    </div>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -60,15 +75,17 @@ function showModal(params: GenerateSqlParams): void {
     modelConfig.visible = true
     sqlContent.value = ''
     loading.value = true
-    
-    GenerateCreateTableSql(params).then((res: any) => {
-        sqlContent.value = res.data.createTableSql || ''
-        loading.value = false
-    }).catch((err: any) => {
-        console.error(err)
-        loading.value = false
-        ElMessage.error('生成建表语句失败')
-    })
+
+    GenerateCreateTableSql(params)
+        .then((res: any) => {
+            sqlContent.value = res.data.createTableSql || ''
+            loading.value = false
+        })
+        .catch((err: any) => {
+            console.error(err)
+            loading.value = false
+            ElMessage.error('生成建表语句失败')
+        })
 }
 
 function copySql(): void {
@@ -76,25 +93,28 @@ function copySql(): void {
         ElMessage.warning('暂无可复制的内容')
         return
     }
-    
-    navigator.clipboard.writeText(sqlContent.value).then(() => {
-        ElMessage.success('复制成功')
-    }).catch(() => {
-        // 降级方案
-        const textarea = document.createElement('textarea')
-        textarea.value = sqlContent.value
-        textarea.style.position = 'fixed'
-        textarea.style.opacity = '0'
-        document.body.appendChild(textarea)
-        textarea.select()
-        try {
-            document.execCommand('copy')
+
+    navigator.clipboard
+        .writeText(sqlContent.value)
+        .then(() => {
             ElMessage.success('复制成功')
-        } catch (err) {
-            ElMessage.error('复制失败')
-        }
-        document.body.removeChild(textarea)
-    })
+        })
+        .catch(() => {
+            // 降级方案
+            const textarea = document.createElement('textarea')
+            textarea.value = sqlContent.value
+            textarea.style.position = 'fixed'
+            textarea.style.opacity = '0'
+            document.body.appendChild(textarea)
+            textarea.select()
+            try {
+                document.execCommand('copy')
+                ElMessage.success('复制成功')
+            } catch (err) {
+                ElMessage.error('复制失败')
+            }
+            document.body.removeChild(textarea)
+        })
 }
 
 function closeEvent(): void {
@@ -147,4 +167,3 @@ defineExpose({
     }
 }
 </style>
-

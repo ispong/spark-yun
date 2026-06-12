@@ -40,109 +40,109 @@ const form = ref<FormInstance>()
 const callback = ref<any>()
 const userList = ref([])
 const modelConfig = reactive({
-  title: '添加成员',
-  visible: false,
-  width: '520px',
-  okConfig: {
-    title: '确定',
-    ok: okEvent,
-    disabled: false,
-    loading: false
-  },
-  cancelConfig: {
-    title: '取消',
-    cancel: closeEvent,
-    disabled: false
-  },
-  needScale: false,
-  zIndex: 1100,
-  closeOnClickModal: false
+    title: '添加成员',
+    visible: false,
+    width: '520px',
+    okConfig: {
+        title: '确定',
+        ok: okEvent,
+        disabled: false,
+        loading: false
+    },
+    cancelConfig: {
+        title: '取消',
+        cancel: closeEvent,
+        disabled: false
+    },
+    needScale: false,
+    zIndex: 1100,
+    closeOnClickModal: false
 })
 const formData = reactive({
-  isTenantAdmin: false,
-  userId: '',
-  id: ''
+    isTenantAdmin: false,
+    userId: '',
+    id: ''
 })
 const rules = reactive<FormRules>({
-  userId: [
-    {
-      required: true,
-      message: '请选择成员',
-      trigger: [ 'change' ]
-    }
-  ]
+    userId: [
+        {
+            required: true,
+            message: '请选择成员',
+            trigger: [ 'change' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {
-  callback.value = cb
-  modelConfig.visible = true
-  getUserOfSystem()
-  if (data) {
-    formData.userId = data.userId
-    formData.id = data.id
-    modelConfig.title = '编辑成员'
-  } else {
-    formData.userId = ''
-    formData.id = ''
-    modelConfig.title = '添加成员'
-  }
-  nextTick(() => {
-    form.value?.resetFields()
-  })
+    callback.value = cb
+    modelConfig.visible = true
+    getUserOfSystem()
+    if (data) {
+        formData.userId = data.userId
+        formData.id = data.id
+        modelConfig.title = '编辑成员'
+    } else {
+        formData.userId = ''
+        formData.id = ''
+        modelConfig.title = '添加成员'
+    }
+    nextTick(() => {
+        form.value?.resetFields()
+    })
 }
 
 function getUserOfSystem() {
-  GetUserInfoList({
-    page: 0,
-    pageSize: 999,
-    searchKeyWord: ''
-  })
-    .then((res: any) => {
-      userList.value = res.data.content
+    GetUserInfoList({
+        page: 0,
+        pageSize: 999,
+        searchKeyWord: ''
     })
-    .catch(() => {
-      userList.value = []
-    })
+        .then((res: any) => {
+            userList.value = res.data.content
+        })
+        .catch(() => {
+            userList.value = []
+        })
 }
 
 function okEvent() {
-  form.value?.validate((valid) => {
-    if (valid) {
-      modelConfig.okConfig.loading = true
-      callback
-        .value({
-          ...formData,
-          id: formData.id ? formData.id : undefined
-        })
-        .then((res: any) => {
-          modelConfig.okConfig.loading = false
-          if (res === undefined) {
-            modelConfig.visible = false
-          } else {
-            modelConfig.visible = true
-          }
-        })
-        .catch(() => {
-          modelConfig.okConfig.loading = false
-        })
-    } else {
-      ElMessage.warning('请将表单输入完整')
-    }
-  })
+    form.value?.validate((valid) => {
+        if (valid) {
+            modelConfig.okConfig.loading = true
+            callback
+                .value({
+                    ...formData,
+                    id: formData.id ? formData.id : undefined
+                })
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch(() => {
+                    modelConfig.okConfig.loading = false
+                })
+        } else {
+            ElMessage.warning('请将表单输入完整')
+        }
+    })
 }
 
 function closeEvent() {
-  modelConfig.visible = false
+    modelConfig.visible = false
 }
 
 defineExpose({
-  showModal
+    showModal
 })
 </script>
 
 <style lang="scss">
 .add-computer-group {
-  padding: 12px 20px 0 20px;
-  box-sizing: border-box;
+    padding: 12px 20px 0 20px;
+    box-sizing: border-box;
 }
 </style>

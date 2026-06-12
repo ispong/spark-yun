@@ -1,17 +1,30 @@
 <template>
-    <BlockModal :model-config="modelConfig" @close="closeEvent">
-        <LoadingPage class="log-loading" :visible="loading">
-            <div id="content" class="content-box">
-                <LogContainer v-if="logMsg" :logMsg="logMsg" :status="status"></LogContainer>
-            </div>
-        </LoadingPage>
-    </BlockModal>
+  <BlockModal
+    :model-config="modelConfig"
+    @close="closeEvent"
+  >
+    <LoadingPage
+      class="log-loading"
+      :visible="loading"
+    >
+      <div
+        id="content"
+        class="content-box"
+      >
+        <LogContainer
+          v-if="logMsg"
+          :log-msg="logMsg"
+          :status="status"
+        />
+      </div>
+    </LoadingPage>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, onUnmounted, nextTick, computed } from 'vue'
 import BlockModal from '@/components/block-modal/index.vue'
-import { GetRealSubLog, GetRealSubRunningLog } from '@/services/realtime-computing.service';
+import { GetRealSubLog, GetRealSubRunningLog } from '@/services/realtime-computing.service'
 import LoadingPage from '@/components/loading/index.vue'
 
 const logMsg = ref('')
@@ -59,31 +72,35 @@ function getLogData(id: string, type?: string) {
         modelConfig.title = '运行日志'
         GetRealSubRunningLog({
             id: id
-        }).then((res: any) => {
-            loading.value = false
-            status.value = ['FAIL', 'STOP'].includes(res.data.status) ? true : false
-            logMsg.value = res.data.runningLog
-            isRequest.value = false
-        }).catch((err: any) => {
-            loading.value = false
-            console.log('err', err)
-            logMsg.value = ''
-            isRequest.value = false
         })
+            .then((res: any) => {
+                loading.value = false
+                status.value = [ 'FAIL', 'STOP' ].includes(res.data.status) ? true : false
+                logMsg.value = res.data.runningLog
+                isRequest.value = false
+            })
+            .catch((err: any) => {
+                loading.value = false
+                console.log('err', err)
+                logMsg.value = ''
+                isRequest.value = false
+            })
     } else {
         GetRealSubLog({
             id: id
-        }).then((res: any) => {
-            loading.value = false
-            status.value = ['FAIL', 'STOP'].includes(res.data.status) ? true : false
-            logMsg.value = res.data.submitLog
-            isRequest.value = false
-        }).catch((err: any) => {
-            loading.value = false
-            console.log('err', err)
-            logMsg.value = ''
-            isRequest.value = false
         })
+            .then((res: any) => {
+                loading.value = false
+                status.value = [ 'FAIL', 'STOP' ].includes(res.data.status) ? true : false
+                logMsg.value = res.data.submitLog
+                isRequest.value = false
+            })
+            .catch((err: any) => {
+                loading.value = false
+                console.log('err', err)
+                logMsg.value = ''
+                isRequest.value = false
+            })
     }
 }
 
@@ -101,7 +118,6 @@ onUnmounted(() => {
     }
     timer.value = null
 })
-
 
 defineExpose({
     showModal

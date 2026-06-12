@@ -1,21 +1,24 @@
 <template>
-    <el-form-item label="日期类型">
-        <el-select v-model="formData" placeholder="请选择">
-            <el-option
-                v-for="item in options"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-            />
-        </el-select>
-    </el-form-item>
+  <el-form-item label="日期类型">
+    <el-select
+      v-model="formData"
+      placeholder="请选择"
+    >
+      <el-option
+        v-for="item in options"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      />
+    </el-select>
+  </el-form-item>
 </template>
 
 <script lang="ts" setup>
 import { ref, defineProps, defineEmits, computed } from 'vue'
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig',])
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps([ 'renderSence', 'modelValue', 'formConfig' ])
+const emit = defineEmits([ 'update:modelValue' ])
 const formData = computed({
     get() {
         return props.modelValue

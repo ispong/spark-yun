@@ -4,7 +4,7 @@ import { http } from '@/utils/http'
 export function GetTransformFunction(): Promise<any> {
     return http.request({
         method: 'post',
-        url: '/vip/work/listEtlTransformFunction',
+        url: '/vip/work/listEtlTransformFunction'
     })
 }
 
@@ -12,7 +12,7 @@ export function GetTransformFunction(): Promise<any> {
 export function GetEtlFilterCondition(): Promise<any> {
     return http.request({
         method: 'post',
-        url: '/vip/work/listEtlFilterCondition',
+        url: '/vip/work/listEtlFilterCondition'
     })
 }
 

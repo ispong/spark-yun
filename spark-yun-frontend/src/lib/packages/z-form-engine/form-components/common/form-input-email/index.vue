@@ -1,20 +1,20 @@
 <template>
-    <form-render-item
-        class="form-input-email"
-        :formConfig="formConfig"
-        :rules="rules"
-        :customRules="customRules"
-        :isDragger="isDragger"
-    >
-        <el-input
-            v-model="formData"
-            clearable
-            :disabled="formConfig.disabled"
-            :placeholder="formConfig.placeholder"
-            :maxlength="formConfig.maxlength"
-            :readonly="isDragger"
-        />
-    </form-render-item>
+  <form-render-item
+    class="form-input-email"
+    :form-config="formConfig"
+    :rules="rules"
+    :custom-rules="customRules"
+    :is-dragger="isDragger"
+  >
+    <el-input
+      v-model="formData"
+      clearable
+      :disabled="formConfig.disabled"
+      :placeholder="formConfig.placeholder"
+      :maxlength="formConfig.maxlength"
+      :readonly="isDragger"
+    />
+  </form-render-item>
 </template>
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed, ref, watch } from 'vue'
@@ -29,8 +29,8 @@ const checkMail = (rule: any, value: any, callback: any) => {
     }
 }
 
-const props = defineProps(['renderSence', 'modelValue', 'formConfig', 'isDragger'])
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps([ 'renderSence', 'modelValue', 'formConfig', 'isDragger' ])
+const emit = defineEmits([ 'update:modelValue' ])
 const formData = computed({
     get() {
         return props.modelValue
@@ -43,19 +43,23 @@ const rules = ref([
     {
         required: true,
         message: `请输入${props.formConfig.label}`,
-        trigger: ['blur', 'change']
+        trigger: [ 'blur', 'change' ]
     }
 ])
-const customRules = ref([
-    { validator: checkMail, trigger: ['blur', 'change'] }
-])
-watch(() => props.formConfig.defaultValue, () => {
-    if (props.renderSence === 'new') {
-        emit('update:modelValue', props.formConfig.defaultValue)
+const customRules = ref([ {
+ validator: checkMail, trigger: [ 'blur', 'change' ] 
+} ])
+watch(
+    () => props.formConfig.defaultValue,
+    () => {
+        if (props.renderSence === 'new') {
+            emit('update:modelValue', props.formConfig.defaultValue)
+        }
+    },
+    {
+        immediate: true
     }
-}, {
-    immediate: true
-})
+)
 </script>
 
 <style lang="scss">

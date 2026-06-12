@@ -7,7 +7,10 @@
       :model="formData"
       :rules="rules"
     >
-      <el-form-item label="类型" prop="type">
+      <el-form-item
+        label="类型"
+        prop="type"
+      >
         <el-select
           v-model="formData.type"
           placeholder="请选择"
@@ -47,7 +50,8 @@
         <upload-filled />
       </el-icon>
       <div class="el-upload__text">
-        上传附件（支持多文件上传）<em>点击上传</em>
+        上传附件（支持多文件上传）
+        <em>点击上传</em>
       </div>
     </el-upload>
   </BlockModal>
@@ -59,152 +63,161 @@ import { ElMessage, FormInstance, FormRules } from 'element-plus'
 
 const form = ref<FormInstance>()
 const callback = ref<((data: any) => Promise<any>) | null>(null)
-const props = withDefaults(defineProps<{
-  showExcelType?: boolean
-}>(), {
-  showExcelType: true
-})
+const props = withDefaults(
+    defineProps<{
+        showExcelType?: boolean
+    }>(),
+    {
+        showExcelType: true
+    }
+)
 const allTypeList = [
-  {
-    label: '作业',
-    value: 'JOB',
-  },
-  {
-    label: '函数',
-    value: 'FUNC',
-  },
-  {
-    label: '依赖',
-    value: 'LIB',
-  },
-  {
-    label: 'Excel',
-    value: 'EXCEL',
-  }
+    {
+        label: '作业',
+        value: 'JOB'
+    },
+    {
+        label: '函数',
+        value: 'FUNC'
+    },
+    {
+        label: '依赖',
+        value: 'LIB'
+    },
+    {
+        label: 'Excel',
+        value: 'EXCEL'
+    }
 ]
 const typeList = computed(() =>
-  props.showExcelType ? allTypeList : allTypeList.filter(item => item.value !== 'EXCEL')
+    props.showExcelType ? allTypeList : allTypeList.filter((item) => item.value !== 'EXCEL')
 )
 const renderSence = ref<'new' | 'edit'>('new')
 const fileList = ref<any[]>([]) // el-upload 使用的文件列表
 const modelConfig = reactive({
-  title: '上传资源',
-  visible: false,
-  width: '520px',
-  okConfig: {
-    title: '确定',
-    ok: okEvent,
-    disabled: false,
-    loading: false
-  },
-  cancelConfig: {
-    title: '取消',
-    cancel: closeEvent,
-    disabled: false
-  },
-  needScale: false,
-  zIndex: 1100,
-  closeOnClickModal: false
+    title: '上传资源',
+    visible: false,
+    width: '520px',
+    okConfig: {
+        title: '确定',
+        ok: okEvent,
+        disabled: false,
+        loading: false
+    },
+    cancelConfig: {
+        title: '取消',
+        cancel: closeEvent,
+        disabled: false
+    },
+    needScale: false,
+    zIndex: 1100,
+    closeOnClickModal: false
 })
 const formData = reactive({
-  id: null as number | null,
-  type: '',
-  remark: '',
-  fileData: [] as File[] // 始终是数组，空表示无新文件
+    id: null as number | null,
+    type: '',
+    remark: '',
+    fileData: [] as File[] // 始终是数组，空表示无新文件
 })
 const rules = reactive<FormRules>({
-  type: [
-    {
-      required: true,
-      message: '请选择类型',
-      trigger: [ 'blur', 'change' ]
-    }
-  ]
+    type: [
+        {
+            required: true,
+            message: '请选择类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ]
 })
 
 // 实时同步 fileList → formData.fileData
-watch(fileList, (newList) => {
-  formData.fileData = newList
-    .filter(item => item.raw)
-    .map(item => item.raw as File)
-}, { deep: true })
+watch(
+    fileList,
+    (newList) => {
+        formData.fileData = newList.filter((item) => item.raw).map((item) => item.raw as File)
+    },
+    {
+ deep: true 
+}
+)
 
 function showModal(cb: (data: any) => Promise<any>, data?: any): void {
-  // 重置状态
-  formData.id = null
-  formData.type = ''
-  formData.remark = ''
-  formData.fileData = []
-  fileList.value = []
-  renderSence.value = 'new'
-  modelConfig.title = '上传资源'
+    // 重置状态
+    formData.id = null
+    formData.type = ''
+    formData.remark = ''
+    formData.fileData = []
+    fileList.value = []
+    renderSence.value = 'new'
+    modelConfig.title = '上传资源'
 
-  if (data) {
-    modelConfig.title = '编辑资源'
-    formData.type = data.fileType
-    formData.remark = data.remark
-    formData.id = data.id
-    renderSence.value = 'edit'
-  }
+    if (data) {
+        modelConfig.title = '编辑资源'
+        formData.type = data.fileType
+        formData.remark = data.remark
+        formData.id = data.id
+        renderSence.value = 'edit'
+    }
 
-  callback.value = cb
-  modelConfig.visible = true
+    callback.value = cb
+    modelConfig.visible = true
 }
 
 function okEvent() {
-  if (renderSence.value === 'new' && formData.fileData.length === 0) {
-    ElMessage.warning('请上传至少一个文件')
-    return
-  }
-
-  form.value?.validate((valid: boolean) => {
-    if (!valid) {
-      ElMessage.warning('请将表单输入完整')
-      return
+    if (renderSence.value === 'new' && formData.fileData.length === 0) {
+        ElMessage.warning('请上传至少一个文件')
+        return
     }
 
-    modelConfig.okConfig.loading = true
+    form.value?.validate((valid: boolean) => {
+        if (!valid) {
+            ElMessage.warning('请将表单输入完整')
+            return
+        }
 
-    callback.value!(formData).then((res: any) => {
-      modelConfig.okConfig.loading = false
-      if (res === undefined) {
-        closeEvent()
-      }
-    }).catch(() => {
-      modelConfig.okConfig.loading = false
+        modelConfig.okConfig.loading = true
+
+        callback.value!(formData)
+            .then((res: any) => {
+                modelConfig.okConfig.loading = false
+                if (res === undefined) {
+                    closeEvent()
+                }
+            })
+            .catch(() => {
+                modelConfig.okConfig.loading = false
+            })
     })
-  })
 }
 
 function closeEvent() {
-  modelConfig.visible = false
-  fileList.value = []
-  formData.fileData = []
+    modelConfig.visible = false
+    fileList.value = []
+    formData.fileData = []
 }
 
 function handleFileChange(file: any, newFileList: any[]) {
-  fileList.value = newFileList
+    fileList.value = newFileList
 }
 
 function handleFileRemove(file: any, newFileList: any[]) {
-  fileList.value = newFileList
+    fileList.value = newFileList
 }
 
 defineExpose({
-  showModal
+    showModal
 })
 </script>
 
 <style lang="scss">
 .license-upload {
-  margin: 20px;
-  .el-upload {
-    .el-upload-dragger {
-      border-radius: getCssVar('border-radius', 'small');
-      .el-upload__text {
-        font-size: getCssVar('font-size', 'extra-small');
-      }
+    margin: 20px;
+    .el-upload {
+        .el-upload-dragger {
+            border-radius: getCssVar('border-radius', 'small');
+            .el-upload__text {
+                font-size: getCssVar('font-size', 'extra-small');
+            }
+        }
     }
-  }
 }
 </style>

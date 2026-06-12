@@ -19,9 +19,9 @@
         />
       </el-form-item>
       <el-form-item
+        v-if="renderSence === 'new'"
         label="类型"
         prop="dbType"
-        v-if="renderSence === 'new'"
       >
         <el-select
           v-model="formData.dbType"
@@ -44,7 +44,11 @@
           placeholder="请输入"
         />
       </el-form-item>
-      <el-form-item label="驱动" prop="driver" v-if="renderSence === 'new'">
+      <el-form-item
+        v-if="renderSence === 'new'"
+        label="驱动"
+        prop="driver"
+      >
         <el-upload
           ref="uploadRef"
           class="license-upload"
@@ -60,7 +64,8 @@
             <upload-filled />
           </el-icon>
           <div class="el-upload__text">
-            上传驱动 <em>点击上传</em>
+            上传驱动
+            <em>点击上传</em>
           </div>
         </el-upload>
       </el-form-item>
@@ -78,241 +83,241 @@ const callback = ref<any>()
 const uploadRef = ref()
 const renderSence = ref<string>('new')
 const modelConfig = reactive({
-  title: '新建驱动',
-  visible: false,
-  width: '520px',
-  okConfig: {
-    title: '确定',
-    ok: okEvent,
-    disabled: false,
-    loading: false
-  },
-  cancelConfig: {
-    title: '取消',
-    cancel: closeEvent,
-    disabled: false
-  },
-  needScale: false,
-  zIndex: 1100,
-  closeOnClickModal: false
+    title: '新建驱动',
+    visible: false,
+    width: '520px',
+    okConfig: {
+        title: '确定',
+        ok: okEvent,
+        disabled: false,
+        loading: false
+    },
+    cancelConfig: {
+        title: '取消',
+        cancel: closeEvent,
+        disabled: false
+    },
+    needScale: false,
+    zIndex: 1100,
+    closeOnClickModal: false
 })
 const formData = reactive({
-  name: '',
-  dbType: '',
-  remark: '',
-  driver: null,
-  id: ''
+    name: '',
+    dbType: '',
+    remark: '',
+    driver: null,
+    id: ''
 })
 const typeList = reactive([
-  {
-    label: 'Clickhouse',
-    value: 'CLICKHOUSE'
-  },
-  {
-    label: 'Db2',
-    value: 'DB2'
-  },
-  {
-    label: 'Doris',
-    value: 'DORIS'
-  },
-  {
-    label: 'DuckDB',
-    value: 'DUCK_DB'
-  },
-  {
-    label: '达梦',
-    value: 'DM'
-  },
-  {
-    label: 'Gauss',
-    value: 'GAUSS'
-  },
-  {
-    label: 'Gbase',
-    value: 'GBASE'
-  },
-  {
-    label: 'Greenplum',
-    value: 'GREENPLUM'
-  },
-  {
-    label: 'H2',
-    value: 'H2'
-  },
-  {
-    label: 'HanaSap',
-    value: 'HANA_SAP'
-  },
-  {
-    label: 'Hive',
-    value: 'HIVE'
-  },
-  {
-    label: 'Impala',
-    value: 'IMPALA'
-  },
-  {
-    label: 'Mysql',
-    value: 'MYSQL'
-  },
-  {
-    label: 'OceanBase',
-    value: 'OCEANBASE'
-  },
-  {
-    label: 'OpenGauss',
-    value: 'OPEN_GAUSS'
-  },
-  {
-    label: 'Oracle',
-    value: 'ORACLE'
-  },
-  {
-    label: 'PostgreSql',
-    value: 'POSTGRE_SQL'
-  },
-  {
-    label: 'Presto',
-    value: 'PRESTO'
-  },
-  {
-    label: 'SelectDB',
-    value: 'SELECT_DB'
-  },
-  {
-    label: 'SqlServer',
-    value: 'SQL_SERVER'
-  },
-  {
-    label: 'StarRocks',
-    value: 'STAR_ROCKS'
-  },
-  {
-    label: 'Sybase',
-    value: 'SYBASE'
-  },
-  {
-    label: 'TDengine',
-    value: 'T_DENGINE'
-  },
-  {
-    label: 'TiDB',
-    value: 'TIDB'
-  },
-  {
-    label: 'Trino',
-    value: 'TRINO'
-  }
-]);
+    {
+        label: 'Clickhouse',
+        value: 'CLICKHOUSE'
+    },
+    {
+        label: 'Db2',
+        value: 'DB2'
+    },
+    {
+        label: 'Doris',
+        value: 'DORIS'
+    },
+    {
+        label: 'DuckDB',
+        value: 'DUCK_DB'
+    },
+    {
+        label: '达梦',
+        value: 'DM'
+    },
+    {
+        label: 'Gauss',
+        value: 'GAUSS'
+    },
+    {
+        label: 'Gbase',
+        value: 'GBASE'
+    },
+    {
+        label: 'Greenplum',
+        value: 'GREENPLUM'
+    },
+    {
+        label: 'H2',
+        value: 'H2'
+    },
+    {
+        label: 'HanaSap',
+        value: 'HANA_SAP'
+    },
+    {
+        label: 'Hive',
+        value: 'HIVE'
+    },
+    {
+        label: 'Impala',
+        value: 'IMPALA'
+    },
+    {
+        label: 'Mysql',
+        value: 'MYSQL'
+    },
+    {
+        label: 'OceanBase',
+        value: 'OCEANBASE'
+    },
+    {
+        label: 'OpenGauss',
+        value: 'OPEN_GAUSS'
+    },
+    {
+        label: 'Oracle',
+        value: 'ORACLE'
+    },
+    {
+        label: 'PostgreSql',
+        value: 'POSTGRE_SQL'
+    },
+    {
+        label: 'Presto',
+        value: 'PRESTO'
+    },
+    {
+        label: 'SelectDB',
+        value: 'SELECT_DB'
+    },
+    {
+        label: 'SqlServer',
+        value: 'SQL_SERVER'
+    },
+    {
+        label: 'StarRocks',
+        value: 'STAR_ROCKS'
+    },
+    {
+        label: 'Sybase',
+        value: 'SYBASE'
+    },
+    {
+        label: 'TDengine',
+        value: 'T_DENGINE'
+    },
+    {
+        label: 'TiDB',
+        value: 'TIDB'
+    },
+    {
+        label: 'Trino',
+        value: 'TRINO'
+    }
+])
 const rules = reactive<FormRules>({
-  name: [
-    {
-      required: true,
-      message: '请输入驱动名称',
-      trigger: [ 'blur', 'change' ]
-    }
-  ],
-  dbType: [
-    {
-      required: true,
-      message: '请选择类型',
-      trigger: [ 'blur', 'change' ]
-    }
-  ],
-  driver: [
-    {
-      required: true,
-      message: '请上传驱动',
-      trigger: 'change'
-    }
-  ]
+    name: [
+        {
+            required: true,
+            message: '请输入驱动名称',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    dbType: [
+        {
+            required: true,
+            message: '请选择类型',
+            trigger: [ 'blur', 'change' ]
+        }
+    ],
+    driver: [
+        {
+            required: true,
+            message: '请上传驱动',
+            trigger: 'change'
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {
-  callback.value = cb
-  modelConfig.visible = true
-  renderSence.value = 'new'
-  if (data) {
-    formData.name = data.name
-    formData.dbType = data.dbType
-    formData.remark = data.remark
-    formData.id = data.id
-    modelConfig.title = '编辑备注'
-    renderSence.value ='edit'
-  } else {
-    formData.name = ''
-    formData.dbType = ''
-    formData.remark = ''
-    formData.id = ''
-    modelConfig.title = '新建驱动'
-  }
-  nextTick(() => {
-    form.value?.resetFields()
-  })
+    callback.value = cb
+    modelConfig.visible = true
+    renderSence.value = 'new'
+    if (data) {
+        formData.name = data.name
+        formData.dbType = data.dbType
+        formData.remark = data.remark
+        formData.id = data.id
+        modelConfig.title = '编辑备注'
+        renderSence.value = 'edit'
+    } else {
+        formData.name = ''
+        formData.dbType = ''
+        formData.remark = ''
+        formData.id = ''
+        modelConfig.title = '新建驱动'
+    }
+    nextTick(() => {
+        form.value?.resetFields()
+    })
 }
 
 function okEvent() {
-  form.value?.validate((valid) => {
-    if (valid) {
-      modelConfig.okConfig.loading = true
-      callback
-        .value({
-          ...formData,
-          id: formData.id ? formData.id : undefined
-        })
-        .then((res: any) => {
-          modelConfig.okConfig.loading = false
-          if (res === undefined) {
-            modelConfig.visible = false
-          } else {
-            modelConfig.visible = true
-          }
-        })
-        .catch(() => {
-          modelConfig.okConfig.loading = false
-        })
-    } else {
-      ElMessage.warning('请将表单输入完整')
-    }
-  })
+    form.value?.validate((valid) => {
+        if (valid) {
+            modelConfig.okConfig.loading = true
+            callback
+                .value({
+                    ...formData,
+                    id: formData.id ? formData.id : undefined
+                })
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch(() => {
+                    modelConfig.okConfig.loading = false
+                })
+        } else {
+            ElMessage.warning('请将表单输入完整')
+        }
+    })
 }
 
 function handleChange(e: any) {
-  // fileData.value = e.raw
-  formData.driver = e.raw
+    // fileData.value = e.raw
+    formData.driver = e.raw
 }
 
 function removeChange(e: any) {
-  formData.driver = null
-  uploadRef.value.clearFiles()
+    formData.driver = null
+    uploadRef.value.clearFiles()
 }
 
 function closeEvent() {
-  modelConfig.visible = false
+    modelConfig.visible = false
 }
 
 defineExpose({
-  showModal
+    showModal
 })
 </script>
 
 <style lang="scss">
 .add-driver-modal {
-  padding: 12px 20px 0 20px;
-  box-sizing: border-box;
-  .license-upload {
-    margin: 0px;
-    width: 100%;
-    .el-upload {
-      .el-upload-dragger {
-        padding: 12px 0;
-        border-radius: getCssVar('border-radius', 'small');
-        .el-upload__text {
-          font-size: getCssVar('font-size', 'extra-small');
+    padding: 12px 20px 0 20px;
+    box-sizing: border-box;
+    .license-upload {
+        margin: 0px;
+        width: 100%;
+        .el-upload {
+            .el-upload-dragger {
+                padding: 12px 0;
+                border-radius: getCssVar('border-radius', 'small');
+                .el-upload__text {
+                    font-size: getCssVar('font-size', 'extra-small');
+                }
+            }
         }
-      }
     }
-  }
 }
 </style>

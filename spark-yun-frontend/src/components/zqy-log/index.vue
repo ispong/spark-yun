@@ -1,16 +1,27 @@
 <template>
-    <BlockModal :model-config="modelConfig" @close="closeEvent">
-        <div id="content" class="content-box">
-            <!-- 日志展示 -->
-            <template v-if="['log', 'yarnLog', 'result_log'].includes(modalType)">
-                <LogContainer v-if="logMsg" :logMsg="logMsg" :showResult="false" :status="true"></LogContainer>
-            </template>
-            <!-- 结果展示 -->
-            <template v-else-if="modalType === 'result'">
-                <BlockTable :table-config="tableConfig" />
-            </template>
-        </div>
-    </BlockModal>
+  <BlockModal
+    :model-config="modelConfig"
+    @close="closeEvent"
+  >
+    <div
+      id="content"
+      class="content-box"
+    >
+      <!-- 日志展示 -->
+      <template v-if="['log', 'yarnLog', 'result_log'].includes(modalType)">
+        <LogContainer
+          v-if="logMsg"
+          :log-msg="logMsg"
+          :show-result="false"
+          :status="true"
+        />
+      </template>
+      <!-- 结果展示 -->
+      <template v-else-if="modalType === 'result'">
+        <BlockTable :table-config="tableConfig" />
+      </template>
+    </div>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
@@ -27,10 +38,10 @@ const timer = ref(null)
 const modalType = ref('')
 
 const tableConfig = reactive({
-  tableData: [],
-  colConfigs: [],
-  seqType: 'seq',
-  loading: false
+    tableData: [],
+    colConfigs: [],
+    seqType: 'seq',
+    loading: false
 })
 const modelConfig = reactive({
     title: '日志',
@@ -77,17 +88,19 @@ function showModal(cb: () => void, data: any): void {
 function getLogData() {
     GetLogData({
         instanceId: info.value
-    }).then((res: any) => {
-        logMsg.value = res.data.log
-        if (['SUCCESS', 'FAIL'].includes(res.data.status)) {
-            if (timer.value) {
-                clearInterval(timer.value)
-            }
-            timer.value = null
-        }
-    }).catch(() => {
-        logMsg.value = ''
     })
+        .then((res: any) => {
+            logMsg.value = res.data.log
+            if ([ 'SUCCESS', 'FAIL' ].includes(res.data.status)) {
+                if (timer.value) {
+                    clearInterval(timer.value)
+                }
+                timer.value = null
+            }
+        })
+        .catch(() => {
+            logMsg.value = ''
+        })
 }
 
 // 获取yarn日志
@@ -97,7 +110,7 @@ function getYarnLogData() {
     })
         .then((res: any) => {
             logMsg.value = res.data.yarnLog
-            if (['SUCCESS', 'FAIL'].includes(res.data.status)) {
+            if ([ 'SUCCESS', 'FAIL' ].includes(res.data.status)) {
                 if (timer.value) {
                     clearInterval(timer.value)
                 }
@@ -114,36 +127,38 @@ function getResultDatalist() {
     tableConfig.loading = true
     GetResultData({
         instanceId: info.value
-    }).then((res: any) => {
-        if (modalType.value === 'result_log') {
-            logMsg.value = res.data.jsonData || res.data.strData
-        } else {
-            const col = res.data.data.slice(0, 1)[0]
-            const tableData = res.data.data.slice(1, res.data.data.length)
-            tableConfig.colConfigs = col.map((colunm: any) => {
-                return {
-                    prop: colunm,
-                    title: colunm,
-                    minWidth: 100,
-                    showHeaderOverflow: true,
-                    showOverflowTooltip: true
-                }
-            })
-            tableConfig.tableData = tableData.map((columnData: any) => {
-                const dataObj: any = {
-                }
-                col.forEach((c: any, index: number) => {
-                    dataObj[c] = columnData[index]
-                })
-                return dataObj
-            })
-        }
-        tableConfig.loading = false
-    }).catch(() => {
-        tableConfig.colConfigs = []
-        tableConfig.tableData = []
-        tableConfig.loading = false
     })
+        .then((res: any) => {
+            if (modalType.value === 'result_log') {
+                logMsg.value = res.data.jsonData || res.data.strData
+            } else {
+                const col = res.data.data.slice(0, 1)[0]
+                const tableData = res.data.data.slice(1, res.data.data.length)
+                tableConfig.colConfigs = col.map((colunm: any) => {
+                    return {
+                        prop: colunm,
+                        title: colunm,
+                        minWidth: 100,
+                        showHeaderOverflow: true,
+                        showOverflowTooltip: true
+                    }
+                })
+                tableConfig.tableData = tableData.map((columnData: any) => {
+                    const dataObj: any = {
+}
+                    col.forEach((c: any, index: number) => {
+                        dataObj[c] = columnData[index]
+                    })
+                    return dataObj
+                })
+            }
+            tableConfig.loading = false
+        })
+        .catch(() => {
+            tableConfig.colConfigs = []
+            tableConfig.tableData = []
+            tableConfig.loading = false
+        })
 }
 
 function closeEvent() {
@@ -165,7 +180,7 @@ defineExpose({
     showModal
 })
 </script>
-  
+
 <style lang="scss">
 .zqy-log-modal {
     .modal-content {
@@ -184,4 +199,3 @@ defineExpose({
     }
 }
 </style>
-  

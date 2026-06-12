@@ -7,7 +7,9 @@
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import { reactive } from 'vue'
 
-const { locale } = reactive({
-  locale: zhCn
+const {
+ locale 
+} = reactive({
+    locale: zhCn
 })
 </script>

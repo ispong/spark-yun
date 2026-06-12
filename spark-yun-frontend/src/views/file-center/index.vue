@@ -50,8 +50,13 @@
               <span
                 v-if="!scopeSlot.row.downloadLoading"
                 @click="downloadFile(scopeSlot.row, true)"
-              >下载</span>
-              <el-icon v-else class="is-loading">
+              >
+                下载
+              </span>
+              <el-icon
+                v-else
+                class="is-loading"
+              >
                 <Loading />
               </el-icon>
               <el-dropdown trigger="click">
@@ -72,7 +77,10 @@
         </BlockTable>
       </div>
     </LoadingPage>
-    <AddModal ref="addModalRef" :show-excel-type="showExcelType" />
+    <AddModal
+      ref="addModalRef"
+      :show-excel-type="showExcelType"
+    />
   </div>
 </template>
 
@@ -84,7 +92,11 @@ import LoadingPage from '@/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './file-center.config'
-import { GetFileCenterList, UploadFileData, DeleteFileData, DownloadFileData, UpdateFileData } from '@/services/file-center.service'
+import { GetFileCenterList,
+    UploadFileData,
+    DeleteFileData,
+    DownloadFileData,
+    UpdateFileData } from '@/services/file-center.service'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 import { getVipLicenseEnabled } from '@/utils/vip-license'
@@ -98,156 +110,162 @@ const networkError = ref(false)
 const addModalRef = ref<any>(null)
 const showExcelType = ref(true)
 const allTypeList = [
-  {
-    label: '作业',
-    value: 'JOB',
-  },
-  {
-    label: '函数',
-    value: 'FUNC',
-  },
-  {
-    label: '依赖',
-    value: 'LIB',
-  },
-  {
-    label: 'Excel',
-    value: 'EXCEL',
-  }
+    {
+        label: '作业',
+        value: 'JOB'
+    },
+    {
+        label: '函数',
+        value: 'FUNC'
+    },
+    {
+        label: '依赖',
+        value: 'LIB'
+    },
+    {
+        label: 'Excel',
+        value: 'EXCEL'
+    }
 ]
 const typeList = computed(() =>
-  showExcelType.value ? allTypeList : allTypeList.filter(item => item.value !== 'EXCEL')
+    showExcelType.value ? allTypeList : allTypeList.filter((item) => item.value !== 'EXCEL')
 )
 
 function initData(tableLoading?: boolean) {
-  loading.value = tableLoading ? false : true
-  networkError.value = networkError.value || false
-  GetFileCenterList({
-    page: tableConfig.pagination.currentPage - 1,
-    pageSize: tableConfig.pagination.pageSize,
-    searchKeyWord: keyword.value,
-    type: type.value
-  })
-    .then((res: any) => {
-      tableConfig.tableData = res.data.content
-      tableConfig.pagination.total = res.data.totalElements
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = false
+    loading.value = tableLoading ? false : true
+    networkError.value = networkError.value || false
+    GetFileCenterList({
+        page: tableConfig.pagination.currentPage - 1,
+        pageSize: tableConfig.pagination.pageSize,
+        searchKeyWord: keyword.value,
+        type: type.value
     })
-    .catch(() => {
-      tableConfig.tableData = []
-      tableConfig.pagination.total = 0
-      loading.value = false
-      tableConfig.loading = false
-      networkError.value = true
-    })
+        .then((res: any) => {
+            tableConfig.tableData = res.data.content
+            tableConfig.pagination.total = res.data.totalElements
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = false
+        })
+        .catch(() => {
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
 }
 
 function addData() {
-  addModalRef.value.showModal((data: any) => {
-    return new Promise((resolve: any, reject: any) => {
-      const formData = new FormData()
-      formData.append('type', data.type)
-      formData.append('remark', data.remark)
-      data.fileData.forEach((file: File) => {
-          formData.append('fileList', file)
-      })
-      UploadFileData(formData).then((res: any) => {
-        ElMessage.success(res.data.msg)
-        initData()
-        resolve()
-      }).catch((error: any) => {
-        reject(error)
-      })
+    addModalRef.value.showModal((data: any) => {
+        return new Promise((resolve: any, reject: any) => {
+            const formData = new FormData()
+            formData.append('type', data.type)
+            formData.append('remark', data.remark)
+            data.fileData.forEach((file: File) => {
+                formData.append('fileList', file)
+            })
+            UploadFileData(formData)
+                .then((res: any) => {
+                    ElMessage.success(res.data.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
+        })
     })
-  })
 }
 
 function editData(data: any) {
-  addModalRef.value.showModal((formData: any) => {
-    return new Promise((resolve: any, reject: any) => {
-      UpdateFileData({
-        fileId: formData.id,
-        remark: formData.remark
-      }).then((res: any) => {
-        ElMessage.success(res.msg)
-        initData()
-        resolve()
-      }).catch((error: any) => {
-        reject(error)
-      })
-    })
-  }, data)
+    addModalRef.value.showModal((formData: any) => {
+        return new Promise((resolve: any, reject: any) => {
+            UpdateFileData({
+                fileId: formData.id,
+                remark: formData.remark
+            })
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
+        })
+    }, data)
 }
 
 // 下载
 function downloadFile(data: any) {
-  data.downloadLoading = true
-  DownloadFileData({
-    fileId: data.id
-  }).then((res: any) => {
-    const blobURL = URL.createObjectURL(res);
+    data.downloadLoading = true
+    DownloadFileData({
+        fileId: data.id
+    })
+        .then((res: any) => {
+            const blobURL = URL.createObjectURL(res)
 
-    // 创建一个链接元素并模拟点击下载
-    const link = document.createElement('a');
-    link.href = blobURL;
-    link.download = data.fileName; // 根据实际情况设置下载文件的名称和扩展名
-    link.click();
+            // 创建一个链接元素并模拟点击下载
+            const link = document.createElement('a')
+            link.href = blobURL
+            link.download = data.fileName // 根据实际情况设置下载文件的名称和扩展名
+            link.click()
 
-    // 释放Blob URL
-    URL.revokeObjectURL(blobURL);
+            // 释放Blob URL
+            URL.revokeObjectURL(blobURL)
 
-
-    data.downloadLoading = false
-  }).catch(() => {
-    data.downloadLoading = false
-  })
+            data.downloadLoading = false
+        })
+        .catch(() => {
+            data.downloadLoading = false
+        })
 }
 
 // 删除
 function deleteData(data: any) {
-  ElMessageBox.confirm('确定删除该文件吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    DeleteFileData({
-      fileId: data.id
-    }).then((res: any) => {
-      ElMessage.success(res.msg)
-      initData()
+    ElMessageBox.confirm('确定删除该文件吗？', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        DeleteFileData({
+            fileId: data.id
+        })
+            .then((res: any) => {
+                ElMessage.success(res.msg)
+                initData()
+            })
+            .catch(() => {})
     })
-    .catch(() => {})
-  })
 }
 
 function inputEvent(e: string) {
-  if (e === '') {
-    initData()
-  }
+    if (e === '') {
+        initData()
+    }
 }
 
 function handleSizeChange(e: number) {
-  tableConfig.pagination.pageSize = e
-  initData()
+    tableConfig.pagination.pageSize = e
+    initData()
 }
 
 function handleCurrentChange(e: number) {
-  tableConfig.pagination.currentPage = e
-  initData()
+    tableConfig.pagination.currentPage = e
+    initData()
 }
 
 onMounted(() => {
-  getVipLicenseEnabled().then((enabled) => {
-    showExcelType.value = enabled
-    if (!enabled && type.value === 'EXCEL') {
-      type.value = ''
-      initData(false)
-    }
-  })
-  tableConfig.pagination.currentPage = 1
-  tableConfig.pagination.pageSize = 10
-  initData()
+    getVipLicenseEnabled().then((enabled) => {
+        showExcelType.value = enabled
+        if (!enabled && type.value === 'EXCEL') {
+            type.value = ''
+            initData(false)
+        }
+    })
+    tableConfig.pagination.currentPage = 1
+    tableConfig.pagination.pageSize = 10
+    initData()
 })
 </script>

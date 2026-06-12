@@ -1,20 +1,29 @@
 <template>
-    <div class="z-tree-node" :title="nodeTip">
-        <div class="node-info">
-            <div class="node-label">
-                <el-icon><CollectionTag /></el-icon>
-                <EllipsisTooltip class="label-text" :label="params.name" />
-            </div>
-            <div class="node-desc">
-                <EllipsisTooltip :label="ownerText" />
-            </div>
-        </div>
-        <div class="node-loading" v-if="loading">
-            <el-icon class="is-loading">
-                <Loading />
-            </el-icon>
-        </div>
+  <div
+    class="z-tree-node"
+    :title="nodeTip"
+  >
+    <div class="node-info">
+      <div class="node-label">
+        <el-icon><CollectionTag /></el-icon>
+        <EllipsisTooltip
+          class="label-text"
+          :label="params.name"
+        />
+      </div>
+      <div class="node-desc">
+        <EllipsisTooltip :label="ownerText" />
+      </div>
     </div>
+    <div
+      v-if="loading"
+      class="node-loading"
+    >
+      <el-icon class="is-loading">
+        <Loading />
+      </el-icon>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -24,7 +33,7 @@ import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { ElIcon } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 
-const props = defineProps(['params', 'loading'])
+const props = defineProps([ 'params', 'loading' ])
 
 const ownerText = computed(() => {
     const owner = props.params?.createUsername || '-'
@@ -113,7 +122,7 @@ const nodeTip = computed(() => {
         position: absolute;
         top: 0;
         left: 0;
-        background-color: #FFFFFF90;
+        background-color: #ffffff90;
         height: 100%;
         width: 100%;
         border-radius: 5px;

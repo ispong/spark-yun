@@ -1,24 +1,34 @@
 <template>
-    <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
-            <!-- <el-form-item label="字段名" prop="code">
+  <BlockModal :model-config="modelConfig">
+    <el-form
+      ref="form"
+      class="add-computer-group"
+      label-position="top"
+      :model="formData"
+      :rules="rules"
+    >
+      <!-- <el-form-item label="字段名" prop="code">
                 <el-input v-model="formData.code" maxlength="20" placeholder="请输入"/>
             </el-form-item>
             <el-form-item label="类型" prop="type">
                 <el-input v-model="formData.type" maxlength="20" placeholder="请输入"/>
             </el-form-item> -->
-            <el-form-item label="转换">
-                <code-mirror v-model="formData.sql" basic :lang="lang"/>
-            </el-form-item>
-        </el-form>
-    </BlockModal>
+      <el-form-item label="转换">
+        <code-mirror
+          v-model="formData.sql"
+          basic
+          :lang="lang"
+        />
+      </el-form-item>
+    </el-form>
+  </BlockModal>
 </template>
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 // import CodeMirror from 'vue-codemirror6'
-import {sql} from '@codemirror/lang-sql'
+import { sql } from '@codemirror/lang-sql'
 
 interface codeParam {
     // code: string
@@ -122,23 +132,24 @@ defineExpose({
         height: 100px;
         width: 100%;
         .cm-editor {
-          height: 100%;
-          outline: none;
-          border: 1px solid #dcdfe6;
+            height: 100%;
+            outline: none;
+            border: 1px solid #dcdfe6;
         }
 
         .cm-gutters {
-          font-size: 12px;
-          font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-size: 12px;
+            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
+                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
         }
 
         .cm-content {
-          font-size: 12px;
-          font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-size: 12px;
+            font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
+                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
         }
         .cm-tooltip-autocomplete {
-
-          // display: none !important;
+            // display: none !important;
             ul {
                 li {
                     height: 40px;
@@ -146,11 +157,12 @@ defineExpose({
                     align-items: center;
                     font-size: 12px;
                     background-color: #ffffff;
-                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                    font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
+                        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
                 }
 
                 li[aria-selected] {
-                    background: #409EFF;
+                    background: #409eff;
                 }
 
                 .cm-completionIcon {

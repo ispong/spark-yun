@@ -1,29 +1,32 @@
 <template>
-    <BlockTable :table-config="tableConfig" @size-change="handleSizeChange"
-        @current-change="handleCurrentChange">
-        <template #nameSlot="scopeSlot">
-            <span
-              class="name-click"
-              @click="redirectToTable(scopeSlot.row)"
-            >{{ scopeSlot.row.name }}</span>
-        </template>
-        <template #statusTag="scopeSlot">
-            <ZStatusTag :status="scopeSlot.row.status"></ZStatusTag>
-        </template>
-        <template #options="scopeSlot">
-            <div class="btn-group">
-                <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
-                <span @click="editEvent(scopeSlot.row)">备注</span>
-            </div>
-        </template>
-    </BlockTable>
+  <BlockTable
+    :table-config="tableConfig"
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+  >
+    <template #nameSlot="scopeSlot">
+      <span
+        class="name-click"
+        @click="redirectToTable(scopeSlot.row)"
+      >{{ scopeSlot.row.name }}</span>
+    </template>
+    <template #statusTag="scopeSlot">
+      <ZStatusTag :status="scopeSlot.row.status" />
+    </template>
+    <template #options="scopeSlot">
+      <div class="btn-group">
+        <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
+        <span @click="editEvent(scopeSlot.row)">备注</span>
+      </div>
+    </template>
+  </BlockTable>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted, defineEmits, defineProps } from 'vue'
 import { GetMetadataManagementList } from '@/services/metadata-page.service'
 
-const emit = defineEmits(['redirectToTable', 'editEvent', 'dataLineageEvent'])
+const emit = defineEmits([ 'redirectToTable', 'editEvent', 'dataLineageEvent' ])
 const props = defineProps<{
     keyword: string
 }>()
@@ -32,17 +35,17 @@ const tableConfig = reactive({
     tableData: [],
     colConfigs: [
         {
-          prop: 'name',
-          title: '数据源',
-          minWidth: 125,
-          showOverflowTooltip: true,
-          customSlot: 'nameSlot'
+            prop: 'name',
+            title: '数据源',
+            minWidth: 125,
+            showOverflowTooltip: true,
+            customSlot: 'nameSlot'
         },
         {
-          prop: 'dbName',
-          title: '库名',
-          minWidth: 125,
-          showOverflowTooltip: true
+            prop: 'dbName',
+            title: '库名',
+            minWidth: 125,
+            showOverflowTooltip: true
         },
         {
             prop: 'dbType',
@@ -90,17 +93,19 @@ function initData(searchKeyWord?: string) {
             page: tableConfig.pagination.currentPage - 1,
             pageSize: tableConfig.pagination.pageSize,
             searchKeyWord: searchKeyWord || props.keyword || ''
-        }).then((res: any) => {
-            tableConfig.tableData = res.data.content
-            tableConfig.pagination.total = res.data.totalElements
-            tableConfig.loading = false
-            resolve(true)
-        }).catch(() => {
-            tableConfig.tableData = []
-            tableConfig.pagination.total = 0
-            tableConfig.loading = false
-            reject()
         })
+            .then((res: any) => {
+                tableConfig.tableData = res.data.content
+                tableConfig.pagination.total = res.data.totalElements
+                tableConfig.loading = false
+                resolve(true)
+            })
+            .catch(() => {
+                tableConfig.tableData = []
+                tableConfig.pagination.total = 0
+                tableConfig.loading = false
+                reject()
+            })
     })
 }
 

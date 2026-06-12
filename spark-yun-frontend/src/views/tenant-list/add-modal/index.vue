@@ -43,8 +43,12 @@
         label="租户管理员来源"
       >
         <el-radio-group v-model="adminUserMode">
-          <el-radio label="existing">选择已有用户</el-radio>
-          <el-radio label="new">新建用户</el-radio>
+          <el-radio label="existing">
+            选择已有用户
+          </el-radio>
+          <el-radio label="new">
+            新建用户
+          </el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item
@@ -66,19 +70,36 @@
       </el-form-item>
       <template v-if="renderSence === 'new' && adminUserMode === 'new'">
         <el-form-item label="用户名">
-          <el-input v-model="formData.adminUsername" placeholder="请输入" />
+          <el-input
+            v-model="formData.adminUsername"
+            placeholder="请输入"
+          />
         </el-form-item>
         <el-form-item label="登录账号">
-          <el-input v-model="formData.adminAccount" placeholder="请输入" />
+          <el-input
+            v-model="formData.adminAccount"
+            placeholder="请输入"
+          />
         </el-form-item>
         <el-form-item label="初始密码">
-          <el-input v-model="formData.adminPassword" type="password" show-password placeholder="请输入" />
+          <el-input
+            v-model="formData.adminPassword"
+            type="password"
+            show-password
+            placeholder="请输入"
+          />
         </el-form-item>
         <el-form-item label="手机号">
-          <el-input v-model="formData.adminPhone" placeholder="请输入" />
+          <el-input
+            v-model="formData.adminPhone"
+            placeholder="请输入"
+          />
         </el-form-item>
         <el-form-item label="邮箱">
-          <el-input v-model="formData.adminEmail" placeholder="请输入" />
+          <el-input
+            v-model="formData.adminEmail"
+            placeholder="请输入"
+          />
         </el-form-item>
       </template>
       <el-form-item label="备注">
@@ -123,182 +144,182 @@ const userList = ref([])
 const renderSence = ref('new')
 const adminUserMode = ref<'existing' | 'new'>('existing')
 const modelConfig = reactive({
-  title: '新建租户',
-  visible: false,
-  width: '520px',
-  okConfig: {
-    title: '确定',
-    ok: okEvent,
-    disabled: false,
-    loading: false
-  },
-  cancelConfig: {
-    title: '取消',
-    cancel: closeEvent,
-    disabled: false
-  },
-  needScale: false,
-  zIndex: 1100,
-  closeOnClickModal: false
+    title: '新建租户',
+    visible: false,
+    width: '520px',
+    okConfig: {
+        title: '确定',
+        ok: okEvent,
+        disabled: false,
+        loading: false
+    },
+    cancelConfig: {
+        title: '取消',
+        cancel: closeEvent,
+        disabled: false
+    },
+    needScale: false,
+    zIndex: 1100,
+    closeOnClickModal: false
 })
 const formData = reactive({
-  name: '',
-  maxMemberNum: 5,
-  maxWorkflowNum: 20,
-  adminUserId: '',
-  createAdminUser: false,
-  adminUsername: '',
-  adminAccount: '',
-  adminPassword: '',
-  adminPhone: '',
-  adminEmail: '',
-  validDateTime: [],
-  remark: '',
-  id: ''
+    name: '',
+    maxMemberNum: 5,
+    maxWorkflowNum: 20,
+    adminUserId: '',
+    createAdminUser: false,
+    adminUsername: '',
+    adminAccount: '',
+    adminPassword: '',
+    adminPhone: '',
+    adminEmail: '',
+    validDateTime: [],
+    remark: '',
+    id: ''
 })
 const rules = reactive<FormRules>({
-  name: [
-    {
-      required: true,
-      message: '请输入租户名称',
-      trigger: [ 'change', 'blur' ]
-    }
-  ],
-  adminUserId: [
-    {
-      required: true,
-      message: '请选择管理员',
-      trigger: [ 'change', 'blur' ]
-    }
-  ]
+    name: [
+        {
+            required: true,
+            message: '请输入租户名称',
+            trigger: [ 'change', 'blur' ]
+        }
+    ],
+    adminUserId: [
+        {
+            required: true,
+            message: '请选择管理员',
+            trigger: [ 'change', 'blur' ]
+        }
+    ]
 })
 
 function showModal(cb: () => void, data: any): void {
-  callback.value = cb
-  modelConfig.visible = true
-  getUserOfSystem()
-  if (data) {
-    formData.name = data.name
-    formData.maxMemberNum = data.maxMemberNum
-    formData.maxWorkflowNum = data.maxWorkflowNum
-    formData.remark = data.remark
-    if (data.validStartDateTime && data.validEndDateTime) {
-      formData.validDateTime = [data.validStartDateTime, data.validEndDateTime]
+    callback.value = cb
+    modelConfig.visible = true
+    getUserOfSystem()
+    if (data) {
+        formData.name = data.name
+        formData.maxMemberNum = data.maxMemberNum
+        formData.maxWorkflowNum = data.maxWorkflowNum
+        formData.remark = data.remark
+        if (data.validStartDateTime && data.validEndDateTime) {
+            formData.validDateTime = [ data.validStartDateTime, data.validEndDateTime ]
+        } else {
+            formData.validDateTime = []
+        }
+        formData.id = data.id
+        modelConfig.title = '编辑租户'
+        renderSence.value = 'edit'
     } else {
-      formData.validDateTime = []
+        formData.name = ''
+        formData.maxMemberNum = 2
+        formData.maxWorkflowNum = 5
+        formData.adminUserId = ''
+        formData.adminUsername = ''
+        formData.adminAccount = ''
+        formData.adminPassword = ''
+        formData.adminPhone = ''
+        formData.adminEmail = ''
+        adminUserMode.value = 'existing'
+        formData.remark = ''
+        formData.validDateTime = []
+        formData.id = ''
+        modelConfig.title = '新建租户'
+        renderSence.value = 'new'
     }
-    formData.id = data.id
-    modelConfig.title = '编辑租户'
-    renderSence.value = 'edit'
-  } else {
-    formData.name = ''
-    formData.maxMemberNum = 2
-    formData.maxWorkflowNum = 5
-    formData.adminUserId = ''
-    formData.adminUsername = ''
-    formData.adminAccount = ''
-    formData.adminPassword = ''
-    formData.adminPhone = ''
-    formData.adminEmail = ''
-    adminUserMode.value = 'existing'
-    formData.remark = ''
-    formData.validDateTime = []
-    formData.id = ''
-    modelConfig.title = '新建租户'
-    renderSence.value = 'new'
-  }
-  nextTick(() => {
-    form.value?.resetFields()
-  })
+    nextTick(() => {
+        form.value?.resetFields()
+    })
 }
 
 function getUserOfSystem() {
-  GetUserInfoList({
-    page: 0,
-    pageSize: 999,
-    searchKeyWord: ''
-  })
-    .then((res: any) => {
-      userList.value = res.data.content
+    GetUserInfoList({
+        page: 0,
+        pageSize: 999,
+        searchKeyWord: ''
     })
-    .catch(() => {
-      userList.value = []
-    })
+        .then((res: any) => {
+            userList.value = res.data.content
+        })
+        .catch(() => {
+            userList.value = []
+        })
 }
 
 function okEvent() {
-  form.value?.validate((valid) => {
-    if (valid) {
-      if (renderSence.value === 'new' && adminUserMode.value === 'existing' && !formData.adminUserId) {
-        ElMessage.warning('请选择租户管理员')
-        return
-      }
-      if (
-        renderSence.value === 'new'
-        && adminUserMode.value === 'new'
-        && (!formData.adminUsername || !formData.adminAccount || !formData.adminPassword)
-      ) {
-        ElMessage.warning('请填写新管理员的用户名、账号和密码')
-        return
-      }
-      modelConfig.okConfig.loading = true
-      callback
-        .value({
-          ...formData,
-          createAdminUser: adminUserMode.value === 'new',
-          adminUserId: adminUserMode.value === 'existing' ? formData.adminUserId : undefined,
-          id: formData.id ? formData.id : undefined
-        })
-        .then((res: any) => {
-          modelConfig.okConfig.loading = false
-          if (res === undefined) {
-            modelConfig.visible = false
-          } else {
-            modelConfig.visible = true
-          }
-        })
-        .catch((err: any) => {
-          modelConfig.okConfig.loading = false
-        })
-    } else {
-      ElMessage.warning('请将表单输入完整')
-    }
-  })
+    form.value?.validate((valid) => {
+        if (valid) {
+            if (renderSence.value === 'new' && adminUserMode.value === 'existing' && !formData.adminUserId) {
+                ElMessage.warning('请选择租户管理员')
+                return
+            }
+            if (
+                renderSence.value === 'new' &&
+                adminUserMode.value === 'new' &&
+                (!formData.adminUsername || !formData.adminAccount || !formData.adminPassword)
+            ) {
+                ElMessage.warning('请填写新管理员的用户名、账号和密码')
+                return
+            }
+            modelConfig.okConfig.loading = true
+            callback
+                .value({
+                    ...formData,
+                    createAdminUser: adminUserMode.value === 'new',
+                    adminUserId: adminUserMode.value === 'existing' ? formData.adminUserId : undefined,
+                    id: formData.id ? formData.id : undefined
+                })
+                .then((res: any) => {
+                    modelConfig.okConfig.loading = false
+                    if (res === undefined) {
+                        modelConfig.visible = false
+                    } else {
+                        modelConfig.visible = true
+                    }
+                })
+                .catch((err: any) => {
+                    modelConfig.okConfig.loading = false
+                })
+        } else {
+            ElMessage.warning('请将表单输入完整')
+        }
+    })
 }
 
 function closeEvent() {
-  modelConfig.visible = false
+    modelConfig.visible = false
 }
 
 defineExpose({
-  showModal
+    showModal
 })
 </script>
 
 <style lang="scss">
 .add-computer-group {
-  padding: 12px 20px 0 20px;
-  box-sizing: border-box;
+    padding: 12px 20px 0 20px;
+    box-sizing: border-box;
 }
 .el-date-range-picker {
-  .el-picker-panel__footer {
-    display: flex;
-    justify-content: space-between;
-  }
+    .el-picker-panel__footer {
+        display: flex;
+        justify-content: space-between;
+    }
 }
 .valid-time {
-  position: absolute;
-  left: 20px;
-  .el-date-editor--datetimerange {
-    width: 300px;
-    height: 28px;
-    padding: 0;
-    .el-range-input {
-      font-size: 12px;
+    position: absolute;
+    left: 20px;
+    .el-date-editor--datetimerange {
+        width: 300px;
+        height: 28px;
+        padding: 0;
+        .el-range-input {
+            font-size: 12px;
+        }
+        .el-range-separator {
+            max-width: 8px;
+        }
     }
-    .el-range-separator {
-      max-width: 8px;
-    }
-  }
 }
 </style>

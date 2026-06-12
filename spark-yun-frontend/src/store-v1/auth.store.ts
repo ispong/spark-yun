@@ -7,35 +7,36 @@
  * @FilePath: /zqy-web/src/store/auth.store.ts
  */
 export const authStore = {
-  namespaced: true,
-  state: {
-    userInfo: {},
-    token: '',
-    tenantId: '',
-    role: '',
-    currentMenu: ''
-  },
-  mutations: {
-    setUserInfo(state: any, data: any): void {
-      state.userInfo = data
+    namespaced: true,
+    state: {
+        userInfo: {
+},
+        token: '',
+        tenantId: '',
+        role: '',
+        currentMenu: ''
     },
-    setToken(state: any, data: string): void {
-      state.token = data
+    mutations: {
+        setUserInfo(state: any, data: any): void {
+            state.userInfo = data
+        },
+        setToken(state: any, data: string): void {
+            state.token = data
+        },
+        setTenantId(state: any, tenantId: string): void {
+            state.tenantId = tenantId
+        },
+        setRole(state: any, role: string): void {
+            state.role = role
+        },
+        setCurrentMenu(state: any, menu: string): void {
+            state.currentMenu = menu
+        }
     },
-    setTenantId(state: any, tenantId: string): void {
-      state.tenantId = tenantId
-    },
-    setRole(state: any, role: string): void {
-      state.role = role
-    },
-    setCurrentMenu(state: any, menu: string): void {
-      state.currentMenu = menu
-    }
-  },
-  actions: {
-  },
-  getters: {
-  }
+    actions: {
+},
+    getters: {
+}
 }
 
 // export default {

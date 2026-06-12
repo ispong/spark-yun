@@ -1,18 +1,28 @@
 <template>
-    <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="layer-area">
-        <div class="layer-btn-container">
-            <el-button class="reset-btn" @click="resetView">刷新领域</el-button>
-            <el-button @click="backPage">返回</el-button>
-        </div>
-        <div id="container" class="container-layout"></div>
-        <DataModelDetail ref="dataModelDetailRef"></DataModelDetail>
+  <Breadcrumb :bread-crumb-list="breadCrumbList" />
+  <div class="layer-area">
+    <div class="layer-btn-container">
+      <el-button
+        class="reset-btn"
+        @click="resetView"
+      >
+        刷新领域
+      </el-button>
+      <el-button @click="backPage">
+        返回
+      </el-button>
     </div>
+    <div
+      id="container"
+      class="container-layout"
+    />
+    <DataModelDetail ref="dataModelDetailRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted, onBeforeUnmount, createApp } from 'vue'
-import { Graph, treeToGraphData } from '@antv/g6';
+import { Graph, treeToGraphData } from '@antv/g6'
 import Breadcrumb from '@/layout/bread-crumb/index.vue'
 import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
@@ -25,7 +35,8 @@ const router = useRouter()
 
 let graph: any
 
-const treeData = ref<any>({})
+const treeData = ref<any>({
+})
 const dataModelDetailRef = ref<any>(null)
 
 const breadCrumbList = reactive([
@@ -43,11 +54,13 @@ function getTreeData() {
     return new Promise((resolve: any, reject) => {
         GetDataLayerTreeNodeAll({
             id: route.query.id
-        }).then((res: any) => {
-            resolve(res.data)
-        }).catch((error: any) => {
-            reject(error)
         })
+            .then((res: any) => {
+                resolve(res.data)
+            })
+            .catch((error: any) => {
+                reject(error)
+            })
     })
 }
 
@@ -61,21 +74,21 @@ function initGraph() {
         edge: {
             type: 'cubic-horizontal',
             style: {
-                endArrow: true,
-            },
+                endArrow: true
+            }
         },
         autoFit: {
             type: 'center', // 自适应类型：'view' 或 'center'
             animation: {
                 // 自适应动画效果
                 duration: 300, // 动画持续时间(毫秒)
-                easing: 'ease-in-out', // 动画缓动函数
+                easing: 'ease-in-out' // 动画缓动函数
             }
         },
         node: {
             type: 'html',
             style: {
-                size: [140, 72],
+                size: [ 140, 72 ],
                 dx: -100,
                 dy: -40,
                 innerHTML: (e: any) => {
@@ -83,18 +96,22 @@ function initGraph() {
                     return htmlString
                 },
                 port: true,
-                ports: [{ placement: 'right' }, { placement: 'left' }]
+                ports: [ {
+ placement: 'right' 
+}, {
+ placement: 'left' 
+} ]
             },
             state: {
                 selected: {
                     fill: '#ffa940',
                     stroke: '#ff7a00',
-                    haloStroke: '#ff7a00',
+                    haloStroke: '#ff7a00'
                 },
                 highlight: {
                     stroke: '#1890ff',
-                    lineWidth: 3,
-                },
+                    lineWidth: 3
+                }
             },
             animation: false
         },
@@ -102,9 +119,9 @@ function initGraph() {
             type: 'antv-dagre',
             rankdir: 'LR',
             nodesep: 20,
-            ranksep: 60,
+            ranksep: 60
         },
-        behaviors: ['drag-canvas', 'zoom-canvas', 'drag-element']
+        behaviors: [ 'drag-canvas', 'zoom-canvas', 'drag-element' ]
     })
 
     graph.on('node:click', (evt: any, nodeData: any) => {
@@ -124,20 +141,22 @@ function initGraph() {
             return
         }
         dataModelDetailRef.value.showModal(currentNodeData)
-    });
+    })
 
     graph.render()
 }
 
 function getComponentHTMLString(data: any) {
-    const app = createApp(TreeNode, { name: 'TreeNode', params: data }); // 提供必要的 props。
-    const container = document.createElement('div');
-    document.body.appendChild(container); // 将容器添加到 DOM 中。
-    app.mount(container); // 挂载应用。
-    const htmlString = container.innerHTML; // 获取内部的 HTML。
-    app.unmount(); // 卸载应用。
-    document.body.removeChild(container); // 从 DOM 中移除容器。
-    return htmlString; // 返回 HTML 字符串。
+    const app = createApp(TreeNode, {
+ name: 'TreeNode', params: data 
+}) // 提供必要的 props。
+    const container = document.createElement('div')
+    document.body.appendChild(container) // 将容器添加到 DOM 中。
+    app.mount(container) // 挂载应用。
+    const htmlString = container.innerHTML // 获取内部的 HTML。
+    app.unmount() // 卸载应用。
+    document.body.removeChild(container) // 从 DOM 中移除容器。
+    return htmlString // 返回 HTML 字符串。
 }
 
 function backPage() {
@@ -151,27 +170,29 @@ function backPage() {
 }
 
 function resetView() {
-    getTreeData().then((res: any) => {
-        treeData.value = res
-        initGraph()
-    }).catch(() => {
-        ElMessage.error('刷新领域失败')
-    })
+    getTreeData()
+        .then((res: any) => {
+            treeData.value = res
+            initGraph()
+        })
+        .catch(() => {
+            ElMessage.error('刷新领域失败')
+        })
 }
 
 onMounted(() => {
     if (!route.query.id) {
         ElMessage.error('暂无分层信息')
         router.push({
-            name: 'data-layer',
+            name: 'data-layer'
         })
     }
-    getTreeData().then((res: any) => {
-        treeData.value = res
-        initGraph()
-    }).catch(() => {
-
-    })
+    getTreeData()
+        .then((res: any) => {
+            treeData.value = res
+            initGraph()
+        })
+        .catch(() => {})
 })
 
 onBeforeUnmount(() => {

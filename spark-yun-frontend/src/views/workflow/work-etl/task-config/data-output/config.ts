@@ -110,58 +110,58 @@ export const ConfigRules = {
         {
             required: true,
             message: '请选择数据源类型',
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ],
     datasourceId: [
         {
             required: true,
             message: '请选择数据源',
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ],
     tableName: [
         {
             required: true,
             message: '请选择表',
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ],
     writeMode: [
         {
             required: true,
             message: '请选择写入模式',
-            trigger: ['blur', 'change']
+            trigger: [ 'blur', 'change' ]
         }
     ]
 }
 
 export const OverModeList = [
     {
-      label: '追加模式',
-      value: 'INTO',
+        label: '追加模式',
+        value: 'INTO'
     },
     {
-      label: '覆写模式',
-      value: 'OVERWRITE',
+        label: '覆写模式',
+        value: 'OVERWRITE'
     }
 ]
 
 export interface colConfig {
-    prop?: string;
-    title: string;
-    align?: string;
-    showOverflowTooltip?: boolean;
-    customSlot?: string;
-    width?: number;
-    minWidth?: number;
-    fixed?: string;
-  }
+    prop?: string
+    title: string
+    align?: string
+    showOverflowTooltip?: boolean
+    customSlot?: string
+    width?: number
+    minWidth?: number
+    fixed?: string
+}
 export interface TableConfig {
-    tableData: Array<any>;
-    colConfigs: Array<colConfig>;
-    seqType: string;
-    loading?: boolean; // 表格loading
+    tableData: Array<any>
+    colConfigs: Array<colConfig>
+    seqType: string
+    loading?: boolean // 表格loading
 }
 export const TableConfig: TableConfig = {
     tableData: [],
@@ -183,7 +183,7 @@ export const TableConfig: TableConfig = {
             title: '备注',
             minWidth: 100,
             showOverflowTooltip: true
-        },
+        }
         // {
         //     title: '操作',
         //     align: 'center',

@@ -1,24 +1,41 @@
 <template>
-    <div class="config-components data-join data-filter">
-        <!-- 根分组 -->
-        <div class="filter-root-group">
-            <filter-group
-                :items="formData.filterEtl"
-                :col-name-options="colNameOptions"
-                prop-prefix="filterEtl"
-                :depth="0"
-            />
-            <div class="filter-group-actions">
-                <el-button link type="primary" size="small" @click="addCondition">+ 条件</el-button>
-                <el-button link type="primary" size="small" @click="addGroup">+ 分组</el-button>
-            </div>
-        </div>
-        <el-form-item v-show="false" label="输出字段">
-            <div style="max-height: 444px; width: 100%;">
-                <BlockTable :table-config="tableConfig" />
-            </div>
-        </el-form-item>
+  <div class="config-components data-join data-filter">
+    <!-- 根分组 -->
+    <div class="filter-root-group">
+      <filter-group
+        :items="formData.filterEtl"
+        :col-name-options="colNameOptions"
+        prop-prefix="filterEtl"
+        :depth="0"
+      />
+      <div class="filter-group-actions">
+        <el-button
+          link
+          type="primary"
+          size="small"
+          @click="addCondition"
+        >
+          + 条件
+        </el-button>
+        <el-button
+          link
+          type="primary"
+          size="small"
+          @click="addGroup"
+        >
+          + 分组
+        </el-button>
+      </div>
     </div>
+    <el-form-item
+      v-show="false"
+      label="输出字段"
+    >
+      <div style="max-height: 444px; width: 100%">
+        <BlockTable :table-config="tableConfig" />
+      </div>
+    </el-form-item>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -32,10 +49,10 @@ interface Option {
 }
 
 const props = defineProps<{
-    modelValue: any,
+    modelValue: any
     incomeNodes: any
 }>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits([ 'update:modelValue' ])
 
 const colNameOptions = ref<Option[]>([])
 const tableConfig = reactive(TableConfig)
@@ -63,36 +80,42 @@ function addCondition() {
 function addGroup() {
     formData.value.filterEtl.push({
         filterWay: 'AND',
-        groupFilter: [{
-            filterType: 'CONDITION_FILTER',
-            filterColumn: '',
-            filterCondition: '',
-            filterValue: '',
-            customFilter: ''
-        }]
+        groupFilter: [
+            {
+                filterType: 'CONDITION_FILTER',
+                filterColumn: '',
+                filterCondition: '',
+                filterValue: '',
+                customFilter: ''
+            }
+        ]
     })
 }
 
 onMounted(() => {
     if (props.incomeNodes && props.incomeNodes[0]) {
-        colNameOptions.value = props.incomeNodes[0].data.nodeConfigData.outColumnList.filter((item: any) => item.checked !== false).map((column: any) => {
-            return {
-                label: column.colName,
-                value: column.colName
-            }
-        })
-        if (!formData.value.outColumnList || !formData.value.outColumnList.length) {
-            const fromAliaCode = props.incomeNodes[0].data.nodeConfigData.aliaCode || ''
-            formData.value.outColumnList = props.incomeNodes[0].data.nodeConfigData.outColumnList.filter((item: any) => item.checked !== false).map((column: any) => {
+        colNameOptions.value = props.incomeNodes[0].data.nodeConfigData.outColumnList
+            .filter((item: any) => item.checked !== false)
+            .map((column: any) => {
                 return {
-                    colName: column.colName,
-                    fromAliaCode: fromAliaCode,
-                    fromColName: column.colName,
-                    colType: column.colType,
-                    remark: column.remark,
-                    checked: true
+                    label: column.colName,
+                    value: column.colName
                 }
             })
+        if (!formData.value.outColumnList || !formData.value.outColumnList.length) {
+            const fromAliaCode = props.incomeNodes[0].data.nodeConfigData.aliaCode || ''
+            formData.value.outColumnList = props.incomeNodes[0].data.nodeConfigData.outColumnList
+                .filter((item: any) => item.checked !== false)
+                .map((column: any) => {
+                    return {
+                        colName: column.colName,
+                        fromAliaCode: fromAliaCode,
+                        fromColName: column.colName,
+                        colType: column.colType,
+                        remark: column.remark,
+                        checked: true
+                    }
+                })
         }
         tableConfig.tableData = formData.value.outColumnList
         formData.value.inputEtl = props.incomeNodes[0].data.nodeConfigData.inputEtl
@@ -237,4 +260,3 @@ onMounted(() => {
     }
 }
 </style>
-

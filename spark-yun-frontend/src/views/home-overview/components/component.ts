@@ -1,14 +1,14 @@
 export interface ChartInfo {
-  type: 'clusterMonitor' | 'datasourceMonitor' | 'successWorkInstanceMonitor' | 'successWorkflowInstanceMonitor'
-  title: string
-  mix?: number
-  total: number
-  color: string
+    type: 'clusterMonitor' | 'datasourceMonitor' | 'successWorkInstanceMonitor' | 'successWorkflowInstanceMonitor'
+    title: string
+    mix?: number
+    total: number
+    color: string
 }
 
 export interface ColonyInfo {
-  id: string
-  name: string
-  status: string
-  defaultCluster: boolean
+    id: string
+    name: string
+    status: string
+    defaultCluster: boolean
 }

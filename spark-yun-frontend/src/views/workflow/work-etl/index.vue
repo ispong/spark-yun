@@ -1,43 +1,80 @@
 <template>
-    <div class="work-etl">
-        <LoadingPage :visible="loading">
-            <OptionsContainer
-                ref="optionsContainerRef"
-                :orderType="props.orderType"
-                @optionsEvent="optionsEvent"
-            ></OptionsContainer>
-            <div class="work-etl-main">
-                <TaskList @handleDragEnd="handleDragEnd"></TaskList>
-                <ZEtlFlow
-                    ref="zEtlFlowRef"
-                    @refresh="initFlowData"
-                    @nodeDropped="handleNodeDropped"
-                ></ZEtlFlow>
-            </div>
-        </LoadingPage>
-         <!-- 数据同步日志部分 -->
-         <el-collapse v-if="showLogPanel" v-model="collapseActive" class="data-sync-log__collapse" ref="logCollapseRef">
-            <div class="log-resize-handle" @mousedown="startResizeLogPanel"></div>
-            <el-collapse-item title="查看日志" :disabled="true" name="1">
-                <template #title>
-                    <el-tabs v-model="activeName" @tab-click="changeCollapseUp" @tab-change="tabChangeEvent">
-                        <template v-for="tab in tabList" :key="tab.code">
-                        <el-tab-pane v-if="!tab.hide" :label="tab.name" :name="tab.code" />
-                        </template>
-                    </el-tabs>
-                    <span class="log__collapse">
-                        <el-icon v-if="isCollapse" @click="changeCollapseDown"><ArrowDown /></el-icon>
-                        <el-icon v-else @click="changeCollapseUp"><ArrowUp /></el-icon>
-                    </span>
-                </template>
-                <div class="log-show log-show-datasync" :style="{ height: `${logPanelHeight}px` }">
-                    <component :is="currentTab" ref="containerInstanceRef" class="show-container" :style="{ height: `${logPanelHeight}px` }" />
-                </div>
-            </el-collapse-item>
-        </el-collapse>
-        <AddTaskModal ref="addTaskModalRef"></AddTaskModal>
-        <TaskConfig ref="taskConfigRef"></TaskConfig>
-    </div>
+  <div class="work-etl">
+    <LoadingPage :visible="loading">
+      <OptionsContainer
+        ref="optionsContainerRef"
+        :order-type="props.orderType"
+        @options-event="optionsEvent"
+      />
+      <div class="work-etl-main">
+        <TaskList @handle-drag-end="handleDragEnd" />
+        <ZEtlFlow
+          ref="zEtlFlowRef"
+          @refresh="initFlowData"
+          @node-dropped="handleNodeDropped"
+        />
+      </div>
+    </LoadingPage>
+    <!-- 数据同步日志部分 -->
+    <el-collapse
+      v-if="showLogPanel"
+      ref="logCollapseRef"
+      v-model="collapseActive"
+      class="data-sync-log__collapse"
+    >
+      <div
+        class="log-resize-handle"
+        @mousedown="startResizeLogPanel"
+      />
+      <el-collapse-item
+        title="查看日志"
+        :disabled="true"
+        name="1"
+      >
+        <template #title>
+          <el-tabs
+            v-model="activeName"
+            @tab-click="changeCollapseUp"
+            @tab-change="tabChangeEvent"
+          >
+            <template
+              v-for="tab in tabList"
+              :key="tab.code"
+            >
+              <el-tab-pane
+                v-if="!tab.hide"
+                :label="tab.name"
+                :name="tab.code"
+              />
+            </template>
+          </el-tabs>
+          <span class="log__collapse">
+            <el-icon
+              v-if="isCollapse"
+              @click="changeCollapseDown"
+            ><ArrowDown /></el-icon>
+            <el-icon
+              v-else
+              @click="changeCollapseUp"
+            ><ArrowUp /></el-icon>
+          </span>
+        </template>
+        <div
+          class="log-show log-show-datasync"
+          :style="{ height: `${logPanelHeight}px` }"
+        >
+          <component
+            :is="currentTab"
+            ref="containerInstanceRef"
+            class="show-container"
+            :style="{ height: `${logPanelHeight}px` }"
+          />
+        </div>
+      </el-collapse-item>
+    </el-collapse>
+    <AddTaskModal ref="addTaskModalRef" />
+    <TaskConfig ref="taskConfigRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -50,7 +87,11 @@ import ZEtlFlow from './z-etl-flow/flow.vue'
 import AddTaskModal from './add-task-modal/index.vue'
 import TaskConfig from './task-config/index.vue'
 import eventBus from '@/utils/eventBus'
-import { GetWorkItemConfig, PublishWorkData, RunWorkItemConfig, SaveWorkItemConfig, TerWorkItemConfig } from '@/services/workflow.service'
+import { GetWorkItemConfig,
+    PublishWorkData,
+    RunWorkItemConfig,
+    SaveWorkItemConfig,
+    TerWorkItemConfig } from '@/services/workflow.service'
 import { TaskParams } from './task-params.ts'
 import { cloneDeep } from 'lodash-es'
 import PublishLog from '../work-item/publish-log.vue'
@@ -58,14 +99,14 @@ import RunningLog from '../work-item/running-log.vue'
 
 const guid = function() {
     function S4() {
-        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
-    return (S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' +S4() + S4() +S4());
+    return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4()
 }
 
-const emit = defineEmits(['back', 'locationNode', 'sortWorkList'])
+const emit = defineEmits([ 'back', 'locationNode', 'sortWorkList' ])
 const props = defineProps<{
-    workItemConfig: any,
+    workItemConfig: any
     orderType?: 'acs' | 'desc' | ''
 }>()
 
@@ -124,9 +165,9 @@ function optionsEvent(e: string) {
 function goBack() {
     if (changeStatus.value) {
         ElMessageBox.confirm('作业尚未保存，是否确定要返回吗？', '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
         }).then(() => {
             emit('back', props.workItemConfig.id)
         })
@@ -137,9 +178,9 @@ function goBack() {
 function locationNode() {
     if (changeStatus.value) {
         ElMessageBox.confirm('作业尚未保存，是否确定要返回吗？', '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
         }).then(() => {
             emit('locationNode', props.workItemConfig.id)
         })
@@ -163,7 +204,7 @@ function handleDragEnd(e: any, item: any) {
                 name: item.typeName + '_' + nodeId,
                 inputEtl: null,
                 ...item,
-                ...cloneDeep(TaskParams[item.type]),
+                ...cloneDeep(TaskParams[item.type])
             }
             // 执行拖拽动画，节点落到画布上后由 nodeDropped 事件触发弹窗
             zEtlFlowRef.value.addNodeFn(newItem, e)
@@ -173,40 +214,46 @@ function handleDragEnd(e: any, item: any) {
 
 // 节点真正放到画布后弹出编辑弹窗
 function handleNodeDropped(nodeData: any) {
-    addTaskModalRef.value?.showModal((formResult: any) => {
-        return new Promise((resolve: any) => {
-            zEtlFlowRef.value.updateNodeFn({
-                ...nodeData,
-                name: formResult.name,
-                aliaCode: formResult.aliaCode || nodeData.aliaCode,
-                remark: formResult.remark || '',
+    addTaskModalRef.value?.showModal(
+        (formResult: any) => {
+            return new Promise((resolve: any) => {
+                zEtlFlowRef.value.updateNodeFn({
+                    ...nodeData,
+                    name: formResult.name,
+                    aliaCode: formResult.aliaCode || nodeData.aliaCode,
+                    remark: formResult.remark || ''
+                })
+                resolve()
             })
-            resolve()
-        })
-    }, {
-        name: nodeData.name,
-        aliaCode: nodeData.aliaCode,
-        remark: nodeData.remark || ''
-    }, () => {
-        // 取消时删除已放置的节点
-        zEtlFlowRef.value.removeNodeById(nodeData.id)
-    })
+        },
+        {
+            name: nodeData.name,
+            aliaCode: nodeData.aliaCode,
+            remark: nodeData.remark || ''
+        },
+        () => {
+            // 取消时删除已放置的节点
+            zEtlFlowRef.value.removeNodeById(nodeData.id)
+        }
+    )
 }
 
 function initFlowData() {
     loading.value = true
     GetWorkItemConfig({
         workId: props.workItemConfig.id
-    }).then((res: any) => {
-        loading.value = false
-        if (res.data && res.data.sparkEtlConfig && res.data.sparkEtlConfig.webConfig) {
-            zEtlFlowRef.value.initCellList(res.data.sparkEtlConfig.webConfig)
-        }
-    }).catch(err => {
-        loading.value = false
-        networkError.value = false
-        console.error(err)
     })
+        .then((res: any) => {
+            loading.value = false
+            if (res.data && res.data.sparkEtlConfig && res.data.sparkEtlConfig.webConfig) {
+                zEtlFlowRef.value.initCellList(res.data.sparkEtlConfig.webConfig)
+            }
+        })
+        .catch((err) => {
+            loading.value = false
+            networkError.value = false
+            console.error(err)
+        })
 }
 
 function saveData() {
@@ -230,50 +277,66 @@ function saveData() {
         workId: props.workItemConfig.id,
         sparkEtlConfig: {
             webConfig: allCellData,
-            nodeList: allCellData.filter((node: any) => node.shape === 'dag-node').map((node: any) => {
-                const nodeConfigData = node.data.nodeConfigData
-                const noInputEtlTypes = ['DATA_UNION', 'DATA_FILTER', 'DATA_TRANSFORM', 'DATA_CUSTOM', 'DATA_ADD_COL']
-                if (noInputEtlTypes.includes(nodeConfigData.type)) {
-                    const { inputEtl, ...rest } = nodeConfigData
-                    return rest
-                }
-                return nodeConfigData
-            }),
-            nodeMapping: allCellData.filter((node: any) => node.shape === 'dag-edge').map((edge: any) => {
-                return [edge.source.cell, edge.target.cell]
-            })
+            nodeList: allCellData
+                .filter((node: any) => node.shape === 'dag-node')
+                .map((node: any) => {
+                    const nodeConfigData = node.data.nodeConfigData
+                    const noInputEtlTypes = [
+                        'DATA_UNION',
+                        'DATA_FILTER',
+                        'DATA_TRANSFORM',
+                        'DATA_CUSTOM',
+                        'DATA_ADD_COL'
+                    ]
+                    if (noInputEtlTypes.includes(nodeConfigData.type)) {
+                        const {
+ inputEtl, ...rest 
+} = nodeConfigData
+                        return rest
+                    }
+                    return nodeConfigData
+                }),
+            nodeMapping: allCellData
+                .filter((node: any) => node.shape === 'dag-edge')
+                .map((edge: any) => {
+                    return [ edge.source.cell, edge.target.cell ]
+                })
         }
     }
     optionsContainerRef.value.btnLoadingConfig.saveLoading = true
-    SaveWorkItemConfig(requestParasm).then((res: any) => {
-        changeStatus.value = false
-        ElMessage.success(res.msg)
-        optionsContainerRef.value.closeLoading()
-    }).catch(() => {
-        optionsContainerRef.value.closeLoading()
-    })
+    SaveWorkItemConfig(requestParasm)
+        .then((res: any) => {
+            changeStatus.value = false
+            ElMessage.success(res.msg)
+            optionsContainerRef.value.closeLoading()
+        })
+        .catch(() => {
+            optionsContainerRef.value.closeLoading()
+        })
 }
 
 // 运行
 function runWorkData() {
     optionsContainerRef.value.btnLoadingConfig.runningLoading = true
     RunWorkItemConfig({
-      workId: props.workItemConfig.id
-    }).then((res: any) => {
-        optionsContainerRef.value.closeLoading()
-        instanceId.value = res.data.instanceId
-        ElMessage.success(res.msg)
-        // 获取到 instanceId 后重新初始化日志组件
-        // initFlowData()
-        tabChangeEvent('PublishLog')
-        nextTick(() => {
-            changeCollapseUp()
-            // 立即初始化日志组件为加载状态
-            containerInstanceRef.value?.initData(instanceId.value)
-        })
-    }).catch(() => {
-        optionsContainerRef.value.closeLoading()
+        workId: props.workItemConfig.id
     })
+        .then((res: any) => {
+            optionsContainerRef.value.closeLoading()
+            instanceId.value = res.data.instanceId
+            ElMessage.success(res.msg)
+            // 获取到 instanceId 后重新初始化日志组件
+            // initFlowData()
+            tabChangeEvent('PublishLog')
+            nextTick(() => {
+                changeCollapseUp()
+                // 立即初始化日志组件为加载状态
+                containerInstanceRef.value?.initData(instanceId.value)
+            })
+        })
+        .catch(() => {
+            optionsContainerRef.value.closeLoading()
+        })
 }
 
 // 终止
@@ -286,13 +349,15 @@ function terWorkData() {
     TerWorkItemConfig({
         workId: props.workItemConfig.id,
         instanceId: instanceId.value
-    }).then((res: any) => {
-        optionsContainerRef.value.closeLoading()
-        ElMessage.success(res.msg)
-        initFlowData()
-    }).catch(() => {
-        optionsContainerRef.value.closeLoading()
     })
+        .then((res: any) => {
+            optionsContainerRef.value.closeLoading()
+            ElMessage.success(res.msg)
+            initFlowData()
+        })
+        .catch(() => {
+            optionsContainerRef.value.closeLoading()
+        })
 }
 
 // 日志tab切换
@@ -360,16 +425,20 @@ onMounted(() => {
                 // 点开编辑的时候，直接获取上级流转的参数
                 const incomeNodes = zEtlFlowRef.value?.getIncomeNodes(e.data.nodeConfigData)
                 if (incomeNodes) {
-                    if (incomeNodes && incomeNodes.length || ['DATA_INPUT'].includes(e.data.nodeConfigData.type)) {
-                        taskConfigRef.value?.showModal(incomeNodes, (formData: any) => {
-                            return new Promise((resolve: any) => {
-                                zEtlFlowRef.value?.updateNodeFn({
-                                    ...e.data.nodeConfigData,
-                                    ...formData
+                    if ((incomeNodes && incomeNodes.length) || [ 'DATA_INPUT' ].includes(e.data.nodeConfigData.type)) {
+                        taskConfigRef.value?.showModal(
+                            incomeNodes,
+                            (formData: any) => {
+                                return new Promise((resolve: any) => {
+                                    zEtlFlowRef.value?.updateNodeFn({
+                                        ...e.data.nodeConfigData,
+                                        ...formData
+                                    })
+                                    resolve()
                                 })
-                                resolve()
-                            })
-                        }, e.data.nodeConfigData)
+                            },
+                            e.data.nodeConfigData
+                        )
                     } else {
                         ElMessage.error('无前置任务，请先设置上游')
                     }
@@ -378,21 +447,24 @@ onMounted(() => {
         } else if (e.type === 'task_edit') {
             nextTick(() => {
                 const nodeData = e.data.nodeConfigData
-                addTaskModalRef.value?.showModal((formResult: any) => {
-                    return new Promise((resolve: any) => {
-                        zEtlFlowRef.value?.updateNodeFn({
-                            ...nodeData,
-                            name: formResult.name,
-                            aliaCode: formResult.aliaCode || nodeData.aliaCode,
-                            remark: formResult.remark || '',
+                addTaskModalRef.value?.showModal(
+                    (formResult: any) => {
+                        return new Promise((resolve: any) => {
+                            zEtlFlowRef.value?.updateNodeFn({
+                                ...nodeData,
+                                name: formResult.name,
+                                aliaCode: formResult.aliaCode || nodeData.aliaCode,
+                                remark: formResult.remark || ''
+                            })
+                            resolve()
                         })
-                        resolve()
-                    })
-                }, {
-                    name: nodeData.name,
-                    aliaCode: nodeData.aliaCode,
-                    remark: nodeData.remark || ''
-                })
+                    },
+                    {
+                        name: nodeData.name,
+                        aliaCode: nodeData.aliaCode,
+                        remark: nodeData.remark || ''
+                    }
+                )
             })
         }
     })
@@ -404,7 +476,6 @@ onUnmounted(() => {
 onUnmounted(() => {
     stopResizeLogPanel()
 })
-
 </script>
 
 <style lang="scss">
@@ -424,7 +495,6 @@ onUnmounted(() => {
         }
     }
     .data-sync-log__collapse {
-
         .log-resize-handle {
             height: 6px;
             cursor: ns-resize;

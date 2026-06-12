@@ -1,40 +1,55 @@
 <template>
-    <div class="data-join-output">
-        <div style="max-height: 444px;">
-            <BlockTable
-              :table-config="tableConfig"
-              @rowDragendEvent="onRowDragend"
-            >
-                <template #checkboxHeaderSlot>
-                    <el-checkbox :model-value="isAllChecked" @change="toggleSelectAll" />
-                </template>
-                <template #checkboxSlot="scopeSlot">
-                    <el-checkbox v-model="scopeSlot.row.checked" @change="updateAllChecked" />
-                </template>
-                <template #fromSource="scopeSlot">
-                    <span>【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}</span>
-                </template>
-                <template #options="scopeSlot">
-                    <div class="btn-group">
-                        <el-dropdown trigger="click">
-                            <el-icon class="option-more" @click.stop>
-                                <MoreFilled />
-                            </el-icon>
-                            <template #dropdown>
-                                <el-dropdown-menu>
-                                    <el-dropdown-item @click="addNewCode">添加</el-dropdown-item>
-                                    <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">编辑</el-dropdown-item>
-                                    <el-dropdown-item @click="removeCode(scopeSlot)">删除</el-dropdown-item>
-                                </el-dropdown-menu>
-                            </template>
-                        </el-dropdown>
-                    </div>
-                </template>
-            </BlockTable>
-        </div>
-        <!-- 添加字段 -->
-        <add-code ref="addCodeRef"></add-code>
+  <div class="data-join-output">
+    <div style="max-height: 444px">
+      <BlockTable
+        :table-config="tableConfig"
+        @row-dragend-event="onRowDragend"
+      >
+        <template #checkboxHeaderSlot>
+          <el-checkbox
+            :model-value="isAllChecked"
+            @change="toggleSelectAll"
+          />
+        </template>
+        <template #checkboxSlot="scopeSlot">
+          <el-checkbox
+            v-model="scopeSlot.row.checked"
+            @change="updateAllChecked"
+          />
+        </template>
+        <template #fromSource="scopeSlot">
+          <span>【{{ getNodeName(scopeSlot.row.fromAliaCode) }}】{{ scopeSlot.row.fromColName }}</span>
+        </template>
+        <template #options="scopeSlot">
+          <div class="btn-group">
+            <el-dropdown trigger="click">
+              <el-icon
+                class="option-more"
+                @click.stop
+              >
+                <MoreFilled />
+              </el-icon>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="addNewCode">
+                    添加
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="editCode(scopeSlot.row, scopeSlot.index)">
+                    编辑
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="removeCode(scopeSlot)">
+                    删除
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </template>
+      </BlockTable>
     </div>
+    <!-- 添加字段 -->
+    <add-code ref="addCodeRef" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -50,27 +65,47 @@ interface Option {
 }
 
 const props = defineProps<{
-    modelValue: any,
-    preNodes: any,
+    modelValue: any
+    preNodes: any
     nodeFormData?: any
 }>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits([ 'update:modelValue' ])
 
 const mainTableFields = ref<Option[]>()
 const tableFields = ref<Option[]>()
 const addCodeRef = ref()
 
 const rules = reactive<FormRules>({
-    mainAliaCode: [{ required: true, message: '请选择主表', trigger: ['blur', 'change'] }],
-    joinWay: [{ required: true, message: '请选择关联', trigger: ['blur', 'change'] }],
-    joinAliaCode: [{ required: true, message: '请选择输入表', trigger: ['blur', 'change'] }],
-    joinType: [{ required: true, message: '请选择关联关系', trigger: ['blur', 'change'] }],
-    joinLeftColumn: [{ required: true, message: '请选择主表字段', trigger: ['blur', 'change'] }],
-    joinCondition: [{ required: true, message: '请选择条件', trigger: ['blur', 'change'] }],
-    joinRightColumn: [{ required: true, message: '请选择字段', trigger: ['blur', 'change'] }],
-    joinColumn: [{ required: true, message: '请选择字段', trigger: ['blur', 'change'] }],
-    joinValue: [{ required: true, message: '请输入字段值', trigger: ['blur', 'change'] }],
-    joinSql: [{ required: true, message: '请输入sql', trigger: ['blur', 'change'] }],
+    mainAliaCode: [ {
+ required: true, message: '请选择主表', trigger: [ 'blur', 'change' ] 
+} ],
+    joinWay: [ {
+ required: true, message: '请选择关联', trigger: [ 'blur', 'change' ] 
+} ],
+    joinAliaCode: [ {
+ required: true, message: '请选择输入表', trigger: [ 'blur', 'change' ] 
+} ],
+    joinType: [ {
+ required: true, message: '请选择关联关系', trigger: [ 'blur', 'change' ] 
+} ],
+    joinLeftColumn: [ {
+ required: true, message: '请选择主表字段', trigger: [ 'blur', 'change' ] 
+} ],
+    joinCondition: [ {
+ required: true, message: '请选择条件', trigger: [ 'blur', 'change' ] 
+} ],
+    joinRightColumn: [ {
+ required: true, message: '请选择字段', trigger: [ 'blur', 'change' ] 
+} ],
+    joinColumn: [ {
+ required: true, message: '请选择字段', trigger: [ 'blur', 'change' ] 
+} ],
+    joinValue: [ {
+ required: true, message: '请输入字段值', trigger: [ 'blur', 'change' ] 
+} ],
+    joinSql: [ {
+ required: true, message: '请输入sql', trigger: [ 'blur', 'change' ] 
+} ]
 })
 const tableConfig = reactive(TableConfig)
 
@@ -97,25 +132,35 @@ function toggleSelectAll(val: boolean) {
 }
 
 function getNodeName(aliaCode: string): string {
-    if (!props.preNodes) return ''
+    if (!props.preNodes) { return '' }
     const node = props.preNodes.find((n: any) => n.data.nodeConfigData.aliaCode === aliaCode)
     return node ? node.data.nodeConfigData.name : ''
 }
 
 function addNewCode() {
-    addCodeRef.value.showModal((params: any) => {
-        tableConfig.tableData.push({ ...params, checked: true })
-    }, null, props.preNodes)
+    addCodeRef.value.showModal(
+        (params: any) => {
+            tableConfig.tableData.push({
+ ...params, checked: true 
+})
+        },
+        null,
+        props.preNodes
+    )
 }
 
 function editCode(row: any, index: number) {
-    addCodeRef.value.showModal((params: any) => {
-        row.colName = params.colName
-        row.fromAliaCode = params.fromAliaCode
-        row.fromColName = params.fromColName
-        row.colType = params.colType
-        row.remark = params.remark
-    }, row, props.preNodes)
+    addCodeRef.value.showModal(
+        (params: any) => {
+            row.colName = params.colName
+            row.fromAliaCode = params.fromAliaCode
+            row.fromColName = params.fromColName
+            row.colType = params.colType
+            row.remark = params.remark
+        },
+        row,
+        props.preNodes
+    )
 }
 
 // 删除来源编码
@@ -151,16 +196,18 @@ function refreshFields() {
     const nodeData = mainNode.data.nodeConfigData
     const newFields: any[] = []
     if (nodeData.outColumnList) {
-        nodeData.outColumnList.filter((item: any) => item.checked !== false).forEach((col: any) => {
-            newFields.push({
-                colName: col.colName,
-                colType: col.colType,
-                fromAliaCode: nodeData.aliaCode,
-                fromColName: col.colName,
-                remark: col.remark || '',
-                checked: true
+        nodeData.outColumnList
+            .filter((item: any) => item.checked !== false)
+            .forEach((col: any) => {
+                newFields.push({
+                    colName: col.colName,
+                    colType: col.colType,
+                    fromAliaCode: nodeData.aliaCode,
+                    fromColName: col.colName,
+                    remark: col.remark || '',
+                    checked: true
+                })
             })
-        })
     }
     tableConfig.tableData = newFields
     isAllChecked.value = newFields.length > 0
@@ -190,7 +237,7 @@ defineExpose({
 
 <style lang="scss">
 .data-join-output {
-    padding:  12px 20px;
+    padding: 12px 20px;
     box-sizing: border-box;
     .el-form-item {
         .el-form-item__content {
@@ -208,7 +255,7 @@ defineExpose({
             cursor: pointer;
             color: getCssVar('color', 'primary', 'light-5');
             &:hover {
-                color: getCssVar('color', 'primary');;
+                color: getCssVar('color', 'primary');
             }
         }
         .el-dropdown {
