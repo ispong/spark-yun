@@ -4,6 +4,8 @@ import router from './router'
 import pinia from './store'
 
 import 'normalize.css'
+import 'element-plus/theme-chalk/el-message.css'
+import 'element-plus/theme-chalk/el-message-box.css'
 
 import VXETable from 'vxe-table'
 import 'vxe-table/lib/style.css'
@@ -11,7 +13,48 @@ import VxeUIAll from 'vxe-pc-ui'
 import 'vxe-pc-ui/lib/style.css'
 import '@antv/x6-vue-shape'
 import '@/assets/styles/global.scss'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import {
+    ArrowDown,
+    ArrowLeft,
+    ArrowRight,
+    ArrowUp,
+    CircleClose,
+    CirclePlus,
+    CirclePlusFilled,
+    Clock,
+    Close,
+    CollectionTag,
+    Delete,
+    DeleteFilled,
+    Expand,
+    Failed,
+    Finished,
+    FullScreen,
+    Loading,
+    MapLocation,
+    MoreFilled,
+    Plus,
+    Position,
+    Promotion,
+    QuestionFilled,
+    Refresh,
+    RefreshLeft,
+    RefreshRight,
+    RemoveFilled,
+    Search,
+    Setting,
+    Sort,
+    SortDown,
+    SortUp,
+    SuccessFilled,
+    Van,
+    VideoPause,
+    VideoPlay,
+    Warning,
+    WarningFilled,
+    ZoomIn,
+    ZoomOut
+} from '@element-plus/icons-vue'
 import VueGridLayout from 'vue-grid-layout'
 
 // 打印版本号
@@ -22,7 +65,50 @@ console.log(
 )
 
 const app = createApp(App)
-for (const [ key, component ] of Object.entries(ElementPlusIconsVue)) {
+const globalIcons = {
+    ArrowDown,
+    ArrowLeft,
+    ArrowRight,
+    ArrowUp,
+    CircleClose,
+    CirclePlus,
+    CirclePlusFilled,
+    Clock,
+    Close,
+    CollectionTag,
+    Delete,
+    DeleteFilled,
+    Expand,
+    Failed,
+    Finished,
+    FullScreen,
+    Loading,
+    MapLocation,
+    MoreFilled,
+    Plus,
+    Position,
+    Promotion,
+    QuestionFilled,
+    Refresh,
+    RefreshLeft,
+    RefreshRight,
+    RemoveFilled,
+    Search,
+    Setting,
+    Sort,
+    SortDown,
+    SortUp,
+    SuccessFilled,
+    Van,
+    VideoPause,
+    VideoPlay,
+    Warning,
+    WarningFilled,
+    ZoomIn,
+    ZoomOut
+}
+
+for (const [ key, component ] of Object.entries(globalIcons)) {
     app.component(key, component)
 }
 

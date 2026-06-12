@@ -27,7 +27,7 @@
         background: #ebeef5;
     }
 
-    &__menu :deep(.el-menu-item) {
+    &__menu .el-menu-item {
         font-size: var(--el-font-size-extra-small);
     }
 

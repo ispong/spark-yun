@@ -1,4 +1,4 @@
-@import './variable/element-variable.scss';
+@use './variable/element-variable.scss' as *;
 
 .el-form-item {
     // margin-bottom: 2px;

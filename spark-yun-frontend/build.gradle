@@ -1,20 +1,60 @@
-def nodeModulesMetadata = layout.projectDirectory.file('node_modules/.modules.yaml')
+import groovy.json.JsonSlurper
+
+def packageJsonFile = layout.projectDirectory.file('package.json')
+def packageMetadata = new JsonSlurper().parse(packageJsonFile.asFile)
+def requiredPnpmVersion = packageMetadata.packageManager.toString().split('@').last()
+def requiredNodeVersion = packageMetadata.engines.node.toString()
 def frontendDist = layout.projectDirectory.dir('dist')
+
+def readCommandVersion = { String command ->
+    def output = new ByteArrayOutputStream()
+    exec {
+        commandLine command, '--version'
+        standardOutput = output
+    }
+    output.toString('UTF-8').trim()
+}
+
+tasks.register('validateFrontendRuntime') {
+
+    inputs.file(packageJsonFile)
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def nodeVersion = readCommandVersion('node')
+        def pnpmVersion = readCommandVersion('pnpm')
+
+        if (nodeVersion.replaceFirst('^v', '') != requiredNodeVersion) {
+            throw new GradleException(
+                "Node.js ${nodeVersion} is unsupported. Install Node.js ${requiredNodeVersion}."
+            )
+        }
+        if (pnpmVersion != requiredPnpmVersion) {
+            throw new GradleException(
+                "pnpm ${pnpmVersion} is unsupported. Install pnpm ${requiredPnpmVersion}."
+            )
+        }
+
+        logger.lifecycle("Frontend runtime: Node.js ${nodeVersion}, pnpm ${pnpmVersion}")
+    }
+}
 
 tasks.register('pnpmInstall', Exec) {
 
+    dependsOn('validateFrontendRuntime')
+
     inputs.files(
-        layout.projectDirectory.file('package.json'),
+        packageJsonFile,
         layout.projectDirectory.file('pnpm-lock.yaml'),
         layout.projectDirectory.file('pnpm-workspace.yaml'),
         layout.projectDirectory.file('.npmrc')
     )
-    outputs.file(nodeModulesMetadata)
+    outputs.upToDateWhen { false }
 
-    commandLine 'pnpm', 'install', '--frozen-lockfile'
+    commandLine 'pnpm', 'install', '--frozen-lockfile', '--prefer-offline'
 }
 
-// Format and check frontend code
+// Format and check frontend code.
 tasks.register('format_frontend', Exec) {
 
     dependsOn('pnpmInstall')

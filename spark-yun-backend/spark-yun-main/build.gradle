@@ -4,8 +4,6 @@ dependencies {
     api(project(':spark-yun-vip:spark-yun-backend'))
 
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-
     implementation libs.druid.spring.boot.starter
 
     implementation libs.flyway.core
@@ -16,25 +14,30 @@ dependencies {
 }
 
 bootJar {
+
     enabled = true
     mainClass = 'com.isxcode.spark.SparkYunApplication'
     archiveFileName = 'zhiqingyun.jar'
+
+    dependsOn(':spark-yun-frontend:npmBuild', ':spark-yun-dist:build_agent')
+
+    from(rootProject.file('spark-yun-frontend/dist/index.html')) {
+        into 'BOOT-INF/classes/frontend'
+    }
+
+    from(rootProject.file('spark-yun-frontend/dist/static')) {
+        into 'BOOT-INF/classes/static'
+    }
+
+    from(rootProject.file('spark-yun-dist/build/distributions/zhiqingyun-agent.tar.gz')) {
+        into 'BOOT-INF/classes/agent'
+    }
 }
 
 processResources {
 
-    dependsOn(':spark-yun-frontend:npmBuild')
-
     from(rootDir.getAbsolutePath() + '/VERSION') {
         into '.'
-    }
-
-    from(rootProject.file('spark-yun-frontend/dist/index.html')) {
-        into 'templates'
-    }
-
-    from(rootProject.file('spark-yun-frontend/dist/static')) {
-        into 'static'
     }
 }
 

@@ -1,3 +1,5 @@
+@use './app-variable.scss' as *;
+
 $--element-border-radius: $--app-border-radius;
 $--element-small-font-size: $--app-small-font-size;
 $--element-normal-font-size: $--app-normal-font-size;

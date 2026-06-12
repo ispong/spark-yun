@@ -4,8 +4,8 @@
   "private": true,
   "packageManager": "pnpm@10.34.3",
   "engines": {
-    "node": ">=20.19.0",
-    "pnpm": ">=10.3.0 <11"
+    "node": "22.22.3",
+    "pnpm": "10.34.3"
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",

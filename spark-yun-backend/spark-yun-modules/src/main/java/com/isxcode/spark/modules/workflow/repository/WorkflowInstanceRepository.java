@@ -5,9 +5,6 @@ import com.isxcode.spark.api.main.constants.ModuleVipCode;
 import com.isxcode.spark.api.monitor.ao.WorkflowMonitorAo;
 import com.isxcode.spark.modules.workflow.entity.WorkflowInstanceEntity;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,19 +20,16 @@ import java.util.List;
 @CacheConfig(cacheNames = {ModuleVipCode.VIP_WORKFLOW_INSTANCE})
 public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstanceEntity, String> {
 
-    @CachePut(key = "#workflowInstanceId")
     default String setWorkflowLog(String workflowInstanceId, String runLog) {
 
         return runLog;
     }
 
-    @Cacheable(key = "#workflowInstanceId")
     default String getWorkflowLog(String workflowInstanceId) {
 
         return "";
     }
 
-    @CacheEvict(key = "#workflowInstanceId")
     default void deleteWorkflowLog(String workflowInstanceId) {}
 
     @Query(value = "select " + "   new com.isxcode.spark.api.instance.ao.WorkflowInstanceAo(" + "   W.id,"

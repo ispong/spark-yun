@@ -16,13 +16,6 @@
 **/.DS_Store
 .DS_Store
 
-# 前端打包不提交
-spark-yun-backend/spark-yun-main/src/main/resources/templates/**
-spark-yun-backend/spark-yun-main/src/main/resources/static/**
-
-# 代理安装包不提交
-spark-yun-backend/spark-yun-main/src/main/resources/agent
-
 # 企业版代码不提交
 spark-yun-vip
 

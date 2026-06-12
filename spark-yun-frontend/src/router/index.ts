@@ -1,23 +1,24 @@
 import { createRouter, createWebHistory, type RouteLocationRaw, type RouteRecordRaw } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import Home from '../views/home/home'
-import Login from '../views/login/login'
-import Ssoauth from '../views/login/ssoauth'
-import ShareForm from '../views/share-form/index.vue'
-import ShareReport from '../views/report-views/share-report/index.vue'
-import UserCenter from '@/views/user-center/index.vue'
-import TenantList from '@/views/tenant-list/index.vue'
-import License from '@/views/license/index.vue'
-import OauthManagement from '@/views/oauth-management/index.vue'
-import TenantUser from '@/views/tenant-user/index.vue'
-import RoleManagement from '@/views/role-management/index.vue'
-import OrgManagement from '@/views/org-management/index.vue'
-import PersonalInfo from '@/views/personal-info/index.vue'
-import Forbidden from '@/views/system/forbidden.vue'
-import NoTenant from '@/views/system/no-tenant.vue'
 import { getVipLicenseEnabled, isVipMenuCode } from '@/utils/vip-license'
 import { useAuthStore } from '@/store/useAuth'
 import HomeChildren from './home-children'
+
+const Login = () => import('../views/login/login')
+const Ssoauth = () => import('../views/login/ssoauth')
+const ShareForm = () => import('../views/share-form/index.vue')
+const ShareReport = () => import('../views/report-views/share-report/index.vue')
+const UserCenter = () => import('@/views/user-center/index.vue')
+const TenantList = () => import('@/views/tenant-list/index.vue')
+const License = () => import('@/views/license/index.vue')
+const OauthManagement = () => import('@/views/oauth-management/index.vue')
+const TenantUser = () => import('@/views/tenant-user/index.vue')
+const RoleManagement = () => import('@/views/role-management/index.vue')
+const OrgManagement = () => import('@/views/org-management/index.vue')
+const PersonalInfo = () => import('@/views/personal-info/index.vue')
+const Forbidden = () => import('@/views/system/forbidden.vue')
+const NoTenant = () => import('@/views/system/no-tenant.vue')
 
 const managementRoutes = new Set([
     'tenant-user',

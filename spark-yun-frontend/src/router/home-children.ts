@@ -1,58 +1,47 @@
-// 开源免费部分
-import HomeOverview from '@/views/home-overview/index.vue'
-import ComputerGroup from '@/views/computer-group/index.vue'
-import ComputerPointer from '@/views/computer-group/computer-pointer/index.vue'
-import DataSource from '@/views/datasource/index.vue'
-import Workflow from '@/views/workflow/index.vue'
-import WorkflowDetail from '@/views/workflow/workflow-detail/index.vue'
-import GlobalVariables from '@/views/global-variables/index.vue'
-import WorkflowPage from '@/views/workflow/workflow-page/index.vue'
-import WorkItem from '@/views/workflow/work-item/index.vue'
-import Schedule from '@/views/schedule/index.vue'
-
-import UserCenter from '@/views/user-center/index.vue'
-import TenantList from '@/views/tenant-list/index.vue'
-import License from '@/views/license/index.vue'
-import TenantUser from '@/views/tenant-user/index.vue'
-import PersonalInfo from '@/views/personal-info/index.vue'
-import OauthManagement from '@/views/oauth-management/index.vue'
-
-import DriverManagement from '@/views/driver-management/index.vue'
-import CustomForm from '@/views/custom-form/index.vue'
-import CustomFormList from '@/views/custom-form/custom-form-list.vue'
-import CustomFormQuery from '@/views/custom-form/custom-form-query/index.vue'
-import CustomFormSetting from '@/views/custom-form/form-setting/index.vue'
-import AccessRule from '@/views/access-rule/index.vue'
-import CustomApi from '@/views/custom-api/index.vue'
-import SparkContainer from '@/views/spark-container/index.vue'
-import RealtimeComputing from '@/views/realtime-computing/index.vue'
-import ComputingDetail from '@/views/realtime-computing/computing-detail/index.vue'
-
-import fileCenter from '@/views/file-center/index.vue'
-import CustomFunc from '@/views/custom-func/index.vue'
-import LibPackage from '@/views/lib-package/index.vue'
-
-import ReportComponents from '@/views/report-components/index.vue'
-import ReportItem from '@/views/report-components/report-item/index.vue'
-import ReportViews from '@/views/report-views/index.vue'
-import ReportViewsDetail from '@/views/report-views/report-views-detail/index.vue'
-
-// 消息告警
-import MessageNotifications from '@/views/message-center/message-notification/index.vue'
-import WarningConfig from '@/views/message-center/warning-config/index.vue'
-import WarningSchedule from '@/views/message-center/warning-schedule/index.vue'
-
-// 元数据
-import AcquisitionTask from '@/views/metadata-page/acquisition-task/index.vue'
-import AcquisitionInstance from '@/views/metadata-page/acquisition-instance/index.vue'
-import MetadataManagement from '@/views/metadata-page/metadata-management/index.vue'
-
-// 数据分层
-import DataLayer from '@/views/data-planning/data-layer/index.vue'
-import LayerArea from '@/views/data-planning/data-layer/layer-area/index.vue'
-import FieldFormat from '@/views/data-planning/field-format/index.vue'
-import DataModel from '@/views/data-planning/data-model/index.vue'
-import ModelField from '@/views/data-planning/data-model/model-field/index.vue'
+const HomeOverview = () => import('@/views/home-overview/index.vue')
+const ComputerGroup = () => import('@/views/computer-group/index.vue')
+const ComputerPointer = () => import('@/views/computer-group/computer-pointer/index.vue')
+const DataSource = () => import('@/views/datasource/index.vue')
+const Workflow = () => import('@/views/workflow/index.vue')
+const WorkflowDetail = () => import('@/views/workflow/workflow-detail/index.vue')
+const GlobalVariables = () => import('@/views/global-variables/index.vue')
+const WorkflowPage = () => import('@/views/workflow/workflow-page/index.vue')
+const WorkItem = () => import('@/views/workflow/work-item/index.vue')
+const Schedule = () => import('@/views/schedule/index.vue')
+const UserCenter = () => import('@/views/user-center/index.vue')
+const TenantList = () => import('@/views/tenant-list/index.vue')
+const License = () => import('@/views/license/index.vue')
+const TenantUser = () => import('@/views/tenant-user/index.vue')
+const PersonalInfo = () => import('@/views/personal-info/index.vue')
+const OauthManagement = () => import('@/views/oauth-management/index.vue')
+const DriverManagement = () => import('@/views/driver-management/index.vue')
+const CustomForm = () => import('@/views/custom-form/index.vue')
+const CustomFormList = () => import('@/views/custom-form/custom-form-list.vue')
+const CustomFormQuery = () => import('@/views/custom-form/custom-form-query/index.vue')
+const CustomFormSetting = () => import('@/views/custom-form/form-setting/index.vue')
+const AccessRule = () => import('@/views/access-rule/index.vue')
+const CustomApi = () => import('@/views/custom-api/index.vue')
+const SparkContainer = () => import('@/views/spark-container/index.vue')
+const RealtimeComputing = () => import('@/views/realtime-computing/index.vue')
+const ComputingDetail = () => import('@/views/realtime-computing/computing-detail/index.vue')
+const FileCenter = () => import('@/views/file-center/index.vue')
+const CustomFunc = () => import('@/views/custom-func/index.vue')
+const LibPackage = () => import('@/views/lib-package/index.vue')
+const ReportComponents = () => import('@/views/report-components/index.vue')
+const ReportItem = () => import('@/views/report-components/report-item/index.vue')
+const ReportViews = () => import('@/views/report-views/index.vue')
+const ReportViewsDetail = () => import('@/views/report-views/report-views-detail/index.vue')
+const MessageNotifications = () => import('@/views/message-center/message-notification/index.vue')
+const WarningConfig = () => import('@/views/message-center/warning-config/index.vue')
+const WarningSchedule = () => import('@/views/message-center/warning-schedule/index.vue')
+const AcquisitionTask = () => import('@/views/metadata-page/acquisition-task/index.vue')
+const AcquisitionInstance = () => import('@/views/metadata-page/acquisition-instance/index.vue')
+const MetadataManagement = () => import('@/views/metadata-page/metadata-management/index.vue')
+const DataLayer = () => import('@/views/data-planning/data-layer/index.vue')
+const LayerArea = () => import('@/views/data-planning/data-layer/layer-area/index.vue')
+const FieldFormat = () => import('@/views/data-planning/field-format/index.vue')
+const DataModel = () => import('@/views/data-planning/data-model/index.vue')
+const ModelField = () => import('@/views/data-planning/data-model/model-field/index.vue')
 
 export default [
     {
@@ -128,7 +117,7 @@ export default [
     {
         path: 'file-center',
         name: 'file-center',
-        component: fileCenter
+        component: FileCenter
     },
     {
         path: 'schedule',

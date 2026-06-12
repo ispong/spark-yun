@@ -43,7 +43,74 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'static',
     copyPublicDir: false,
-    manifest: false
+    manifest: false,
+    // Large graph and chart libraries are lazy-loaded; keep the limit above the largest vendor chunk.
+    chunkSizeWarningLimit: 1300,
+    rolldownOptions: {
+      checks: {
+        invalidAnnotation: false,
+        pluginTimings: false
+      },
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return
+          }
+          if (id.includes('@element-plus/icons-vue')) {
+            return 'element-icons'
+          }
+          if (id.includes('element-plus')) {
+            return 'element-plus'
+          }
+          if (id.includes('vxe-table')) {
+            return 'vxe-table'
+          }
+          if (id.includes('vxe-pc-ui')) {
+            return 'vxe-ui'
+          }
+          if (id.includes('xe-utils')) {
+            return 'xe-utils'
+          }
+          if (id.includes('@antv/x6-vue-shape')) {
+            return 'antv-x6-vue'
+          }
+          if (id.includes('@antv/x6')) {
+            return 'antv-x6'
+          }
+          if (id.includes('@antv/g6')) {
+            return 'antv-g6'
+          }
+          if (id.includes('@antv/layout')) {
+            return 'antv-layout'
+          }
+          if (id.includes('@antv/hierarchy')) {
+            return 'antv-hierarchy'
+          }
+          if (id.includes('@antv')) {
+            return 'antv-common'
+          }
+          if (id.includes('zrender')) {
+            return 'zrender'
+          }
+          if (id.includes('echarts')) {
+            return 'echarts'
+          }
+          if (id.includes('@codemirror') || id.includes('codemirror')) {
+            return 'codemirror'
+          }
+          if (id.includes('/ai/') || id.includes('@ai-sdk')) {
+            return 'ai'
+          }
+          if (id.includes('/vue/') || id.includes('vue-router') || id.includes('pinia')) {
+            return 'vue'
+          }
+          if (id.includes('lodash')) {
+            return 'lodash'
+          }
+          return 'vendor'
+        }
+      }
+    }
   },
   // optimizeDeps: {
   //   exclude: ['@antv/x6-vue-shape']

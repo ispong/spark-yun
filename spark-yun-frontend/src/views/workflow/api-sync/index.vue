@@ -1765,13 +1765,13 @@ onUnmounted(() => {
                                 flex-shrink: 0;
                             }
 
-                            .api-config-row :deep(.el-form-item__content) {
+                            .api-config-row .el-form-item__content {
                                 min-height: 32px;
                                 display: flex;
                                 align-items: center;
                             }
 
-                            .api-config-row :deep(.el-button) {
+                            .api-config-row .el-button {
                                 line-height: 32px;
                             }
 
@@ -1811,7 +1811,7 @@ onUnmounted(() => {
                                 color: var(--el-text-color-regular);
                             }
 
-                            .paging-line :deep(.el-input-number) {
+                            .paging-line .el-input-number {
                                 width: 120px;
                             }
 
@@ -1821,7 +1821,7 @@ onUnmounted(() => {
                                 line-height: 32px;
                             }
 
-                            .paging-line :deep(.el-checkbox__label) {
+                            .paging-line .el-checkbox__label {
                                 font-size: inherit;
                                 color: inherit;
                                 line-height: 32px;
@@ -1829,7 +1829,7 @@ onUnmounted(() => {
                                 font-family: inherit;
                             }
 
-                            .paging-line :deep(.el-checkbox.is-checked .el-checkbox__label) {
+                            .paging-line .el-checkbox.is-checked .el-checkbox__label {
                                 color: var(--el-text-color-regular);
                             }
 
@@ -1841,9 +1841,9 @@ onUnmounted(() => {
                                 font-family: inherit;
                             }
 
-                            .paging-line :deep(.el-input__inner),
-                            .paging-line :deep(.el-input-number__decrease),
-                            .paging-line :deep(.el-input-number__increase) {
+                            .paging-line .el-input__inner,
+                            .paging-line .el-input-number__decrease,
+                            .paging-line .el-input-number__increase {
                                 font-size: 14px;
                                 font-weight: 400;
                                 font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
@@ -1930,7 +1930,7 @@ onUnmounted(() => {
     padding-top: 4px;
 }
 
-.template-json-editor :deep(.cm-editor) {
+.template-json-editor .cm-editor {
     min-height: 360px;
 }
 </style>

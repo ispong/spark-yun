@@ -14,8 +14,9 @@ tasks.register('build_agent_lib', Copy) {
     dependsOn(":spark-yun-agent:bootJar")
     dependsOn(":spark-yun-backend:spark-yun-api:jar")
 
-    def dependencies = configurations.runtimeClasspath.findAll {
-        it.name.contains('fastjson2') ||
+    from({
+        configurations.runtimeClasspath.findAll {
+            it.name.contains('fastjson2') ||
                 it.name.contains('fastjson') ||
                 it.name.contains('spark-yun-api') ||
                 it.name.contains('log4j-api') ||
@@ -26,17 +27,13 @@ tasks.register('build_agent_lib', Copy) {
                 it.name.contains('jetty-io') ||
                 it.name.contains('commons-dbutils') ||
                 it.name.contains('hadoop-hdfs-client')
-    }
-    dependencies.each { dependency ->
-        from dependency
-        into 'build/zhiqingyun_agent/lib'
-    }
-
-    from rootDir.getAbsolutePath() + '/spark-yun-backend/spark-yun-api/build/libs'
-    from rootDir.getAbsolutePath() + '/spark-yun-agent/build/libs'
-    from rootDir.getAbsolutePath() + '/resources/jdbc/system'
-    from rootDir.getAbsolutePath() + '/resources/libs'
-    into 'build/zhiqingyun-agent/lib'
+        }
+    })
+    from project(':spark-yun-backend:spark-yun-api').tasks.named('jar')
+    from project(':spark-yun-agent').tasks.named('bootJar')
+    from rootProject.file('resources/jdbc/system')
+    from rootProject.file('resources/libs')
+    into layout.buildDirectory.dir('zhiqingyun-agent/lib')
 }
 
 // 构建plugins文件夹
@@ -66,8 +63,6 @@ tasks.register('build_agent_plugins', Copy) {
 
 // 构建至轻云代理
 tasks.register('build_agent', Tar) {
-
-    mustRunAfter(":spark-yun-frontend:make")
 
     dependsOn('build_agent_lib')
     dependsOn('build_agent_plugins')
@@ -110,7 +105,7 @@ tasks.register('build_agent', Tar) {
 // 构建至轻云
 tasks.register('build_zhiqingyun', Tar) {
 
-    mustRunAfter(":spark-yun-backend:make")
+    dependsOn(':spark-yun-backend:spark-yun-main:bootJar')
 
     compression = Compression.GZIP
     archiveFileName = 'zhiqingyun.tar.gz'
@@ -147,9 +142,10 @@ tasks.register('copy_version') {
 }
 
 // 打包
-tasks.register('make', GradleBuild) {
+tasks.register('make') {
 
-    tasks = [":spark-yun-frontend:make", "build_agent", ":spark-yun-backend:make", "build_zhiqingyun"]
+    mustRunAfter(rootProject.tasks.named('cleanAll'))
+    dependsOn('build_zhiqingyun')
 }
 
 // 添加依赖

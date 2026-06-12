@@ -358,7 +358,7 @@ onMounted(() => {
                 height: 100%;
                 overflow: hidden;
 
-                :deep(.block-table) {
+                .block-table {
                     height: 100%;
                 }
             }

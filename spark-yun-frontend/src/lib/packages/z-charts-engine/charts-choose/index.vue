@@ -180,7 +180,7 @@ function goReportComponents() {
 </style>
 
 <style>
-::webkit-drag-shadow {
+::-webkit-drag-shadow {
     color: #fff;
     background: #000;
     opacity: 0.5;

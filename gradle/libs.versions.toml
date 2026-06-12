@@ -29,7 +29,6 @@ json4s = "3.5.3"
 jsqlparser = "4.8"
 jgrapht = "1.4.0"
 jwt = "0.11.5"
-junit-jupiter = "5.9.1"
 kafka = "3.1.2"
 log4j = "1.2.17"
 lombok = "1.18.24"
@@ -113,8 +112,6 @@ json4s-core = { module = "org.json4s:json4s-core_2.12", version.ref = "json4s" }
 json4s-jackson = { module = "org.json4s:json4s-jackson_2.12", version.ref = "json4s" }
 jsqlparser = { module = "com.github.jsqlparser:jsqlparser", version.ref = "jsqlparser" }
 jgrapht-core = { module = "org.jgrapht:jgrapht-core", version.ref = "jgrapht" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
 kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
 log4j = { module = "log4j:log4j", version.ref = "log4j" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }

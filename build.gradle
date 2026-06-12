@@ -66,8 +66,7 @@ allprojects {
 
         implementation libs.fastjson
 
-        implementation libs.junit.jupiter
-        testImplementation libs.junit.jupiter.api
+        testImplementation 'org.junit.jupiter:junit-jupiter'
 
         implementation libs.mapstruct
         implementation libs.mapstruct.processor
@@ -114,6 +113,10 @@ allprojects {
 
     tasks.withType(JavaCompile).configureEach {
         options.release = 17
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
     }
 
     pmd {
@@ -204,9 +207,14 @@ tasks.register("format") {
     dependsOn(subprojects.findAll { it.path != ':spark-yun-frontend' }.collect { "${it.path}:check" })
 }
 
-tasks.register('package', GradleBuild) {
+tasks.register('cleanAll') {
 
-    tasks = ["install", "clean", ":spark-yun-dist:make"]
+    dependsOn(allprojects.collect { "${it.path}:clean" })
+}
+
+tasks.register('package') {
+
+    dependsOn('install', 'cleanAll', ':spark-yun-dist:make')
 }
 
 tasks.register('start', Exec) {
@@ -221,27 +229,25 @@ tasks.register('start', Exec) {
 
 tasks.register('website', Exec) {
 
+    workingDir 'spark-yun-vip/docs'
+
     commandLine 'sh', '-c', '''
-      cd spark-yun-vip/docs
-      rm -rf node_modules
-      pnpm install
+      pnpm install --frozen-lockfile
       pnpm run dev
      '''
 }
 
 tasks.register('frontend', Exec) {
 
-    commandLine 'sh', '-c', '''
-      cd spark-yun-frontend
-      rm -rf node_modules
-      pnpm install
-      pnpm run dev --host
-    '''
+    dependsOn(':spark-yun-frontend:pnpmInstall')
+
+    workingDir 'spark-yun-frontend'
+    commandLine 'pnpm', 'run', 'dev', '--host'
 }
 
-tasks.register('backend', GradleBuild) {
+tasks.register('backend') {
 
-    tasks = [":spark-yun-backend:spark-yun-main:bootRun"]
+    dependsOn(':spark-yun-backend:spark-yun-main:bootRun')
 }
 
 tasks.register('install', Exec) {
@@ -253,6 +259,26 @@ tasks.register('install', Exec) {
         }
     }
     commandLine 'sh', '-c', 'bash install.sh'
+}
+
+tasks.named('cleanAll') {
+    mustRunAfter('install')
+}
+
+gradle.projectsEvaluated {
+    def installTask = tasks.named('install')
+    def cleanAllTask = tasks.named('cleanAll')
+
+    allprojects.each { project ->
+        project.tasks.matching { it.name == 'clean' }.configureEach {
+            mustRunAfter(installTask)
+        }
+        project.tasks.matching {
+            it.path != ':install' && it.path != ':cleanAll' && it.name != 'clean'
+        }.configureEach {
+            mustRunAfter(cleanAllTask)
+        }
+    }
 }
 
 tasks.register('docker', Exec) {
