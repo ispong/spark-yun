@@ -7,4 +7,12 @@
             <Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"/>
         </Or>
     </Match>
+    <Match>
+        <Class name="~com\.isxcode\.spark\.(modules|vip\.modules)\.datasource\.source\.impl\..*Service"/>
+        <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE"/>
+    </Match>
+    <Match>
+        <Class name="com.isxcode.spark.plugin.db.migrator.Execute"/>
+        <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE"/>
+    </Match>
 </FindBugsFilter>

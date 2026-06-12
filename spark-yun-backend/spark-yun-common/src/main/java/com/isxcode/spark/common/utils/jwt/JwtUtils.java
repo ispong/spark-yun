@@ -66,12 +66,11 @@ public class JwtUtils {
     /** jwt解密. */
     public static <A> A decrypt(String jwtKey, String jwtString, String aesKey, Class<A> targetClass) {
 
-        SecretKey signingKey = jwtKey == null ? key
-            : Keys.hmacShaKeyFor(Arrays.copyOf(jwtKey.getBytes(StandardCharsets.UTF_8), 1 << 5));
+        SecretKey signingKey =
+            jwtKey == null ? key : Keys.hmacShaKeyFor(Arrays.copyOf(jwtKey.getBytes(StandardCharsets.UTF_8), 1 << 5));
 
-        String claimStr =
-            Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(jwtString).getPayload().get("CLAIM",
-                String.class);
+        String claimStr = Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(jwtString).getPayload()
+            .get("CLAIM", String.class);
 
         String targetJsonStr = claimStr;
         if (aesKey != null) {

@@ -40,6 +40,9 @@ allprojects {
         exclude group: "org.apache.logging.log4j", module: "log4j-slf4j-impl"
         exclude group: "org.slf4j", module: "slf4j-reload4j"
         exclude group: "com.sun.xml.bind", module: "jaxb-core"
+        resolutionStrategy.dependencySubstitution {
+            substitute module('org.lz4:lz4-java') using module("at.yawk.lz4:lz4-java:${libs.versions.lz4.get()}")
+        }
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
             if (details.requested.group == 'org.apache.kafka' && details.requested.name == 'kafka-clients') {
                 details.useVersion libs.versions.kafka.get()

@@ -6,7 +6,7 @@ calcite = "1.41.0"
 commons-dbutils = "1.8.1"
 druid = "1.2.28"
 fastjson = "2.0.62"
-flink = "2.2.0"
+flink = "2.2.1"
 flink-connector-jdbc = "3.3.0-1.20"
 flink-scala = "2.12"
 groovy = "4.0.31"
@@ -16,7 +16,7 @@ hive = "4.2.0"
 httpclient5 = "5.6.1"
 httpcore5 = "5.3.6"
 hutool = "5.8.46"
-jackson-210 = "2.10.0"
+jackson-210 = "2.21.2"
 jackson-2135 = "2.21.2"
 janino-308 = "3.0.8"
 janino-311 = "3.1.12"
@@ -30,11 +30,10 @@ jsqlparser = "5.3"
 jgrapht = "1.5.3"
 jwt = "0.12.7"
 kafka = "4.3.0"
-log4j = "1.2.17"
 lombok = "1.18.24"
 lucene = "8.11.2"
 lucene-analyzers = "3.6.2"
-lz4 = "1.8.0"
+lz4 = "1.10.2"
 mapstruct = "1.5.3.Final"
 mongodb-bson = "5.8.0"
 mysql-connector = "9.7.0"
@@ -113,14 +112,13 @@ json4s-jackson = { module = "org.json4s:json4s-jackson_2.12", version.ref = "jso
 jsqlparser = { module = "com.github.jsqlparser:jsqlparser", version.ref = "jsqlparser" }
 jgrapht-core = { module = "org.jgrapht:jgrapht-core", version.ref = "jgrapht" }
 kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
-log4j = { module = "log4j:log4j", version.ref = "log4j" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 lucene-analyzers = { module = "org.apache.lucene:lucene-analyzers", version.ref = "lucene-analyzers" }
 lucene-analyzers-common = { module = "org.apache.lucene:lucene-analyzers-common", version.ref = "lucene" }
 lucene-core = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
 lucene-highlighter = { module = "org.apache.lucene:lucene-highlighter", version.ref = "lucene" }
 lucene-queryparser = { module = "org.apache.lucene:lucene-queryparser", version.ref = "lucene" }
-lz4-java = { module = "org.lz4:lz4-java", version.ref = "lz4" }
+lz4-java = { module = "at.yawk.lz4:lz4-java", version.ref = "lz4" }
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
 mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
 mongodb-bson = { module = "org.mongodb:bson", version.ref = "mongodb-bson" }
