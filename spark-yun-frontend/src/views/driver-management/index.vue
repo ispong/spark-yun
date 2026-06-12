@@ -55,7 +55,6 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue'
 import AddModal from './add-modal/index.vue'
-// import { useState } from '@/hooks/useStore'
 import Breadcrumb from '@/layout/bread-crumb/index.vue'
 import BlockTable from '@/components/block-table/index.vue'
 import LoadingPage from '@/components/loading/index.vue'

@@ -30,7 +30,6 @@
 <script lang="ts" setup>
 import { useAuthStore } from '@/store/useAuth'
 import { ref, defineProps, defineEmits, reactive } from 'vue'
-// import { useState } from '@/hooks/useStore'
 
 interface menu {
     icon: string

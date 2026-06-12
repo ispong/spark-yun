@@ -49,19 +49,15 @@
 
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
-// import { useState, useMutations } from '@/hooks/useStore'
 import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { ChangeTenantData, QueryTenantList } from '@/services/login.service'
 import { CheckLicenseStatus } from '@/services/license.service'
 import { resetVipLicenseCache } from '@/utils/vip-license'
 import eventBus from '@/utils/eventBus'
 import { useAuthStore } from '@/store/useAuth'
-// import { GetTenantList } from '@/services/tenant-list.service'
 
 const authStore = useAuthStore()
 
-// const state = useState([ 'userInfo', 'tenantId' ], 'authStoreModule')
-// const mutations = useMutations([ 'setUserInfo', 'setToken', 'setTenantId', 'setRole', 'setCurrentMenu' ], 'authStoreModule')
 const router = useRouter()
 
 const tenantSelect = ref('')
