@@ -18,7 +18,9 @@ function hasPlatformAccess(authStore: ReturnType<typeof useAuthStore>): boolean 
 }
 
 function hasTenantAdminAccess(authStore: ReturnType<typeof useAuthStore>): boolean {
-    return !!authStore.userInfo?.tenantAdmin || !!authStore.userInfo?.normalAdmin || tenantAdminRoles.has(authStore.role)
+    return (
+        !!authStore.userInfo?.tenantAdmin || !!authStore.userInfo?.normalAdmin || tenantAdminRoles.has(authStore.role)
+    )
 }
 
 export function setupRouterGuard(router: Router, workspaceDefaultRoute: () => RouteLocationRaw): void {

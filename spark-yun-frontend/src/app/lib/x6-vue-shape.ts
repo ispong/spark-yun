@@ -7,10 +7,8 @@ type VueDefinition = VueComponent | ((this: Graph, node: Node) => VueComponent)
 export const registry = Registry.create<VueDefinition>({
     type: 'vue component'
 })
-
 ;(Graph as any).registerVueComponent = registry.register
 ;(Graph as any).unregisterVueComponent = registry.unregister
-
 ;(Graph.Hook.prototype as any).getVueComponent = function (node: VueShape): VueDefinition {
     const getVueComponent = this.options.getVueComponent
     if (typeof getVueComponent === 'function') {
@@ -183,14 +181,14 @@ export class VueShapeView extends NodeView<VueShape> {
 
         const component = this.graph.hook.getVueComponent(node)
         this.vm = createApp({
-            render() {
-                return h(component, { graph, node })
-            },
             provide() {
                 return {
                     getGraph: () => graph,
                     getNode: () => node
                 }
+            },
+            render() {
+                return h(component, { graph, node })
             }
         })
         this.vm.mount(root)
