@@ -7,7 +7,7 @@
     },
     "scripts": {
         "preinstall": "npx only-allow pnpm",
-        "dev": "vite",
+        "dev": "vite --mode dev",
         "build": "vite build",
         "preview": "vite preview"
     },
