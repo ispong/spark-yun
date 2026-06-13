@@ -65,7 +65,7 @@ VIP code should put closed-source features behind the same contracts instead of 
 - `@edition` for edition-level imports.
 - `@shared` or `@/app/shared` for shared public frontend utilities.
 
-Open-source builds use default edition stubs. VIP builds set `VITE_EDITION=vip`, which points `@edition` at `spark-yun-vip/spark-yun-frontend/src/edition`.
+Open-source builds use default edition stubs. When `../spark-yun-vip/spark-yun-frontend/src/edition` exists, `@edition` automatically points to that closed-source edition directory.
 
 ## Build And Local Debugging
 
@@ -73,7 +73,6 @@ Use these checks after structure changes:
 
 ```bash
 pnpm check:architecture
-pnpm type-check
 pnpm build
 ```
 

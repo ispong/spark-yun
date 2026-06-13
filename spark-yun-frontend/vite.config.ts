@@ -3,82 +3,72 @@ import {fileURLToPath, URL} from 'node:url'
 import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
-import {viteStaticCopy} from 'vite-plugin-static-copy'
 
 import Components from 'unplugin-vue-components/vite'
 import {ElementPlusResolver} from 'unplugin-vue-components/resolvers'
 import {existsSync, readFileSync} from 'node:fs'
 
-
 const openSourceEditionRoot = fileURLToPath(new URL('./src/edition', import.meta.url))
-const vipFrontendRoot = fileURLToPath(new URL('../spark-yun-vip/spark-yun-frontend', import.meta.url))
 const vipEditionRoot = fileURLToPath(new URL('../spark-yun-vip/spark-yun-frontend/src/edition', import.meta.url))
+const vipFrontendRoot = fileURLToPath(new URL('../spark-yun-vip/spark-yun-frontend', import.meta.url))
 
 function dependencyPath(pkg: string) {
     return fileURLToPath(new URL(`./node_modules/${pkg}`, import.meta.url))
 }
 
-function getEditionRoot(mode: string) {
-    const isVipEdition = mode === 'vip' || process.env.VITE_EDITION === 'vip'
-    return isVipEdition && existsSync(vipEditionRoot) ? vipEditionRoot : openSourceEditionRoot
+function getEditionRoot() {
+    return existsSync(vipFrontendRoot) ? vipEditionRoot : openSourceEditionRoot
 }
 
 
-// 负责启动部署
-export default defineConfig(({mode}) => ({
+// 负责启动部署，不需要外部传值
+export default defineConfig({
 
     // 定义变量
     define: {
         __APP_VERSION__: JSON.stringify(readFileSync('../VERSION', 'utf-8').trim()),
     },
-    // 本期启动
+
+    // 本地启动
     server: {
         host: '0.0.0.0',
         fs: {
-            allow: ['.', vipFrontendRoot]
+            allow: ['.', vipFrontendRoot] // 为了可能读取外部文件夹代码
         }
     },
+
     // 插件管理
     plugins: [
-        vue(),
-        vueJsx(),
-        viteStaticCopy({
-            targets: [
-                {
-                    src: 'public/*',
-                    dest: 'static'
-                }
-            ]
-        }),
+        vue(), // 解析vue文件
+        vueJsx(), // 解析tsx文件
         Components({
-            dirs: ['src/app/components'],
+            dirs: ['src/app/components'], // 自动扫描组件
             extensions: ['vue'],
-            include: [/\.vue$/, /\.vue\?vue/, /\.md$/, /\.tsx$/, /\.jsx$/],
+            include: [/\.vue$/, /\.vue\?vue/, /\.tsx$/], // 解析组件文件
             resolvers: [ElementPlusResolver({
-                importStyle: 'sass'
+                importStyle: 'sass'  // 引入sass版本的element组件库，需要自定义样式
             })]
         })
     ],
+
     // 构建配置
     build: {
-        outDir: 'dist',
-        assetsDir: 'static',
-        copyPublicDir: false,
-        manifest: false,
-        chunkSizeWarningLimit: 1300,
+        outDir: 'dist', // 打包路径
+        manifest: false, // 纯前端渲染，不需要文件结构
         rolldownOptions: {
-            checks: {
-                invalidAnnotation: false,
-                pluginTimings: false
+            checks: { // rolldown打包检查
+                invalidAnnotation: false, // 关闭无效注释打印
+                pluginTimings: false // 关闭插件耗时打印
             }
         }
     },
+
     // 解析说明
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url)),
             '@core': fileURLToPath(new URL('./src', import.meta.url)),
-            '@edition': getEditionRoot(mode),
+            '@edition': getEditionRoot(),
             '@shared': fileURLToPath(new URL('./src/app/shared', import.meta.url)),
             'element-plus': dependencyPath('element-plus'),
             '@element-plus/icons-vue': dependencyPath('@element-plus/icons-vue'),
@@ -91,6 +81,7 @@ export default defineConfig(({mode}) => ({
         },
         dedupe: ['vue', 'vue-router', 'pinia']
     },
+
     // 样式说明
     css: {
         preprocessorOptions: {
@@ -99,4 +90,4 @@ export default defineConfig(({mode}) => ({
             }
         }
     }
-}))
+})

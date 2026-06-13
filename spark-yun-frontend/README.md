@@ -144,7 +144,7 @@ VIP 规则：
 
 - 开源代码不能直接 import `spark-yun-vip` 中的源码。
 - VIP 功能优先通过 `@edition`、`src/app/shared`、模块 public surface 接入。
-- 开源构建不依赖 VIP 代码；VIP 构建通过 `VITE_EDITION=vip` 启用闭源扩展。
+- 开源构建不依赖 VIP 代码；如果存在 `../spark-yun-vip/spark-yun-frontend/src/edition`，构建会自动通过 `@edition` 接入闭源扩展。
 
 ##### 架构检查
 
@@ -152,7 +152,6 @@ VIP 规则：
 
 ```bash
 pnpm check:architecture
-pnpm type-check
 pnpm build
 ```
 
@@ -160,7 +159,7 @@ pnpm build
 
 ```bash
 pnpm check:architecture:full
-pnpm build:vip
+pnpm build
 ```
 
 查看跨模块 public surface 报告：

@@ -10,10 +10,8 @@
     "scripts": {
         "preinstall": "npx only-allow pnpm",
         "dev": "vite --mode dev",
-        "dev:vip": "VITE_EDITION=vip vite --mode dev",
         "serve-prod": "vite",
         "build": "vite build",
-        "build:vip": "VITE_EDITION=vip vite build --mode vip",
         "preview": "vite preview",
         "test:e2e": "playwright test",
         "build-only": "vite build",
@@ -75,7 +73,6 @@
         "typescript": "5.9.3",
         "unplugin-vue-components": "32.1.0",
         "vite": "8.0.16",
-        "vite-plugin-static-copy": "3.4.0",
         "vue-tsc": "3.3.4"
     }
 }
