@@ -13,6 +13,7 @@
 
 # TypeScript build output
 *.tsbuildinfo
+components.d.ts
 /*.config.js
 /*.config.d.ts
 
