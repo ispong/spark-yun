@@ -1,6 +1,6 @@
 # Frontend Architecture
 
-The frontend is split into a base application, removable business modules, and edition-specific extensions.
+The frontend is split into a base application and removable business modules.
 
 ## Directory Roles
 
@@ -9,8 +9,6 @@ The frontend is split into a base application, removable business modules, and e
 - `src/app/routes`: base route groups for platform, admin, and workspace management.
 - `src/app/shared`: APIs, hooks, and utilities intentionally shared by multiple modules.
 - `src/modules`: removable business modules. Each module owns its `api`, `views`, `routes`, optional `share-routes`, local components, and local config.
-- `src/edition`: open-source edition defaults and stable edition extension contracts.
-- `spark-yun-vip/spark-yun-frontend`: closed-source frontend code. VIP code extends the open-source app through `@edition` and may add VIP modules there.
 
 ## Import Rules
 
@@ -53,19 +51,6 @@ Common components under `src/app/components` must not import from `src/modules`.
 Cross-module imports are allowed for now, but keep them intentional. Prefer importing another module's public `api` or exported local component. If three or more modules use the same API, move the stable surface into `src/app/shared/api`.
 
 `src/services` and `src/views` have been removed. Do not recreate them. App-level pages live under `src/app/views`, and feature pages live under `src/modules/*/views`.
-
-## Edition Split
-
-The open-source project owns stable extension contracts in `src/edition`.
-
-VIP code should put closed-source features behind the same contracts instead of importing private code directly into open-source modules. Prefer these extension points:
-
-- `src/edition/features.ts` for feature flags, license checks, and menu visibility.
-- `src/edition/routes.ts` for VIP-only workspace routes.
-- `@edition` for edition-level imports.
-- `@/app/shared` for shared public frontend utilities.
-
-Open-source builds use default edition stubs. When `../spark-yun-vip/spark-yun-frontend/src/edition` exists, `@edition` automatically points to that closed-source edition directory.
 
 ## Build And Local Debugging
 

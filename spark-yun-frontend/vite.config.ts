@@ -6,22 +6,9 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 
 import Components from 'unplugin-vue-components/vite'
 import {ElementPlusResolver} from 'unplugin-vue-components/resolvers'
-import {existsSync, readFileSync} from 'node:fs'
+import {readFileSync} from 'node:fs'
 
-const openSourceEditionRoot = fileURLToPath(new URL('./src/edition', import.meta.url))
-const vipEditionRoot = fileURLToPath(new URL('../spark-yun-vip/spark-yun-frontend/src/edition', import.meta.url))
-const vipFrontendRoot = fileURLToPath(new URL('../spark-yun-vip/spark-yun-frontend', import.meta.url))
-
-function dependencyPath(pkg: string) {
-    return fileURLToPath(new URL(`./node_modules/${pkg}`, import.meta.url))
-}
-
-function getEditionRoot() {
-    return existsSync(vipFrontendRoot) ? vipEditionRoot : openSourceEditionRoot
-}
-
-
-// 负责启动部署，不需要外部传值
+// 负责启动部署
 export default defineConfig({
 
     // 定义变量
@@ -31,10 +18,7 @@ export default defineConfig({
 
     // 本地启动
     server: {
-        host: '0.0.0.0',
-        fs: {
-            allow: ['.', vipFrontendRoot] // 为了可能读取外部文件夹代码
-        }
+        host: '0.0.0.0'
     },
 
     // 插件管理
@@ -66,25 +50,16 @@ export default defineConfig({
     // 解析说明
     resolve: {
         alias: { // 起别名，方便引入
-            '@': fileURLToPath(new URL('./src', import.meta.url)),
-            '@edition': getEditionRoot(),
-            'element-plus': dependencyPath('element-plus'),
-            '@element-plus/icons-vue': dependencyPath('@element-plus/icons-vue'),
-            '@codemirror/lang-json': dependencyPath('@codemirror/lang-json'),
-            '@codemirror/lang-sql': dependencyPath('@codemirror/lang-sql'),
-            clipboard: dependencyPath('clipboard'),
-            'g6-extension-vue': fileURLToPath(new URL('./src/app/lib/g6-extension-vue.ts', import.meta.url)),
-            '@antv/x6-vue-shape': fileURLToPath(new URL('./src/app/lib/x6-vue-shape.ts', import.meta.url)),
-            '@antv/x6': '@antv/x6/lib',
+            '@': fileURLToPath(new URL('./src', import.meta.url))
         },
-        dedupe: ['vue', 'vue-router', 'pinia']
+        dedupe: ['vue', 'vue-router', 'pinia'] // 防止重复加载
     },
 
     // 样式说明
     css: {
         preprocessorOptions: {
             scss: {
-                additionalData: '@use "@/app/assets/styles/variable.scss" as *;'
+                additionalData: '@use "@/app/assets/styles/variable.scss" as *;' // 全局样式导入
             }
         }
     }

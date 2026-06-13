@@ -24,7 +24,7 @@ pnpm run dev
 
 #### 前端项目结构开发手册
 
-前端采用“基础应用 + 可移除业务模块 + 版本扩展”的企业级分层结构。
+前端采用“基础应用 + 可移除业务模块”的企业级分层结构。
 
 ```txt
 src/
@@ -47,10 +47,10 @@ src/
     store/                     # 全局状态
     utils/                     # 基础工具、http、事件总线、格式化等
     views/                     # 登录、首页、系统错误页等基础页面
-  edition/                     # 开源版本默认实现和闭源扩展契约
   modules/                     # 业务模块层，可移除；删除后基础 app 仍需可编译
     access-rule/
     computer-group/
+    custom-api/
     custom-form/
     custom-func/
     data-planning/
@@ -69,21 +69,10 @@ src/
     workflow/
 ```
 
-闭源前端代码位于相邻仓库目录：
-
-```txt
-../spark-yun-vip/spark-yun-frontend/
-  src/
-    edition/                   # VIP 对开源 edition 契约的实现
-    modules/                   # VIP 私有业务模块
-```
-
 ##### 分层职责
 
 - `src/app` 是基础平台层，放应用启动、布局、基础路由、全局 store、通用组件、通用工具、平台管理和 shared 能力。
 - `src/modules` 是业务模块层，每个业务模块拥有自己的 `api`、`views`、`routes.ts`、`index.ts`，可按需提供 `components`、`config.ts`、`share-routes.ts`。
-- `src/edition` 是版本扩展契约，开源代码只依赖契约，不直接依赖 VIP 私有实现。
-- `../spark-yun-vip/spark-yun-frontend` 放闭源实现，VIP 代码通过 `@edition`、`@/app/shared`、模块 public surface 扩展开源项目。
 
 ##### 模块标准结构
 
@@ -140,12 +129,6 @@ import { GetUserList } from '@/app/shared/api/user'
 import { CheckLicenseStatus } from '@/app/shared/api/license'
 ```
 
-VIP 规则：
-
-- 开源代码不能直接 import `spark-yun-vip` 中的源码。
-- VIP 功能优先通过 `@edition`、`src/app/shared`、模块 public surface 接入。
-- 开源构建不依赖 VIP 代码；如果存在 `../spark-yun-vip/spark-yun-frontend/src/edition`，构建会自动通过 `@edition` 接入闭源扩展。
-
 ##### 架构检查
 
 结构变更后至少运行：
@@ -155,7 +138,7 @@ pnpm check:architecture
 pnpm build
 ```
 
-涉及模块边界、路由发现、VIP 隔离时运行完整检查：
+涉及模块边界、路由发现时运行完整检查：
 
 ```bash
 pnpm check:architecture:full

@@ -1,6 +1,6 @@
 import type { Router, RouteLocationRaw } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getCommercialEditionEnabled, isCommercialMenuCode } from '@edition'
+import { getVipLicenseEnabled, isVipMenuCode } from '@/app/utils/vip-license'
 import { useAuthStore } from '@/app/store/useAuth'
 
 const openRouteName = new Set(['login', 'ssoauth', 'share', 'share-report'])
@@ -61,10 +61,10 @@ export function setupRouterGuard(router: Router, workspaceDefaultRoute: () => Ro
             }
         }
 
-        if (!routeName || !isCommercialMenuCode(routeName)) {
+        if (!routeName || !isVipMenuCode(routeName)) {
             return true
         }
-        const commercialEnabled = await getCommercialEditionEnabled()
+        const commercialEnabled = await getVipLicenseEnabled()
         if (commercialEnabled) {
             return true
         }

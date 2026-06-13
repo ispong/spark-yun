@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory, type RouteLocationRaw, type RouteRecordRaw } from 'vue-router'
 import Home from '@/app/views/home/home'
-import { editionWorkspaceRoutes } from '@edition'
 import { useAuthStore } from '@/app/store/useAuth'
 import adminRoutes from '@/app/routes/admin'
 import { personalInfoRootRoute } from '@/app/management/personal-info'
@@ -14,7 +13,7 @@ const Ssoauth = () => import('@/app/views/login/ssoauth')
 const Forbidden = () => import('@/app/views/system/forbidden.vue')
 const NoTenant = () => import('@/app/views/system/no-tenant.vue')
 
-const workspaceChildren = workspaceModuleRoutes.concat(workspaceManagementRoutes, editionWorkspaceRoutes)
+const workspaceChildren = workspaceModuleRoutes.concat(workspaceManagementRoutes)
 
 function workspaceDefaultRoute(): RouteLocationRaw {
     const authStore = useAuthStore()

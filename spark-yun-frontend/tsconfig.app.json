@@ -6,8 +6,6 @@
     "composite": true,
     "baseUrl": ".",
     "paths": {
-      "@edition": ["./src/edition/index.ts"],
-      "@edition/*": ["./src/edition/*"],
       "@/*": ["./src/*"]
     }
   }

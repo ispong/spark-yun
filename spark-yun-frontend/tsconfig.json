@@ -16,12 +16,6 @@
     "baseUrl": ".",
     "types": ["vite/client"],
     "paths": {
-      "@edition": [
-        "src/edition/index.ts"
-      ],
-      "@edition/*": [
-        "src/edition/*"
-      ],
       "@/*": [
         "src/*"
       ]

@@ -10,8 +10,6 @@ const srcRoot = path.join(root, 'src')
 const modulesRoot = path.join(srcRoot, 'modules')
 const appRoot = path.join(srcRoot, 'app')
 const appManagementRoot = path.join(appRoot, 'management')
-const vipRoot = path.resolve(root, '../spark-yun-vip/spark-yun-frontend')
-const vipSrcRoot = path.join(vipRoot, 'src')
 const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.vue'])
 const verifyNoModulesBuild = process.argv.includes('--verify-no-modules-build')
 const reportCrossModuleInternals = process.argv.includes('--report-cross-module-internals')
@@ -53,14 +51,8 @@ function resolveImport(fromFile, specifier) {
     if (specifier.startsWith('@/')) {
         return path.join(srcRoot, specifier.slice(2))
     }
-    if (specifier === '@edition' || specifier.startsWith('@edition/')) {
-        return path.join(srcRoot, 'edition', specifier.slice('@edition'.length))
-    }
     if (specifier.startsWith('.')) {
         return path.resolve(path.dirname(fromFile), specifier)
-    }
-    if (specifier.includes('spark-yun-vip')) {
-        return path.resolve(root, specifier)
     }
     return null
 }
@@ -95,14 +87,11 @@ function addViolation(violations, rule, item) {
 }
 
 function getModuleName(filePath) {
-    for (const moduleRoot of [modulesRoot, path.join(vipSrcRoot, 'modules')]) {
-        const relativePath = toPosix(path.relative(moduleRoot, filePath))
-        if (relativePath === '' || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-            continue
-        }
-        return relativePath.split('/')[0] || null
+    const relativePath = toPosix(path.relative(modulesRoot, filePath))
+    if (relativePath === '' || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        return null
     }
-    return null
+    return relativePath.split('/')[0] || null
 }
 
 function getImportedModule(specifier) {
@@ -121,19 +110,15 @@ function getImportedModuleFromResolvedPath(resolvedPath) {
         return null
     }
 
-    for (const moduleRoot of [modulesRoot, path.join(vipSrcRoot, 'modules')]) {
-        const relativePath = toPosix(path.relative(moduleRoot, resolvedPath))
-        if (relativePath === '' || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-            continue
-        }
-        const [name, ...rest] = relativePath.split('/')
-        return {
-            name,
-            subpath: rest.join('/')
-        }
+    const relativePath = toPosix(path.relative(modulesRoot, resolvedPath))
+    if (relativePath === '' || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        return null
     }
-
-    return null
+    const [name, ...rest] = relativePath.split('/')
+    return {
+        name,
+        subpath: rest.join('/')
+    }
 }
 
 function isPublicModuleImport(moduleImport) {
@@ -183,10 +168,7 @@ function checkModuleStructure(moduleRoot) {
 async function checkStaticBoundaries() {
     const openSourceFiles = walk(srcRoot)
     const imports = await collectImports(openSourceFiles)
-    const violations = [
-        ...checkModuleStructure(modulesRoot),
-        ...checkModuleStructure(path.join(vipSrcRoot, 'modules'))
-    ]
+    const violations = [...checkModuleStructure(modulesRoot)]
 
     for (const item of imports) {
         const resolved = item.resolved
@@ -197,10 +179,6 @@ async function checkStaticBoundaries() {
 
         if (isInside(item.file, modulesRoot) && resolved && isInside(resolved, appManagementRoot)) {
             addViolation(violations, 'src/modules must not import src/app/management directly', item)
-        }
-
-        if (resolved && isInside(resolved, vipSrcRoot)) {
-            addViolation(violations, 'open-source src must not import VIP source directly', item)
         }
 
         if (item.specifier.includes('spark-yun-vip')) {
@@ -234,7 +212,7 @@ async function collectCrossModuleInternalImports(imports) {
 }
 
 async function checkModuleBoundaries() {
-    const files = [...walk(modulesRoot), ...walk(path.join(vipSrcRoot, 'modules'))]
+    const files = walk(modulesRoot)
     const imports = await collectImports(files)
 
     return collectCrossModuleInternalImports(imports)

@@ -22,6 +22,7 @@ const workspaceModuleOrder = [
     'file-center',
     'schedule',
     'custom-form',
+    'custom-api',
     'access-rule',
     'spark-container',
     'custom-func',
