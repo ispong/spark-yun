@@ -1,4 +1,1 @@
-export {
-    default as tenantUserAdminRoutes,
-    tenantUserWorkspaceRoutes
-} from './routes'
+export { default as tenantUserAdminRoutes, tenantUserWorkspaceRoutes } from './routes'

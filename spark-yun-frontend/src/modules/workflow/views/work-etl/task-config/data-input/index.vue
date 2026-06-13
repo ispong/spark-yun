@@ -76,10 +76,10 @@
 import { ref, defineProps, defineEmits, computed, onMounted, reactive, nextTick } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { TypeList, ConfigRules, TableConfig } from './config.ts'
-import { GetDatasourceList } from '@/modules/datasource/api'
-import { GetDataSourceTables, GetTableColumnsByTableId } from '@/shared/api'
+import { GetDatasourceList } from '@/app/shared/api/resources'
+import { GetDataSourceTables, GetTableColumnsByTableId } from '@/app/shared/api'
 import TableDetail from './table-detail/index.vue'
-import RemarkModal from '@/modules/metadata-page/views/metadata-management/remark-modal/index.vue'
+import { RemarkModal } from '@/modules/metadata-page/components'
 import { CodeRemarkEdit } from '@/modules/metadata-page/api'
 
 interface Option {

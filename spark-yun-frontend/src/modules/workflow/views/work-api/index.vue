@@ -205,8 +205,8 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted, onUnmounted, markRaw, nextTick } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import ConfigDetail from '../workflow-page/config-detail/index.vue'
 import PublishLog from '../work-item/publish-log.vue'
 import ReturnData from '../work-item/return-data.vue'
@@ -226,8 +226,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { Loading } from '@element-plus/icons-vue'
 // import CodeMirror from 'vue-codemirror6'
 import { json } from '@codemirror/lang-json'
-import { jsonFormatter } from '@/utils/formatter'
-import ParseModal from '@/components/log-container/parse-modal/index.vue'
+import { jsonFormatter } from '@/app/utils/formatter'
+import ParseModal from '@/modules/workflow/components/parse-modal/index.vue'
 
 interface Option {
     label: string

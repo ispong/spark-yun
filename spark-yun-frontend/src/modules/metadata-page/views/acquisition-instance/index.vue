@@ -52,17 +52,13 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted, onUnmounted } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import BlockTable from '@/components/block-table/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import { BreadCrumbList, TableConfig } from './list.config'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-    AbortMetadataInstanceList,
-    RefreshMetadataInstanceList,
-    RemoveMetadataInstanceList
-} from '../../api'
-import ShowLog from '@/modules/computer-group/views/computer-pointer/show-log/index.vue'
+import { AbortMetadataInstanceList, RefreshMetadataInstanceList, RemoveMetadataInstanceList } from '../../api'
+import ShowLog from '@/app/shared/components/show-log/index.vue'
 
 const breadCrumbList = reactive(BreadCrumbList)
 const tableConfig: any = reactive(TableConfig)

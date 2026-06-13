@@ -83,7 +83,7 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import { DeleteRole, GetPermissionCatalog, PageRole, SaveRole } from '@/app/management/admin/api'
 
 const actionLabels: Record<string, string> = {

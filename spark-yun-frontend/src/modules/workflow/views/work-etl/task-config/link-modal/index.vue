@@ -11,9 +11,9 @@
 
 <script lang="ts" setup>
 import { nextTick, reactive, ref } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import DataSyncTable from '../data-output/data-sync-table/index.vue'
-import { GetTableColumnsByTableId } from '@/shared/api'
+import { GetTableColumnsByTableId } from '@/app/shared/api'
 
 const dataSyncTableRef = ref<any>()
 const formDataRef = ref<any>()

@@ -324,14 +324,14 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import LoadingPage from '@/components/loading/index.vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import ZqyFlow from '@/lib/packages/zqy-flow/flow.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import { ZqyFlow } from '@/modules/workflow/components'
 import AddModal from './add-modal/index.vue'
 import CopyModal from './copy-modal/index.vue'
 import WorkflowConfig from './workflow-config/index.vue'
-import eventBus from '@/utils/eventBus'
-import zqyLog from '@/components/zqy-log/index.vue'
+import eventBus from '@/app/utils/eventBus'
+import { ZqyLog as zqyLog } from '@/modules/schedule/components'
 import WorkItem from '../work-item/index.vue'
 import WorkEtl from '../work-etl/index.vue'
 import DataSync from '../data-sync/index.vue'
@@ -343,7 +343,7 @@ import sparkJar from '../spark-jar/index.vue'
 import DatabaseMigrate from '../database-migrate/index.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Expand, Loading, MapLocation, Refresh, ZoomIn, ZoomOut } from '@element-plus/icons-vue'
-import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
+import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import {
     AddWorkflowDetailList,
     BreakFlowData,

@@ -37,7 +37,7 @@ import { LineChart, LineSeriesOption } from 'echarts/charts'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
 import { queryVmChartInfo } from '../services/computer-group'
-import { useAuthStore } from '@/store/useAuth'
+import { useAuthStore } from '@/app/store/useAuth'
 
 echarts.use([TooltipComponent, GridComponent, LegendComponent, LineChart, CanvasRenderer, UniversalTransition])
 

@@ -88,9 +88,9 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import BlockTable from '@/components/block-table/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 import PasswordModal from './password-modal/index.vue'
 
@@ -106,7 +106,7 @@ import {
     SetPlatformAdmin
 } from '@/app/management/user-center/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useAuthStore } from '@/store/useAuth'
+import { useAuthStore } from '@/app/store/useAuth'
 
 interface FormUser {
     account: string

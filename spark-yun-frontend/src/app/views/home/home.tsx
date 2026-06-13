@@ -2,10 +2,10 @@ import { computed, defineComponent } from 'vue'
 import { adminMenuListData, platformMenuListData, workspaceMenuListData } from './menu.config'
 import { useRouterMenu } from './hooks/use-router-menu'
 
-import logoURLSmall from '@/assets/imgs/logo.png'
-import logoURL from '@/assets/imgs/logo-a.png'
+import logoURLSmall from '@/app/assets/imgs/logo.png'
+import logoURL from '@/app/assets/imgs/logo-a.png'
 import './home.scss'
-import { useAuthStore } from '@/store/useAuth'
+import { useAuthStore } from '@/app/store/useAuth'
 import { useRoute } from 'vue-router'
 
 export default defineComponent({

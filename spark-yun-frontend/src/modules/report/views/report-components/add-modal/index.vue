@@ -40,7 +40,7 @@
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetDatasourceList } from '@/modules/datasource/api'
+import { GetDatasourceList } from '@/app/shared/api/resources'
 import { ChartTypeList } from '../report-item/report-item.config'
 
 interface Option {

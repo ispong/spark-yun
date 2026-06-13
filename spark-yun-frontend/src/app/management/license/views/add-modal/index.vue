@@ -22,7 +22,7 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage } from 'element-plus'
 
 const callback = ref<any>()

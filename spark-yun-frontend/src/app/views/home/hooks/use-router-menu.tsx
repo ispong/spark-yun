@@ -1,9 +1,9 @@
 import { computed, h, onMounted, ref, resolveComponent, unref, watch, type MaybeRef } from 'vue'
-import { useAuthStore } from '@/store/useAuth'
+import { useAuthStore } from '@/app/store/useAuth'
 import type { Menu } from '../menu.config'
 import { useRoute, useRouter } from 'vue-router'
 import { useMenuAvatar } from './use-menu-avatar'
-import { filterVipMenus, getLicenseApiAvailable, getVipLicenseEnabled } from '@/utils/vip-license'
+import { filterVipMenus, getLicenseApiAvailable, getVipLicenseEnabled } from '@/app/utils/vip-license'
 
 function getCurrentMenu(menuList: Menu[], routeMenu: string, targetMenu?: Menu) {
     let currentMenu: any = null

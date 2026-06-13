@@ -8,9 +8,9 @@
 
 <script lang="ts" setup>
 import { nextTick, onUnmounted, ref, defineExpose, computed } from 'vue'
-import EmptyPage from '@/components/empty-page/index.vue'
+import EmptyPage from '@/app/components/empty-page/index.vue'
 import { GetRealSubLog } from '../../api'
-import LoadingPage from '@/components/loading/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 
 const logMsg = ref('')
 const timer = ref(null)

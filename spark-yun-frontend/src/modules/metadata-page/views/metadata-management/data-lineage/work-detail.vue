@@ -53,15 +53,17 @@
 
 <script lang="ts" setup>
 import { computed, nextTick, reactive, ref } from 'vue'
-import BlockDrawer from '@/components/block-drawer/index.vue'
+import BlockDrawer from '@/app/components/block-drawer/index.vue'
 
-import sparkJar from '@/modules/workflow/views/spark-jar/index.vue'
-import WorkApi from '@/modules/workflow/views/work-api/index.vue'
-import ApiSync from '@/modules/workflow/views/api-sync/index.vue'
-import DataSync from '@/modules/workflow/views/data-sync/index.vue'
-import WorkItem from '@/modules/workflow/views/work-item/index.vue'
-import DatabaseMigrate from '@/modules/workflow/views/database-migrate/index.vue'
-import ExcelImport from '@/modules/workflow/views/excel-import/index.vue'
+import {
+    ApiSync,
+    DataSync,
+    DatabaseMigrate,
+    ExcelImport,
+    SparkJar as sparkJar,
+    WorkApi,
+    WorkItem
+} from '@/modules/workflow/components/work-renderers'
 
 import { GetWorkItemConfig } from '@/modules/workflow/api'
 

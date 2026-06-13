@@ -8,9 +8,9 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
-import BlockTable from '@/components/block-table/index.vue'
-import { GetExcelDataPreviewDetail } from '@/shared/api'
+import BlockModal from '@/app/components/block-modal/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
+import { GetExcelDataPreviewDetail } from '@/app/shared/api'
 
 interface Param {
     dataSourceId: string

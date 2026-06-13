@@ -20,7 +20,7 @@ import { LineChart, LineSeriesOption } from 'echarts/charts'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
 
-import allScreen from '@/assets/imgs/fullScreen.svg'
+import allScreen from '@/app/assets/imgs/fullScreen.svg'
 
 echarts.use([TooltipComponent, GridComponent, LineChart, CanvasRenderer, UniversalTransition])
 

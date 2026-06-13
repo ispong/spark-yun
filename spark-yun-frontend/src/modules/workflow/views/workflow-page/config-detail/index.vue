@@ -559,7 +559,7 @@
 <script lang="ts" setup>
 import { computed, nextTick, reactive, ref } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import BlockDrawer from '@/components/block-drawer/index.vue'
+import BlockDrawer from '@/app/components/block-drawer/index.vue'
 import {
     ScheduleRange,
     WeekDateList,
@@ -574,14 +574,17 @@ import { json } from '@codemirror/lang-json'
 import { sql } from '@codemirror/lang-sql'
 // import CodeMirror from 'vue-codemirror6'
 import { GetWorkItemConfig, SaveWorkItemConfig } from '@/modules/workflow/api'
-import { GetComputerGroupList, GetComputerPointData } from '@/modules/computer-group/api'
-import { GetDatasourceList } from '@/modules/datasource/api'
-import { jsonFormatter } from '@/utils/formatter'
-import { GetFileCenterList } from '@/modules/file-center/api'
-import { GetCustomFuncList } from '@/modules/custom-func/api'
-import { GetSparkContainerList } from '@/modules/spark-container/api'
-import { GetAlarmPagesList } from '@/modules/message-center/api'
-import { PageLibPackage } from '@/modules/lib-package/api'
+import {
+    GetAlarmPagesList,
+    GetComputerGroupList,
+    GetComputerPointData,
+    GetCustomFuncList,
+    GetDatasourceList,
+    GetFileCenterList,
+    GetSparkContainerList,
+    PageLibPackage
+} from '@/app/shared/api/resources'
+import { jsonFormatter } from '@/app/utils/formatter'
 
 const scheduleRange = ref(ScheduleRange)
 const weekDateList = ref(WeekDateList)

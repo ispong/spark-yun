@@ -169,8 +169,8 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted, onUnmounted, markRaw, nextTick } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 // import ConfigModal from './config-modal/index.vue'
 import ConfigDetail from '../workflow-page/config-detail/index.vue'
 import PublishLog from '../work-item/publish-log.vue'
@@ -186,7 +186,7 @@ import {
     SaveWorkItemConfig,
     TerWorkItemConfig
 } from '@/modules/workflow/api'
-import { GetFileCenterList } from '@/modules/file-center/api'
+import { GetFileCenterList } from '@/app/shared/api/resources'
 import { ElMessage, ElMessageBox, ElInput, FormRules } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { Loading } from '@element-plus/icons-vue'

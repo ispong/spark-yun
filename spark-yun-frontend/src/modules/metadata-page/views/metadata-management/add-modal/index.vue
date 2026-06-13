@@ -59,7 +59,7 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref } from 'vue'
-import { GetDatasourceList } from '@/modules/datasource/api'
+import { GetDatasourceList } from '@/app/shared/api/resources'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 
 interface Option {

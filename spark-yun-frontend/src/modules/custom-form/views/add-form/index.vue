@@ -83,9 +83,8 @@
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList } from '@/modules/computer-group/api'
-import { GetDatasourceList } from '@/modules/datasource/api'
-import { GetDataSourceTables } from '@/shared/api'
+import { GetComputerGroupList, GetDatasourceList } from '@/app/shared/api/resources'
+import { GetDataSourceTables } from '@/app/shared/api'
 
 interface Option {
     label: string

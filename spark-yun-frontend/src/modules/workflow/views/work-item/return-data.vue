@@ -10,10 +10,10 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, defineEmits, defineProps } from 'vue'
-import BlockTable from '@/components/block-table/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
 import { GetResultData } from '@/modules/schedule/api'
-import LoadingPage from '@/components/loading/index.vue'
-import { getVipLicenseEnabled } from '@/utils/vip-license'
+import LoadingPage from '@/app/components/loading/index.vue'
+import { getVipLicenseEnabled } from '@/app/utils/vip-license'
 
 const emit = defineEmits(['getJsonParseResult'])
 

@@ -9,8 +9,8 @@
       "@core/*": ["./src/*"],
       "@edition": ["./src/edition/index.ts"],
       "@edition/*": ["./src/edition/*"],
-      "@shared": ["./src/shared/index.ts"],
-      "@shared/*": ["./src/shared/*"],
+      "@shared": ["./src/app/shared/index.ts"],
+      "@shared/*": ["./src/app/shared/*"],
       "@/*": ["./src/*"]
     }
   }

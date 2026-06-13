@@ -1,0 +1,24 @@
+<template>
+    <el-form-item label="提示">
+        <el-input v-model="formData" :clearable="true" maxlength="2000" placeholder="请输入" />
+    </el-form-item>
+</template>
+
+<script lang="ts" setup>
+import { defineProps, defineEmits, computed } from 'vue'
+
+const props = defineProps<{
+    renderSence?: any
+    modelValue?: any
+    formConfig?: any
+}>()
+const emit = defineEmits(['update:modelValue'])
+const formData = computed({
+    get() {
+        return props.modelValue
+    },
+    set(value) {
+        emit('update:modelValue', value)
+    }
+})
+</script>

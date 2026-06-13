@@ -28,7 +28,7 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, markRaw, defineEmits } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import basicInfo from './basic-info.vue'
 import codeInfo from './code-info.vue'
 import dataPreview from './data-preview.vue'

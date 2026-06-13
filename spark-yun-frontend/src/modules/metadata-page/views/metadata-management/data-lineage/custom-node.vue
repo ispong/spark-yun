@@ -80,8 +80,8 @@
 import { onMounted, computed, ref } from 'vue'
 import { ElIcon, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus'
 import { MoreFilled, Loading, Clock, VideoPause, CirclePlus } from '@element-plus/icons-vue'
-import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
-import eventBus from '@/utils/eventBus'
+import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
+import eventBus from '@/app/utils/eventBus'
 
 const props = defineProps<{
     config: any

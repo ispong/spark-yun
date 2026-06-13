@@ -5,8 +5,8 @@ import VueGridLayout from 'vue-grid-layout'
 import '@antv/x6-vue-shape'
 
 import App from '@/App.vue'
-import router from '@/router'
-import pinia from '@/store'
+import router from '@/app/router'
+import pinia from '@/app/store'
 import { registerGlobalIcons } from '@/app/icons'
 
 import 'normalize.css'
@@ -14,7 +14,7 @@ import 'element-plus/theme-chalk/el-message.css'
 import 'element-plus/theme-chalk/el-message-box.css'
 import 'vxe-table/lib/style.css'
 import 'vxe-pc-ui/lib/style.css'
-import '@/assets/styles/global.scss'
+import '@/app/assets/styles/global.scss'
 
 export function bootstrapApp(): void {
     console.log(

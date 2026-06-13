@@ -28,9 +28,9 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick, onUnmounted } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
-import BlockTable from '@/components/block-table/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import { GetLogData, GetYarnLogData, GetResultData } from '@/modules/schedule/api'
 
 const callback = ref<any>()

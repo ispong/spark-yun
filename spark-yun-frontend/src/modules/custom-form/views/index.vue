@@ -5,7 +5,7 @@
 
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()

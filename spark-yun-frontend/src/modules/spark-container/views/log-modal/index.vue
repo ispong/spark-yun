@@ -11,7 +11,7 @@
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, onUnmounted, nextTick, computed } from 'vue'
 import { GetSparkContainerkDetail, GetSparkContainerkRunningLog } from '@/modules/spark-container/api'
-import LoadingPage from '@/components/loading/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 
 const logMsg = ref('')
 const timer = ref(null)

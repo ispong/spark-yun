@@ -43,7 +43,7 @@
 <script lang="ts" setup>
 import { reactive, defineExpose, ref } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetFileCenterList } from '@/modules/file-center/api'
+import { GetFileCenterList } from '@/app/shared/api/resources'
 
 const form = ref<FormInstance>()
 const callback = ref<any>()

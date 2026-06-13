@@ -114,12 +114,12 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted, computed } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import { PaginationParam } from './custom-form.config'
 import { useRouter } from 'vue-router'
 import AddForm from './add-form/index.vue'
-import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
+import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ShareForm from './share-form-modal/index.vue'
 import {

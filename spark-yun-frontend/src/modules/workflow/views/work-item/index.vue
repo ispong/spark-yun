@@ -127,8 +127,8 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted, onUnmounted, markRaw, nextTick, computed } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import ConfigDetail from '../workflow-page/config-detail/index.vue'
 import PublishLog from './publish-log.vue'
 import ReturnData from './return-data.vue'
@@ -148,7 +148,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { Loading } from '@element-plus/icons-vue'
-import ParseModal from '@/components/log-container/parse-modal/index.vue'
+import ParseModal from '@/modules/workflow/components/parse-modal/index.vue'
 
 const route = useRoute()
 const router = useRouter()

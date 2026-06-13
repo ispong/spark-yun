@@ -548,8 +548,8 @@ import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { sql } from '@codemirror/lang-sql'
 import { json } from '@codemirror/lang-json'
 import { OverModeList } from './data.config.ts'
-import { GetDatasourceList } from '@/modules/datasource/api'
-import { GetDataSourceTables, GetTableColumnsByTableId } from '@/shared/api'
+import { GetDatasourceList } from '@/app/shared/api/resources'
+import { GetDataSourceTables, GetTableColumnsByTableId } from '@/app/shared/api'
 import TableDetail from './table-detail/index.vue'
 import DataSyncTable from './data-sync-table/index.vue'
 import ConfigDetail from '../workflow-page/config-detail/index.vue'
@@ -565,7 +565,7 @@ import {
 import PublishLog from '../work-item/publish-log.vue'
 import RunningLog from '../work-item/running-log.vue'
 import { Delete, Loading, QuestionFilled } from '@element-plus/icons-vue'
-import { jsonFormatter } from '@/utils/formatter'
+import { jsonFormatter } from '@/app/utils/formatter'
 
 interface Option {
     label: string

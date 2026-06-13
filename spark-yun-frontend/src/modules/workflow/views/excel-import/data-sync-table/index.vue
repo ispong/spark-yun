@@ -60,10 +60,10 @@
 <script lang="ts" setup>
 import { ref, defineProps, onMounted, nextTick, watch } from 'vue'
 import { jsPlumb } from 'jsplumb'
-import { GetExcelTableColumnsCodes, GetTableColumnsByTableId } from '@/shared/api'
+import { GetExcelTableColumnsCodes, GetTableColumnsByTableId } from '@/app/shared/api'
 import { ElMessageBox } from 'element-plus'
 import AddCode from '../add-code/index.vue'
-import { useAuthStore } from '@/store/useAuth'
+import { useAuthStore } from '@/app/store/useAuth'
 
 interface connect {
     source: string

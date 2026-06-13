@@ -297,14 +297,14 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted, defineProps, nextTick, markRaw } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 // import CodeMirror from 'vue-codemirror6'
 import { sql } from '@codemirror/lang-sql'
 import { json } from '@codemirror/lang-json'
 import { DataSourceType, CurrentSourceType, OverModeList, BreadCrumbList } from './data.config.ts'
-import { GetDatasourceList } from '@/modules/datasource/api'
-import { GetDataSourceTables, GetTableColumnsByTableId } from '@/shared/api'
+import { GetDatasourceList } from '@/app/shared/api/resources'
+import { GetDataSourceTables, GetTableColumnsByTableId } from '@/app/shared/api'
 import TableDetail from './table-detail/index.vue'
 import DataSyncTable from './data-sync-table/index.vue'
 import ConfigDetail from '../config-detail/index.vue'

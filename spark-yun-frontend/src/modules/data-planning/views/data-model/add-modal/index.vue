@@ -132,8 +132,8 @@
 import { reactive, defineExpose, ref, computed, watch } from 'vue'
 import { GetDataLayerList } from '../../../api/data-layer'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetDatasourceList } from '@/modules/datasource/api'
-import { GetDataSourceTables } from '@/shared/api'
+import { GetDatasourceList } from '@/app/shared/api/resources'
+import { GetDataSourceTables } from '@/app/shared/api'
 import { useRoute } from 'vue-router'
 
 interface Option {

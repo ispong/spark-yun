@@ -1,4 +1,4 @@
-import { http } from '@/utils/http'
+import { http } from '@/app/utils/http'
 
 interface SearchParams {
     page: number

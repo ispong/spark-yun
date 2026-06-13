@@ -72,8 +72,8 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 import CopyModal from './copy-modal/index.vue'
 
@@ -90,7 +90,7 @@ import {
 } from '../../api/data-model'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
-import ShowLog from '@/modules/computer-group/views/computer-pointer/show-log/index.vue'
+import ShowLog from '@/app/shared/components/show-log/index.vue'
 
 const router = useRouter()
 const route = useRoute()

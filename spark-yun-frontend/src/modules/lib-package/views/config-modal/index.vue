@@ -58,7 +58,7 @@
 import { reactive, defineExpose, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Close } from '@element-plus/icons-vue'
-import { GetFileCenterList } from '@/modules/file-center/api'
+import { GetFileCenterList } from '@/app/shared/api/resources'
 import { ConfigLibPackage, GetLibPackage } from '@/modules/lib-package/api'
 
 const keyword = ref('')

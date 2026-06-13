@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted, onBeforeUnmount, createApp } from 'vue'
 import { Graph, treeToGraphData } from '@antv/g6'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { GetDataLayerTreeNodeAll } from '../../../api/data-layer'

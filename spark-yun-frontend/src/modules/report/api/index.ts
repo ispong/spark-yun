@@ -1,4 +1,4 @@
-import { http } from '@/utils/http'
+import { http } from '@/app/utils/http'
 
 // 报表组件-分页查询
 export function QueryReportComponent(params: any): Promise<any> {

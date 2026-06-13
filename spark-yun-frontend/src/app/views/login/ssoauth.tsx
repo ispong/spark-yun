@@ -2,8 +2,8 @@ import { defineComponent, nextTick } from 'vue'
 import { OauthLogin } from '@/app/api'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { useAuthStore } from '@/store/useAuth'
-import { getVipLicenseEnabled } from '@/utils/vip-license'
+import { useAuthStore } from '@/app/store/useAuth'
+import { getVipLicenseEnabled } from '@/app/utils/vip-license'
 
 export default defineComponent({
     setup() {

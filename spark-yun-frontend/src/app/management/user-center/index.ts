@@ -1,4 +1,1 @@
-export {
-    default as userCenterPlatformRoutes,
-    userCenterWorkspaceRoutes
-} from './routes'
+export { default as userCenterPlatformRoutes, userCenterWorkspaceRoutes } from './routes'

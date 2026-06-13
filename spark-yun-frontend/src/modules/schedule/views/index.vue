@@ -178,9 +178,9 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted, onUnmounted } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import BlockTable from '@/components/block-table/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import DetailModal from './detail-modal/index.vue'
 import DagDetail from './dag-detail/index.vue'
 
@@ -194,7 +194,7 @@ import {
 } from '@/modules/schedule/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { GetWorkflowList, ReRunWorkflow, StopWorkflowData, TerWorkItemConfig } from '@/modules/workflow/api'
-import { TypeList } from '@/modules/workflow/views/workflow.config'
+import { TypeList } from '@/modules/workflow/config'
 import { nextTick } from 'process'
 
 const breadCrumbList = reactive(BreadCrumbList)

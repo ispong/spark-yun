@@ -9,7 +9,7 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick, onUnmounted } from 'vue'
-import ZqyFlow from '@/lib/packages/zqy-flow/flow.vue'
+import { ZqyFlow } from '@/modules/workflow/components'
 import { GetScheduleDetail } from '@/modules/schedule/api'
 import {
     BreakFlowData,
@@ -17,8 +17,8 @@ import {
     RerunCurrentNodeFlowData,
     RunAfterFlowData
 } from '@/modules/workflow/api'
-import eventBus from '@/utils/eventBus'
-import zqyLog from '@/components/zqy-log/index.vue'
+import eventBus from '@/app/utils/eventBus'
+import zqyLog from '@/modules/schedule/components/zqy-log/index.vue'
 import { ElMessage } from 'element-plus'
 
 const info = ref()

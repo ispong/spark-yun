@@ -31,8 +31,8 @@
 <script lang="ts" setup>
 import { computed, nextTick, reactive, ref, shallowRef, markRaw } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import BlockModal from '@/components/block-modal/index.vue'
-import BlockTable from '@/components/block-table/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
 import { cloneDeep, clone } from 'lodash-es'
 import OutputModal from './output-modal/index.vue'
 import LinkModal from './link-modal/index.vue'

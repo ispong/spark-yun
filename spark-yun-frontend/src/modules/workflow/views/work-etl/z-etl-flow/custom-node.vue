@@ -39,7 +39,7 @@ import {
 
 const EditIcon = markRaw(Edit)
 import { RunAfterFlowData } from '@/modules/workflow/api'
-import eventBus from '@/utils/eventBus'
+import eventBus from '@/app/utils/eventBus'
 
 const getGraph = inject('getGraph')
 const getNode = inject('getNode')

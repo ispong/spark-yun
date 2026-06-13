@@ -45,17 +45,12 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue'
 import AddModal from './add-modal/index.vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import BlockTable from '@/components/block-table/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 
 import { BreadCrumbList, TableConfig } from './access-rule.config'
-import {
-    QueryAccessRuleList,
-    CreateAccessRule,
-    UpdateAccessRule,
-    DeleteAccessRule
-} from '@/modules/access-rule/api'
+import { QueryAccessRuleList, CreateAccessRule, UpdateAccessRule, DeleteAccessRule } from '@/modules/access-rule/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const breadCrumbList = reactive(BreadCrumbList)

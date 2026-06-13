@@ -3,12 +3,12 @@ import { useLogin, type LoginModel } from './hooks/use-login'
 import { LoginUserInfo } from '@/app/api'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { useAuthStore } from '@/store/useAuth'
-import { getVipLicenseEnabled } from '@/utils/vip-license'
+import { useAuthStore } from '@/app/store/useAuth'
+import { getVipLicenseEnabled } from '@/app/utils/vip-license'
 
-import logoURL from '@/assets/imgs/logo-view.png'
-import logoIcon from '@/assets/imgs/logo-a.png'
-import loginText from '@/assets/imgs/login-text.svg'
+import logoURL from '@/app/assets/imgs/logo-view.png'
+import logoIcon from '@/app/assets/imgs/logo-a.png'
+import loginText from '@/app/assets/imgs/login-text.svg'
 import './login.scss'
 
 export default defineComponent({

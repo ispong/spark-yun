@@ -43,7 +43,7 @@
 <script lang="ts" setup>
 import { ref, defineProps, onMounted, nextTick, watch } from 'vue'
 import { jsPlumb } from 'jsplumb'
-import { GetTableColumnsByTableId } from '@/shared/api'
+import { GetTableColumnsByTableId } from '@/app/shared/api'
 import { ElMessageBox } from 'element-plus'
 
 interface connect {

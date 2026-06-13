@@ -34,9 +34,9 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, defineEmits } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import { GetDataModelTreeData } from '../../../../api/data-model'
-import LoadingPage from '@/components/loading/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import { useRouter } from 'vue-router'
 
 interface colConfig {

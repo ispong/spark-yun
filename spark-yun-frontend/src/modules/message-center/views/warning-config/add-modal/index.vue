@@ -67,8 +67,8 @@ import { reactive, defineExpose, ref } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 // import CodeMirror from 'vue-codemirror6'
 import { json } from '@codemirror/lang-json'
-import { jsonFormatter } from '@/utils/formatter'
-import { GetUserList } from '@/app/management/tenant-user/api'
+import { jsonFormatter } from '@/app/utils/formatter'
+import { GetUserList } from '@/app/shared/api/user'
 import { GetMessagePagesList } from '../../../api'
 
 const form = ref<FormInstance>()

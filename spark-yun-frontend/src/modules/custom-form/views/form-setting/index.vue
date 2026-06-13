@@ -23,11 +23,11 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
-import ZFormEngine from '@/lib/packages/z-form-engine/index.vue'
+import ZFormEngine from '@/app/lib/packages/z-form-engine/index.vue'
 import { useRouter, useRoute } from 'vue-router'
-import { GetTableColumnsByTableId } from '@/shared/api'
+import { GetTableColumnsByTableId } from '@/app/shared/api'
 import MoreSetting from './more-setting.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import { DeployCustomFormData, QueryFormConfigById, SaveFormConfigData } from '../../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 

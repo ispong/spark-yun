@@ -79,9 +79,9 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import BlockTable from '@/components/block-table/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './tenant-user.config'
@@ -96,8 +96,8 @@ import {
 } from '@/app/management/tenant-user/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-import { useSwitchTenant } from '@/hooks/switch-tenant'
-import { useAuthStore } from '@/store/useAuth'
+import { useSwitchTenant } from '@/app/hooks/switch-tenant'
+import { useAuthStore } from '@/app/store/useAuth'
 import { ListRole } from '@/app/management/admin/api'
 
 interface FormUser {

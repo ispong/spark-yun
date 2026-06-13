@@ -40,7 +40,7 @@
 import { ref, defineEmits, computed, onMounted, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AddCode from '../data-join-output/add-code/index.vue'
-import { GetTableColumnsByTableId } from '@/shared/api'
+import { GetTableColumnsByTableId } from '@/app/shared/api'
 
 const props = defineProps<{
     modelValue: any

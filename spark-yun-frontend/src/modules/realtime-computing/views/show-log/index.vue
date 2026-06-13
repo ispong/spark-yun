@@ -10,9 +10,9 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, onUnmounted, nextTick, computed } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import { GetRealSubLog, GetRealSubRunningLog } from '../../api'
-import LoadingPage from '@/components/loading/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 
 const logMsg = ref('')
 const timer = ref<any>(null)

@@ -26,11 +26,11 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import { useRoute } from 'vue-router'
-import Header from '@/layout/header/index.vue'
-import ZFormEngine from '@/lib/packages/z-form-engine/index.vue'
+import Header from '@/app/layout/header/index.vue'
+import ZFormEngine from '@/app/lib/packages/z-form-engine/index.vue'
 import { ElMessage } from 'element-plus'
 import {
     AddFormData,

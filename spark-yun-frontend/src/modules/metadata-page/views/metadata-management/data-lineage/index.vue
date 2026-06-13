@@ -17,7 +17,7 @@
 import { reactive, defineExpose, defineProps, ref, createVNode, onMounted, nextTick, defineEmits } from 'vue'
 import { VueNode } from 'g6-extension-vue'
 import { Graph, register, ExtensionCategory, treeToGraphData, GraphEvent, TreeData, EdgeEvent } from '@antv/g6'
-import eventBus from '@/utils/eventBus'
+import eventBus from '@/app/utils/eventBus'
 import CustomNode from './custom-node.vue'
 import WorkDetail from './work-detail.vue'
 

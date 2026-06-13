@@ -137,8 +137,8 @@
 import { reactive, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { QuestionFilled } from '@element-plus/icons-vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import * as echarts from 'echarts'
 // import CodeMirror from 'vue-codemirror6'
 import { sql } from '@codemirror/lang-sql'
@@ -152,7 +152,7 @@ import {
     PublishReportComponentData
 } from '../../../api'
 import { useRoute, useRouter } from 'vue-router'
-import { GetDatasourceList } from '@/modules/datasource/api'
+import { GetDatasourceList } from '@/app/shared/api/resources'
 
 const route = useRoute()
 const router = useRouter()

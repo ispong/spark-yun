@@ -148,13 +148,16 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick, computed } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList, GetComputerPointData } from '@/modules/computer-group/api'
-import { GetDatasourceList } from '@/modules/datasource/api'
-import { GetSparkContainerList } from '@/modules/spark-container/api'
+import {
+    GetComputerGroupList,
+    GetComputerPointData,
+    GetDatasourceList,
+    GetSparkContainerList
+} from '@/app/shared/api/resources'
 import { TypeList } from '../../workflow.config'
-import { getVipLicenseEnabled } from '@/utils/vip-license'
+import { getVipLicenseEnabled } from '@/app/utils/vip-license'
 
 const form = ref<FormInstance>()
 const callback = ref<any>()

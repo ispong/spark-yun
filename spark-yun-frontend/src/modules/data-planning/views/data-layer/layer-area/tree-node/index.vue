@@ -20,7 +20,7 @@
 <script lang="ts" setup>
 import { computed, defineProps } from 'vue'
 import { CollectionTag } from '@element-plus/icons-vue'
-import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
+import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { ElIcon } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 

@@ -60,9 +60,9 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted, computed } from 'vue'
 import AddModal from './add-modal/index.vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import BlockTable from '@/components/block-table/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 
 import { BreadCrumbList, TableConfig } from './report-components.config'
 import {

@@ -27,9 +27,9 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList } from '@/modules/computer-group/api'
+import { GetComputerGroupList } from '@/app/shared/api/resources'
 import TaskConfig from '../task-config/index.vue'
 
 interface FormData {

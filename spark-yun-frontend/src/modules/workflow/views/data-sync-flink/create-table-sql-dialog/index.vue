@@ -21,8 +21,8 @@
 import { reactive, ref, defineExpose } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
-import BlockModal from '@/components/block-modal/index.vue'
-import { GenerateCreateTableSql } from '@/shared/api'
+import BlockModal from '@/app/components/block-modal/index.vue'
+import { GenerateCreateTableSql } from '@/app/shared/api'
 
 const sqlContent = ref<string>('')
 const loading = ref<boolean>(false)

@@ -13,8 +13,8 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
-import LoadingPage from '@/components/loading/index.vue'
-import ZFormEngine from '@/lib/packages/z-form-engine/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
+import ZFormEngine from '@/app/lib/packages/z-form-engine/index.vue'
 import { ElMessage } from 'element-plus'
 import { QueryFormConfigById } from '../../../api'
 import { useRoute } from 'vue-router'

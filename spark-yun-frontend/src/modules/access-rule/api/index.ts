@@ -1,4 +1,4 @@
-import { http } from '@/utils/http'
+import { http } from '@/app/utils/http'
 
 // 分页查询黑白名单
 export function QueryAccessRuleList(params: any): Promise<any> {

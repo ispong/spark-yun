@@ -80,6 +80,7 @@ export default defineConfig(({ mode }) => ({
       ]
     }),
     Components({
+      dirs: ['src/app/components'],
       extensions: [ 'vue' ],
       include: [ /\.vue$/, /\.vue\?vue/, /\.md$/, /\.tsx$/, /\.jsx$/ ],
       resolvers: [ ElementPlusResolver({
@@ -154,7 +155,7 @@ export default defineConfig(({ mode }) => ({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@core': fileURLToPath(new URL('./src', import.meta.url)),
       '@edition': getEditionRoot(mode),
-      '@shared': fileURLToPath(new URL('./src/shared', import.meta.url)),
+      '@shared': fileURLToPath(new URL('./src/app/shared', import.meta.url)),
       'element-plus': dependencyPath('element-plus'),
       '@element-plus/icons-vue': dependencyPath('@element-plus/icons-vue'),
       '@codemirror/lang-json': dependencyPath('@codemirror/lang-json'),
@@ -182,7 +183,7 @@ export default defineConfig(({ mode }) => ({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: '@use "@/assets/styles/variable.scss" as *;'
+        additionalData: '@use "@/app/assets/styles/variable.scss" as *;'
       }
     }
   }

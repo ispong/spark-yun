@@ -66,8 +66,8 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted, markRaw, nextTick } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import { BreadCrumbList } from './list.config'
 import datasourceList from './datasource-list.vue'
 import tableList from './table-list.vue'

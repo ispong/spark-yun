@@ -252,9 +252,9 @@
 <script lang="ts" setup>
 import { computed, nextTick, reactive, ref } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import BlockDrawer from '@/components/block-drawer/index.vue'
+import BlockDrawer from '@/app/components/block-drawer/index.vue'
 import { ScheduleRange, WeekDateList, CronConfigRules } from './config-detail'
-import { GetAlarmPagesList } from '@/modules/message-center/api'
+import { GetAlarmPagesList } from '@/app/shared/api/resources'
 import { GetInvokeUrl } from '@/modules/workflow/api'
 
 const scheduleRange = ref(ScheduleRange)

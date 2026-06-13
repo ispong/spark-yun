@@ -6,7 +6,7 @@
  * @Description: In User Settings Edit
  * @FilePath: /spark-yun/spark-yun-website/src/services/workflow.service.ts
  */
-import { http } from '@/utils/http'
+import { http } from '@/app/utils/http'
 interface SerchParams {
     page: number
     pageSize: number

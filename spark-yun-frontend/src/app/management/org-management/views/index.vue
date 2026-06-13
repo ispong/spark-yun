@@ -66,10 +66,10 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import { DeleteOrg, ListOrg, ListRole, SaveOrg } from '@/app/management/admin/api'
 import { GetUserList } from '@/app/management/tenant-user/api'
-import { useAuthStore } from '@/store/useAuth'
+import { useAuthStore } from '@/app/store/useAuth'
 
 const authStore = useAuthStore()
 const loading = ref(false)

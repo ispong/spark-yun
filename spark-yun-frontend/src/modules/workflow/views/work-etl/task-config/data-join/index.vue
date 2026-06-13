@@ -238,7 +238,7 @@ import { ref, defineEmits, computed, onMounted, reactive, nextTick } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { TypeList, ConfigRules, TableConfig } from './config.ts'
 import { groupColorPalette } from '../data-filter/config.ts'
-import { GetTableColumnsByTableId } from '@/shared/api'
+import { GetTableColumnsByTableId } from '@/app/shared/api'
 import { GetEtlFilterCondition } from '@/modules/workflow/api'
 import AddCode from './add-code/index.vue'
 

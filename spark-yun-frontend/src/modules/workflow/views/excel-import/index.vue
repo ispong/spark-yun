@@ -240,18 +240,12 @@ import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 // import CodeMirror from 'vue-codemirror6'
 import { sql } from '@codemirror/lang-sql'
 import { DataSourceType, OverModeList } from './data.config.ts'
-import { GetDatasourceList } from '@/modules/datasource/api'
-import { GetFileCenterList } from '@/modules/file-center/api'
-import { GetDataSourceTables, GetExcelReplaceName } from '@/shared/api'
+import { GetDatasourceList, GetFileCenterList } from '@/app/shared/api/resources'
+import { GetDataSourceTables, GetExcelReplaceName } from '@/app/shared/api'
 import TableDetail from './table-detail/index.vue'
 import DataSyncTable from './data-sync-table/index.vue'
 import ConfigDetail from '../workflow-page/config-detail/index.vue'
-import {
-    GetWorkItemConfig,
-    RunWorkItemConfig,
-    SaveWorkItemConfig,
-    TerWorkItemConfig
-} from '@/modules/workflow/api'
+import { GetWorkItemConfig, RunWorkItemConfig, SaveWorkItemConfig, TerWorkItemConfig } from '@/modules/workflow/api'
 import PublishLog from '../work-item/publish-log.vue'
 import RunningLog from '../work-item/running-log.vue'
 import { Loading } from '@element-plus/icons-vue'

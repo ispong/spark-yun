@@ -29,7 +29,7 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
-import EllipsisTooltip from '@/components/ellipsis-tooltip/ellipsis-tooltip.vue'
+import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import Clipboard from 'clipboard'
 import { ElMessage } from 'element-plus'
 import { GetChartsLinkConfig } from '../../../api'

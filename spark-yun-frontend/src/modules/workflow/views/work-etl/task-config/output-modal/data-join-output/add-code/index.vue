@@ -48,7 +48,7 @@
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetDataSourceTables, GetTableColumnsByTableId } from '@/shared/api'
+import { GetDataSourceTables, GetTableColumnsByTableId } from '@/app/shared/api'
 // import CodeMirror from 'vue-codemirror6'
 // import {sql} from '@codemirror/lang-sql'
 

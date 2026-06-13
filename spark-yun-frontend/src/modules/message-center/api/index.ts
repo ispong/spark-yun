@@ -1,4 +1,4 @@
-import { http } from '@/utils/http'
+import { http } from '@/app/utils/http'
 // ------------------------------- 消息通知 -----------------------------------
 // 消息通知 - 分页查询
 export function GetMessagePagesList(params: any): Promise<any> {

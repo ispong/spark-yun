@@ -108,13 +108,11 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import BlockDrawer from '@/components/block-drawer/index.vue'
-import { GetFileCenterList } from '@/modules/file-center/api'
-import { GetCustomFuncList } from '@/modules/custom-func/api'
+import BlockDrawer from '@/app/components/block-drawer/index.vue'
+import { GetComputerGroupList, GetCustomFuncList, GetFileCenterList } from '@/app/shared/api/resources'
 import { ConifgTimeComputingData, GetTimeComputingDetail } from '../../api'
 import { ClusterConfigRules, ResourceLevelOptions } from './config-detail'
-import { GetComputerGroupList } from '@/modules/computer-group/api'
-import { jsonFormatter } from '@/utils/formatter'
+import { jsonFormatter } from '@/app/utils/formatter'
 import { json } from '@codemirror/lang-json'
 // import CodeMirror from 'vue-codemirror6'
 

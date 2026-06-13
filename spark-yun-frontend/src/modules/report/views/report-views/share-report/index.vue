@@ -18,11 +18,11 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, watch, reactive } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import { useRoute } from 'vue-router'
-import Header from '@/layout/header/index.vue'
-import ZChartsEngine from '@/lib/packages/z-charts-engine/index.vue'
+import Header from '@/app/layout/header/index.vue'
+import ZChartsEngine from '@/app/lib/packages/z-charts-engine/index.vue'
 import {
     GetChartsLinkInfoConfig,
     RefreshReportViewItemData,

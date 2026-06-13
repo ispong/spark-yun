@@ -11,7 +11,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { GetDataSourceTables } from '@/shared/api'
+import { GetDataSourceTables } from '@/app/shared/api'
 
 interface column {
     code: string

@@ -1,4 +1,4 @@
-import { http } from '@/utils/http'
+import { http } from '@/app/utils/http'
 // ------------------------------- 采集任务 -----------------------------------
 // 元数据 - 采集任务 - 分页查询
 export function GetMetadataTaskList(params: any): Promise<any> {

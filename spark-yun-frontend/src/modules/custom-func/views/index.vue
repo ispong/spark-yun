@@ -39,18 +39,13 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import BlockTable from '@/components/block-table/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
 import { BreadCrumbList, TableConfig } from './custom-func.config'
-import {
-    GetCustomFuncList,
-    SaveCustomFuncData,
-    UpdateCustomFuncData,
-    DeleteFuncData
-} from '@/modules/custom-func/api'
+import { GetCustomFuncList, SaveCustomFuncData, UpdateCustomFuncData, DeleteFuncData } from '@/modules/custom-func/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 

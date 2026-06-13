@@ -351,13 +351,8 @@ import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 // import CodeMirror from 'vue-codemirror6'
 import { sql } from '@codemirror/lang-sql'
 import { DataSourceType, OverModeList } from './data.config.ts'
-import { GetDatasourceList } from '@/modules/datasource/api'
-import {
-    CreateTableWork,
-    GetDataSourceTables,
-    GetTableColumnsByTableId,
-    SaveDataSync
-} from '@/shared/api'
+import { GetDatasourceList } from '@/app/shared/api/resources'
+import { CreateTableWork, GetDataSourceTables, GetTableColumnsByTableId, SaveDataSync } from '@/app/shared/api'
 import TableDetail from './table-detail/index.vue'
 import DataSyncTable from './data-sync-table/index.vue'
 import ConfigDetail from '../workflow-page/config-detail/index.vue'
@@ -373,7 +368,7 @@ import {
 import PublishLog from '../work-item/publish-log.vue'
 import RunningLog from '../work-item/running-log.vue'
 import { Delete, Loading } from '@element-plus/icons-vue'
-import LoadingPage from '@/components/loading/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import CreateTableSqlDialog from './create-table-sql-dialog/index.vue'
 
 interface Option {

@@ -205,20 +205,15 @@
 import { ref, reactive, onMounted, onUnmounted, defineProps, nextTick, markRaw, computed } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import ConfigDetail from '../workflow-page/config-detail/index.vue'
-import {
-    GetWorkItemConfig,
-    RunWorkItemConfig,
-    SaveWorkItemConfig,
-    TerWorkItemConfig
-} from '@/modules/workflow/api'
+import { GetWorkItemConfig, RunWorkItemConfig, SaveWorkItemConfig, TerWorkItemConfig } from '@/modules/workflow/api'
 import { DataSourceType } from './data.config.ts'
-import { GetDatasourceList } from '@/modules/datasource/api'
+import { GetDatasourceList } from '@/app/shared/api/resources'
 import TableList from './table-list/index.vue'
 
 import PublishLog from '../work-item/publish-log.vue'
 import RunningLog from '../work-item/running-log.vue'
 import { Loading } from '@element-plus/icons-vue'
-import LoadingPage from '@/components/loading/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 
 interface Option {
     label: string

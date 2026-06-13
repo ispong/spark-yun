@@ -1,0 +1,7 @@
+export { default as ApiSync } from '../views/api-sync/index.vue'
+export { default as DataSync } from '../views/data-sync/index.vue'
+export { default as DatabaseMigrate } from '../views/database-migrate/index.vue'
+export { default as ExcelImport } from '../views/excel-import/index.vue'
+export { default as SparkJar } from '../views/spark-jar/index.vue'
+export { default as WorkApi } from '../views/work-api/index.vue'
+export { default as WorkItem } from '../views/work-item/index.vue'

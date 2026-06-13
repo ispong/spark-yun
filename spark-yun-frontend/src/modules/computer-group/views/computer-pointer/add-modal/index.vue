@@ -107,7 +107,7 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Validator } from '@/modules/computer-group/validators'
 import { useRoute } from 'vue-router'

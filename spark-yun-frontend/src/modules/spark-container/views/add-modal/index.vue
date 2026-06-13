@@ -56,13 +56,12 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
-import BlockModal from '@/components/block-modal/index.vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList } from '@/modules/computer-group/api'
-import { GetDatasourceList } from '@/modules/datasource/api'
+import { GetComputerGroupList, GetDatasourceList } from '@/app/shared/api/resources'
 // import CodeMirror from 'vue-codemirror6'
 import { json } from '@codemirror/lang-json'
-import { jsonFormatter } from '@/utils/formatter'
+import { jsonFormatter } from '@/app/utils/formatter'
 
 const form = ref<FormInstance>()
 const callback = ref<any>()

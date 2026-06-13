@@ -40,13 +40,13 @@
 <script lang="ts" setup>
 import { ref, reactive, defineEmits, defineProps, onMounted, onUnmounted, nextTick, markRaw, computed } from 'vue'
 import OptionsContainer from './options-container/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import TaskList from './task-list/index.vue'
 import ZEtlFlow from './z-etl-flow/flow.vue'
 import AddTaskModal from './add-task-modal/index.vue'
 import TaskConfig from './task-config/index.vue'
-import eventBus from '@/utils/eventBus'
+import eventBus from '@/app/utils/eventBus'
 import {
     GetWorkItemConfig,
     PublishWorkData,

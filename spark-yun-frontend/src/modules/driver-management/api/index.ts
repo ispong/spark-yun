@@ -6,7 +6,7 @@
  * @Description: In User Settings Edit
  * @FilePath: /zqy-web/src/services/computer-group.service.ts
  */
-import { http } from '@/utils/http'
+import { http } from '@/app/utils/http'
 
 // 获取数据源驱动
 export function GetDriverListData(params: any): Promise<any> {

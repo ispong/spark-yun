@@ -25,11 +25,11 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import LoadingPage from '@/components/loading/index.vue'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import { BreadCrumbList } from './views-detail.config'
-import ZChartsEngine from '@/lib/packages/z-charts-engine/index.vue'
-import { useAuthStore } from '@/store/useAuth'
+import ZChartsEngine from '@/app/lib/packages/z-charts-engine/index.vue'
+import { useAuthStore } from '@/app/store/useAuth'
 import { ElMessage } from 'element-plus'
 import PreviewReport from '../preview-report/index.vue'
 import {

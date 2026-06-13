@@ -104,8 +104,8 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { PasswordModel, PersonalModel } from './personal-info'
-import Breadcrumb from '@/layout/bread-crumb/index.vue'
-import { useAuthStore } from '@/store/useAuth'
+import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import { useAuthStore } from '@/app/store/useAuth'
 import { UpdateMyPassword, UpdateUserInfo } from '../api'
 import { ElForm, ElMessage, FormRules } from 'element-plus'
 

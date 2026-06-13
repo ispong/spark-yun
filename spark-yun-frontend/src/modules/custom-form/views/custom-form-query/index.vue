@@ -38,17 +38,11 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue'
-import LoadingPage from '@/components/loading/index.vue'
+import LoadingPage from '@/app/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { BreadCrumbList, TableConfig } from './form-query.config'
-import {
-    AddFormData,
-    DeleteFormData,
-    QueryFormConfigById,
-    QueryFormDataList,
-    UpdateFormData
-} from '../../api'
+import { AddFormData, DeleteFormData, QueryFormConfigById, QueryFormDataList, UpdateFormData } from '../../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { cloneDeep, clone } from 'lodash-es'
 
