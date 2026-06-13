@@ -9,10 +9,7 @@
         "preinstall": "npx only-allow pnpm",
         "dev": "vite",
         "build": "vite build",
-        "preview": "vite preview",
-        "check:architecture": "node scripts/check-frontend-architecture.mjs",
-        "check:architecture:full": "node scripts/check-frontend-architecture.mjs --verify-no-modules-build",
-        "check:architecture:report": "node scripts/check-frontend-architecture.mjs --report-cross-module-internals"
+        "preview": "vite preview"
     },
     "dependencies": {
         "@antv/g6": "^5.1.1",
