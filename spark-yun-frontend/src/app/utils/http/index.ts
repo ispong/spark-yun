@@ -10,13 +10,21 @@ import { createAxios } from '@/app/plugins/http-request'
 import router from '@/app/router'
 import { merge } from '../checkType'
 import { ElMessage } from 'element-plus'
-import * as process from 'process'
 import { useAuthStore } from '@/app/store/useAuth'
 
 const message = ElMessage
 
 const whiteList = ['/vip/auth/open/querySsoAuth', '/vip/license/open/checkLicense']
 let isRefreshingLicense = false
+
+function hasPlatformAccess(authStore: ReturnType<typeof useAuthStore>): boolean {
+    return (
+        !!authStore.userInfo?.systemAdmin ||
+        !!authStore.userInfo?.platformAdmin ||
+        authStore.role === 'ROLE_SYS_ADMIN' ||
+        authStore.role === 'ROLE_PLATFORM_ADMIN'
+    )
+}
 
 function isLicenseMissingError(msg: string): boolean {
     return typeof msg === 'string' && msg.includes('请上传许可证')
@@ -88,9 +96,12 @@ export const httpOption = {
                     )
                 } else if (status == 403) {
                     message.error(msg || '暂无权限')
-                    router.push({
-                        name: 'forbidden'
-                    })
+                    const authStore = useAuthStore()
+                    if (!router.currentRoute.value.path.startsWith('/platform') || !hasPlatformAccess(authStore)) {
+                        router.push({
+                            name: 'forbidden'
+                        })
+                    }
                 } else if (status == 404) {
                     if (response.config.url.match('/vip/')) {
                         if (!whiteList.some((url) => response.config.url.match(url))) {

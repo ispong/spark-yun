@@ -4,6 +4,22 @@ import { getCommercialEditionEnabled, isCommercialMenuCode } from '@edition'
 import { useAuthStore } from '@/app/store/useAuth'
 
 const openRouteName = new Set(['login', 'ssoauth', 'share', 'share-report'])
+const systemAdminRole = 'ROLE_SYS_ADMIN'
+const platformAdminRole = 'ROLE_PLATFORM_ADMIN'
+const tenantAdminRoles = new Set(['ROLE_TENANT_ADMIN', 'ROLE_TENANT_NORMAL_ADMIN'])
+
+function hasPlatformAccess(authStore: ReturnType<typeof useAuthStore>): boolean {
+    return (
+        !!authStore.userInfo?.systemAdmin ||
+        !!authStore.userInfo?.platformAdmin ||
+        authStore.role === systemAdminRole ||
+        authStore.role === platformAdminRole
+    )
+}
+
+function hasTenantAdminAccess(authStore: ReturnType<typeof useAuthStore>): boolean {
+    return !!authStore.userInfo?.tenantAdmin || !!authStore.userInfo?.normalAdmin || tenantAdminRoles.has(authStore.role)
+}
 
 export function setupRouterGuard(router: Router, workspaceDefaultRoute: () => RouteLocationRaw): void {
     router.beforeEach(async (to) => {
@@ -20,18 +36,18 @@ export function setupRouterGuard(router: Router, workspaceDefaultRoute: () => Ro
         }
 
         const area = to.meta.area
-        if (area === 'platform' && !authStore.userInfo?.platformAdmin) {
+        if (area === 'platform' && !hasPlatformAccess(authStore)) {
             return {
                 name: 'forbidden'
             }
         }
-        if (area === 'admin' && !authStore.userInfo?.tenantAdmin && !authStore.userInfo?.normalAdmin) {
+        if (area === 'admin' && !hasTenantAdminAccess(authStore)) {
             return {
                 name: 'forbidden'
             }
         }
         if (area === 'workspace') {
-            if (authStore.userInfo?.systemAdmin) {
+            if (authStore.userInfo?.systemAdmin || authStore.role === systemAdminRole) {
                 return {
                     name: 'forbidden'
                 }

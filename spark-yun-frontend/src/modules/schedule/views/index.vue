@@ -195,7 +195,6 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { GetWorkflowList, ReRunWorkflow, StopWorkflowData, TerWorkItemConfig } from '@/modules/workflow/api'
 import { TypeList } from '@/modules/workflow/config'
-import { nextTick } from 'process'
 
 const breadCrumbList = reactive(BreadCrumbList)
 const tableConfig: any = reactive(TableConfig)

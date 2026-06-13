@@ -413,8 +413,9 @@ function locationContentCenter() {
     _Graph.center()
 }
 
-onMounted(() => {
+onMounted(async () => {
     container = document.getElementById('container') as HTMLElement | undefined
+    await import('@antv/x6-vue-shape')
     initGraph()
 })
 

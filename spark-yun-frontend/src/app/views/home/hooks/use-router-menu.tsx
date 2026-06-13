@@ -51,6 +51,28 @@ function firstLeafMenu(menuList: Menu[]): Menu | undefined {
     }
 }
 
+const platformMenuPaths: Record<string, string> = {
+    'user-center': '/platform/users',
+    'tenant-list': '/platform/tenants',
+    license: '/platform/license',
+    'oauth-management': '/platform/auth'
+}
+
+const adminMenuPaths: Record<string, string> = {
+    'tenant-user': '/admin/members',
+    'role-management': '/admin/roles',
+    'org-management': '/admin/orgs'
+}
+
+function getAreaMenuCode(path: string): string | undefined {
+    if (path.startsWith('/platform')) {
+        return Object.entries(platformMenuPaths).find(([, menuPath]) => menuPath === path)?.[0]
+    }
+    if (path.startsWith('/admin')) {
+        return Object.entries(adminMenuPaths).find(([, menuPath]) => menuPath === path)?.[0]
+    }
+}
+
 export function useRouterMenu(menuListData: MaybeRef<Menu[]>) {
     const authStore = useAuthStore()
     const route = useRoute()
@@ -73,9 +95,10 @@ export function useRouterMenu(menuListData: MaybeRef<Menu[]>) {
     })
 
     const currentMenu = computed(() => {
-        const m = menuViewData.value.find((menuData) => menuData.code === route.name)
+        const routeMenuCode = getAreaMenuCode(route.path) || String(route.name || '')
+        const m = menuViewData.value.find((menuData) => menuData.code === routeMenuCode)
         if (!m) {
-            const current = getCurrentMenu(menuViewData.value, route.name)
+            const current = getCurrentMenu(menuViewData.value, routeMenuCode)
             // const current = menuViewData.value.find(m => m.childPage?.includes(route.name))
             return current
         } else {
@@ -118,6 +141,15 @@ export function useRouterMenu(menuListData: MaybeRef<Menu[]>) {
                 if (!target) {
                     return
                 }
+                const targetPath = route.path.startsWith('/platform')
+                    ? platformMenuPaths[target.code]
+                    : route.path.startsWith('/admin')
+                      ? adminMenuPaths[target.code]
+                      : undefined
+                if (targetPath) {
+                    router.replace(targetPath)
+                    return
+                }
                 router.replace({
                     name: target.code
                 })
@@ -131,6 +163,14 @@ export function useRouterMenu(menuListData: MaybeRef<Menu[]>) {
     const isCollapse = ref(true)
 
     const handleSelect = (index: Menu['code']) => {
+        if (route.path.startsWith('/platform') && platformMenuPaths[index]) {
+            router.push(platformMenuPaths[index])
+            return
+        }
+        if (route.path.startsWith('/admin') && adminMenuPaths[index]) {
+            router.push(adminMenuPaths[index])
+            return
+        }
         router.push({
             name: index
         })

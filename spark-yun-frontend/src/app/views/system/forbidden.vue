@@ -16,7 +16,7 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 function goDefault() {
-    router.replace(authStore.userInfo?.systemAdmin ? '/platform' : '/workspace')
+    router.replace(authStore.userInfo?.systemAdmin || authStore.role === 'ROLE_SYS_ADMIN' ? '/platform' : '/workspace')
 }
 </script>
 

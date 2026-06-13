@@ -2,7 +2,6 @@ import { createApp } from 'vue'
 import VXETable from 'vxe-table'
 import VxeUIAll from 'vxe-pc-ui'
 import VueGridLayout from 'vue-grid-layout'
-import '@antv/x6-vue-shape'
 
 import App from '@/App.vue'
 import router from '@/app/router'

@@ -12,38 +12,6 @@ import { existsSync, readFileSync } from 'node:fs'
 // 读取VERSION文件
 const version = readFileSync('../VERSION', 'utf-8').trim()
 
-function getAntvChunk(id: string) {
-  if (!id.includes('@antv/')) {
-    return
-  }
-
-  if (id.includes('@antv/x6-vue-shape')) {
-    return 'antv-x6-vue'
-  }
-  if (id.includes('@antv/x6')) {
-    return 'antv-x6'
-  }
-  if (id.includes('@antv/g6')) {
-    return 'antv-g6'
-  }
-  if (id.includes('@antv/layout') || id.includes('@antv/hierarchy') || id.includes('@antv/graphlib')) {
-    return 'antv-layout'
-  }
-  if (
-    id.includes('@antv/g') ||
-    id.includes('@antv/g-') ||
-    id.includes('@antv/component') ||
-    id.includes('@antv/scale')
-  ) {
-    return 'antv-renderer'
-  }
-  if (id.includes('@antv/util') || id.includes('@antv/vendor') || id.includes('@antv/algorithm')) {
-    return 'antv-utils'
-  }
-
-  return 'antv-common'
-}
-
 const openSourceEditionRoot = fileURLToPath(new URL('./src/edition', import.meta.url))
 const vipFrontendRoot = fileURLToPath(new URL('../spark-yun-vip/spark-yun-frontend', import.meta.url))
 const vipEditionRoot = fileURLToPath(new URL('../spark-yun-vip/spark-yun-frontend/src/edition', import.meta.url))
@@ -99,51 +67,6 @@ export default defineConfig(({ mode }) => ({
       checks: {
         invalidAnnotation: false,
         pluginTimings: false
-      },
-      output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) {
-            return
-          }
-          if (id.includes('@element-plus/icons-vue')) {
-            return 'element-icons'
-          }
-          if (id.includes('element-plus')) {
-            return 'element-plus'
-          }
-          if (id.includes('vxe-table')) {
-            return 'vxe-table'
-          }
-          if (id.includes('vxe-pc-ui')) {
-            return 'vxe-ui'
-          }
-          if (id.includes('xe-utils')) {
-            return 'xe-utils'
-          }
-          const antvChunk = getAntvChunk(id)
-          if (antvChunk) {
-            return antvChunk
-          }
-          if (id.includes('zrender')) {
-            return 'zrender'
-          }
-          if (id.includes('echarts')) {
-            return 'echarts'
-          }
-          if (id.includes('@codemirror') || id.includes('codemirror')) {
-            return 'codemirror'
-          }
-          if (id.includes('/ai/') || id.includes('@ai-sdk')) {
-            return 'ai'
-          }
-          if (id.includes('/vue/') || id.includes('vue-router') || id.includes('pinia')) {
-            return 'vue'
-          }
-          if (id.includes('lodash')) {
-            return 'lodash'
-          }
-          return 'vendor'
-        }
       }
     }
   },
@@ -161,8 +84,9 @@ export default defineConfig(({ mode }) => ({
       '@codemirror/lang-json': dependencyPath('@codemirror/lang-json'),
       '@codemirror/lang-sql': dependencyPath('@codemirror/lang-sql'),
       clipboard: dependencyPath('clipboard'),
+      'g6-extension-vue': fileURLToPath(new URL('./src/app/lib/g6-extension-vue.ts', import.meta.url)),
+      '@antv/x6-vue-shape': fileURLToPath(new URL('./src/app/lib/x6-vue-shape.ts', import.meta.url)),
       '@antv/x6': '@antv/x6/lib',
-      '@antv/x6-vue-shape': '@antv/x6-vue-shape/lib'
     },
     dedupe: ['vue', 'vue-router', 'pinia']
     // alias: [

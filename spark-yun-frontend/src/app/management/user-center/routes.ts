@@ -5,7 +5,7 @@ const UserCenter = () => import('./views/index.vue')
 const userCenterPlatformRoutes: RouteRecordRaw[] = [
     {
         path: 'users',
-        name: 'user-center',
+        name: 'platform-user-center',
         component: UserCenter
     }
 ]

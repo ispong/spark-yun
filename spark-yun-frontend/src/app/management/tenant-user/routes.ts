@@ -5,7 +5,7 @@ const TenantUser = () => import('./views/index.vue')
 const tenantUserAdminRoutes: RouteRecordRaw[] = [
     {
         path: 'members',
-        name: 'tenant-user',
+        name: 'admin-tenant-user',
         component: TenantUser
     }
 ]

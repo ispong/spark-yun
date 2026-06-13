@@ -80,9 +80,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
             area: 'platform'
         },
-        redirect: {
-            name: 'user-center'
-        },
+        redirect: '/platform/users',
         children: platformRoutes
     },
     {
@@ -92,9 +90,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
             area: 'admin'
         },
-        redirect: {
-            name: 'tenant-user'
-        },
+        redirect: '/admin/members',
         children: adminRoutes
     },
     {

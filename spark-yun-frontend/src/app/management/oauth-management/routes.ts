@@ -13,7 +13,7 @@ const oauthManagementWorkspaceRoutes: RouteRecordRaw[] = [
 const oauthManagementPlatformRoutes: RouteRecordRaw[] = [
     {
         path: 'auth',
-        name: 'oauth-management',
+        name: 'platform-oauth-management',
         component: OauthManagement
     }
 ]

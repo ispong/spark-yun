@@ -5,7 +5,7 @@ const TenantList = () => import('./views/index.vue')
 const tenantListPlatformRoutes: RouteRecordRaw[] = [
     {
         path: 'tenants',
-        name: 'tenant-list',
+        name: 'platform-tenant-list',
         component: TenantList
     }
 ]
