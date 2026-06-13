@@ -95,7 +95,6 @@ tasks.register('npmBuild', Exec) {
         fileTree(projectDir) {
             include 'index.html'
             include '.env*'
-            include 'components.d.ts'
             include 'env.d.ts'
             include 'package.json'
             include 'pnpm-lock.yaml'
