@@ -19,7 +19,7 @@ bootJar {
     mainClass = 'com.isxcode.spark.SparkYunApplication'
     archiveFileName = 'zhiqingyun.jar'
 
-    dependsOn(':spark-yun-frontend:npmBuild', ':spark-yun-dist:build_agent')
+    dependsOn(':spark-yun-frontend:make', ':spark-yun-dist:build_agent')
 
     from(rootProject.file('spark-yun-frontend/dist/index.html')) {
         into 'BOOT-INF/classes/frontend'

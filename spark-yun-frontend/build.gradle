@@ -1,85 +1,29 @@
-import groovy.json.JsonSlurper
-
-def packageJsonFile = layout.projectDirectory.file('package.json')
-def packageMetadata = new JsonSlurper().parse(packageJsonFile.asFile)
-def requiredPnpmVersion = packageMetadata.packageManager.toString().split('@').last()
-def requiredNodeVersion = packageMetadata.engines.node.toString()
-def frontendDist = layout.projectDirectory.dir('dist')
-def frontendNodeModules = layout.projectDirectory.dir('node_modules')
-
-def shellQuote = { String value ->
-    "'${value.replace("'", "'\"'\"'")}'"
-}
-
-def frontendRuntimeScript = { String script ->
-    def nodeVersionArg = shellQuote(requiredNodeVersion)
-    def commandArg = shellQuote(script)
-    """
-      set -e
-      if command -v node >/dev/null 2>&1 && [ "\$(node --version | sed 's/^v//')" = ${nodeVersionArg} ]; then
-        sh -lc ${commandArg}
-      elif command -v fnm >/dev/null 2>&1; then
-        fnm exec --using ${nodeVersionArg} sh -lc ${commandArg}
-      else
-        sh -lc ${commandArg}
-      fi
-    """
-}
-
-def readFrontendCommandVersion = { String command ->
-    def output = new ByteArrayOutputStream()
-    exec {
-        workingDir projectDir
-        commandLine 'sh', '-c', frontendRuntimeScript("${command} --version")
-        standardOutput = output
-    }
-    output.toString('UTF-8').trim()
-}
-
-tasks.register('validateFrontendRuntime') {
-
-    inputs.file(packageJsonFile)
-    outputs.upToDateWhen { false }
-
-    doLast {
-        def nodeVersion = readFrontendCommandVersion('node')
-        def pnpmVersion = readFrontendCommandVersion('pnpm')
-
-        if (nodeVersion.replaceFirst('^v', '') != requiredNodeVersion) {
-            throw new GradleException(
-                "Node.js ${nodeVersion} is unsupported. Install Node.js ${requiredNodeVersion}."
-            )
-        }
-        if (pnpmVersion != requiredPnpmVersion) {
-            throw new GradleException(
-                "pnpm ${pnpmVersion} is unsupported. Install pnpm ${requiredPnpmVersion}."
-            )
-        }
-
-        logger.lifecycle("Frontend runtime: Node.js ${nodeVersion}, pnpm ${pnpmVersion}")
-    }
-}
-
+// 安装前端依赖
 tasks.register('pnpmInstall', Exec) {
 
-    dependsOn('validateFrontendRuntime')
-
+    // 检测文件是否变化
     inputs.files(
-        packageJsonFile,
-        layout.projectDirectory.file('pnpm-lock.yaml'),
-        layout.projectDirectory.file('.npmrc')
+        layout.projectDirectory.file('package.json'),
+        layout.projectDirectory.file('pnpm-lock.yaml')
     )
-    outputs.dir(frontendNodeModules)
 
+    // 没有变化则直接输出
+    outputs.dir(layout.projectDirectory.dir('node_modules'))
+
+    // 制定工作空间
     workingDir projectDir
-    commandLine 'sh', '-c', frontendRuntimeScript('pnpm install --frozen-lockfile --prefer-offline')
+
+    // 执行安装依赖命令
+    commandLine 'sh', '-c', 'pnpm install --frozen-lockfile --prefer-offline'
 }
 
-// Build frontend assets with Gradle input and output tracking.
-tasks.register('npmBuild', Exec) {
+// 先构建前端
+tasks.register('make', Exec) {
 
+    // 先安装
     dependsOn('pnpmInstall')
 
+    // 查看文件是否变化，变化则重新执行
     inputs.files(
         fileTree('src'),
         fileTree('public'),
@@ -94,14 +38,13 @@ tasks.register('npmBuild', Exec) {
         },
         rootProject.layout.projectDirectory.file('VERSION')
     )
-    outputs.dir(frontendDist)
 
-    workingDir projectDir
-    commandLine 'sh', '-c', frontendRuntimeScript('pnpm run build')
-}
+    // 直接输出，之前打好的包
+    outputs.dir(layout.projectDirectory.dir('dist'))
 
-// Aggregate task used by the distribution build.
-tasks.register('make') {
+    // 制定当前工作目录
+     workingDir projectDir
 
-    dependsOn('npmBuild')
+    // 前端打包
+    commandLine 'sh', '-c', 'pnpm run build'
 }
