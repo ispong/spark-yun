@@ -8,7 +8,7 @@
 -->
 <template>
     <div class="zqy-header">
-        <div class="header-name" @click="clickToSPK">
+        <div class="header-name">
             <img src="../../assets/imgs/logo-a.png" alt="至轻云" />
         </div>
         <!-- <div
@@ -29,7 +29,6 @@
       </el-select>
     </div> -->
         <!-- <div class="header-user">
-      <span class="redirect-url" @click="clickRedirectUrl">帮助文档</span>
       <el-dropdown @command="handleCommand">
         <span class="el-dropdown-link">
           <el-avatar :size="32">{{ headerConfig.userInfo && headerConfig.userInfo.username ? headerConfig.userInfo.username.slice(0, 1) : "" }}</el-avatar>
@@ -130,14 +129,6 @@ function visibleChange(e: boolean): void {
     if (e) {
         getTenantList()
     }
-}
-
-function clickRedirectUrl(): void {
-    window.open(import.meta.env.VITE_INFO_URL, '_blank')
-}
-
-function clickToSPK() {
-    window.open(import.meta.env.VITE_SPARK_URL, '_blank')
 }
 
 onMounted(() => {
