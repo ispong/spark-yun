@@ -6,11 +6,8 @@
     "composite": true,
     "baseUrl": ".",
     "paths": {
-      "@core/*": ["./src/*"],
       "@edition": ["./src/edition/index.ts"],
       "@edition/*": ["./src/edition/*"],
-      "@shared": ["./src/app/shared/index.ts"],
-      "@shared/*": ["./src/app/shared/*"],
       "@/*": ["./src/*"]
     }
   }

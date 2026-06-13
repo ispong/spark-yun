@@ -63,7 +63,7 @@ VIP code should put closed-source features behind the same contracts instead of 
 - `src/edition/features.ts` for feature flags, license checks, and menu visibility.
 - `src/edition/routes.ts` for VIP-only workspace routes.
 - `@edition` for edition-level imports.
-- `@shared` or `@/app/shared` for shared public frontend utilities.
+- `@/app/shared` for shared public frontend utilities.
 
 Open-source builds use default edition stubs. When `../spark-yun-vip/spark-yun-frontend/src/edition` exists, `@edition` automatically points to that closed-source edition directory.
 

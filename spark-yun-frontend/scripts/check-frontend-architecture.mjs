@@ -53,9 +53,6 @@ function resolveImport(fromFile, specifier) {
     if (specifier.startsWith('@/')) {
         return path.join(srcRoot, specifier.slice(2))
     }
-    if (specifier === '@shared' || specifier.startsWith('@shared/')) {
-        return path.join(appRoot, 'shared', specifier.slice('@shared'.length))
-    }
     if (specifier === '@edition' || specifier.startsWith('@edition/')) {
         return path.join(srcRoot, 'edition', specifier.slice('@edition'.length))
     }

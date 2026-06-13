@@ -65,11 +65,9 @@ export default defineConfig({
 
     // 解析说明
     resolve: {
-        alias: {
+        alias: { // 起别名，方便引入
             '@': fileURLToPath(new URL('./src', import.meta.url)),
-            '@core': fileURLToPath(new URL('./src', import.meta.url)),
             '@edition': getEditionRoot(),
-            '@shared': fileURLToPath(new URL('./src/app/shared', import.meta.url)),
             'element-plus': dependencyPath('element-plus'),
             '@element-plus/icons-vue': dependencyPath('@element-plus/icons-vue'),
             '@codemirror/lang-json': dependencyPath('@codemirror/lang-json'),
