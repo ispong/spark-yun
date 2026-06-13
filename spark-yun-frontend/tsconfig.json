@@ -2,48 +2,24 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
+    "verbatimModuleSyntax": false,
     "strict": true,
     "jsx": "preserve",
     "importHelpers": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "sourceMap": true,
-    "allowJs": true,
     "baseUrl": ".",
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]
     },
-    "lib": [
-      "esnext",
-      "dom",
-      "dom.iterable",
-      "scripthost"
-    ]
+    "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "tests/**/*.ts",
-    "tests/**/*.tsx"
-, "src/views/computer-group/components/utils.js"  ],
-  "exclude": [
-    "node_modules"
-  ],
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    },
-    {
-      "path": "./tsconfig.app.json"
-    }
-  ]
+  "include": ["env.d.ts", "src/**/*", "vite.config.ts", "playwright.config.ts"],
+  "exclude": ["node_modules", "dist", "src/**/__tests__/*"]
 }

@@ -11,6 +11,11 @@
 # production
 /dist
 
+# TypeScript build output
+*.tsbuildinfo
+/*.config.js
+/*.config.d.ts
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
