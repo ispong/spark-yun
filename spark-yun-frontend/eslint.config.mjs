@@ -20,8 +20,6 @@ export default defineConfigWithVueTs(
         ignores: [
             'dist/**',
             'node_modules/**',
-            'playwright-report/**',
-            'test-results/**',
             'coverage/**',
             'components.d.ts'
         ]
