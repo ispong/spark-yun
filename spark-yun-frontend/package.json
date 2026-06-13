@@ -1,7 +1,5 @@
 {
     "name": "spark-yun",
-    "version": "1.0.0",
-    "private": true,
     "packageManager": "pnpm@10.34.3",
     "engines": {
         "node": "22.22.3",
@@ -14,8 +12,7 @@
         "preview": "vite preview",
         "check:architecture": "node scripts/check-frontend-architecture.mjs",
         "check:architecture:full": "node scripts/check-frontend-architecture.mjs --verify-no-modules-build",
-        "check:architecture:report": "node scripts/check-frontend-architecture.mjs --report-cross-module-internals",
-        "format": "prettier --write src/"
+        "check:architecture:report": "node scripts/check-frontend-architecture.mjs --report-cross-module-internals"
     },
     "dependencies": {
         "@antv/g6": "^5.1.1",
@@ -25,6 +22,7 @@
         "@codemirror/lang-python": "^6.1.3",
         "@codemirror/lang-sql": "^6.10.0",
         "@element-plus/icons-vue": "2.3.2",
+        "@vue/shared": "3.5.38",
         "axios": "^1.17.0",
         "clipboard": "^2.0.11",
         "dayjs": "^1.11.21",
@@ -49,18 +47,14 @@
         "xe-utils": "^3.5.10"
     },
     "devDependencies": {
-        "@tsconfig/node22": "22.0.5",
         "@types/lodash-es": "^4.17.9",
         "@types/node": "22.19.21",
         "@types/validator": "^13.15.10",
         "@vitejs/plugin-vue": "6.0.7",
         "@vitejs/plugin-vue-jsx": "5.1.5",
-        "@vue/tsconfig": "0.9.1",
-        "prettier": "^3.8.4",
         "sass": "1.101.0",
         "typescript": "5.9.3",
         "unplugin-vue-components": "32.1.0",
-        "vite": "8.0.16",
-        "vue-tsc": "3.3.4"
+        "vite": "8.0.16"
     }
 }
