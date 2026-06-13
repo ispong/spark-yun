@@ -1,20 +1,9 @@
-# dependencies
+
 /node_modules
-/.pnp
-.pnp.js
 
-# testing
-/coverage
-
-# production
 /dist
 
-# TypeScript build output
 *.tsbuildinfo
 components.d.ts
 /*.config.js
 /*.config.d.ts
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
