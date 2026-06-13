@@ -4,18 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  brace-expansion@2: 2.0.3
-  editorconfig>minimatch: 9.0.7
-  flatted: 3.4.2
-  glob: 10.5.0
-  glob>minimatch: 9.0.7
-  js-cookie: 3.0.7
-  lodash: 4.18.1
-  minimatch@3: 3.1.4
-  minimatch@9: 9.0.7
-  picomatch@2: 2.3.2
-
 importers:
 
   .:
@@ -1885,7 +1873,7 @@ packages:
     resolution: {integrity: sha512-WK9qSozxXOD7ZJQlpSqOT+om2ZfcT4yO+03FuzAHD0wF6S0l0090LRPDx3vhTTLZ8cFKpBn+IOcVXK6qOcIlfQ==}
     peerDependencies:
       '@types/lodash-es': '*'
-      lodash: 4.18.1
+      lodash: '*'
       lodash-es: '*'
 
   lodash@4.18.1:

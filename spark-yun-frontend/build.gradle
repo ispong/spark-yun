@@ -67,7 +67,6 @@ tasks.register('pnpmInstall', Exec) {
     inputs.files(
         packageJsonFile,
         layout.projectDirectory.file('pnpm-lock.yaml'),
-        layout.projectDirectory.file('pnpm-workspace.yaml'),
         layout.projectDirectory.file('.npmrc')
     )
     outputs.dir(frontendNodeModules)
@@ -103,7 +102,6 @@ tasks.register('npmBuild', Exec) {
             include 'env.d.ts'
             include 'package.json'
             include 'pnpm-lock.yaml'
-            include 'pnpm-workspace.yaml'
             include 'tsconfig*.json'
             include 'vite.config.*'
         },
