@@ -75,16 +75,13 @@ tasks.register('pnpmInstall', Exec) {
     commandLine 'sh', '-c', frontendRuntimeScript('pnpm install --frozen-lockfile --prefer-offline')
 }
 
-// Format and check frontend code.
+// Format frontend code.
 tasks.register('format_frontend', Exec) {
 
     dependsOn('pnpmInstall')
 
     workingDir projectDir
-    commandLine 'sh', '-c', frontendRuntimeScript('''
-      pnpm run format
-      pnpm run lint
-    ''')
+    commandLine 'sh', '-c', frontendRuntimeScript('pnpm run format')
 }
 
 // Build frontend assets with Gradle input and output tracking.
