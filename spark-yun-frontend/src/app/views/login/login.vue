@@ -87,17 +87,14 @@ import { ElMessage } from 'element-plus'
 import { nextTick, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { LoginUserInfo, OauthUrlList } from '@/app/api'
+import { OauthUrlList } from '@/app/api'
 import logoIcon from '@/app/assets/imgs/logo-a.png'
 import logoURL from '@/app/assets/imgs/logo-view.png'
 import logo from '@/app/assets/imgs/logo1.svg'
 import { useAuthStore } from '@/app/store/useAuth'
 import { getVipLicenseEnabled } from '@/app/utils/vip-license'
-
-interface LoginModel {
-    account: string
-    passwd: string
-}
+import { getUser } from '@/type/user/user'
+import type { LoginReq } from '@/type/models'
 
 interface OauthUrl {
     name: string
@@ -111,12 +108,12 @@ const btnLoading = ref(false)
 const oauthLoaded = ref(false)
 const oauthUrlList = ref<OauthUrl[]>([])
 
-const loginModel = reactive<LoginModel>({
+const loginModel = reactive<LoginReq>({
     account: '',
     passwd: ''
 })
 
-const loginRule: FormRules<LoginModel> = {
+const loginRule: FormRules<LoginReq> = {
     account: [
         {
             required: true,
@@ -148,12 +145,14 @@ async function handleLogin() {
     btnLoading.value = true
 
     try {
-        const res: any = await LoginUserInfo({ ...loginModel })
+
+        // 调用登录接口
+        const res = await getUser().login({ ...loginModel })
         authStore.applyAuthResponse(res.data)
         await getVipLicenseEnabled(true)
         ElMessage.success(res.msg)
         await nextTick()
-        router.push(res.data.defaultArea === 'platform' ? '/platform' : '/workspace')
+        router.push(res.data?.defaultArea === 'platform' ? '/platform' : '/workspace')
     } finally {
         btnLoading.value = false
     }
