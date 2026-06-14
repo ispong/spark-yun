@@ -1,78 +1,107 @@
-import type { Router } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { getVipLicenseEnabled, isVipMenuCode } from '@/app/utils/vip-license'
-import { useAuthStore } from '@/app/store/useAuth'
+import type {Router} from 'vue-router'
+import {ElMessage} from 'element-plus'
+import {getVipLicenseEnabled, isVipMenuCode} from '@/app/utils/vip-license'
+import {useAuthStore} from '@/app/store/useAuth'
 
 // 开放路由
 const openRouteName = new Set(['login', 'ssoauth', 'share', 'share-report'])
 
-// 角色
-const roleCode = {
-    platformSuperAdmin: 'ROLE_SYS_ADMIN', // 平台超级管理员
-    platformAdmin: 'ROLE_PLATFORM_ADMIN', // 平台管理员
-    tenantSuperAdmin: 'ROLE_TENANT_ADMIN', // 租户超级管理员
-    tenantAdmin: 'ROLE_TENANT_NORMAL_ADMIN', // 租户管理员
-    tenantMember: 'ROLE_TENANT_MEMBER' // 普通成员
+export const routeArea = {
+    platform: 'platform',
+    admin: 'admin',
+    workspace: 'workspace'
 } as const
 
 // 路由守卫，判断权限
 export function setupRouterGuard(router: Router): void {
 
     router.beforeEach(async (to) => {
-        const authStore = useAuthStore()
-        const routeName = typeof to.name === 'string' ? to.name : ''
 
+        const authStore = useAuthStore()
+        const routeName = to.name as string
+
+        // 开放路由直接放行
         if (openRouteName.has(routeName)) {
             return true
         }
+
+        // 没有token，直接返回登录页面
         if (!authStore.token) {
             return {
                 name: 'login'
             }
         }
 
-        const area = to.meta.area
-        if (
-            area === 'platform' &&
-            !(
-                authStore.userInfo?.systemAdmin ||
-                authStore.userInfo?.platformAdmin ||
-                authStore.role === roleCode.platformSuperAdmin ||
-                authStore.role === roleCode.platformAdmin
-            )
-        ) {
-            return {
-                name: 'forbidden'
-            }
-        }
-        if (
-            area === 'admin' &&
-            !(authStore.userInfo?.tenantAdmin || authStore.userInfo?.normalAdmin || tenantAdminRoles.has(authStore.role))
-        ) {
-            return {
-                name: 'forbidden'
-            }
-        }
-        if (area === 'workspace') {
-            if (authStore.userInfo?.systemAdmin || authStore.role === roleCode.platformSuperAdmin) {
-                return {
-                    name: 'forbidden'
+        // 根据路由判断角色权限
+        const area = to.meta.area as string
+        switch (area) {
+            case routeArea.platform:
+                if (
+                    !(
+                        authStore.userInfo?.platformSuperAdmin ||
+                        authStore.userInfo?.platformAdmin
+                    )
+                ) {
+                    return {
+                        name: 'forbidden'
+                    }
                 }
-            }
-            if (!authStore.tenantId) {
-                return {
-                    name: 'forbidden'
+                break
+            case routeArea.admin:
+
+                // 没有租户id，直接退出
+                if (!authStore.tenantId) {
+                    return {
+                        name: 'forbidden'
+                    }
                 }
-            }
+
+                if (
+                    !(
+                        authStore.userInfo?.tenantSuperAdmin ||
+                        authStore.userInfo?.tenantAdmin
+                    )
+                ) {
+                    return {
+                        name: 'forbidden'
+                    }
+                }
+                break
+            case routeArea.workspace:
+
+                // 没有租户id，直接退出
+                if (!authStore.tenantId) {
+                    return {
+                        name: 'forbidden'
+                    }
+                }
+
+                if (
+                    !(
+                        authStore.userInfo?.tenantSuperAdmin ||
+                        authStore.userInfo?.tenantAdmin ||
+                        authStore.userInfo?.tenantMember
+                    )
+                ) {
+                    return {
+                        name: 'forbidden'
+                    }
+                }
+                break
         }
 
-        if (!routeName || !isVipMenuCode(routeName)) {
+        // 开源菜单，直接放行
+        if (!isVipMenuCode(routeName)) {
             return true
         }
+
+        // 许可证菜单，需要检查许可证
         const commercialEnabled = await getVipLicenseEnabled()
         if (commercialEnabled) {
             return true
         }
-        ElMessage.error('许可证未启用，无法访问商业版菜单')
+
+        // 没有许可证报错
+        ElMessage.error('请上传许可证')
     })
 }

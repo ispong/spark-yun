@@ -30,13 +30,20 @@ public class LoginRes {
 
     private String role;
 
-    private Boolean systemAdmin;
+    // 平台超级管理员
+    private Boolean platformSuperAdmin;
 
+    // 平台管理员
     private Boolean platformAdmin;
 
+    // 租户超级管理员
+    private Boolean tenantSuperAdmin;
+
+    // 租户管理员
     private Boolean tenantAdmin;
 
-    private Boolean normalAdmin;
+    // 普通成员
+    private Boolean tenantMember;
 
     private Boolean workspaceAllPermissions;
 

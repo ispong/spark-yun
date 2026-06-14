@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Home from '@/app/views/home/home'
 import { workspaceModuleRoutes } from './module-routes'
-import { setupRouterGuard } from './guard'
+import { routeArea, setupRouterGuard } from './guard'
 
 // 动态加载，读到路由才会加载
 const Login = () => import('@/app/views/login/login')
@@ -27,6 +27,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: '/',
+        name: 'root',
         redirect: {
             name: 'login'
         }
@@ -41,7 +42,7 @@ const routes: Array<RouteRecordRaw> = [
         name: 'platform',
         component: Home,
         meta: {
-            area: 'platform'
+            area: routeArea.platform
         },
         redirect: '/platform/users',
         children: [
@@ -72,7 +73,7 @@ const routes: Array<RouteRecordRaw> = [
         name: 'admin',
         component: Home,
         meta: {
-            area: 'admin'
+            area: routeArea.admin
         },
         redirect: '/admin/members',
         children: [
@@ -98,12 +99,12 @@ const routes: Array<RouteRecordRaw> = [
         name: 'workspace',
         component: Home,
         meta: {
-            area: 'workspace'
+            area: routeArea.workspace
         },
         children: [
             {
                 path: 'personal-info',
-                name: 'personalInfo',
+                name: 'workspace-personalInfo',
                 component: PersonalInfo
             },
             ...workspaceModuleRoutes
@@ -128,6 +129,13 @@ const routes: Array<RouteRecordRaw> = [
         path: '/dashboard/:shareParam',
         name: 'share-report',
         component: ShareReport
+    },
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'not-found',
+        redirect: {
+            name: 'forbidden'
+        }
     }
 ]
 
