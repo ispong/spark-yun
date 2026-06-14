@@ -1,19 +1,22 @@
 import { createRouter, createWebHistory, type RouteLocationRaw, type RouteRecordRaw } from 'vue-router'
 import Home from '@/app/views/home/home'
 import { useAuthStore } from '@/app/store/useAuth'
-import adminRoutes from '@/app/routes/admin'
-import { personalInfoRootRoute } from '@/app/management/personal-info'
-import platformRoutes from '@/app/routes/platform'
-import workspaceManagementRoutes from '@/app/routes/workspace-management'
+import { licenseRoutes } from '@/app/management/license'
+import { oauthManagementPlatformRoutes, oauthManagementWorkspaceRoutes } from '@/app/management/oauth-management'
+import { orgManagementAdminRoutes } from '@/app/management/org-management'
+import { personalInfoRootRoute, personalInfoWorkspaceRoutes } from '@/app/management/personal-info'
+import { roleManagementAdminRoutes } from '@/app/management/role-management'
+import { tenantListPlatformRoutes, tenantListWorkspaceRoutes } from '@/app/management/tenant-list'
+import { tenantUserAdminRoutes, tenantUserWorkspaceRoutes } from '@/app/management/tenant-user'
+import { userCenterPlatformRoutes, userCenterWorkspaceRoutes } from '@/app/management/user-center'
 import { shareModuleRoutes, workspaceModuleRoutes } from './module-routes'
 import { setupRouterGuard } from './guard'
 
+// 动态加载，读到路由才会加载
 const Login = () => import('@/app/views/login/login')
-const Ssoauth = () => import('@/app/views/login/ssoauth')
+const SsoAuth = () => import('@/app/views/login/ssoauth')
 const Forbidden = () => import('@/app/views/system/forbidden.vue')
 const NoTenant = () => import('@/app/views/system/no-tenant.vue')
-
-const workspaceChildren = workspaceModuleRoutes.concat(workspaceManagementRoutes)
 
 function workspaceDefaultRoute(): RouteLocationRaw {
     const authStore = useAuthStore()
@@ -24,6 +27,8 @@ function workspaceDefaultRoute(): RouteLocationRaw {
     }
     const permissions: string[] = authStore.userInfo?.permissions || []
     const menuModules = permissions.filter((code) => code.endsWith(':menu')).map((code) => code.split(':')[1])
+    const workspaceRoute = routes.find((route) => route.name === 'workspace')
+    const workspaceChildren = workspaceRoute?.children || []
     const target = workspaceChildren.find((route) => menuModules.includes(String(route.name || '')))
     return target
         ? {
@@ -50,6 +55,7 @@ function defaultRoute(): RouteLocationRaw {
           }
 }
 
+// 路由配置
 const routes: Array<RouteRecordRaw> = [
     {
         path: '/',
@@ -60,17 +66,12 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: '/ssoauth',
         name: 'ssoauth',
-        component: Ssoauth
+        component: SsoAuth
     },
     {
         path: '/auth',
         name: 'login',
         component: Login
-    },
-    {
-        path: '/home',
-        name: 'home',
-        redirect: defaultRoute
     },
     {
         path: '/platform',
@@ -80,7 +81,12 @@ const routes: Array<RouteRecordRaw> = [
             area: 'platform'
         },
         redirect: '/platform/users',
-        children: platformRoutes
+        children: [
+            ...userCenterPlatformRoutes,
+            ...tenantListPlatformRoutes,
+            ...licenseRoutes,
+            ...oauthManagementPlatformRoutes
+        ]
     },
     {
         path: '/admin',
@@ -90,7 +96,11 @@ const routes: Array<RouteRecordRaw> = [
             area: 'admin'
         },
         redirect: '/admin/members',
-        children: adminRoutes
+        children: [
+            ...tenantUserAdminRoutes,
+            ...roleManagementAdminRoutes,
+            ...orgManagementAdminRoutes
+        ]
     },
     {
         path: '/workspace',
@@ -100,7 +110,15 @@ const routes: Array<RouteRecordRaw> = [
             area: 'workspace'
         },
         redirect: workspaceDefaultRoute,
-        children: workspaceChildren
+        children: [
+            ...workspaceModuleRoutes,
+            ...tenantUserWorkspaceRoutes,
+            ...userCenterWorkspaceRoutes,
+            ...tenantListWorkspaceRoutes,
+            ...oauthManagementWorkspaceRoutes,
+            ...licenseRoutes,
+            ...personalInfoWorkspaceRoutes
+        ]
     },
     personalInfoRootRoute,
     {
@@ -120,6 +138,7 @@ const routes: Array<RouteRecordRaw> = [
     }
 ]
 
+// 创建路由实例
 const router = createRouter({
     history: createWebHistory(import.meta.env.VITE_VUE_APP_PUBLIC_PATH),
     routes
