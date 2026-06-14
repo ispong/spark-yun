@@ -4,6 +4,7 @@ import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 
+import ElementPlus from 'unplugin-element-plus/vite'
 import Components from 'unplugin-vue-components/vite'
 import {ElementPlusResolver} from 'unplugin-vue-components/resolvers'
 import {readFileSync} from 'node:fs'
@@ -25,6 +26,7 @@ export default defineConfig({
     plugins: [
         vue(), // 解析vue文件
         vueJsx(), // 解析tsx文件
+        ElementPlus(), // 按需引入element-plus样式
         Components({
             dirs: ['src/app/components'], // 自动扫描组件
             extensions: ['vue'],

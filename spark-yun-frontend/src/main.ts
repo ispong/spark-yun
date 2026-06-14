@@ -8,8 +8,6 @@ import router from '@/app/router'
 import pinia from '@/app/store'
 
 import 'normalize.css'
-import 'element-plus/theme-chalk/el-message.css'
-import 'element-plus/theme-chalk/el-message-box.css'
 import 'vxe-table/lib/style.css'
 import '@/app/assets/styles/global.scss'
 
@@ -24,7 +22,9 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
 }
 
-app.use(VXETable)
-    .use(pinia)
-    .use(router).use(VueGridLayout)
+// 注册组件
+app.use(VXETable) // 使用vxeTable专门做表格
+    .use(VueGridLayout) // 卡片拖拽
+    .use(pinia) // 共享数据
+    .use(router) // 路由
     .mount('#app')
