@@ -3,16 +3,22 @@ import { ElMessage } from 'element-plus'
 import { getVipLicenseEnabled, isVipMenuCode } from '@/app/utils/vip-license'
 import { useAuthStore } from '@/app/store/useAuth'
 
+// 开放路由
 const openRouteName = new Set(['login', 'ssoauth', 'share', 'share-report'])
-const systemAdminRole = 'ROLE_SYS_ADMIN'
-const platformAdminRole = 'ROLE_PLATFORM_ADMIN'
-const tenantAdminRoles = new Set(['ROLE_TENANT_ADMIN', 'ROLE_TENANT_NORMAL_ADMIN'])
+
+// 角色
+const roleCode = {
+    platformSuperAdmin: 'ROLE_SYS_ADMIN', // 平台超级管理员
+    platformAdmin: 'ROLE_PLATFORM_ADMIN', // 平台管理员
+    tenantSuperAdmin: 'ROLE_TENANT_ADMIN', // 租户超级管理员
+    tenantAdmin: 'ROLE_TENANT_NORMAL_ADMIN', // 租户管理员
+    tenantMember: 'ROLE_TENANT_MEMBER' // 普通成员
+} as const
 
 // 路由守卫，判断权限
 export function setupRouterGuard(router: Router): void {
 
     router.beforeEach(async (to) => {
-
         const authStore = useAuthStore()
         const routeName = typeof to.name === 'string' ? to.name : ''
 
@@ -31,8 +37,8 @@ export function setupRouterGuard(router: Router): void {
             !(
                 authStore.userInfo?.systemAdmin ||
                 authStore.userInfo?.platformAdmin ||
-                authStore.role === systemAdminRole ||
-                authStore.role === platformAdminRole
+                authStore.role === roleCode.platformSuperAdmin ||
+                authStore.role === roleCode.platformAdmin
             )
         ) {
             return {
@@ -48,7 +54,7 @@ export function setupRouterGuard(router: Router): void {
             }
         }
         if (area === 'workspace') {
-            if (authStore.userInfo?.systemAdmin || authStore.role === systemAdminRole) {
+            if (authStore.userInfo?.systemAdmin || authStore.role === roleCode.platformSuperAdmin) {
                 return {
                     name: 'forbidden'
                 }
@@ -67,6 +73,6 @@ export function setupRouterGuard(router: Router): void {
         if (commercialEnabled) {
             return true
         }
-        ElMessage.error('许可证未启用，无法访问商业版菜单');
+        ElMessage.error('许可证未启用，无法访问商业版菜单')
     })
 }
