@@ -446,7 +446,7 @@ public class UserBizService {
             .phone(userEntity.getPhone()).email(userEntity.getEmail()).remark(userEntity.getRemark())
             .token(generateUserToken(userEntity.getId(), tenantId))
             .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId)
-            .role(resolveCompatibilityRole(access, role)).systemAdmin(access.systemAdmin())
+            .role(resolveCompatibilityRole(access, role)).s z(access.systemAdmin())
             .platformAdmin(access.platformAdmin()).tenantAdmin(access.tenantAdmin()).normalAdmin(access.normalAdmin())
             .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
             .defaultArea(access.systemAdmin() ? "platform" : "workspace").build();

@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Home from '@/app/views/home/home'
 import { workspaceModuleRoutes } from './module-routes'
-import { routeArea, setupRouterGuard } from './guard'
+import { setupRouterGuard } from './guard'
 
 // 动态加载，读到路由才会加载
 const Login = () => import('@/app/views/login/login')
@@ -17,6 +17,12 @@ const OrgManagement = () => import('@/app/management/org-management/views/index.
 const PersonalInfo = () => import('@/app/management/personal-info/views/index.vue')
 const ShareForm = () => import('@/modules/custom-form/views/share-form-page/index.vue')
 const ShareReport = () => import('@/modules/report/views/report-views/share-report/index.vue')
+
+export const routeArea = {
+    platform: 'platform',
+    admin: 'admin',
+    workspace: 'workspace'
+} as const
 
 // 路由配置
 const routes: Array<RouteRecordRaw> = [
@@ -145,6 +151,7 @@ const router = createRouter({
     routes
 })
 
+// 路由守卫
 setupRouterGuard(router)
 
 export default router

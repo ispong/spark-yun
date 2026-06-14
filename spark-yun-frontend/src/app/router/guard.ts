@@ -2,15 +2,10 @@ import type {Router} from 'vue-router'
 import {ElMessage} from 'element-plus'
 import {getVipLicenseEnabled, isVipMenuCode} from '@/app/utils/vip-license'
 import {useAuthStore} from '@/app/store/useAuth'
+import {routeArea} from "@/app/router/index.ts";
 
 // 开放路由
 const openRouteName = new Set(['login', 'ssoauth', 'share', 'share-report'])
-
-export const routeArea = {
-    platform: 'platform',
-    admin: 'admin',
-    workspace: 'workspace'
-} as const
 
 // 路由守卫，判断权限
 export function setupRouterGuard(router: Router): void {

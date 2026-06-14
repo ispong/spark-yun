@@ -24,3 +24,19 @@ public interface RoleType {
     /** 匿名者权限. */
     String ROLE_ANONYMOUS = "ROLE_ANONYMOUS";
 }
+
+
+    // 平台超级管理员
+    private Boolean platformSuperAdmin;
+
+    // 平台管理员
+    private Boolean platformAdmin;
+
+    // 租户超级管理员
+    private Boolean tenantSuperAdmin;
+
+    // 租户管理员
+    private Boolean tenantAdmin;
+
+    // 普通成员
+    private Boolean tenantMember;
