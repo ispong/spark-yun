@@ -17,7 +17,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "数据源模块")
+@Tag(name = "datasource", description = "数据源模块")
 @RequestMapping({ModuleCode.DATASOURCE, "/api/workspace/" + ModuleCode.DATASOURCE})
 @RestController
 @RequiredArgsConstructor

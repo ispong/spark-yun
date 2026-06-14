@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 
-@Tag(name = "自定义函数模块")
+@Tag(name = "func", description = "自定义函数模块")
 @RequestMapping({ModuleCode.FUNC, "/api/workspace/" + ModuleCode.FUNC})
 @RestController
 @RequiredArgsConstructor

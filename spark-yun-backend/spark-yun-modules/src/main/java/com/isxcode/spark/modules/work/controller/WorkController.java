@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
 
-@Tag(name = "作业模块")
+@Tag(name = "work", description = "作业模块")
 @RequestMapping({ModuleCode.WORK, "/api/workspace/" + ModuleCode.WORK})
 @RestController
 @RequiredArgsConstructor

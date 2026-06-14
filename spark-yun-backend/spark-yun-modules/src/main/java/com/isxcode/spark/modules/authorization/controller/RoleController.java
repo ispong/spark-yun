@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "角色权限")
+@Tag(name = "role-permission", description = "角色权限")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/roles")

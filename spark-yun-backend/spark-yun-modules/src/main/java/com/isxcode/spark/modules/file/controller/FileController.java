@@ -21,7 +21,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import java.util.List;
 
-@Tag(name = "资源文件中心模块")
+@Tag(name = "file", description = "资源文件中心模块")
 @RequestMapping({ModuleCode.FILE, "/api/workspace/" + ModuleCode.FILE})
 @RestController
 @RequiredArgsConstructor
@@ -133,4 +133,3 @@ public class FileController {
         return fileBizService.pageLibPackage(pageLibPackageReq);
     }
 }
-

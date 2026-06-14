@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Tag(name = "计算引擎模块")
+@Tag(name = "cluster", description = "计算引擎模块")
 @RequestMapping({ModuleCode.CLUSTER, "/api/workspace/" + ModuleCode.CLUSTER})
 @RestController
 @RequiredArgsConstructor

@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "作业流模块")
+@Tag(name = "workflow", description = "作业流模块")
 @RequestMapping({ModuleCode.WORKFLOW, "/api/workspace/" + ModuleCode.WORKFLOW})
 @RestController
 @RequiredArgsConstructor

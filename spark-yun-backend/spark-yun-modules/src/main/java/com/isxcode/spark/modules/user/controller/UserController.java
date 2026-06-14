@@ -19,7 +19,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 
-@Tag(name = "用户模块")
+@Tag(name = "user", description = "用户模块")
 @RequestMapping({ModuleCode.USER, "/api/platform/users"})
 @RestController
 @RequiredArgsConstructor

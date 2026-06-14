@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "系统内部异常模块")
+@Tag(name = "internal-exception", description = "系统内部异常模块")
 @RestController
 @RequestMapping("/exception")
 public class ExceptionController {

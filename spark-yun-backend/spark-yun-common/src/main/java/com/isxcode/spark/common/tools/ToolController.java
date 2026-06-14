@@ -33,7 +33,7 @@ import java.util.Objects;
 import static java.net.URLConnection.guessContentTypeFromName;
 
 
-@Tag(name = "系统内部工具模块")
+@Tag(name = "internal-tool", description = "系统内部工具模块")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/tools")

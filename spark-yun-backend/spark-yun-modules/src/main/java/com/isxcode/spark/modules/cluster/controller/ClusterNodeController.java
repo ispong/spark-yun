@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "集群节点模块")
+@Tag(name = "cluster-node", description = "集群节点模块")
 @RequestMapping({ModuleCode.CLUSTER_NODE, "/api/workspace/" + ModuleCode.CLUSTER_NODE})
 @RestController
 @RequiredArgsConstructor

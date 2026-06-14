@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "组织架构")
+@Tag(name = "org", description = "组织架构")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/orgs")

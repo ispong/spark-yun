@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "租户模块")
+@Tag(name = "tenant", description = "租户模块")
 @RequestMapping({ModuleCode.TENANT, "/api/platform/tenants"})
 @RestController
 @RequiredArgsConstructor

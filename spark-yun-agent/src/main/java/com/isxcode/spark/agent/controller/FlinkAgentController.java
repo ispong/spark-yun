@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Flink相关代理模块")
+@Tag(name = "flink-agent", description = "Flink相关代理模块")
 @RestController
 @RequiredArgsConstructor
 public class FlinkAgentController {

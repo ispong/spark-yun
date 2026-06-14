@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 
-@Tag(name = "基线告警模块")
+@Tag(name = "alarm", description = "基线告警模块")
 @RequestMapping({ModuleCode.ALARM, "/api/workspace/" + ModuleCode.ALARM})
 @RestController
 @RequiredArgsConstructor
