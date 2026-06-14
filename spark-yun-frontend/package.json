@@ -8,9 +8,9 @@
     "scripts": {
         "preinstall": "npx only-allow pnpm",
         "dev": "vite --mode dev",
-        "gen:api": "orval",
         "build": "vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "orval": "orval"
     },
     "dependencies": {
         "@antv/g6": "^5.1.1",
