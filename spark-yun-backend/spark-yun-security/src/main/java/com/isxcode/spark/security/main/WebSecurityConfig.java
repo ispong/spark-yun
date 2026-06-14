@@ -12,7 +12,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -21,13 +25,18 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -40,6 +49,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class WebSecurityConfig {
 
     private final IsxAppProperties isxAppProperties;
+
+    private final SecurityProperties securityProperties;
 
     private final UserRepository userRepository;
 
@@ -67,7 +78,7 @@ public class WebSecurityConfig {
     public JwtAuthenticationFilter jwtAuthenticationFilter(AuthenticationManager authenticationManager,
         AuthenticationEntryPoint authenticationEntryPoint) {
 
-        return new JwtAuthenticationFilter(authenticationManager, openUrlPatterns(), isxAppProperties,
+        return new JwtAuthenticationFilter(authenticationManager, jwtExcludeUrlPatterns(), isxAppProperties,
             authenticationEntryPoint);
     }
 
@@ -86,6 +97,45 @@ public class WebSecurityConfig {
     }
 
     @Bean
+    @Order(1)
+    SecurityFilterChain adminRoleFilterChain(HttpSecurity http) throws Exception {
+
+        http.securityMatcher(adminRoleRequestMatcher());
+        http.authenticationProvider(adminRoleAuthenticationProvider());
+        http.cors(Customizer.withDefaults());
+        http.csrf(AbstractHttpConfigurer::disable);
+        http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+        http.authorizeHttpRequests(authorize -> authorize.anyRequest().hasAuthority("ADMIN"));
+        http.formLogin(Customizer.withDefaults());
+        http.httpBasic(AbstractHttpConfigurer::disable);
+
+        return http.build();
+    }
+
+    private RequestMatcher adminRoleRequestMatcher() {
+
+        List<String> patterns = new ArrayList<>(isxAppProperties.getAdminRoleUrl());
+        patterns.add("/login");
+        patterns.add("/logout");
+        patterns.add("/default-ui.css");
+        RequestMatcher[] requestMatchers = patterns.stream().map(AntPathRequestMatcher::new).toArray(RequestMatcher[]::new);
+        return new OrRequestMatcher(requestMatchers);
+    }
+
+    private AuthenticationProvider adminRoleAuthenticationProvider() {
+
+        SecurityProperties.User user = securityProperties.getUser();
+        InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(User
+            .withUsername(user.getName()).password("{noop}" + user.getPassword())
+            .authorities(user.getRoles().toArray(String[]::new)).build());
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(userDetailsService);
+        return authenticationProvider;
+    }
+
+    @Bean
+    @Order(2)
     SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter,
         ProductAccessAuthorizationFilter productAccessAuthorizationFilter,
         AuthenticationEntryPoint authenticationEntryPoint, AccessDeniedHandler accessDeniedHandler) throws Exception {
@@ -134,6 +184,15 @@ public class WebSecurityConfig {
         List<String> patterns = new ArrayList<>();
         if (isxAppProperties.getOpenUrl() != null) {
             patterns.addAll(isxAppProperties.getOpenUrl());
+        }
+        return List.copyOf(patterns);
+    }
+
+    private List<String> jwtExcludeUrlPatterns() {
+
+        List<String> patterns = new ArrayList<>(openUrlPatterns());
+        if (isxAppProperties.getAdminRoleUrl() != null) {
+            patterns.addAll(isxAppProperties.getAdminRoleUrl());
         }
         return List.copyOf(patterns);
     }
