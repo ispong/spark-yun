@@ -20,7 +20,6 @@
                         class="zqy-login__form"
                         :model="loginModel"
                         :rules="loginRule"
-                        label-position="top"
                         @keyup.enter="handleLogin"
                     >
 
@@ -52,7 +51,6 @@
                         class="zqy-login__button"
                         type="primary"
                         :loading="btnLoading"
-                        :disabled="btnLoading"
                         @click="handleLogin"
                     >
                         确认登录
@@ -154,9 +152,9 @@ async function submitLogin() {
 }
 
 async function handleLogin() {
-    if (btnLoading.value) {
-        return
-    }
+
+    // 判断loading
+    if (btnLoading.value) return
 
     const isValid = await elFormRef.value?.validate().catch(() => false)
     if (isValid) {
