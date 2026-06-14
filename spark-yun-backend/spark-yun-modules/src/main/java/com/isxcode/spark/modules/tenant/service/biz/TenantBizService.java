@@ -150,7 +150,7 @@ public class TenantBizService {
         // 初始化租户管理员
         TenantUserEntity tenantUserEntity =
             TenantUserEntity.builder().userId(tetAddTenantReq.getAdminUserId()).tenantId(tenantEntity.getId())
-                .roleCode(RoleType.TENANT_ADMIN).normalAdmin(false).status(TenantStatus.ENABLE).build();
+                .roleCode(RoleType.TENANT_SUPER_ADMIN).normalAdmin(false).status(TenantStatus.ENABLE).build();
 
         // 判断管理员是否绑定新租户
         if (Strings.isEmpty(userEntity.getCurrentTenantId())) {
@@ -333,7 +333,7 @@ public class TenantBizService {
             tenantRepository.findById(request.getTenantId()).orElseThrow(() -> new IsxAppException("租户不存在"));
         UserEntity newAdmin =
             userRepository.findById(request.getNewAdminUserId()).orElseThrow(() -> new IsxAppException("新租户管理员不存在"));
-        if (RoleType.SYS_ADMIN.equals(newAdmin.getRoleCode())) {
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(newAdmin.getRoleCode())) {
             throw new IsxAppException("超级管理员不能成为租户管理员");
         }
         if (request.getNewAdminUserId().equals(tenant.getAdminUserId())) {
@@ -364,7 +364,7 @@ public class TenantBizService {
             });
         newMember.setStatus(TenantStatus.ENABLE);
         newMember.setNormalAdmin(false);
-        newMember.setRoleCode(RoleType.TENANT_ADMIN);
+        newMember.setRoleCode(RoleType.TENANT_SUPER_ADMIN);
         tenantUserRepository.save(newMember);
         tenant.setAdminUserId(newAdmin.getId());
         tenantRepository.save(tenant);
@@ -419,7 +419,7 @@ public class TenantBizService {
         }
 
         UserEntity userEntity = userEntityOptional.get();
-        if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())) {
             throw new IsxAppException("超级管理员不支持切换租户");
         }
         TenantUserEntity tenantUser =
@@ -432,8 +432,8 @@ public class TenantBizService {
         userRepository.save(userEntity);
 
         AccessSnapshot access = productAccessService.resolve(userEntity.getId(), chooseTenantReq.getTenantId());
-        String role = access.tenantAdmin() ? RoleType.TENANT_ADMIN
-            : access.normalAdmin() ? RoleType.TENANT_NORMAL_ADMIN : RoleType.TENANT_MEMBER;
+        String role = access.tenantAdmin() ? RoleType.TENANT_SUPER_ADMIN
+            : access.normalAdmin() ? RoleType.TENANT_ADMIN : RoleType.TENANT_MEMBER;
 
         String token = JwtUtils.encrypt(isxAppProperties.getAesSlat(),
             new CurrentUser(userEntity.getId(), chooseTenantReq.getTenantId()), isxAppProperties.getJwtKey(),
@@ -463,7 +463,7 @@ public class TenantBizService {
         UserEntity userEntity = userEntityOptional.get();
 
         // 如果是管理员直接返回
-        if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())) {
             return GetTenantRes.builder().id(tenantEntity.getId()).name(tenantEntity.getName()).build();
         }
 

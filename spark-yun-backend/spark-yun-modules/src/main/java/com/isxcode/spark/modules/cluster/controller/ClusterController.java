@@ -52,7 +52,7 @@ public class ClusterController {
         return clusterBizService.pageCluster(pageClusterReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "删除计算集群接口")
     @PostMapping("/deleteCluster")
     @SuccessResponse("删除成功")

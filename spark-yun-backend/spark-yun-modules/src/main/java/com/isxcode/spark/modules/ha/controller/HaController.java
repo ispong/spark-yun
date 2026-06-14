@@ -20,7 +20,7 @@ import static com.isxcode.spark.modules.work.run.WorkExecutor.WORK_THREAD;
 public class HaController {
 
     @Operation(summary = "中止作业进程")
-    @Secured({RoleType.SYS_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN})
     @GetMapping("/kill")
     public void kill(@RequestParam String workEventId) {
 

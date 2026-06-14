@@ -1067,7 +1067,7 @@ CREATE TABLE IF NOT EXISTS sy_datasource
 
 INSERT INTO sy_user (id, username, account, passwd, role_code, status, create_by, create_date_time, last_modified_by,
                      last_modified_date_time, version_number)
-VALUES ('admin_id', '系统管理员', 'admin', '', 'ROLE_SYS_ADMIN', 'ENABLE', 'admin_id', NOW(), 'admin_id', NOW(),
+VALUES ('admin_id', '系统管理员', 'admin', '', 'PLATFORM_SUPER_ADMIN', 'ENABLE', 'admin_id', NOW(), 'admin_id', NOW(),
         0);
 
 INSERT INTO sy_database_driver (

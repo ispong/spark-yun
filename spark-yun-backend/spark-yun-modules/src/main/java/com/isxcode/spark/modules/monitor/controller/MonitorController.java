@@ -31,7 +31,7 @@ public class MonitorController {
 
     private final MonitorBizService monitorBizService;
 
-    @Secured({RoleType.NORMAL_MEMBER})
+    @Secured({RoleType.TENANT_MEMBER})
     @Operation(summary = "获取系统基础信息接口")
     @PostMapping("/getSystemBaseInfo")
     @SuccessResponse("查询成功")
@@ -40,7 +40,7 @@ public class MonitorController {
         return monitorBizService.getSystemMonitor();
     }
 
-    @Secured({RoleType.NORMAL_MEMBER})
+    @Secured({RoleType.TENANT_MEMBER})
     @Operation(summary = "获取集群监控数据接口")
     @PostMapping("/getClusterMonitor")
     @SuccessResponse("查询成功")
@@ -49,7 +49,7 @@ public class MonitorController {
         return monitorBizService.getClusterMonitor(getClusterMonitorReq);
     }
 
-    @Secured({RoleType.NORMAL_MEMBER})
+    @Secured({RoleType.TENANT_MEMBER})
     @Operation(summary = "添加实例图接口")
     @PostMapping("/getInstanceMonitor")
     @SuccessResponse("查询成功")
@@ -58,7 +58,7 @@ public class MonitorController {
         return monitorBizService.getInstanceMonitor(getInstanceMonitorReq);
     }
 
-    @Secured({RoleType.NORMAL_MEMBER})
+    @Secured({RoleType.TENANT_MEMBER})
     @Operation(summary = "查询实例列表接口")
     @PostMapping("/pageInstances")
     @SuccessResponse("查询成功")

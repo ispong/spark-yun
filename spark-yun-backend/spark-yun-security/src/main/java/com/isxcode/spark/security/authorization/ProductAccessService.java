@@ -49,7 +49,7 @@ public class ProductAccessService {
         UserEntity user = userRepository.findById(userId).orElseThrow(() -> new IsxAppException("用户不存在"));
         validateUser(user);
 
-        boolean systemAdmin = RoleType.SYS_ADMIN.equals(user.getRoleCode());
+        boolean systemAdmin = RoleType.PLATFORM_SUPER_ADMIN.equals(user.getRoleCode());
         boolean platformAdmin = systemAdmin || Boolean.TRUE.equals(user.getPlatformAdmin());
         if (systemAdmin) {
             return new AccessSnapshot(userId, null, true, true, false, false, Set.of());

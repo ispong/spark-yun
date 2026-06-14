@@ -87,7 +87,7 @@ public class TenantUserBizService {
         boolean normalAdmin = Boolean.TRUE.equals(turAddTenantUserReq.getIsTenantAdmin());
         TenantUserEntity tenantUserEntity = TenantUserEntity.builder().tenantId(tenantId)
             .userId(turAddTenantUserReq.getUserId()).status(UserStatus.ENABLE).normalAdmin(normalAdmin)
-            .roleCode(normalAdmin ? RoleType.TENANT_NORMAL_ADMIN : RoleType.TENANT_MEMBER).build();
+            .roleCode(normalAdmin ? RoleType.TENANT_ADMIN : RoleType.TENANT_MEMBER).build();
 
         // 判断用户当前是否有租户
         if (Strings.isEmpty(userEntity.getCurrentTenantId())) {
@@ -152,7 +152,7 @@ public class TenantUserBizService {
         // 兼容旧接口名称：设置普通管理员
         TenantUserEntity tenantUserEntity = tenantUserEntityOptional.get();
         tenantUserEntity.setNormalAdmin(true);
-        tenantUserEntity.setRoleCode(RoleType.TENANT_NORMAL_ADMIN);
+        tenantUserEntity.setRoleCode(RoleType.TENANT_ADMIN);
 
         // 持久化
         tenantUserRepository.save(tenantUserEntity);
@@ -241,7 +241,7 @@ public class TenantUserBizService {
 
         return SecurityContextHolder.getContext().getAuthentication() != null
             && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(authority -> RoleType.SYS_ADMIN.equals(authority.getAuthority()));
+                .anyMatch(authority -> RoleType.PLATFORM_SUPER_ADMIN.equals(authority.getAuthority()));
     }
 
     private void checkTenantAdminTarget(TenantUserEntity member) {

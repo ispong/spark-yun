@@ -99,7 +99,7 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests(
             authorize -> authorize.dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
                 .requestMatchers(toPatterns(openUrlPatterns())).permitAll()
-                .requestMatchers(toPatterns(isxAppProperties.getAdminRoleUrl())).hasAuthority(RoleType.SYS_ADMIN)
+                .requestMatchers(toPatterns(isxAppProperties.getAdminRoleUrl())).hasAuthority(RoleType.PLATFORM_SUPER_ADMIN)
                 .requestMatchers(toPatterns(isxAppProperties.getAnonymousRoleUrl()))
                 .hasAuthority(RoleType.ROLE_ANONYMOUS).anyRequest().authenticated());
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

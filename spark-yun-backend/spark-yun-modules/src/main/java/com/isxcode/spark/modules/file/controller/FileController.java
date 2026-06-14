@@ -68,7 +68,7 @@ public class FileController {
         return fileBizService.downloadFile(downloadFileReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "资源文件删除接口")
     @PostMapping("/deleteFile")
     @SuccessResponse("删除成功")

@@ -1685,7 +1685,7 @@ INSERT INTO sy_user (
   last_modified_by, last_modified_date_time, version_number
 )
 VALUES (
-  'admin_id', '系统管理员', 'admin', '', 'ROLE_SYS_ADMIN', 'ENABLE', 'admin_id', NOW(),
+  'admin_id', '系统管理员', 'admin', '', 'PLATFORM_SUPER_ADMIN', 'ENABLE', 'admin_id', NOW(),
   'admin_id', NOW(), 0
 );
 

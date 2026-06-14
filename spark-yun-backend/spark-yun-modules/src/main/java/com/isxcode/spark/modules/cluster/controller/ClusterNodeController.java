@@ -53,7 +53,7 @@ public class ClusterNodeController {
         return clusterNodeBizService.pageClusterNode(pageClusterNodeReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "删除节点接口")
     @PostMapping("/deleteClusterNode")
     @SuccessResponse("删除成功")

@@ -60,7 +60,7 @@ public class UserController {
     }
 
     @LicenseApi
-    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "创建用户接口")
     @PostMapping("/addUser")
     @SuccessResponse("创建成功")
@@ -69,7 +69,7 @@ public class UserController {
         userBizService.addUser(addUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "更新用户接口")
     @PostMapping("/updateUser")
     @SuccessResponse("更新成功")
@@ -78,7 +78,7 @@ public class UserController {
         userBizService.updateUser(updateUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "修改用户密码接口")
     @PostMapping("/updateUserPassword")
     @SuccessResponse("修改成功")
@@ -103,7 +103,7 @@ public class UserController {
         userBizService.updateMyPassword(updateMyPasswordReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "禁用用户接口")
     @PostMapping("/disableUser")
     @UserLog
@@ -113,7 +113,7 @@ public class UserController {
         userBizService.disableUser(disableUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "启用用户接口")
     @PostMapping("/enableUser")
     @SuccessResponse("启用成功")
@@ -122,7 +122,7 @@ public class UserController {
         userBizService.enableUser(enableUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "删除用户接口")
     @PostMapping("/deleteUser")
     @UserLog
@@ -132,7 +132,7 @@ public class UserController {
         userBizService.deleteUser(deleteUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "查询所有用户接口")
     @PostMapping("/pageUser")
     @SuccessResponse("查询成功")
@@ -141,7 +141,7 @@ public class UserController {
         return userBizService.pageUser(pageUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "查询所有启用用户接口")
     @PostMapping("/pageEnableUser")
     @SuccessResponse("查询成功")
@@ -150,7 +150,7 @@ public class UserController {
         return userBizService.pageEnableUser(pageEnableUserReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "获取匿名者访问token接口")
     @PostMapping("/getAnonymousToken")
     @SuccessResponse("查询成功")
@@ -159,7 +159,7 @@ public class UserController {
         return userBizService.getAnonymousToken(getAnonymousTokenReq);
     }
 
-    @Secured({RoleType.SYS_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "设置平台管理员接口")
     @PostMapping("/setPlatformAdmin")
     @UserLog

@@ -76,7 +76,7 @@ public class UserBizService {
         }
 
         // 如果是系统管理员，首次登录，插入配置的密码并保存
-        if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode()) && Strings.isEmpty(userEntity.getPasswd())) {
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode()) && Strings.isEmpty(userEntity.getPasswd())) {
             userEntity.setPasswd(SecureUtil.md5(isxAppProperties.getAdminPasswd()));
             userRepository.save(userEntity);
         }
@@ -87,7 +87,7 @@ public class UserBizService {
         }
 
         // 如果是系统管理员直接返回
-        if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())) {
             return buildLoginRes(userEntity, null, userEntity.getRoleCode());
         }
 
@@ -152,7 +152,7 @@ public class UserBizService {
         }
 
         // 如果是系统管理员直接返回
-        if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())) {
             return buildGetUserRes(userEntity, null, userEntity.getRoleCode());
         }
 
@@ -203,7 +203,7 @@ public class UserBizService {
             .orElseThrow(() -> new IsxAppException("401", "刷新token异常，请重新登录"));
         validateUserStatus(userEntity);
 
-        if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())) {
             String tenantId = refreshUserToken.tenantId();
             return buildLoginRes(userEntity, tenantId, userEntity.getRoleCode());
         }
@@ -214,8 +214,8 @@ public class UserBizService {
 
     public LoginRes buildAuthenticatedLoginRes(UserEntity userEntity, String tenantId) {
 
-        if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
-            return buildLoginRes(userEntity, null, RoleType.SYS_ADMIN);
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())) {
+            return buildLoginRes(userEntity, null, RoleType.PLATFORM_SUPER_ADMIN);
         }
         TenantUserEntity tenantUser = validateTenantUser(userEntity.getId(), tenantId);
         return buildLoginRes(userEntity, tenantId, tenantUser.getRoleCode());
@@ -234,7 +234,7 @@ public class UserBizService {
         // UsrAddUserReq To UserEntity
         UserEntity userEntity = userMapper.addUserReqToUserEntity(usrAddUserReq);
         userEntity.setStatus(UserStatus.ENABLE);
-        userEntity.setRoleCode(RoleType.NORMAL_MEMBER);
+        userEntity.setRoleCode(RoleType.TENANT_MEMBER);
         userEntity.setPlatformAdmin(false);
         userEntity.setPasswd(SecureUtil.md5(userEntity.getPasswd()));
 
@@ -340,7 +340,7 @@ public class UserBizService {
             userRepository.findById(setPlatformAdminReq.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
         checkBuiltInAdmin(target);
         boolean callerIsSystemAdmin = userRepository.findById(ContextHolder.getUserId())
-            .map(user -> RoleType.SYS_ADMIN.equals(user.getRoleCode())).orElse(false);
+            .map(user -> RoleType.PLATFORM_SUPER_ADMIN.equals(user.getRoleCode())).orElse(false);
         if (Boolean.TRUE.equals(setPlatformAdminReq.getPlatformAdmin()) && !callerIsSystemAdmin) {
             throw new IsxAppException("只有超级管理员可以设置平台管理员");
         }
@@ -446,8 +446,9 @@ public class UserBizService {
             .phone(userEntity.getPhone()).email(userEntity.getEmail()).remark(userEntity.getRemark())
             .token(generateUserToken(userEntity.getId(), tenantId))
             .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId)
-            .role(resolveCompatibilityRole(access, role)).s z(access.systemAdmin())
-            .platformAdmin(access.platformAdmin()).tenantAdmin(access.tenantAdmin()).normalAdmin(access.normalAdmin())
+            .role(resolveCompatibilityRole(access, role)).platformSuperAdmin(access.systemAdmin())
+            .platformAdmin(access.platformAdmin()).tenantSuperAdmin(access.tenantAdmin())
+            .tenantAdmin(access.normalAdmin()).tenantMember(access.hasTenantAccess())
             .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
             .defaultArea(access.systemAdmin() ? "platform" : "workspace").build();
     }
@@ -468,20 +469,20 @@ public class UserBizService {
     private String resolveCompatibilityRole(AccessSnapshot access, String fallbackRole) {
 
         if (access.systemAdmin()) {
-            return RoleType.SYS_ADMIN;
+            return RoleType.PLATFORM_SUPER_ADMIN;
         }
         if (access.tenantAdmin()) {
-            return RoleType.TENANT_ADMIN;
+            return RoleType.TENANT_SUPER_ADMIN;
         }
         if (access.normalAdmin()) {
-            return RoleType.TENANT_NORMAL_ADMIN;
+            return RoleType.TENANT_ADMIN;
         }
         return fallbackRole == null ? RoleType.TENANT_MEMBER : fallbackRole;
     }
 
     private void checkBuiltInAdmin(UserEntity userEntity) {
 
-        if (RoleType.SYS_ADMIN.equals(userEntity.getRoleCode())) {
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())) {
             throw new IsxAppException("超级管理员账号不允许执行该操作");
         }
     }

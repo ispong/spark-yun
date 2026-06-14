@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/orgs")
-@Secured({RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+@Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
 public class OrgController {
 
     private final OrgBizService orgBizService;

@@ -120,7 +120,7 @@ class ProductAccessServiceTest {
 
         UserEntity user = new UserEntity();
         user.setId("user");
-        user.setRoleCode(RoleType.NORMAL_MEMBER);
+        user.setRoleCode(RoleType.TENANT_MEMBER);
         user.setStatus(UserStatus.ENABLE);
         user.setPlatformAdmin(false);
         return user;

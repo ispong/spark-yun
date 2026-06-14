@@ -45,7 +45,7 @@ public class FuncController {
         funcBizService.updateFunc(updateFuncReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "删除自定义函数接口")
     @PostMapping("/deleteFunc")
     @SuccessResponse("删除成功")

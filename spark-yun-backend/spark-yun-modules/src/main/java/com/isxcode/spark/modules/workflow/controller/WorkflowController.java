@@ -67,7 +67,7 @@ public class WorkflowController {
         return workflowBizService.pageWorkflow(pageWorkflowReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "删除作业流接口")
     @PostMapping("/deleteWorkflow")
     @SuccessResponse("删除成功")

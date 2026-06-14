@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/roles")
-@Secured({RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+@Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
 public class RoleController {
 
     private final RoleBizService roleBizService;

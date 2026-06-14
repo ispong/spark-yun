@@ -33,7 +33,7 @@ public class DatasourceController {
         datasourceBizService.addDatasource(addDatasourceReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "更新数据源接口")
     @PostMapping("/updateDatasource")
     @SuccessResponse("更新成功")
@@ -42,7 +42,7 @@ public class DatasourceController {
         datasourceBizService.updateDatasource(updateDatasourceReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN})
     @Operation(summary = "查询数据源列表接口")
     @PostMapping("/pageDatasource")
     @SuccessResponse("查询数据源成功")
@@ -51,7 +51,7 @@ public class DatasourceController {
         return datasourceBizService.pageDatasource(pageDatasourceReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "删除数据源接口")
     @PostMapping("/deleteDatasource")
     @SuccessResponse("删除成功")
@@ -76,7 +76,7 @@ public class DatasourceController {
         return datasourceBizService.checkConnect(checkConnectReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN})
     @Operation(summary = "查询连接日志接口")
     @PostMapping("/getConnectLog")
     @SuccessResponse("获取成功")
@@ -103,7 +103,7 @@ public class DatasourceController {
         return datasourceBizService.pageDatabaseDriver(pageDatabaseDriverReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @PostMapping("/deleteDatabaseDriver")
     @Operation(summary = "删除数据库驱动接口")
     @SuccessResponse("删除成功")

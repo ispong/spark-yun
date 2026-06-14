@@ -96,7 +96,7 @@ public class WorkController {
         return workBizService.getStatus(getStatusReq);
     }
 
-    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_MEMBER, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "删除作业接口")
     @PostMapping("/deleteWork")
     @SuccessResponse("删除成功")

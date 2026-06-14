@@ -35,7 +35,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // 返回匿名者用户对象
         if ("sy_anonymous".equals(userId)) {
             return User.withUsername(userId).password("")
-                .authorities(AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_ANONYMOUS")).build();
+                .authorities(AuthorityUtils.commaSeparatedStringToAuthorityList(RoleType.ROLE_ANONYMOUS)).build();
         }
 
         UserEntity userInfo = userRepository.findById(userId).orElseThrow(() -> new IsxAppException("用户不存在"));
@@ -49,10 +49,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             authorities.add(RoleType.TENANT_MEMBER);
         }
         if (access.tenantAdmin()) {
-            authorities.add(RoleType.TENANT_ADMIN);
+            authorities.add(RoleType.TENANT_SUPER_ADMIN);
         }
         if (access.normalAdmin()) {
-            authorities.add(RoleType.TENANT_NORMAL_ADMIN);
+            authorities.add(RoleType.TENANT_ADMIN);
         }
         authorities.addAll(access.permissions());
 

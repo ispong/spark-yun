@@ -28,7 +28,7 @@ public class TenantUserController {
     private final TenantUserBizService tenantUserBizService;
 
     @LicenseApi
-    @Secured({RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "添加用户接口")
     @PostMapping("/addTenantUser")
     @SuccessResponse("添加成功")
@@ -37,7 +37,7 @@ public class TenantUserController {
         tenantUserBizService.addTenantUser(addTenantUserReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "查询租户用户列表接口")
     @PostMapping("/pageTenantUser")
     @SuccessResponse("查询成功")
@@ -46,7 +46,7 @@ public class TenantUserController {
         return tenantUserBizService.pageTenantUser(pageTenantUserReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "移除用户接口")
     @PostMapping("/removeTenantUser")
     @UserLog
@@ -56,7 +56,7 @@ public class TenantUserController {
         tenantUserBizService.removeTenantUser(removeTenantUserReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "设置为普通管理员接口")
     @PostMapping("/setTenantAdmin")
     @UserLog
@@ -66,7 +66,7 @@ public class TenantUserController {
         tenantUserBizService.setTenantAdmin(setTenantAdminReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "取消普通管理员接口")
     @PostMapping("/removeTenantAdmin")
     @UserLog
@@ -76,7 +76,7 @@ public class TenantUserController {
         tenantUserBizService.removeTenantAdmin(removeTenantAdminReq);
     }
 
-    @Secured({RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "修改成员状态接口")
     @PostMapping("/setStatus")
     @UserLog
@@ -86,7 +86,7 @@ public class TenantUserController {
         tenantUserBizService.setTenantMemberStatus(request);
     }
 
-    @Secured({RoleType.TENANT_ADMIN, RoleType.TENANT_NORMAL_ADMIN})
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "设置成员角色接口")
     @PostMapping("/setRoles")
     @UserLog
