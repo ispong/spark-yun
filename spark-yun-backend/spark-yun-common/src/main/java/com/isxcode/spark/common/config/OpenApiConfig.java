@@ -22,7 +22,7 @@ public class OpenApiConfig {
 
         SecurityScheme basicAuthScheme =
             new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).description("输入用户token")
-                .scheme("basic").name(SecurityConstants.HEADER_AUTHORIZATION);
+                .name(SecurityConstants.HEADER_AUTHORIZATION);
 
         SecurityRequirement basicAuthRequirement = new SecurityRequirement().addList("tokenAuth");
         return new OpenAPI().components(new Components().addSecuritySchemes("tokenAuth", basicAuthScheme))
