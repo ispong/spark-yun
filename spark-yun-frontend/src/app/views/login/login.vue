@@ -133,12 +133,20 @@ const loginRule: FormRules<LoginModel> = {
     ]
 }
 
-async function submitLogin() {
-    if (btnLoading.value) {
-        return
-    }
+async function handleLogin() {
 
+    // 判断loading
+    if (btnLoading.value) return
+
+    // 校验表单参数
+    const isValid = await elFormRef.value?.validate().catch(() => false)
+
+    // 校验不通过，直接返回
+    if (!isValid) return
+
+    // 通过后开始登录，卡住loading
     btnLoading.value = true
+
     try {
         const res: any = await LoginUserInfo({ ...loginModel })
         authStore.applyAuthResponse(res.data)
@@ -148,20 +156,6 @@ async function submitLogin() {
         router.push(res.data.defaultArea === 'platform' ? '/platform' : '/workspace')
     } finally {
         btnLoading.value = false
-    }
-}
-
-async function handleLogin() {
-
-    // 判断loading
-    if (btnLoading.value) return
-
-    // 校验表单参数
-    const isValid = await elFormRef.value?.validate().catch(() => false)
-
-    // 通过后开始登录
-    if (isValid) {
-        await submitLogin()
     }
 }
 
