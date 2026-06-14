@@ -1,4 +1,5 @@
 import { defineConfig } from 'orval'
+import {appRequest} from "./src/app/api/orval-mutator";
 
 export default defineConfig({
     app: {
@@ -17,15 +18,14 @@ export default defineConfig({
         },
         output: {
             mode: 'tags-split',
-            target: 'src/app/api/generated/spark-yun.ts',
+            target: 'src/app/api/generated/app.ts',
             schemas: 'src/app/api/generated/models',
             client: 'axios',
-            prettier: true,
             clean: true,
             override: {
                 mutator: {
                     path: 'src/app/api/orval-mutator.ts',
-                    name: 'sparkYunRequest'
+                    name: 'appRequest'
                 }
             }
         }

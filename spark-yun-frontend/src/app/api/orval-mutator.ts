@@ -3,7 +3,7 @@ import type { AxiosRequestConfig } from 'axios'
 import type { Result } from '@/app/plugins/http-request/utils/types'
 import { http } from '@/app/utils/http'
 
-export function sparkYunRequest<T>(config: AxiosRequestConfig, options?: AxiosRequestConfig): Promise<Result<T>> {
+export function appRequest<T>(config: AxiosRequestConfig, options?: AxiosRequestConfig): Promise<Result<T>> {
     return http.request<Result<T>>({
         ...config,
         ...options,
