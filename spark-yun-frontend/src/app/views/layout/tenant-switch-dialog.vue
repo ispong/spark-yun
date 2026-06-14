@@ -31,7 +31,7 @@
                 @click="handleTenantSelect(tenant)"
             >
                 <div class="zqy-layout__tenant-name">
-                    <EllipsisTooltip class="zqy-layout__menu-text" :label="tenant.name" />
+                    <EllipsisTooltip class="zqy-layout__tenant-name-text" :label="tenant.name" />
                 </div>
                 <span v-if="authStore.tenantId === tenant.id" class="zqy-layout__tenant-current">当前</span>
             </div>

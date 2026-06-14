@@ -1,13 +1,15 @@
 <template>
-    <div :class="layoutClass">
+    <div class="zqy-layout">
         <div
             class="zqy-layout__sidebar"
+            :class="{ 'is-collapse': isCollapse }"
             @mouseenter="isCollapse = false"
             @mouseleave="isCollapse = true"
         >
             <div class="zqy-layout__nav">
                 <img class="zqy-layout__logo" :src="isCollapse ? logoURLSmall : logoURL" alt="logo" />
             </div>
+
             <div class="zqy-layout__menu-wrap">
                 <el-menu
                     class="zqy-layout__menu"
@@ -17,52 +19,92 @@
                     @select="handleSelect"
                 >
                     <template v-for="menuData in menuViewData" :key="menuData.code">
-                        <el-sub-menu
-                            v-if="menuData.children?.length"
-                            :index="menuData.code"
-                        >
+                        <el-sub-menu v-if="menuData.children?.length" :index="menuData.code">
                             <template #title>
                                 <el-icon class="zqy-layout__icon">
                                     <component :is="resolveIcon(menuData.icon)" />
                                 </el-icon>
                                 <span v-show="!isCollapse" class="zqy-layout__text">{{ menuData.name }}</span>
                             </template>
+
                             <el-menu-item
                                 v-for="menu in menuData.children"
                                 :key="menu.code"
                                 :index="menu.code"
                             >
-                                <el-icon class="zqy-layout__icon">
-                                    <component :is="resolveIcon(menu.icon)" />
-                                </el-icon>
                                 <template #title>
+                                    <el-icon class="zqy-layout__icon">
+                                        <component :is="resolveIcon(menu.icon)" />
+                                    </el-icon>
                                     <span class="zqy-layout__text">{{ menu.name }}</span>
                                 </template>
                             </el-menu-item>
                         </el-sub-menu>
+
                         <el-menu-item v-else :index="menuData.code">
-                            <el-icon class="zqy-layout__icon">
-                                <component :is="resolveIcon(menuData.icon)" />
-                            </el-icon>
-                            <template #title>
+                          <el-icon class="zqy-layout__icon">
+                            <component :is="resolveIcon(menuData.icon)" />
+                          </el-icon>
+                             <template #title>
                                 <span class="zqy-layout__text">{{ menuData.name }}</span>
                             </template>
                         </el-menu-item>
                     </template>
                 </el-menu>
             </div>
+
             <div class="zqy-layout__menu-footer">
-                <UserMenuPopover
-                    :username="username"
-                    :is-system-admin="isSystemAdmin"
-                    :is-platform-admin="isPlatformAdmin"
-                    :is-tenant-manager="isTenantManager"
-                    :active-tenant-name="activeTenantName"
-                    @go-area="goArea"
-                    @go-personal-info="goPersonalInfo"
-                    @open-tenant-dialog="openTenantDialog"
-                    @logout="handleCommand('logout')"
-                />
+                <el-popover
+                    v-model:visible="menuVisible"
+                    placement="top-end"
+                    :show-arrow="false"
+                    trigger="click"
+                    popper-class="zqy-layout__user-menu-popper"
+                >
+                    <template #reference>
+                        <el-avatar class="zqy-layout__avatar" :size="32">
+                            {{ username }}
+                        </el-avatar>
+                    </template>
+                    <div class="zqy-layout__user-menu-options" @mouseleave="menuVisible = false">
+                        <div v-if="!isSystemAdmin" class="zqy-layout__user-menu-option" @click="goArea('/workspace')">
+                            <el-icon>
+                                <Monitor />
+                            </el-icon>
+                            工作台
+                        </div>
+                        <div v-if="isPlatformAdmin" class="zqy-layout__user-menu-option" @click="goArea('/platform')">
+                            <el-icon>
+                                <Setting />
+                            </el-icon>
+                            平台管理
+                        </div>
+                        <div v-if="isTenantManager" class="zqy-layout__user-menu-option" @click="goArea('/admin')">
+                            <el-icon>
+                                <Tools />
+                            </el-icon>
+                            后台管理
+                        </div>
+                        <div v-if="!isSystemAdmin" class="zqy-layout__user-menu-option" @click="openTenantDialog">
+                            <el-icon>
+                                <OfficeBuilding />
+                            </el-icon>
+                            <EllipsisTooltip class="zqy-layout__user-menu-text" :label="activeTenantName" />
+                        </div>
+                        <div class="zqy-layout__user-menu-option" @click="goPersonalInfo">
+                            <el-icon>
+                                <Setting />
+                            </el-icon>
+                            个人中心
+                        </div>
+                        <div class="zqy-layout__user-menu-option" @click="handleCommand('logout')">
+                            <el-icon>
+                                <SwitchButton />
+                            </el-icon>
+                            退出登录
+                        </div>
+                    </div>
+                </el-popover>
             </div>
         </div>
 
@@ -77,10 +119,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, resolveComponent, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Monitor, OfficeBuilding, Setting, SwitchButton, Tools } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 import logoURLSmall from '@/app/assets/imgs/logo.png'
 import logoURL from '@/app/assets/imgs/logo-a.png'
+import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { CheckLicenseStatus } from '@/app/management/license/api'
 import { useAuthStore } from '@/app/store/useAuth'
 import {
@@ -91,7 +135,6 @@ import {
 } from '@/app/utils/vip-license'
 import { adminMenuListData, platformMenuListData, workspaceMenuListData, type Menu } from './menu.config'
 import TenantSwitchDialog from './tenant-switch-dialog.vue'
-import UserMenuPopover from './user-menu-popover.vue'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -100,6 +143,7 @@ const vipEnabled = ref(false)
 const licenseApiAvailable = ref(true)
 const vipChecked = ref(false)
 const isCollapse = ref(true)
+const menuVisible = ref(false)
 const tenantSwitchDialogRef = ref<InstanceType<typeof TenantSwitchDialog>>()
 const activeTenantName = ref('切换租户')
 
@@ -150,11 +194,6 @@ const username = computed(() => {
 const isSystemAdmin = computed(() => !!authStore.userInfo?.systemAdmin)
 const isPlatformAdmin = computed(() => !!authStore.userInfo?.platformAdmin)
 const isTenantManager = computed(() => !!authStore.userInfo?.tenantAdmin || !!authStore.userInfo?.normalAdmin)
-
-const layoutClass = computed<Record<string, boolean>>(() => ({
-    'zqy-layout': true,
-    'is-collapse': isCollapse.value
-}))
 
 function resolveIcon(icon: string) {
     return resolveComponent(icon)
@@ -245,12 +284,14 @@ function doLogout() {
 }
 
 function goPersonalInfo() {
+    menuVisible.value = false
     router.push({
         name: 'personalInfo'
     })
 }
 
 function goArea(path: string) {
+    menuVisible.value = false
     router.push(path)
 }
 
@@ -267,6 +308,7 @@ function handleCommand(command: 'logout') {
 }
 
 function openTenantDialog() {
+    menuVisible.value = false
     tenantSwitchDialogRef.value?.open()
 }
 
@@ -332,26 +374,6 @@ watch(
     width: 100vw;
     height: 100vh;
 
-    &.is-collapse {
-        .zqy-layout__sidebar {
-            width: 80px;
-            z-index: 999;
-            .zqy-layout__nav {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-        }
-
-        .zqy-layout__main {
-            padding-left: 80px;
-        }
-
-        .zqy-layout__title {
-            display: none;
-        }
-    }
-
     .zqy-layout__sidebar {
         --el-transition-duration: 0.18s;
 
@@ -367,6 +389,17 @@ watch(
         transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         border-right: 1px solid var(--el-border-color);
         z-index: 2000;
+
+        &.is-collapse {
+            width: 80px;
+            z-index: 999;
+
+            .zqy-layout__nav {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        }
     }
 
     .zqy-layout__main {
@@ -374,7 +407,6 @@ watch(
         background-color: getCssVar('color', 'white');
         padding-left: 80px;
         box-sizing: border-box;
-        transition: padding-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .zqy-layout__nav {
@@ -392,23 +424,8 @@ watch(
         // width: 40px;
     }
 
-    .zqy-layout__title {
-        font-size: 28px;
-        font-weight: bold;
-        line-height: 46px;
-        vertical-align: bottom;
-        color: getCssVar('color', 'primary');
-    }
-
     .zqy-layout__icon {
         color: getCssVar('color', 'info');
-    }
-
-    .zqy-layout__ops {
-        cursor: pointer;
-        &:hover {
-            color: getCssVar('color', 'primary');
-        }
     }
 
     .zqy-layout__avatar {
@@ -461,32 +478,9 @@ watch(
     }
 }
 
-.zqy-layout__menu-tenant {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 5px 12px;
-
-    .zqy-layout__menu-title {
-        max-width: 72px;
-    }
-}
-
-.zqy-layout__menu-icon {
-    cursor: pointer;
-
-    &:hover {
-        color: getCssVar('color', 'primary');
-    }
-}
-
-.zqy-layout__menu-avatar.el-popover.el-popper {
+.zqy-layout__user-menu-popper.el-popover.el-popper {
     min-width: 160px !important;
     width: 160px !important;
-    padding: 4px;
-}
-
-.zqy-layout__tenant-popover.el-popover {
     padding: 4px;
 }
 
@@ -564,6 +558,10 @@ watch(
         min-width: 0;
     }
 
+    .zqy-layout__tenant-name-text {
+        max-width: 100%;
+    }
+
     .zqy-layout__tenant-current {
         font-size: 12px;
         color: getCssVar('color-primary');
@@ -588,7 +586,7 @@ watch(
     font-size: 13px;
 }
 
-.zqy-layout__menu-option {
+.zqy-layout__user-menu-option {
     height: 32px;
     display: flex;
     align-items: center;
@@ -605,7 +603,7 @@ watch(
         color: getCssVar('color-primary');
     }
 
-    .zqy-layout__menu-text {
+    .zqy-layout__user-menu-text {
         max-width: 120px;
     }
 }
