@@ -348,7 +348,7 @@ onMounted(() => {
         &:focus-within {
             .el-input__wrapper {
                 border-color: getCssVar('color', 'primary');
-                box-shadow: 0 0 0 2px rgba(80, 107, 254, 0.1);
+                box-shadow: 0 0 0 2px rgba(var(--el-color-primary-rgb), 0.1);
             }
         }
 

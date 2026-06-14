@@ -26,7 +26,9 @@ export default defineConfig({
     plugins: [
         vue(), // 解析vue文件
         vueJsx(), // 解析tsx文件
-        ElementPlus(), // 按需引入element-plus样式
+        ElementPlus({
+            useSource: true // 使用sass源码，避免默认css覆盖自定义主题变量
+        }), // 按需引入element-plus样式
         Components({
             dirs: ['src/app/components'], // 自动扫描组件
             extensions: ['vue'],
