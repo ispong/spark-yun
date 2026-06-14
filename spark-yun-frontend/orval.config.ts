@@ -17,8 +17,8 @@ export default defineConfig({
         },
         output: {
             mode: 'tags-split',
-            target: 'src/type/app.ts',
-            schemas: 'src/type/models',
+            target: 'src/app/type/app.ts',
+            schemas: 'src/app/type/models',
             client: 'axios',
             clean: true,
             override: {
