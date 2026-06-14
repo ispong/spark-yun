@@ -159,8 +159,9 @@ async function handleLogin() {
         // 刷新处理一下数据
         await nextTick()
 
-        // 路由跳转
-        await router.push('/workspace');
+        // 路由跳转，如果是平台超级管理员，只能跳平台，如果是平台管理员，且没有租户，只能跳平台，其他都跳工作台
+        const routePath = res.data.platformSuperAdmin || (res.data.platformAdmin && !res.data.tenantId) ? '/platform' : '/workspace'
+        await router.push(routePath)
 
     } finally {
 
