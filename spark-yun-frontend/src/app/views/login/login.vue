@@ -156,7 +156,10 @@ async function handleLogin() {
     // 判断loading
     if (btnLoading.value) return
 
+    // 校验表单参数
     const isValid = await elFormRef.value?.validate().catch(() => false)
+
+    // 通过后开始登录
     if (isValid) {
         await submitLogin()
     }
