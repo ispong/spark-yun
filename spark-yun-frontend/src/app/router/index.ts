@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import Home from '@/app/views/home/home'
+import Layout from '@/app/views/layout/layout.vue'
 import { workspaceModuleRoutes } from './module-routes'
 import { setupRouterGuard } from './guard'
 
@@ -46,7 +46,7 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: '/platform',
         name: 'platform',
-        component: Home,
+        component: Layout,
         meta: {
             area: routeArea.platform
         },
@@ -77,7 +77,7 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: '/admin',
         name: 'admin',
-        component: Home,
+        component: Layout,
         meta: {
             area: routeArea.admin
         },
@@ -103,7 +103,7 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: '/workspace',
         name: 'workspace',
-        component: Home,
+        component: Layout,
         meta: {
             area: routeArea.workspace
         },

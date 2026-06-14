@@ -1,4 +1,4 @@
-import type { Menu } from '@/app/views/home/menu.config'
+import type { Menu } from '@/app/views/layout/menu.config'
 import { CheckLicenseStatus } from '@/app/management/license/api'
 
 const VIP_MENU_CODE_SET = new Set([
