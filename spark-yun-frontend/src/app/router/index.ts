@@ -4,7 +4,7 @@ import { workspaceModuleRoutes } from './module-routes'
 import { setupRouterGuard } from './guard'
 
 // 动态加载，读到路由才会加载
-const Login = () => import('@/app/views/login/login')
+const Login = () => import('@/app/views/login/login.vue')
 const SsoAuth = () => import('@/app/views/login/ssoauth')
 const Forbidden = () => import('@/app/views/system/forbidden.vue')
 const UserCenter = () => import('@/app/management/user-center/views/index.vue')
