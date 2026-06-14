@@ -116,17 +116,16 @@ public class WebSecurityConfig {
 
     private RequestMatcher adminRoleRequestMatcher() {
 
-        RequestMatcher[] requestMatchers = isxAppProperties.getAdminRoleUrl().stream().map(AntPathRequestMatcher::new)
-            .toArray(RequestMatcher[]::new);
+        RequestMatcher[] requestMatchers =
+            isxAppProperties.getAdminRoleUrl().stream().map(AntPathRequestMatcher::new).toArray(RequestMatcher[]::new);
         return new OrRequestMatcher(requestMatchers);
     }
 
     private AuthenticationProvider adminRoleAuthenticationProvider() {
 
         SecurityProperties.User user = securityProperties.getUser();
-        InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(User
-            .withUsername(user.getName()).password("{noop}" + user.getPassword())
-            .authorities(user.getRoles().toArray(String[]::new)).build());
+        InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(User.withUsername(user.getName())
+            .password("{noop}" + user.getPassword()).authorities(user.getRoles().toArray(String[]::new)).build());
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(userDetailsService);
         return authenticationProvider;
@@ -151,12 +150,12 @@ public class WebSecurityConfig {
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(authenticationEntryPoint)
             .accessDeniedHandler(accessDeniedHandler));
-        http.authorizeHttpRequests(
-            authorize -> authorize.dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
-                .requestMatchers(toPatterns(openUrlPatterns())).permitAll()
-                .requestMatchers(toPatterns(isxAppProperties.getAdminRoleUrl())).hasAuthority(RoleType.PLATFORM_SUPER_ADMIN)
-                .requestMatchers(toPatterns(isxAppProperties.getAnonymousRoleUrl()))
-                .hasAuthority(RoleType.ROLE_ANONYMOUS).anyRequest().authenticated());
+        http.authorizeHttpRequests(authorize -> authorize
+            .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
+            .requestMatchers(toPatterns(openUrlPatterns())).permitAll()
+            .requestMatchers(toPatterns(isxAppProperties.getAdminRoleUrl())).hasAuthority(RoleType.PLATFORM_SUPER_ADMIN)
+            .requestMatchers(toPatterns(isxAppProperties.getAnonymousRoleUrl())).hasAuthority(RoleType.ROLE_ANONYMOUS)
+            .anyRequest().authenticated());
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(productAccessAuthorizationFilter, JwtAuthenticationFilter.class);
         http.formLogin(AbstractHttpConfigurer::disable);

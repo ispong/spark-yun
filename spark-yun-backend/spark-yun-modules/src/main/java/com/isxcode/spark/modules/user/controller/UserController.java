@@ -141,7 +141,8 @@ public class UserController {
         return userBizService.pageUser(pageUserReq);
     }
 
-    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
     @Operation(summary = "查询所有启用用户接口")
     @PostMapping("/pageEnableUser")
     @SuccessResponse("查询成功")

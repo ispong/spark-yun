@@ -12,9 +12,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, String> {
 
-    @Query("SELECT U FROM UserEntity U " + "WHERE U.roleCode != 'PLATFORM_SUPER_ADMIN' and " + "(U.username LIKE %:keyword% "
-        + "OR U.account LIKE %:keyword% " + "OR U.email LIKE %:keyword% " + "OR U.phone LIKE %:keyword% "
-        + "OR U.remark LIKE %:keyword%) order by U.createDateTime desc ")
+    @Query("SELECT U FROM UserEntity U " + "WHERE U.roleCode != 'PLATFORM_SUPER_ADMIN' and "
+        + "(U.username LIKE %:keyword% " + "OR U.account LIKE %:keyword% " + "OR U.email LIKE %:keyword% "
+        + "OR U.phone LIKE %:keyword% " + "OR U.remark LIKE %:keyword%) order by U.createDateTime desc ")
     Page<UserEntity> searchAllUser(@Param("keyword") String searchKeyWord, Pageable pageable);
 
     @Query("SELECT U FROM UserEntity U " + "WHERE U.roleCode != 'PLATFORM_SUPER_ADMIN' " + "AND U.status = 'ENABLE' "

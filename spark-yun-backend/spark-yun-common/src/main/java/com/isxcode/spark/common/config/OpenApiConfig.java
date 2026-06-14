@@ -20,9 +20,8 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI customOpenApi() {
 
-        SecurityScheme basicAuthScheme =
-            new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).description("输入用户token")
-                .name(SecurityConstants.HEADER_AUTHORIZATION);
+        SecurityScheme basicAuthScheme = new SecurityScheme().type(SecurityScheme.Type.APIKEY)
+            .in(SecurityScheme.In.HEADER).description("输入用户token").name(SecurityConstants.HEADER_AUTHORIZATION);
 
         SecurityRequirement basicAuthRequirement = new SecurityRequirement().addList("tokenAuth");
         return new OpenAPI().components(new Components().addSecuritySchemes("tokenAuth", basicAuthScheme))
