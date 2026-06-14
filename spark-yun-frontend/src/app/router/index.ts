@@ -1,6 +1,5 @@
-import { createRouter, createWebHistory, type RouteLocationRaw, type RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Home from '@/app/views/home/home'
-import { useAuthStore } from '@/app/store/useAuth'
 import { workspaceModuleRoutes } from './module-routes'
 import { setupRouterGuard } from './guard'
 
@@ -18,43 +17,6 @@ const OrgManagement = () => import('@/app/management/org-management/views/index.
 const PersonalInfo = () => import('@/app/management/personal-info/views/index.vue')
 const ShareForm = () => import('@/modules/custom-form/views/share-form-page/index.vue')
 const ShareReport = () => import('@/modules/report/views/report-views/share-report/index.vue')
-
-function workspaceDefaultRoute(): RouteLocationRaw {
-    const authStore = useAuthStore()
-    if (authStore.userInfo?.workspaceAllPermissions) {
-        return {
-            name: 'index'
-        }
-    }
-    const permissions: string[] = authStore.userInfo?.permissions || []
-    const menuModules = permissions.filter((code) => code.endsWith(':menu')).map((code) => code.split(':')[1])
-    const workspaceRoute = routes.find((route) => route.name === 'workspace')
-    const workspaceChildren = workspaceRoute?.children || []
-    const target = workspaceChildren.find((route) => menuModules.includes(String(route.name || '')))
-    return target
-        ? {
-              name: target.name
-          }
-        : {
-              name: 'forbidden'
-          }
-}
-
-function defaultRoute(): RouteLocationRaw {
-    const authStore = useAuthStore()
-    if (!authStore.token) {
-        return {
-            name: 'login'
-        }
-    }
-    return authStore.userInfo?.systemAdmin
-        ? {
-              name: 'platform'
-          }
-        : {
-              name: 'workspace'
-          }
-}
 
 // 路由配置
 const routes: Array<RouteRecordRaw> = [
@@ -138,33 +100,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
             area: 'workspace'
         },
-        redirect: workspaceDefaultRoute,
         children: [
-            {
-                path: 'tenant-user',
-                name: 'tenant-user',
-                component: TenantUser
-            },
-            {
-                path: 'user-center',
-                name: 'user-center',
-                component: UserCenter
-            },
-            {
-                path: 'tenant-list',
-                name: 'tenant-list',
-                component: TenantList
-            },
-            {
-                path: 'oauth-management',
-                name: 'oauth-management',
-                component: OauthManagement
-            },
-            {
-                path: 'license',
-                name: 'license',
-                component: License
-            },
             {
                 path: 'personal-info',
                 name: 'personalInfo',
@@ -192,10 +128,6 @@ const routes: Array<RouteRecordRaw> = [
         path: '/dashboard/:shareParam',
         name: 'share-report',
         component: ShareReport
-    },
-    {
-        path: '/:pathMatch(.*)*',
-        redirect: defaultRoute
     }
 ]
 
@@ -205,6 +137,6 @@ const router = createRouter({
     routes
 })
 
-setupRouterGuard(router, workspaceDefaultRoute)
+setupRouterGuard(router)
 
 export default router

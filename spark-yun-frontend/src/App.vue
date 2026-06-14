@@ -1,6 +1,6 @@
 <template>
     <el-config-provider :locale="locale">
-        <!-- 进入路由 -->
+        <!-- 进入路由，展示哪个组件 -->
         <router-view />
     </el-config-provider>
 </template>

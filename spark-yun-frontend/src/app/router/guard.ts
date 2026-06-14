@@ -1,4 +1,4 @@
-import type { Router, RouteLocationRaw } from 'vue-router'
+import type { Router } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getVipLicenseEnabled, isVipMenuCode } from '@/app/utils/vip-license'
 import { useAuthStore } from '@/app/store/useAuth'
@@ -8,23 +8,11 @@ const systemAdminRole = 'ROLE_SYS_ADMIN'
 const platformAdminRole = 'ROLE_PLATFORM_ADMIN'
 const tenantAdminRoles = new Set(['ROLE_TENANT_ADMIN', 'ROLE_TENANT_NORMAL_ADMIN'])
 
-function hasPlatformAccess(authStore: ReturnType<typeof useAuthStore>): boolean {
-    return (
-        !!authStore.userInfo?.systemAdmin ||
-        !!authStore.userInfo?.platformAdmin ||
-        authStore.role === systemAdminRole ||
-        authStore.role === platformAdminRole
-    )
-}
+// 路由守卫，判断权限
+export function setupRouterGuard(router: Router): void {
 
-function hasTenantAdminAccess(authStore: ReturnType<typeof useAuthStore>): boolean {
-    return (
-        !!authStore.userInfo?.tenantAdmin || !!authStore.userInfo?.normalAdmin || tenantAdminRoles.has(authStore.role)
-    )
-}
-
-export function setupRouterGuard(router: Router, workspaceDefaultRoute: () => RouteLocationRaw): void {
     router.beforeEach(async (to) => {
+
         const authStore = useAuthStore()
         const routeName = typeof to.name === 'string' ? to.name : ''
 
@@ -38,12 +26,23 @@ export function setupRouterGuard(router: Router, workspaceDefaultRoute: () => Ro
         }
 
         const area = to.meta.area
-        if (area === 'platform' && !hasPlatformAccess(authStore)) {
+        if (
+            area === 'platform' &&
+            !(
+                authStore.userInfo?.systemAdmin ||
+                authStore.userInfo?.platformAdmin ||
+                authStore.role === systemAdminRole ||
+                authStore.role === platformAdminRole
+            )
+        ) {
             return {
                 name: 'forbidden'
             }
         }
-        if (area === 'admin' && !hasTenantAdminAccess(authStore)) {
+        if (
+            area === 'admin' &&
+            !(authStore.userInfo?.tenantAdmin || authStore.userInfo?.normalAdmin || tenantAdminRoles.has(authStore.role))
+        ) {
             return {
                 name: 'forbidden'
             }
@@ -68,7 +67,6 @@ export function setupRouterGuard(router: Router, workspaceDefaultRoute: () => Ro
         if (commercialEnabled) {
             return true
         }
-        ElMessage.error('许可证未启用，无法访问商业版菜单')
-        return workspaceDefaultRoute()
+        ElMessage.error('许可证未启用，无法访问商业版菜单');
     })
 }
