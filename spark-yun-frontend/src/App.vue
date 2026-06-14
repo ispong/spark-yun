@@ -4,7 +4,7 @@
     </el-config-provider>
 </template>
 <script lang="ts" setup>
-import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import { reactive } from 'vue'
 
 const { locale } = reactive({
