@@ -1,14 +1,13 @@
 import { createRouter, createWebHistory, type RouteLocationRaw, type RouteRecordRaw } from 'vue-router'
 import Home from '@/app/views/home/home'
 import { useAuthStore } from '@/app/store/useAuth'
-import { shareModuleRoutes, workspaceModuleRoutes } from './module-routes'
+import { workspaceModuleRoutes } from './module-routes'
 import { setupRouterGuard } from './guard'
 
 // 动态加载，读到路由才会加载
 const Login = () => import('@/app/views/login/login')
 const SsoAuth = () => import('@/app/views/login/ssoauth')
 const Forbidden = () => import('@/app/views/system/forbidden.vue')
-const NoTenant = () => import('@/app/views/system/no-tenant.vue')
 const UserCenter = () => import('@/app/management/user-center/views/index.vue')
 const TenantList = () => import('@/app/management/tenant-list/views/index.vue')
 const License = () => import('@/app/management/license/views/index.vue')
@@ -17,6 +16,8 @@ const TenantUser = () => import('@/app/management/tenant-user/views/index.vue')
 const RoleManagement = () => import('@/app/management/role-management/views/index.vue')
 const OrgManagement = () => import('@/app/management/org-management/views/index.vue')
 const PersonalInfo = () => import('@/app/management/personal-info/views/index.vue')
+const ShareForm = () => import('@/modules/custom-form/views/share-form-page/index.vue')
+const ShareReport = () => import('@/modules/report/views/report-views/share-report/index.vue')
 
 function workspaceDefaultRoute(): RouteLocationRaw {
     const authStore = useAuthStore()
@@ -139,7 +140,6 @@ const routes: Array<RouteRecordRaw> = [
         },
         redirect: workspaceDefaultRoute,
         children: [
-            ...workspaceModuleRoutes,
             {
                 path: 'tenant-user',
                 name: 'tenant-user',
@@ -169,7 +169,8 @@ const routes: Array<RouteRecordRaw> = [
                 path: 'personal-info',
                 name: 'personalInfo',
                 component: PersonalInfo
-            }
+            },
+            ...workspaceModuleRoutes
         ]
     },
     {
@@ -183,11 +184,15 @@ const routes: Array<RouteRecordRaw> = [
         component: Forbidden
     },
     {
-        path: '/no-tenant',
-        name: 'no-tenant',
-        component: NoTenant
+        path: '/share/:shareParam',
+        name: 'share',
+        component: ShareForm
     },
-    ...shareModuleRoutes,
+    {
+        path: '/dashboard/:shareParam',
+        name: 'share-report',
+        component: ShareReport
+    },
     {
         path: '/:pathMatch(.*)*',
         redirect: defaultRoute

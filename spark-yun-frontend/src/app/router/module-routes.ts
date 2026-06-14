@@ -1,14 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router'
 
 type RouteList = RouteRecordRaw[]
-type ShareRouteModule = RouteRecordRaw | RouteRecordRaw[]
 
 const workspaceRouteModules = import.meta.glob<RouteList>('../../modules/*/routes.ts', {
-    eager: true,
-    import: 'default'
-})
-
-const shareRouteModules = import.meta.glob<ShareRouteModule>('../../modules/*/share-routes.ts', {
     eager: true,
     import: 'default'
 })
@@ -54,14 +48,6 @@ function sortByWorkspaceOrder(paths: string[]): string[] {
     })
 }
 
-function toRouteList(moduleRoutes: ShareRouteModule): RouteRecordRaw[] {
-    return Array.isArray(moduleRoutes) ? moduleRoutes : [moduleRoutes]
-}
-
 export const workspaceModuleRoutes: RouteRecordRaw[] = sortByWorkspaceOrder(Object.keys(workspaceRouteModules)).flatMap(
     (path) => workspaceRouteModules[path] || []
 )
-
-export const shareModuleRoutes: RouteRecordRaw[] = Object.keys(shareRouteModules)
-    .sort()
-    .flatMap((path) => toRouteList(shareRouteModules[path]))

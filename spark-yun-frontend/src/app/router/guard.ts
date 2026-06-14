@@ -56,7 +56,7 @@ export function setupRouterGuard(router: Router, workspaceDefaultRoute: () => Ro
             }
             if (!authStore.tenantId) {
                 return {
-                    name: 'no-tenant'
+                    name: 'forbidden'
                 }
             }
         }
