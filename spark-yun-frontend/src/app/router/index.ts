@@ -59,15 +59,15 @@ function defaultRoute(): RouteLocationRaw {
 // 路由配置
 const routes: Array<RouteRecordRaw> = [
     {
+        path: '/ssoauth',
+        name: 'ssoauth',
+        component: SsoAuth
+    },
+    {
         path: '/',
         redirect: {
             name: 'login'
         }
-    },
-    {
-        path: '/ssoauth',
-        name: 'ssoauth',
-        component: SsoAuth
     },
     {
         path: '/auth',
