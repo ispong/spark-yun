@@ -49,7 +49,7 @@
                     </el-form>
 
                     <el-button
-                        class="zqy-login__btn"
+                        class="zqy-login__button"
                         type="primary"
                         :loading="btnLoading"
                         :disabled="btnLoading"
@@ -67,6 +67,7 @@
                                 <el-button
                                     v-for="item in oauthUrlList"
                                     :key="item.invokeUrl"
+                                    class="zqy-login__oauth-button"
                                     type="primary"
                                     @click="handleRedirect(item)"
                                 >
@@ -281,13 +282,13 @@ onMounted(() => {
         flex-direction: column;
         gap: 8px;
         padding: 4px 0;
+    }
 
-        .el-button {
-            width: 100%;
-            margin: 0;
-            font-size: 12px;
-            height: 32px;
-        }
+    .zqy-login__oauth-button {
+        width: 100%;
+        margin: 0;
+        font-size: 12px;
+        height: 32px;
     }
 
     .zqy-login__title {
@@ -368,7 +369,7 @@ onMounted(() => {
         }
     }
 
-    .zqy-login__btn {
+    .zqy-login__button {
         width: 100%;
         background: linear-gradient(90deg, #ff8a3d, #ff4d12);
         border: none;
