@@ -24,6 +24,19 @@ export const routeArea = {
     workspace: 'workspace'
 } as const
 
+const personalInfoMeta = {
+    personalInfo: true
+}
+
+function createPersonalInfoRoute(name: string): RouteRecordRaw {
+    return {
+        path: 'personal-info',
+        name,
+        component: PersonalInfo,
+        meta: personalInfoMeta
+    }
+}
+
 // 路由配置
 const routes: Array<RouteRecordRaw> = [
     {
@@ -71,7 +84,8 @@ const routes: Array<RouteRecordRaw> = [
                 path: 'auth',
                 name: 'platform-oauth-management',
                 component: OauthManagement
-            }
+            },
+            createPersonalInfoRoute('platform-personalInfo')
         ]
     },
     {
@@ -97,7 +111,8 @@ const routes: Array<RouteRecordRaw> = [
                 path: 'orgs',
                 name: 'org-management',
                 component: OrgManagement
-            }
+            },
+            createPersonalInfoRoute('admin-personalInfo')
         ]
     },
     {
@@ -108,11 +123,7 @@ const routes: Array<RouteRecordRaw> = [
             area: routeArea.workspace
         },
         children: [
-            {
-                path: 'personal-info',
-                name: 'workspace-personalInfo',
-                component: PersonalInfo
-            },
+            createPersonalInfoRoute('workspace-personalInfo'),
             ...workspaceModuleRoutes
         ]
     },

@@ -67,6 +67,12 @@
                         </el-avatar>
                     </template>
                     <div class="zqy-layout__user-menu-options" @mouseleave="menuVisible = false">
+                        <div v-if="showTenantSwitch" class="zqy-layout__user-menu-option" @click="openTenantDialog">
+                            <el-icon>
+                                <OfficeBuilding />
+                            </el-icon>
+                            <EllipsisTooltip class="zqy-layout__user-menu-text" :label="activeTenantName" />
+                        </div>
                         <div v-if="showWorkspaceEntry" class="zqy-layout__user-menu-option" @click="goArea('/workspace')">
                             <el-icon>
                                 <Monitor />
@@ -75,25 +81,19 @@
                         </div>
                         <div v-if="showPlatformEntry" class="zqy-layout__user-menu-option" @click="goArea('/platform')">
                             <el-icon>
-                                <Setting />
+                                <Platform />
                             </el-icon>
                             平台管理
                         </div>
                         <div v-if="showAdminEntry" class="zqy-layout__user-menu-option" @click="goArea('/admin')">
                             <el-icon>
-                                <Tools />
+                                <Monitor />
                             </el-icon>
                             后台管理
                         </div>
-                        <div v-if="showTenantSwitch" class="zqy-layout__user-menu-option" @click="openTenantDialog">
-                            <el-icon>
-                                <OfficeBuilding />
-                            </el-icon>
-                            <EllipsisTooltip class="zqy-layout__user-menu-text" :label="activeTenantName" />
-                        </div>
                         <div v-if="showPersonalInfo" class="zqy-layout__user-menu-option" @click="goPersonalInfo">
                             <el-icon>
-                                <Setting />
+                                <User />
                             </el-icon>
                             个人中心
                         </div>
@@ -119,7 +119,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, resolveComponent, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, OfficeBuilding, Setting, SwitchButton, Tools } from '@element-plus/icons-vue'
+import { Monitor, OfficeBuilding, Platform, SwitchButton, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 import logoURLSmall from '@/app/assets/imgs/logo.png'
@@ -147,11 +147,24 @@ const menuVisible = ref(false)
 const tenantSwitchDialogRef = ref<InstanceType<typeof TenantSwitchDialog>>()
 const activeTenantName = ref('切换租户')
 
-const menuListData = computed(() => {
+const currentArea = computed(() => {
     if (route.path.startsWith('/platform')) {
-        return platformMenuListData
+        return 'platform'
     }
     if (route.path.startsWith('/admin')) {
+        return 'admin'
+    }
+    if (route.path.startsWith('/workspace')) {
+        return 'workspace'
+    }
+    return ''
+})
+
+const menuListData = computed(() => {
+    if (currentArea.value === 'platform') {
+        return platformMenuListData
+    }
+    if (currentArea.value === 'admin') {
         return adminMenuListData
     }
     return workspaceMenuListData
@@ -170,9 +183,15 @@ const adminMenuPaths: Record<string, string> = {
     'org-management': '/admin/orgs'
 }
 
+const personalInfoRouteNames: Record<string, string> = {
+    platform: 'platform-personalInfo',
+    admin: 'admin-personalInfo',
+    workspace: 'workspace-personalInfo'
+}
+
 // 菜单显示哪些
 const menuViewData = computed(() => {
-    const areaMenus = route.path.startsWith('/workspace')
+    const areaMenus = currentArea.value === 'workspace'
         ? filterWorkspaceMenus(
               menuListData.value,
               authStore.userInfo?.permissions || [],
@@ -196,6 +215,7 @@ const isPlatformSuperAdmin = computed(() => !!authStore.userInfo?.platformSuperA
 const isPlatformAdmin = computed(() => !!authStore.userInfo?.platformAdmin)
 const isTenantManager = computed(() => !!authStore.userInfo?.tenantSuperAdmin || !!authStore.userInfo?.tenantAdmin)
 const hasTenant = computed(() => !!authStore.tenantId)
+const canAccessAdmin = computed(() => hasTenant.value && (isPlatformAdmin.value || isTenantManager.value))
 const hasWorkspaceAccess = computed(() => {
     return (
         hasTenant.value &&
@@ -207,20 +227,24 @@ const hasWorkspaceAccess = computed(() => {
         )
     )
 })
-const showWorkspaceEntry = computed(() => hasWorkspaceAccess.value && !route.path.startsWith('/workspace'))
+const showWorkspaceEntry = computed(() => hasWorkspaceAccess.value && currentArea.value !== 'workspace')
 const showPlatformEntry = computed(() => {
     return (
         !isPlatformSuperAdmin.value &&
         !!isPlatformAdmin.value &&
         !!authStore.tenantId &&
-        !route.path.startsWith('/platform')
+        currentArea.value !== 'platform'
     )
 })
 const showAdminEntry = computed(() => {
-    return route.path.startsWith('/workspace') && isTenantManager.value
+    if (currentArea.value === 'workspace') {
+        return canAccessAdmin.value
+    }
+    return currentArea.value === 'platform' && hasTenant.value && isTenantManager.value
 })
 const showTenantSwitch = computed(() => hasWorkspaceAccess.value)
 const showPersonalInfo = computed(() => !isPlatformSuperAdmin.value)
+const isPersonalInfoRoute = computed(() => !!route.meta.personalInfo || route.name === 'personalInfo')
 
 function resolveIcon(icon: string) {
     return resolveComponent(icon)
@@ -270,10 +294,10 @@ function firstLeafMenu(menuList: Menu[]): Menu | undefined {
 }
 
 function getAreaMenuCode(path: string): string | undefined {
-    if (path.startsWith('/platform')) {
+    if (currentArea.value === 'platform') {
         return Object.entries(platformMenuPaths).find(([, menuPath]) => menuPath === path)?.[0]
     }
-    if (path.startsWith('/admin')) {
+    if (currentArea.value === 'admin') {
         return Object.entries(adminMenuPaths).find(([, menuPath]) => menuPath === path)?.[0]
     }
 }
@@ -286,11 +310,11 @@ async function loadVipLicense(forceRefresh = false) {
 }
 
 function handleSelect(index: Menu['code']) {
-    if (route.path.startsWith('/platform') && platformMenuPaths[index]) {
+    if (currentArea.value === 'platform' && platformMenuPaths[index]) {
         router.push(platformMenuPaths[index])
         return
     }
-    if (route.path.startsWith('/admin') && adminMenuPaths[index]) {
+    if (currentArea.value === 'admin' && adminMenuPaths[index]) {
         router.push(adminMenuPaths[index])
         return
     }
@@ -313,7 +337,7 @@ function doLogout() {
 function goPersonalInfo() {
     menuVisible.value = false
     router.push({
-        name: 'personalInfo'
+        name: personalInfoRouteNames[currentArea.value] || 'personalInfo'
     })
 }
 
@@ -359,7 +383,7 @@ watch(
         if (!vipChecked.value) {
             return
         }
-        if (route.name === 'personalInfo') {
+        if (isPersonalInfoRoute.value) {
             return
         }
         if (!currentMenu.value && menuViewData.value.length) {
@@ -367,9 +391,9 @@ watch(
             if (!target) {
                 return
             }
-            const targetPath = route.path.startsWith('/platform')
+            const targetPath = currentArea.value === 'platform'
                 ? platformMenuPaths[target.code]
-                : route.path.startsWith('/admin')
+                : currentArea.value === 'admin'
                   ? adminMenuPaths[target.code]
                   : undefined
             if (targetPath) {

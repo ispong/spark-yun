@@ -150,7 +150,12 @@ function confirmTenantSwitch() {
                     router.replace({
                         name: 'workflow'
                     })
-                } else if (route.path.startsWith('/admin') && !res.data.tenantSuperAdmin && !res.data.tenantAdmin) {
+                } else if (
+                    route.path.startsWith('/admin') &&
+                    !res.data.platformAdmin &&
+                    !res.data.tenantSuperAdmin &&
+                    !res.data.tenantAdmin
+                ) {
                     router.replace('/workspace')
                 }
             })

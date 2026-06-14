@@ -49,9 +49,9 @@ public class ProductAccessService {
         UserEntity user = userRepository.findById(userId).orElseThrow(() -> new IsxAppException("用户不存在"));
         validateUser(user);
 
-        boolean systemAdmin = RoleType.PLATFORM_SUPER_ADMIN.equals(user.getRoleCode());
-        boolean platformAdmin = systemAdmin || Boolean.TRUE.equals(user.getPlatformAdmin());
-        if (systemAdmin) {
+        boolean platformSuperAdmin = RoleType.PLATFORM_SUPER_ADMIN.equals(user.getRoleCode());
+        boolean platformAdmin = RoleType.PLATFORM_ADMIN.equals(user.getRoleCode());
+        if (platformSuperAdmin) {
             return new AccessSnapshot(userId, null, true, true, false, false, Set.of());
         }
         if (Strings.isEmpty(tenantId) || "undefined".equals(tenantId)) {
