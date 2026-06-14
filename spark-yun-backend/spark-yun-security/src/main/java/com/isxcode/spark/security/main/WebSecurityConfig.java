@@ -32,6 +32,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -105,21 +106,18 @@ public class WebSecurityConfig {
         http.cors(Customizer.withDefaults());
         http.csrf(AbstractHttpConfigurer::disable);
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(authorize -> authorize.anyRequest().hasAuthority("ADMIN"));
-        http.formLogin(Customizer.withDefaults());
-        http.httpBasic(AbstractHttpConfigurer::disable);
+        http.httpBasic(basic -> basic.authenticationEntryPoint(adminRoleBasicAuthenticationEntryPoint()));
+        http.formLogin(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
 
     private RequestMatcher adminRoleRequestMatcher() {
 
-        List<String> patterns = new ArrayList<>(isxAppProperties.getAdminRoleUrl());
-        patterns.add("/login");
-        patterns.add("/logout");
-        patterns.add("/default-ui.css");
-        RequestMatcher[] requestMatchers = patterns.stream().map(AntPathRequestMatcher::new).toArray(RequestMatcher[]::new);
+        RequestMatcher[] requestMatchers = isxAppProperties.getAdminRoleUrl().stream().map(AntPathRequestMatcher::new)
+            .toArray(RequestMatcher[]::new);
         return new OrRequestMatcher(requestMatchers);
     }
 
@@ -132,6 +130,13 @@ public class WebSecurityConfig {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(userDetailsService);
         return authenticationProvider;
+    }
+
+    private BasicAuthenticationEntryPoint adminRoleBasicAuthenticationEntryPoint() {
+
+        BasicAuthenticationEntryPoint authenticationEntryPoint = new BasicAuthenticationEntryPoint();
+        authenticationEntryPoint.setRealmName("spark-yun-admin");
+        return authenticationEntryPoint;
     }
 
     @Bean
