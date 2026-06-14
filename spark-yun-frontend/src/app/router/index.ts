@@ -1,14 +1,6 @@
 import { createRouter, createWebHistory, type RouteLocationRaw, type RouteRecordRaw } from 'vue-router'
 import Home from '@/app/views/home/home'
 import { useAuthStore } from '@/app/store/useAuth'
-import { licenseRoutes } from '@/app/management/license'
-import { oauthManagementPlatformRoutes, oauthManagementWorkspaceRoutes } from '@/app/management/oauth-management'
-import { orgManagementAdminRoutes } from '@/app/management/org-management'
-import { personalInfoRootRoute, personalInfoWorkspaceRoutes } from '@/app/management/personal-info'
-import { roleManagementAdminRoutes } from '@/app/management/role-management'
-import { tenantListPlatformRoutes, tenantListWorkspaceRoutes } from '@/app/management/tenant-list'
-import { tenantUserAdminRoutes, tenantUserWorkspaceRoutes } from '@/app/management/tenant-user'
-import { userCenterPlatformRoutes, userCenterWorkspaceRoutes } from '@/app/management/user-center'
 import { shareModuleRoutes, workspaceModuleRoutes } from './module-routes'
 import { setupRouterGuard } from './guard'
 
@@ -17,6 +9,14 @@ const Login = () => import('@/app/views/login/login')
 const SsoAuth = () => import('@/app/views/login/ssoauth')
 const Forbidden = () => import('@/app/views/system/forbidden.vue')
 const NoTenant = () => import('@/app/views/system/no-tenant.vue')
+const UserCenter = () => import('@/app/management/user-center/views/index.vue')
+const TenantList = () => import('@/app/management/tenant-list/views/index.vue')
+const License = () => import('@/app/management/license/views/index.vue')
+const OauthManagement = () => import('@/app/management/oauth-management/views/index.vue')
+const TenantUser = () => import('@/app/management/tenant-user/views/index.vue')
+const RoleManagement = () => import('@/app/management/role-management/views/index.vue')
+const OrgManagement = () => import('@/app/management/org-management/views/index.vue')
+const PersonalInfo = () => import('@/app/management/personal-info/views/index.vue')
 
 function workspaceDefaultRoute(): RouteLocationRaw {
     const authStore = useAuthStore()
@@ -82,10 +82,26 @@ const routes: Array<RouteRecordRaw> = [
         },
         redirect: '/platform/users',
         children: [
-            ...userCenterPlatformRoutes,
-            ...tenantListPlatformRoutes,
-            ...licenseRoutes,
-            ...oauthManagementPlatformRoutes
+            {
+                path: 'users',
+                name: 'platform-user-center',
+                component: UserCenter
+            },
+            {
+                path: 'tenants',
+                name: 'platform-tenant-list',
+                component: TenantList
+            },
+            {
+                path: 'license',
+                name: 'license',
+                component: License
+            },
+            {
+                path: 'auth',
+                name: 'platform-oauth-management',
+                component: OauthManagement
+            }
         ]
     },
     {
@@ -97,9 +113,21 @@ const routes: Array<RouteRecordRaw> = [
         },
         redirect: '/admin/members',
         children: [
-            ...tenantUserAdminRoutes,
-            ...roleManagementAdminRoutes,
-            ...orgManagementAdminRoutes
+            {
+                path: 'members',
+                name: 'admin-tenant-user',
+                component: TenantUser
+            },
+            {
+                path: 'roles',
+                name: 'role-management',
+                component: RoleManagement
+            },
+            {
+                path: 'orgs',
+                name: 'org-management',
+                component: OrgManagement
+            }
         ]
     },
     {
@@ -112,15 +140,43 @@ const routes: Array<RouteRecordRaw> = [
         redirect: workspaceDefaultRoute,
         children: [
             ...workspaceModuleRoutes,
-            ...tenantUserWorkspaceRoutes,
-            ...userCenterWorkspaceRoutes,
-            ...tenantListWorkspaceRoutes,
-            ...oauthManagementWorkspaceRoutes,
-            ...licenseRoutes,
-            ...personalInfoWorkspaceRoutes
+            {
+                path: 'tenant-user',
+                name: 'tenant-user',
+                component: TenantUser
+            },
+            {
+                path: 'user-center',
+                name: 'user-center',
+                component: UserCenter
+            },
+            {
+                path: 'tenant-list',
+                name: 'tenant-list',
+                component: TenantList
+            },
+            {
+                path: 'oauth-management',
+                name: 'oauth-management',
+                component: OauthManagement
+            },
+            {
+                path: 'license',
+                name: 'license',
+                component: License
+            },
+            {
+                path: 'personal-info',
+                name: 'personalInfo',
+                component: PersonalInfo
+            }
         ]
     },
-    personalInfoRootRoute,
+    {
+        path: '/personal-info',
+        name: 'personalInfo',
+        component: PersonalInfo
+    },
     {
         path: '/403',
         name: 'forbidden',
