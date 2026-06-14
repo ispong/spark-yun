@@ -19,9 +19,8 @@ let isRefreshingLicense = false
 
 function hasPlatformAccess(authStore: ReturnType<typeof useAuthStore>): boolean {
     return (
-        !!authStore.userInfo?.systemAdmin ||
+        !!authStore.userInfo?.platformSuperAdmin ||
         !!authStore.userInfo?.platformAdmin ||
-        authStore.role === 'ROLE_SYS_ADMIN' ||
         authStore.role === 'ROLE_PLATFORM_ADMIN'
     )
 }

@@ -16,7 +16,11 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 function goDefault() {
-    router.replace(authStore.userInfo?.systemAdmin || authStore.role === 'ROLE_SYS_ADMIN' ? '/platform' : '/workspace')
+    router.replace(
+        authStore.userInfo?.platformSuperAdmin || (authStore.userInfo?.platformAdmin && !authStore.tenantId)
+            ? '/platform'
+            : '/workspace'
+    )
 }
 </script>
 

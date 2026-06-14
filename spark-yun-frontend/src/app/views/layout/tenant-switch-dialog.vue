@@ -80,7 +80,7 @@ const tenantKeyword = ref('')
 
 const { tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
 
-const isSystemAdmin = computed(() => !!authStore.userInfo?.systemAdmin)
+const canSwitchTenant = computed(() => !!authStore.tenantId && !authStore.userInfo?.platformSuperAdmin)
 const activeTenantName = computed(() => {
     const current = tenantList.value.find((item) => item.id === authStore.tenantId)
     return current?.name || '切换租户'
@@ -94,7 +94,7 @@ const filteredTenantList = computed(() => {
 })
 
 function loadTenantList() {
-    if (isSystemAdmin.value) {
+    if (!canSwitchTenant.value) {
         return
     }
     initSwitchTenant().then(() => {
@@ -150,7 +150,7 @@ function confirmTenantSwitch() {
                     router.replace({
                         name: 'workflow'
                     })
-                } else if (route.path.startsWith('/admin') && !res.data.tenantAdmin && !res.data.normalAdmin) {
+                } else if (route.path.startsWith('/admin') && !res.data.tenantSuperAdmin && !res.data.tenantAdmin) {
                     router.replace('/workspace')
                 }
             })

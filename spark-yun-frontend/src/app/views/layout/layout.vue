@@ -67,31 +67,31 @@
                         </el-avatar>
                     </template>
                     <div class="zqy-layout__user-menu-options" @mouseleave="menuVisible = false">
-                        <div v-if="!isSystemAdmin" class="zqy-layout__user-menu-option" @click="goArea('/workspace')">
+                        <div v-if="showWorkspaceEntry" class="zqy-layout__user-menu-option" @click="goArea('/workspace')">
                             <el-icon>
                                 <Monitor />
                             </el-icon>
                             工作台
                         </div>
-                        <div v-if="isPlatformAdmin" class="zqy-layout__user-menu-option" @click="goArea('/platform')">
+                        <div v-if="showPlatformEntry" class="zqy-layout__user-menu-option" @click="goArea('/platform')">
                             <el-icon>
                                 <Setting />
                             </el-icon>
                             平台管理
                         </div>
-                        <div v-if="isTenantManager" class="zqy-layout__user-menu-option" @click="goArea('/admin')">
+                        <div v-if="showAdminEntry" class="zqy-layout__user-menu-option" @click="goArea('/admin')">
                             <el-icon>
                                 <Tools />
                             </el-icon>
                             后台管理
                         </div>
-                        <div v-if="!isSystemAdmin" class="zqy-layout__user-menu-option" @click="openTenantDialog">
+                        <div v-if="showTenantSwitch" class="zqy-layout__user-menu-option" @click="openTenantDialog">
                             <el-icon>
                                 <OfficeBuilding />
                             </el-icon>
                             <EllipsisTooltip class="zqy-layout__user-menu-text" :label="activeTenantName" />
                         </div>
-                        <div class="zqy-layout__user-menu-option" @click="goPersonalInfo">
+                        <div v-if="showPersonalInfo" class="zqy-layout__user-menu-option" @click="goPersonalInfo">
                             <el-icon>
                                 <Setting />
                             </el-icon>
@@ -170,6 +170,7 @@ const adminMenuPaths: Record<string, string> = {
     'org-management': '/admin/orgs'
 }
 
+// 菜单显示哪些
 const menuViewData = computed(() => {
     const areaMenus = route.path.startsWith('/workspace')
         ? filterWorkspaceMenus(
@@ -191,9 +192,35 @@ const username = computed(() => {
     return authStore.userInfo?.username?.slice(0, 1)
 })
 
-const isSystemAdmin = computed(() => !!authStore.userInfo?.systemAdmin)
+const isPlatformSuperAdmin = computed(() => !!authStore.userInfo?.platformSuperAdmin)
 const isPlatformAdmin = computed(() => !!authStore.userInfo?.platformAdmin)
-const isTenantManager = computed(() => !!authStore.userInfo?.tenantAdmin || !!authStore.userInfo?.normalAdmin)
+const isTenantManager = computed(() => !!authStore.userInfo?.tenantSuperAdmin || !!authStore.userInfo?.tenantAdmin)
+const hasTenant = computed(() => !!authStore.tenantId)
+const hasWorkspaceAccess = computed(() => {
+    return (
+        hasTenant.value &&
+        !isPlatformSuperAdmin.value &&
+        (
+            !!authStore.userInfo?.tenantSuperAdmin ||
+            !!authStore.userInfo?.tenantAdmin ||
+            !!authStore.userInfo?.tenantMember
+        )
+    )
+})
+const showWorkspaceEntry = computed(() => hasWorkspaceAccess.value && !route.path.startsWith('/workspace'))
+const showPlatformEntry = computed(() => {
+    return (
+        !isPlatformSuperAdmin.value &&
+        !!isPlatformAdmin.value &&
+        !!authStore.tenantId &&
+        !route.path.startsWith('/platform')
+    )
+})
+const showAdminEntry = computed(() => {
+    return route.path.startsWith('/workspace') && isTenantManager.value
+})
+const showTenantSwitch = computed(() => hasWorkspaceAccess.value)
+const showPersonalInfo = computed(() => !isPlatformSuperAdmin.value)
 
 function resolveIcon(icon: string) {
     return resolveComponent(icon)

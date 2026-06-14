@@ -29,6 +29,12 @@ export function setupRouterGuard(router: Router): void {
 
         // 根据路由判断角色权限
         const area = to.meta.area as string
+        if (authStore.userInfo?.platformSuperAdmin && area !== routeArea.platform && routeName !== 'forbidden') {
+            return {
+                name: 'forbidden'
+            }
+        }
+
         switch (area) {
             case routeArea.platform:
                 if (
