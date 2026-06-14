@@ -93,8 +93,8 @@ import logoURL from '@/app/assets/imgs/logo-view.png'
 import logo from '@/app/assets/imgs/logo1.svg'
 import { useAuthStore } from '@/app/store/useAuth'
 import { getVipLicenseEnabled } from '@/app/utils/vip-license'
-import { getUser } from '@/type/user/user'
-import type { LoginReq } from '@/type/models'
+import { getUser } from '@/app/type/user/user'
+import type { LoginReq } from '@/app/type/models'
 
 interface OauthUrl {
     name: string
@@ -149,11 +149,22 @@ async function handleLogin() {
         // 调用登录接口
         const res = await getUser().login({ ...loginModel })
         authStore.applyAuthResponse(res.data)
+
+        // 检测许可证
         await getVipLicenseEnabled(true)
+
+        // 返回提示弹窗
         ElMessage.success(res.msg)
+
+        // 刷新处理一下数据
         await nextTick()
-        router.push(res.data?.defaultArea === 'platform' ? '/platform' : '/workspace')
+
+        // 路由跳转
+        await router.push('/workspace');
+
     } finally {
+
+        // loading解锁
         btnLoading.value = false
     }
 }
