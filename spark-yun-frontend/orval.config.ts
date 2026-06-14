@@ -1,5 +1,4 @@
 import { defineConfig } from 'orval'
-import {appRequest} from "./src/app/api/orval-mutator";
 
 export default defineConfig({
     app: {
