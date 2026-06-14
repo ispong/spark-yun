@@ -1,14 +1,14 @@
 <template>
     <div :class="layoutClass">
-        <div class="zqy-layout__sidebar">
+        <div
+            class="zqy-layout__sidebar"
+            @mouseenter="isCollapse = false"
+            @mouseleave="isCollapse = true"
+        >
             <div class="zqy-layout__nav">
                 <img class="zqy-layout__logo" :src="isCollapse ? logoURLSmall : logoURL" alt="logo" />
             </div>
-            <div
-                class="zqy-layout__menu-wrap"
-                @mouseenter="isCollapse = false"
-                @mouseleave="isCollapse = true"
-            >
+            <div class="zqy-layout__menu-wrap">
                 <el-menu
                     class="zqy-layout__menu"
                     :unique-opened="true"
@@ -25,7 +25,7 @@
                                 <el-icon class="zqy-layout__icon">
                                     <component :is="resolveIcon(menuData.icon)" />
                                 </el-icon>
-                                <span v-if="!isCollapse" class="zqy-layout__text">{{ menuData.name }}</span>
+                                <span v-show="!isCollapse" class="zqy-layout__text">{{ menuData.name }}</span>
                             </template>
                             <el-menu-item
                                 v-for="menu in menuData.children"
@@ -50,132 +50,39 @@
                         </el-menu-item>
                     </template>
                 </el-menu>
-                <div class="zqy-layout__menu-footer">
-                    <el-popover
-                        v-model:visible="menuVisible"
-                        placement="top-end"
-                        :show-arrow="false"
-                        trigger="click"
-                        popper-class="zqy-layout__menu-avatar"
-                    >
-                        <template #reference>
-                            <el-avatar class="zqy-layout__avatar" :size="32">
-                                {{ username }}
-                            </el-avatar>
-                        </template>
-                        <div v-if="!isSystemAdmin" class="zqy-layout__menu-option" @click="goArea('/workspace')">
-                            <el-icon>
-                                <Monitor />
-                            </el-icon>
-                            工作台
-                        </div>
-                        <div v-if="isPlatformAdmin" class="zqy-layout__menu-option" @click="goArea('/platform')">
-                            <el-icon>
-                                <Setting />
-                            </el-icon>
-                            平台管理
-                        </div>
-                        <div v-if="isTenantManager" class="zqy-layout__menu-option" @click="goArea('/admin')">
-                            <el-icon>
-                                <Tools />
-                            </el-icon>
-                            后台管理
-                        </div>
-                        <div v-if="!isSystemAdmin" class="zqy-layout__menu-option" @click="openTenantDialog">
-                            <el-icon>
-                                <OfficeBuilding />
-                            </el-icon>
-                            <EllipsisTooltip class="zqy-layout__menu-text" :label="activeTenantName" />
-                        </div>
-                        <div class="zqy-layout__menu-option" @click="goPersonalInfo">
-                            <el-icon>
-                                <Setting />
-                            </el-icon>
-                            个人中心
-                        </div>
-                        <div class="zqy-layout__menu-option" @click="handleCommand('logout')">
-                            <el-icon>
-                                <SwitchButton />
-                            </el-icon>
-                            退出登录
-                        </div>
-                    </el-popover>
-                </div>
+            </div>
+            <div class="zqy-layout__menu-footer">
+                <UserMenuPopover
+                    :username="username"
+                    :is-system-admin="isSystemAdmin"
+                    :is-platform-admin="isPlatformAdmin"
+                    :is-tenant-manager="isTenantManager"
+                    :active-tenant-name="activeTenantName"
+                    @go-area="goArea"
+                    @go-personal-info="goPersonalInfo"
+                    @open-tenant-dialog="openTenantDialog"
+                    @logout="handleCommand('logout')"
+                />
             </div>
         </div>
+
         <div class="zqy-layout__main">
             <router-view :key="authStore.tenantId" />
         </div>
 
-        <el-dialog
-            v-model="tenantDialogVisible"
-            width="420px"
-            align-center
-            append-to-body
-            :show-close="false"
-            :close-on-click-modal="false"
-            :close-on-press-escape="false"
-            class="zqy-layout__tenant-dialog"
-        >
-            <div class="zqy-layout__tenant-dialog-header">
-                <div class="zqy-layout__tenant-dialog-title">切换租户</div>
-                <el-input
-                    v-model="tenantKeyword"
-                    class="zqy-layout__tenant-dialog-search"
-                    clearable
-                    placeholder="搜索租户"
-                    :prefix-icon="Search"
-                />
-            </div>
-            <div class="zqy-layout__tenant-dialog-list">
-                <div
-                    v-for="tenant in filteredTenantList"
-                    :key="tenant.id"
-                    class="zqy-layout__tenant-dialog-item"
-                    :class="{
-                        'is-current': authStore.tenantId === tenant.id,
-                        'is-selected': selectedTenantId === tenant.id
-                    }"
-                    @click="handleTenantSelect(tenant)"
-                >
-                    <div class="zqy-layout__tenant-name">
-                        <EllipsisTooltip class="zqy-layout__menu-text" :label="tenant.name" />
-                    </div>
-                    <span v-if="authStore.tenantId === tenant.id" class="zqy-layout__tenant-current">当前</span>
-                </div>
-                <div v-if="!filteredTenantList.length" class="zqy-layout__tenant-dialog-empty">暂无匹配租户</div>
-            </div>
-            <template #footer>
-                <div class="zqy-layout__tenant-dialog-footer">
-                    <el-button @click="closeTenantDialog">取消</el-button>
-                    <el-button
-                        type="primary"
-                        :loading="switchTenantLoading"
-                        :disabled="!selectedTenantId"
-                        @click="confirmTenantSwitch"
-                    >
-                        确认切换
-                    </el-button>
-                </div>
-            </template>
-        </el-dialog>
+        <TenantSwitchDialog ref="tenantSwitchDialogRef" @tenant-name-change="activeTenantName = $event" />
     </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, resolveComponent, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, OfficeBuilding, Search, Setting, SwitchButton, Tools } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
-import { ChangeTenantData } from '@/app/api'
 import logoURLSmall from '@/app/assets/imgs/logo.png'
 import logoURL from '@/app/assets/imgs/logo-a.png'
-import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
-import { useSwitchTenant, type TenantInfo } from '@/app/hooks/switch-tenant'
 import { CheckLicenseStatus } from '@/app/management/license/api'
 import { useAuthStore } from '@/app/store/useAuth'
-import { http } from '@/app/utils/http'
 import {
     filterVipMenus,
     getLicenseApiAvailable,
@@ -183,6 +90,8 @@ import {
     resetVipLicenseCache
 } from '@/app/utils/vip-license'
 import { adminMenuListData, platformMenuListData, workspaceMenuListData, type Menu } from './menu.config'
+import TenantSwitchDialog from './tenant-switch-dialog.vue'
+import UserMenuPopover from './user-menu-popover.vue'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -191,11 +100,8 @@ const vipEnabled = ref(false)
 const licenseApiAvailable = ref(true)
 const vipChecked = ref(false)
 const isCollapse = ref(true)
-const menuVisible = ref(false)
-const tenantDialogVisible = ref(false)
-const selectedTenantId = ref('')
-const switchTenantLoading = ref(false)
-const tenantKeyword = ref('')
+const tenantSwitchDialogRef = ref<InstanceType<typeof TenantSwitchDialog>>()
+const activeTenantName = ref('切换租户')
 
 const menuListData = computed(() => {
     if (route.path.startsWith('/platform')) {
@@ -241,22 +147,9 @@ const username = computed(() => {
     return authStore.userInfo?.username?.slice(0, 1)
 })
 
-const { tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
-
 const isSystemAdmin = computed(() => !!authStore.userInfo?.systemAdmin)
 const isPlatformAdmin = computed(() => !!authStore.userInfo?.platformAdmin)
 const isTenantManager = computed(() => !!authStore.userInfo?.tenantAdmin || !!authStore.userInfo?.normalAdmin)
-const activeTenantName = computed(() => {
-    const current = tenantList.value.find((item) => item.id === authStore.tenantId)
-    return current?.name || '切换租户'
-})
-const filteredTenantList = computed(() => {
-    const keyword = tenantKeyword.value.trim().toLowerCase()
-    if (!keyword) {
-        return tenantList.value
-    }
-    return tenantList.value.filter((tenant) => (tenant.name || '').toLowerCase().includes(keyword))
-})
 
 const layoutClass = computed<Record<string, boolean>>(() => ({
     'zqy-layout': true,
@@ -352,14 +245,12 @@ function doLogout() {
 }
 
 function goPersonalInfo() {
-    menuVisible.value = false
     router.push({
         name: 'personalInfo'
     })
 }
 
 function goArea(path: string) {
-    menuVisible.value = false
     router.push(path)
 }
 
@@ -375,81 +266,13 @@ function handleCommand(command: 'logout') {
     }
 }
 
-function handleTenantSelect(tenant: TenantInfo) {
-    selectedTenantId.value = tenant.id
-}
-
-function closeTenantDialog() {
-    tenantDialogVisible.value = false
-    selectedTenantId.value = authStore.tenantId
-    tenantKeyword.value = ''
-}
-
-function confirmTenantSwitch() {
-    if (!selectedTenantId.value || switchTenantLoading.value) {
-        return
-    }
-    const targetTenantId = selectedTenantId.value
-    if (authStore.tenantId === targetTenantId) {
-        closeTenantDialog()
-        return
-    }
-
-    switchTenantLoading.value = true
-    onTenantChange(targetTenantId)
-
-    ChangeTenantData(
-        {
-            tenantId: targetTenantId
-        },
-        targetTenantId
-    )
-        .then((res: any) => {
-            getVipLicenseEnabled(true).finally(() => {
-                const needBackToWorkflowList = ['workflow-page', 'work-item', 'workflow-detail'].includes(
-                    String(route.name || '')
-                )
-                const applyTenantContext = () => {
-                    authStore.applyAuthResponse(res.data)
-                    http.setHeader({
-                        tenant: targetTenantId
-                    })
-                }
-
-                ElMessage.success('租户切换成功')
-                closeTenantDialog()
-                applyTenantContext()
-                if (needBackToWorkflowList) {
-                    router.replace({
-                        name: 'workflow'
-                    })
-                } else if (route.path.startsWith('/admin') && !res.data.tenantAdmin && !res.data.normalAdmin) {
-                    router.replace('/workspace')
-                }
-            })
-        })
-        .catch(() => {
-            onTenantChange(authStore.tenantId)
-        })
-        .finally(() => {
-            switchTenantLoading.value = false
-        })
-}
-
 function openTenantDialog() {
-    menuVisible.value = false
-    selectedTenantId.value = authStore.tenantId
-    tenantKeyword.value = ''
-    tenantDialogVisible.value = true
+    tenantSwitchDialogRef.value?.open()
 }
 
 onMounted(async () => {
     await loadVipLicense()
 })
-
-if (!isSystemAdmin.value) {
-    initSwitchTenant()
-}
 
 watch(
     () => authStore.tenantId,
@@ -524,21 +347,13 @@ watch(
             padding-left: 80px;
         }
 
-        .zqy-layout__menu-footer {
-            // width: 80px;
-            padding-left: 24px;
-            // height: 100px;
-            // flex-direction: column;
-            // justify-content: space-evenly;
-        }
-
         .zqy-layout__title {
             display: none;
         }
     }
 
     .zqy-layout__sidebar {
-        --el-transition-duration: 0.3s;
+        --el-transition-duration: 0.18s;
 
         display: flex;
         position: absolute;
@@ -549,7 +364,7 @@ watch(
         height: 100%;
         overflow: hidden;
         background-color: getCssVar('color', 'white');
-        transition: width getCssVar('transition-duration') ease-in-out;
+        transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         border-right: 1px solid var(--el-border-color);
         z-index: 2000;
     }
@@ -559,7 +374,7 @@ watch(
         background-color: getCssVar('color', 'white');
         padding-left: 80px;
         box-sizing: border-box;
-        transition: all getCssVar('transition-duration') ease-in-out;
+        transition: padding-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .zqy-layout__nav {
@@ -604,9 +419,10 @@ watch(
     }
 
     .zqy-layout__menu-wrap {
-        padding: 10px 8px 60px 8px;
+        padding: 10px 8px;
         box-sizing: border-box;
         flex: 1;
+        min-height: 0;
         overflow-x: hidden;
         overflow-y: auto;
         width: 100%;
@@ -634,18 +450,14 @@ watch(
     }
 
     .zqy-layout__menu-footer {
-        position: absolute;
-        bottom: 0;
-        left: 0;
         display: flex;
-        // justify-content: center;
         align-items: center;
+        flex-shrink: 0;
         height: 60px;
         box-sizing: border-box;
-        padding: 0 16px;
+        padding: 0 24px;
         width: 100%;
         background-color: getCssVar('color', 'white');
-        transition: getCssVar('transition-duration') width ease-in-out;
     }
 }
 
