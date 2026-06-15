@@ -50,8 +50,8 @@ public class ProductAccessService {
         validateUser(user);
 
         boolean platformSuperAdmin = RoleType.PLATFORM_SUPER_ADMIN.equals(user.getRoleCode());
-        boolean platformAdmin = RoleType.PLATFORM_ADMIN.equals(user.getRoleCode())
-            || Boolean.TRUE.equals(user.getPlatformAdmin());
+        boolean platformAdmin =
+            RoleType.PLATFORM_ADMIN.equals(user.getRoleCode()) || Boolean.TRUE.equals(user.getPlatformAdmin());
         if (platformSuperAdmin) {
             return new AccessSnapshot(userId, null, true, true, false, false, Set.of());
         }
@@ -67,8 +67,8 @@ public class ProductAccessService {
             throw new IsxAppException("用户被租户禁用，请联系管理员!");
         }
 
-        boolean tenantAdmin = userId.equals(tenant.getAdminUserId())
-            || RoleType.TENANT_SUPER_ADMIN.equals(member.getRoleCode());
+        boolean tenantAdmin =
+            userId.equals(tenant.getAdminUserId()) || RoleType.TENANT_SUPER_ADMIN.equals(member.getRoleCode());
         boolean normalAdmin =
             Boolean.TRUE.equals(member.getNormalAdmin()) || RoleType.TENANT_ADMIN.equals(member.getRoleCode());
         Set<String> permissions = tenantAdmin || normalAdmin ? Set.of() : resolveWorkspacePermissions(tenantId, userId);

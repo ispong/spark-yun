@@ -455,9 +455,9 @@ public class UserBizService {
             .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId)
             .role(resolveCompatibilityRole(access, role)).platformSuperAdmin(access.systemAdmin())
             .platformAdmin(access.platformAdmin()).platformMember(isPlatformMember(access, role))
-            .tenantSuperAdmin(access.tenantAdmin())
-            .tenantAdmin(access.normalAdmin()).tenantMember(access.hasTenantAccess())
-            .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
+            .tenantSuperAdmin(access.tenantAdmin()).tenantAdmin(access.normalAdmin())
+            .tenantMember(access.hasTenantAccess()).workspaceAllPermissions(access.hasAllWorkspacePermissions())
+            .permissions(List.copyOf(access.permissions()))
             .defaultArea(access.systemAdmin() || isPlatformMember(access, role) ? "platform" : "workspace").build();
     }
 
@@ -471,8 +471,7 @@ public class UserBizService {
             .role(resolveCompatibilityRole(access, role)).systemAdmin(access.systemAdmin())
             .platformSuperAdmin(access.systemAdmin()).platformAdmin(access.platformAdmin())
             .platformMember(isPlatformMember(access, role)).tenantSuperAdmin(access.tenantAdmin())
-            .tenantAdmin(access.normalAdmin())
-            .tenantMember(access.hasTenantAccess()).normalAdmin(access.normalAdmin())
+            .tenantAdmin(access.normalAdmin()).tenantMember(access.hasTenantAccess()).normalAdmin(access.normalAdmin())
             .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
             .defaultArea(access.systemAdmin() || isPlatformMember(access, role) ? "platform" : "workspace").build();
     }
