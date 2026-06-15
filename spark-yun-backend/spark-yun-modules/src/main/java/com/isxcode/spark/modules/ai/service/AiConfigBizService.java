@@ -1,0 +1,302 @@
+package com.isxcode.spark.modules.ai.service;
+
+import com.isxcode.spark.api.ai.constants.AiConfigStatus;
+import com.isxcode.spark.api.ai.constants.AiProviderType;
+import com.isxcode.spark.api.ai.req.AiChatReq;
+import com.isxcode.spark.api.ai.req.DeleteAiConfigReq;
+import com.isxcode.spark.api.ai.req.PageAiConfigReq;
+import com.isxcode.spark.api.ai.req.SaveAiConfigReq;
+import com.isxcode.spark.api.ai.req.TestAiConfigReq;
+import com.isxcode.spark.api.ai.res.AiChatRes;
+import com.isxcode.spark.api.ai.res.AiConfigRes;
+import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
+import com.isxcode.spark.common.security.ContextHolder;
+import com.isxcode.spark.modules.ai.entity.AiConfigEntity;
+import com.isxcode.spark.modules.ai.repository.AiConfigRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import reactor.core.publisher.Flux;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(rollbackFor = Exception.class)
+public class AiConfigBizService {
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private static final double DEFAULT_TEMPERATURE = 0.7;
+
+    private static final int DEFAULT_MAX_TOKENS = 2000;
+
+    private final AiConfigRepository aiConfigRepository;
+
+    private final ObjectMapper objectMapper;
+
+    public void saveConfig(SaveAiConfigReq request) {
+
+        String tenantId = requireTenantId();
+        AiConfigEntity aiConfig;
+        if (Strings.isEmpty(request.getId())) {
+            aiConfig = new AiConfigEntity();
+        } else {
+            aiConfig = getCurrentTenantConfig(request.getId());
+        }
+
+        aiConfigRepository.findByTenantIdAndName(tenantId, request.getName()).ifPresent(existing -> {
+            if (!existing.getId().equals(aiConfig.getId())) {
+                throw new IsxAppException("同一租户下智能配置名称不能重复");
+            }
+        });
+
+        aiConfig.setTenantId(tenantId);
+        aiConfig.setName(request.getName().trim());
+        aiConfig.setProviderType(normalizeProvider(request.getProviderType()));
+        aiConfig.setBaseUrl(defaultBaseUrl(aiConfig.getProviderType(), request.getBaseUrl()));
+        if (!Strings.isEmpty(request.getApiKey())) {
+            aiConfig.setApiKey(request.getApiKey().trim());
+        }
+        aiConfig.setModelName(request.getModelName().trim());
+        aiConfig.setTemperature(request.getTemperature() == null ? DEFAULT_TEMPERATURE : request.getTemperature());
+        aiConfig.setMaxTokens(request.getMaxTokens() == null ? DEFAULT_MAX_TOKENS : request.getMaxTokens());
+        aiConfig.setStatus(Strings.isEmpty(request.getStatus()) ? AiConfigStatus.ENABLE : request.getStatus());
+        aiConfig.setRemark(request.getRemark());
+        validateConfig(aiConfig);
+        aiConfigRepository.save(aiConfig);
+    }
+
+    @Transactional(rollbackFor = Exception.class, readOnly = true)
+    public Page<AiConfigRes> pageConfig(PageAiConfigReq request) {
+
+        String keyword = request.getSearchKeyWord() == null ? "" : request.getSearchKeyWord();
+        return aiConfigRepository.search(requireTenantId(), keyword, PageRequest.of(request.getPage(), request.getPageSize()))
+            .map(this::toConfigRes);
+    }
+
+    @Transactional(rollbackFor = Exception.class, readOnly = true)
+    public List<AiConfigRes> listEnabledConfig() {
+
+        return aiConfigRepository.findAllByTenantIdAndStatusOrderByCreateDateTimeDesc(requireTenantId(),
+            AiConfigStatus.ENABLE).stream().map(this::toConfigRes).toList();
+    }
+
+    public void deleteConfig(DeleteAiConfigReq request) {
+
+        aiConfigRepository.delete(getCurrentTenantConfig(request.getId()));
+    }
+
+    @Transactional(rollbackFor = Exception.class, readOnly = true)
+    public void testConfig(TestAiConfigReq request) {
+
+        AiConfigEntity config = getCurrentTenantConfig(request.getId());
+        if (!AiConfigStatus.ENABLE.equals(config.getStatus())) {
+            throw new IsxAppException("智能配置已禁用");
+        }
+        validateConfig(config);
+
+        try {
+            buildChatModel(config).call(new Prompt(List.of(new UserMessage("Reply with OK only."))));
+        } catch (Exception exception) {
+            throw new IsxAppException("智能配置测试失败：" + exception.getMessage());
+        }
+    }
+
+    public AiChatRes chat(AiChatReq request) {
+
+        AiConfigEntity config = getCurrentTenantConfig(request.getConfigId());
+        if (!AiConfigStatus.ENABLE.equals(config.getStatus())) {
+            throw new IsxAppException("智能配置已禁用");
+        }
+        validateConfig(config);
+        List<Message> messages = toSpringAiMessages(request);
+
+        try {
+            ChatResponse response = buildChatModel(config).call(new Prompt(messages));
+            String content = extractContent(response);
+            return AiChatRes.builder().content(content).build();
+        } catch (Exception exception) {
+            throw new IsxAppException("AI对话失败：" + exception.getMessage());
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class, readOnly = true)
+    public StreamingResponseBody streamChat(AiChatReq request) {
+
+        AiConfigEntity config = getCurrentTenantConfig(request.getConfigId());
+        if (!AiConfigStatus.ENABLE.equals(config.getStatus())) {
+            throw new IsxAppException("智能配置已禁用");
+        }
+        validateConfig(config);
+        Flux<ChatResponse> responseFlux = buildChatModel(config).stream(new Prompt(toSpringAiMessages(request)));
+
+        return outputStream -> {
+            try {
+                for (ChatResponse response : responseFlux.toIterable()) {
+                    String content = extractContent(response);
+                    if (!Strings.isEmpty(content)) {
+                        writeSse(outputStream, "message", Map.of("content", content));
+                    }
+                }
+                writeSse(outputStream, "done", Map.of());
+            } catch (IOException exception) {
+                // The browser can close the stream when the user stops generation.
+            } catch (Exception exception) {
+                try {
+                    writeSse(outputStream, "error", Map.of("message", "AI对话失败：" + exception.getMessage()));
+                } catch (IOException ignored) {
+                    // The client may have disconnected before the error event is written.
+                }
+            }
+        };
+    }
+
+    private List<Message> toSpringAiMessages(AiChatReq request) {
+
+        List<Message> messages = request.getMessages().stream().filter(message -> !Strings.isEmpty(message.getContent()))
+            .map(this::toSpringAiMessage).toList();
+        if (messages.isEmpty()) {
+            throw new IsxAppException("请输入对话内容");
+        }
+        return messages;
+    }
+
+    private Message toSpringAiMessage(AiChatReq.AiChatMessageReq message) {
+
+        String role = message.getRole() == null ? "user" : message.getRole();
+        return switch (role) {
+            case "system" -> new SystemMessage(message.getContent());
+            case "assistant" -> new AssistantMessage(message.getContent());
+            default -> new UserMessage(message.getContent());
+        };
+    }
+
+    private OpenAiChatModel buildChatModel(AiConfigEntity config) {
+
+        OpenAiApi openAiApi = OpenAiApi.builder().baseUrl(config.getBaseUrl()).apiKey(resolveApiKey(config)).build();
+        OpenAiChatOptions options = OpenAiChatOptions.builder().model(config.getModelName())
+            .temperature(config.getTemperature()).maxTokens(config.getMaxTokens()).build();
+        return OpenAiChatModel.builder().openAiApi(openAiApi).defaultOptions(options).build();
+    }
+
+    private String extractContent(ChatResponse response) {
+
+        if (response == null || response.getResult() == null || response.getResult().getOutput() == null) {
+            return "";
+        }
+        return response.getResult().getOutput().getText();
+    }
+
+    private void writeSse(OutputStream outputStream, String event, Map<String, String> data) throws IOException {
+
+        outputStream.write(("event: " + event + "\n").getBytes(StandardCharsets.UTF_8));
+        outputStream.write(("data: " + toJson(data) + "\n\n").getBytes(StandardCharsets.UTF_8));
+        outputStream.flush();
+    }
+
+    private String toJson(Map<String, String> data) {
+
+        try {
+            return objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException exception) {
+            throw new IsxAppException("AI响应序列化失败：" + exception.getMessage());
+        }
+    }
+
+    private String resolveApiKey(AiConfigEntity config) {
+
+        if (AiProviderType.OLLAMA.equals(config.getProviderType()) && Strings.isEmpty(config.getApiKey())) {
+            return "ollama";
+        }
+        return config.getApiKey();
+    }
+
+    private void validateConfig(AiConfigEntity config) {
+
+        if (Strings.isEmpty(config.getBaseUrl())) {
+            throw new IsxAppException("接口地址不能为空");
+        }
+        if (Strings.isEmpty(config.getModelName())) {
+            throw new IsxAppException("模型不能为空");
+        }
+        if (!AiProviderType.OLLAMA.equals(config.getProviderType()) && Strings.isEmpty(config.getApiKey())) {
+            throw new IsxAppException("API Key不能为空");
+        }
+        if (config.getTemperature() == null || config.getTemperature() < 0 || config.getTemperature() > 2) {
+            throw new IsxAppException("温度需要在0到2之间");
+        }
+        if (config.getMaxTokens() == null || config.getMaxTokens() <= 0) {
+            throw new IsxAppException("最大Token需要大于0");
+        }
+    }
+
+    private String normalizeProvider(String providerType) {
+
+        return switch (providerType) {
+            case AiProviderType.OPENAI, AiProviderType.DEEPSEEK, AiProviderType.DASHSCOPE, AiProviderType.OLLAMA,
+                AiProviderType.OPENAI_COMPATIBLE -> providerType;
+            default -> throw new IsxAppException("不支持的AI供应商");
+        };
+    }
+
+    private String defaultBaseUrl(String providerType, String baseUrl) {
+
+        if (!Strings.isEmpty(baseUrl)) {
+            return baseUrl.trim();
+        }
+        return switch (providerType) {
+            case AiProviderType.OPENAI -> "https://api.openai.com";
+            case AiProviderType.DEEPSEEK -> "https://api.deepseek.com";
+            case AiProviderType.DASHSCOPE -> "https://dashscope.aliyuncs.com/compatible-mode";
+            case AiProviderType.OLLAMA -> "http://localhost:11434";
+            default -> throw new IsxAppException("自定义AI供应商需要填写接口地址");
+        };
+    }
+
+    private AiConfigEntity getCurrentTenantConfig(String id) {
+
+        AiConfigEntity config = aiConfigRepository.findById(id).orElseThrow(() -> new IsxAppException("智能配置不存在"));
+        if (!requireTenantId().equals(config.getTenantId())) {
+            throw new IsxAppException("无权操作其他租户智能配置");
+        }
+        return config;
+    }
+
+    private AiConfigRes toConfigRes(AiConfigEntity config) {
+
+        return AiConfigRes.builder().id(config.getId()).name(config.getName()).providerType(config.getProviderType())
+            .baseUrl(config.getBaseUrl()).modelName(config.getModelName()).temperature(config.getTemperature())
+            .maxTokens(config.getMaxTokens()).status(config.getStatus()).remark(config.getRemark())
+            .createDateTime(config.getCreateDateTime() == null ? null
+                : config.getCreateDateTime().format(DATE_TIME_FORMATTER))
+            .build();
+    }
+
+    private String requireTenantId() {
+
+        if (Strings.isEmpty(ContextHolder.getTenantId())) {
+            throw new IsxAppException("租户id丢失");
+        }
+        return ContextHolder.getTenantId();
+    }
+}

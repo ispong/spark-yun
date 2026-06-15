@@ -11,6 +11,13 @@ export interface Menu {
 // ROLE_SYS_ADMIN
 export const menuListData: Array<Menu> = [
     {
+        code: 'zhiqing-ai',
+        name: '至轻智能',
+        icon: 'MagicStick',
+        authType: ['ROLE_TENANT_MEMBER', 'ROLE_TENANT_ADMIN'],
+        childPage: []
+    },
+    {
         code: 'index',
         name: '首页',
         icon: 'Monitor',
@@ -335,6 +342,11 @@ export const adminMenuListData: Array<Menu> = [
         code: 'role-management',
         name: '角色管理',
         icon: 'Guide'
+    },
+    {
+        code: 'ai-config',
+        name: '智能配置',
+        icon: 'MagicStick'
     }
 ]
 

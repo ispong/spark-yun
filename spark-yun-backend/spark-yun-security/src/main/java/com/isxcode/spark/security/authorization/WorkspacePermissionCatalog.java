@@ -27,9 +27,11 @@ public final class WorkspacePermissionCatalog {
         Map.entry("/vip/form/", "custom-form"), Map.entry("/vip/container/", "spark-container"),
         Map.entry("/vip/real/", "realtime-computing"), Map.entry("/vip/view/", "report-views"),
         Map.entry("/vip/meta/", "metadata-management"), Map.entry("/vip/layer/", "data-layer"),
-        Map.entry("/vip/model/", "data-model"), Map.entry("/vip/secret/", "global-variables"));
+        Map.entry("/vip/model/", "data-model"), Map.entry("/vip/secret/", "global-variables"),
+        Map.entry("/ai/", "zhiqing-ai"));
 
     static {
+        MODULES.put("zhiqing-ai", "至轻智能");
         MODULES.put("index", "首页");
         MODULES.put("computer-group", "计算集群");
         MODULES.put("datasource", "数据源");

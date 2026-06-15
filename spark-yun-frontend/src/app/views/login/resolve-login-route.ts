@@ -17,8 +17,8 @@ export function resolveLoginRoutePath(data: LoginRes): string {
     }
 
     if (data.defaultArea === 'workspace') {
-        return '/workspace/index'
+        return '/workspace/ai'
     }
 
-    return data.defaultArea ? `/${data.defaultArea}` : '/workspace/index'
+    return data.defaultArea ? `/${data.defaultArea}` : '/workspace/ai'
 }

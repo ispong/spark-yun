@@ -44,6 +44,7 @@ prql = "0.5.2"
 pull-parser = "2.1.10"
 spark = "4.1.2"
 spark-scala = "2.13"
+spring-ai = "1.1.8"
 sparkjava = "2.9.4"
 spring-boot = "3.5.14"
 spring-dependency-management = "1.1.7"
@@ -137,6 +138,7 @@ spark-sql-kafka010 = { module = "org.apache.spark:spark-sql-kafka-0-10_2.13", ve
 spark-streaming = { module = "org.apache.spark:spark-streaming_2.13", version.ref = "spark" }
 spark-streaming-kafka010 = { module = "org.apache.spark:spark-streaming-kafka-0-10_2.13", version.ref = "spark" }
 spark-yarn = { module = "org.apache.spark:spark-yarn_2.13", version.ref = "spark" }
+spring-ai-openai = { module = "org.springframework.ai:spring-ai-openai", version.ref = "spring-ai" }
 sparkjava-core = { module = "com.sparkjava:spark-core", version.ref = "sparkjava" }
 spring-orm = { module = "org.springframework:spring-orm", version.ref = "spring-framework" }
 spring-tx = { module = "org.springframework:spring-tx", version.ref = "spring-framework" }

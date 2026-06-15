@@ -196,6 +196,7 @@ const platformMenuPaths: Record<string, string> = {
 const adminMenuPaths: Record<string, string> = {
     'tenant-user': '/admin/members',
     'role-management': '/admin/roles',
+    'ai-config': '/admin/ai-configs',
     'org-management': '/admin/orgs'
 }
 

@@ -20,6 +20,8 @@ dependencies {
 
     implementation libs.aliyun.sms
 
+    api libs.spring.ai.openai
+
     implementation libs.poi.ooxml
     implementation libs.xmlbeans
     implementation libs.pull.parser

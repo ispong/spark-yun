@@ -19,10 +19,10 @@ function goDefault() {
     const fallbackRoutePath =
         authStore.userInfo?.platformSuperAdmin || (authStore.userInfo?.platformAdmin && !authStore.tenantId)
             ? '/platform'
-            : '/workspace/index'
+            : '/workspace/ai'
     const routePath =
         authStore.userInfo?.defaultArea === 'workspace'
-            ? '/workspace/index'
+            ? '/workspace/ai'
             : authStore.userInfo?.defaultArea
               ? `/${authStore.userInfo.defaultArea}`
               : fallbackRoutePath

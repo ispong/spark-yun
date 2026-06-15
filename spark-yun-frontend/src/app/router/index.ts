@@ -15,6 +15,7 @@ const PlatformSetting = () => import('@/app/management/platform-setting/views/in
 const OauthManagement = () => import('@/app/management/oauth-management/views/index.vue')
 const TenantUser = () => import('@/app/management/tenant-user/views/index.vue')
 const RoleManagement = () => import('@/app/management/role-management/views/index.vue')
+const AiConfig = () => import('@/app/management/ai-config/views/index.vue')
 const OrgManagement = () => import('@/app/management/org-management/views/index.vue')
 const PersonalInfo = () => import('@/app/management/personal-info/views/index.vue')
 const ShareForm = () => import('@/modules/custom-form/views/share-form-page/index.vue')
@@ -120,6 +121,11 @@ const routes: Array<RouteRecordRaw> = [
                 component: RoleManagement
             },
             {
+                path: 'ai-configs',
+                name: 'ai-config',
+                component: AiConfig
+            },
+            {
                 path: 'orgs',
                 name: 'org-management',
                 component: OrgManagement
@@ -134,7 +140,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
             area: routeArea.workspace
         },
-        redirect: '/workspace/index',
+        redirect: '/workspace/ai',
         children: [
             createPersonalInfoRoute('workspace-personalInfo'),
             ...workspaceModuleRoutes
