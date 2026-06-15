@@ -151,7 +151,7 @@ public class WebSecurityConfig {
         http.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(authenticationEntryPoint)
             .accessDeniedHandler(accessDeniedHandler));
         http.authorizeHttpRequests(authorize -> authorize
-            .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
+            .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC).permitAll()
             .requestMatchers(toPatterns(openUrlPatterns())).permitAll()
             .requestMatchers(toPatterns(isxAppProperties.getAdminRoleUrl())).hasAuthority(RoleType.PLATFORM_SUPER_ADMIN)
             .requestMatchers(toPatterns(isxAppProperties.getAnonymousRoleUrl())).hasAuthority(RoleType.ROLE_ANONYMOUS)

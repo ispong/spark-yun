@@ -102,6 +102,18 @@ public class ProductAccessAuthorizationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilterAsyncDispatch() {
+
+        return true;
+    }
+
+    @Override
+    protected boolean shouldNotFilterErrorDispatch() {
+
+        return true;
+    }
+
+    @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
 
         return request.getServletPath().contains("/open/");
