@@ -27,6 +27,12 @@ export function setupRouterGuard(router: Router): void {
             }
         }
 
+        if (!hasPlatformOrTenantAccess(authStore) && !to.meta.personalInfo) {
+            return {
+                name: 'personalInfo'
+            }
+        }
+
         // 根据路由判断角色权限
         const area = to.meta.area as string
         if (authStore.userInfo?.platformSuperAdmin && to.meta.personalInfo) {
@@ -111,4 +117,14 @@ export function setupRouterGuard(router: Router): void {
         // 没有许可证报错
         ElMessage.error('请上传许可证')
     })
+}
+
+function hasPlatformOrTenantAccess(authStore: ReturnType<typeof useAuthStore>): boolean {
+    return (
+        !!authStore.userInfo?.platformSuperAdmin ||
+        !!authStore.userInfo?.platformAdmin ||
+        !!authStore.userInfo?.tenantSuperAdmin ||
+        !!authStore.userInfo?.tenantAdmin ||
+        !!authStore.userInfo?.tenantMember
+    )
 }

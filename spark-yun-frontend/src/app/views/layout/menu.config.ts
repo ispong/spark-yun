@@ -289,12 +289,12 @@ export const platformMenuListData: Array<Menu> = [
     },
     {
         code: 'license',
-        name: '许可证管理',
+        name: '平台授权',
         icon: 'Files'
     },
     {
         code: 'oauth-management',
-        name: '身份认证',
+        name: '免密登录',
         icon: 'Position'
     }
 ]
@@ -314,5 +314,18 @@ export const adminMenuListData: Array<Menu> = [
         code: 'org-management',
         name: '组织架构',
         icon: 'Share'
+    }
+]
+
+export const personalInfoMenuListData: Array<Menu> = [
+    {
+        code: 'basic-info',
+        name: '基础信息',
+        icon: 'User'
+    },
+    {
+        code: 'change-password',
+        name: '修改密码',
+        icon: 'Key'
     }
 ]

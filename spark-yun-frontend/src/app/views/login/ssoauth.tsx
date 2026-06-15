@@ -22,7 +22,7 @@ export default defineComponent({
                 .then((res: any) => {
                     authStore.applyAuthResponse(res.data)
                     const routePath = resolveLoginRoutePath(res.data)
-                    if (routePath === '/platform' && !res.data.tenantId) {
+                    if (!res.data.tenantId && ['/platform', '/personal-info'].includes(routePath)) {
                         ElMessage.success(res.msg)
                         nextTick(() => {
                             router.push(routePath)

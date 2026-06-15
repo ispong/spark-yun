@@ -130,8 +130,17 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: '/personal-info',
-        name: 'personalInfo',
-        component: PersonalInfo
+        name: 'personalInfoRoot',
+        component: Layout,
+        meta: personalInfoMeta,
+        children: [
+            {
+                path: '',
+                name: 'personalInfo',
+                component: PersonalInfo,
+                meta: personalInfoMeta
+            }
+        ]
     },
     {
         path: '/403',

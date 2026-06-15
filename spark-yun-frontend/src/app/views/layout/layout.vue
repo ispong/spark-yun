@@ -75,21 +75,21 @@
                         </div>
                         <div v-if="showWorkspaceEntry" class="zqy-layout__user-menu-option" @click="goArea('/workspace')">
                             <el-icon>
-                                <Monitor />
+                                <SetUp />
                             </el-icon>
                             工作台
                         </div>
-                        <div v-if="showPlatformEntry" class="zqy-layout__user-menu-option" @click="goArea('/platform')">
-                            <el-icon>
-                                <Platform />
-                            </el-icon>
-                            平台管理
-                        </div>
                         <div v-if="showAdminEntry" class="zqy-layout__user-menu-option" @click="goArea('/admin')">
+                            <el-icon>
+                                <ScaleToOriginal />
+                            </el-icon>
+                            后台管理
+                        </div>
+                        <div v-if="showPlatformEntry" class="zqy-layout__user-menu-option" @click="goArea('/platform')">
                             <el-icon>
                                 <Monitor />
                             </el-icon>
-                            后台管理
+                            平台管理
                         </div>
                         <div v-if="showPersonalInfo" class="zqy-layout__user-menu-option" @click="goPersonalInfo">
                             <el-icon>
@@ -124,7 +124,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, resolveComponent, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, OfficeBuilding, Platform, SwitchButton, User } from '@element-plus/icons-vue'
+import { Monitor, OfficeBuilding, ScaleToOriginal, SetUp, SwitchButton, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 import logoURLSmall from '@/app/assets/imgs/logo.png'
@@ -138,7 +138,13 @@ import {
     getVipLicenseEnabled,
     resetVipLicenseCache
 } from '@/app/utils/vip-license'
-import { adminMenuListData, platformMenuListData, workspaceMenuListData, type Menu } from './menu.config'
+import {
+    adminMenuListData,
+    personalInfoMenuListData,
+    platformMenuListData,
+    workspaceMenuListData,
+    type Menu
+} from './menu.config'
 import TenantSwitchDialog from './tenant-switch-dialog.vue'
 
 const authStore = useAuthStore()
@@ -166,6 +172,9 @@ const currentArea = computed(() => {
 })
 
 const menuListData = computed(() => {
+    if (isPersonalInfoRoute.value) {
+        return personalInfoMenuListData
+    }
     if (currentArea.value === 'platform') {
         return platformMenuListData
     }
@@ -201,7 +210,9 @@ const menuViewData = computed(() => {
 })
 
 const currentMenu = computed(() => {
-    const routeMenuCode = getAreaMenuCode(route.path) || String(route.name || '')
+    const routeMenuCode = isPersonalInfoRoute.value
+        ? resolvePersonalInfoTab(route.query.tab)
+        : getAreaMenuCode(route.path) || String(route.name || '')
     const matchedMenu = menuViewData.value.find((menuData) => menuData.code === routeMenuCode)
     return matchedMenu || getCurrentMenu(menuViewData.value, routeMenuCode)
 })
@@ -226,24 +237,28 @@ const hasWorkspaceAccess = computed(() => {
         )
     )
 })
-const showWorkspaceEntry = computed(() => hasWorkspaceAccess.value && currentArea.value !== 'workspace')
+const showWorkspaceEntry = computed(() => {
+    return hasWorkspaceAccess.value && (isPersonalInfoRoute.value || currentArea.value !== 'workspace')
+})
 const showPlatformEntry = computed(() => {
     return (
         !isPlatformSuperAdmin.value &&
         !!isPlatformAdmin.value &&
-        !!authStore.tenantId &&
-        currentArea.value !== 'platform'
+        (isPersonalInfoRoute.value || currentArea.value !== 'platform')
     )
 })
 const showAdminEntry = computed(() => {
+    if (isPersonalInfoRoute.value) {
+        return canAccessAdmin.value
+    }
     if (currentArea.value === 'workspace') {
         return canAccessAdmin.value
     }
     return currentArea.value === 'platform' && hasTenant.value && isTenantManager.value
 })
 const showTenantSwitch = computed(() => hasWorkspaceAccess.value)
-const showPersonalInfo = computed(() => !isPlatformSuperAdmin.value)
 const isPersonalInfoRoute = computed(() => !!route.meta.personalInfo || route.name === 'personalInfo')
+const showPersonalInfo = computed(() => !isPlatformSuperAdmin.value && !isPersonalInfoRoute.value)
 const showNoWorkspaceAccess = computed(() => {
     return currentArea.value === 'workspace' && vipChecked.value && !isPersonalInfoRoute.value && !menuViewData.value.length
 })
@@ -287,6 +302,10 @@ function getAreaMenuCode(path: string): string | undefined {
     }
 }
 
+function resolvePersonalInfoTab(tab: unknown): 'basic-info' | 'change-password' {
+    return tab === 'change-password' ? 'change-password' : 'basic-info'
+}
+
 async function loadVipLicense(forceRefresh = false) {
     vipChecked.value = false
     vipEnabled.value = await getVipLicenseEnabled(forceRefresh)
@@ -295,6 +314,15 @@ async function loadVipLicense(forceRefresh = false) {
 }
 
 function handleSelect(index: Menu['code']) {
+    if (isPersonalInfoRoute.value) {
+        router.push({
+            name: route.name || personalInfoRouteNames[currentArea.value] || 'personalInfo',
+            query: {
+                tab: resolvePersonalInfoTab(index)
+            }
+        })
+        return
+    }
     if (currentArea.value === 'platform' && platformMenuPaths[index]) {
         router.push(platformMenuPaths[index])
         return
