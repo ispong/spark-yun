@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/app/store/useAuth'
 import { getVipLicenseEnabled } from '@/app/utils/vip-license'
+import { resolveLoginRoutePath } from './resolve-login-route'
 
 export default defineComponent({
     setup() {
@@ -20,10 +21,18 @@ export default defineComponent({
             })
                 .then((res: any) => {
                     authStore.applyAuthResponse(res.data)
+                    const routePath = resolveLoginRoutePath(res.data)
+                    if (routePath === '/platform' && !res.data.tenantId) {
+                        ElMessage.success(res.msg)
+                        nextTick(() => {
+                            router.push(routePath)
+                        })
+                        return
+                    }
                     getVipLicenseEnabled(true).finally(() => {
                         ElMessage.success(res.msg)
                         nextTick(() => {
-                            router.push(res.data.defaultArea === 'platform' ? '/platform' : '/workspace/index')
+                            router.push(routePath)
                         })
                     })
                 })

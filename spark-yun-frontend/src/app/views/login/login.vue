@@ -95,6 +95,7 @@ import { useAuthStore } from '@/app/store/useAuth'
 import { getVipLicenseEnabled } from '@/app/utils/vip-license'
 import { getUser } from '@/app/type/user/user'
 import type { LoginReq } from '@/app/type/models'
+import { resolveLoginRoutePath } from './resolve-login-route'
 
 interface OauthUrl {
     name: string
@@ -149,6 +150,14 @@ async function handleLogin() {
         // 调用登录接口
         const res = await getUser().login({ ...loginModel })
         authStore.applyAuthResponse(res.data)
+        const routePath = resolveLoginRoutePath(res.data)
+
+        if (routePath === '/platform' && !res.data.tenantId) {
+            ElMessage.success(res.msg)
+            await nextTick()
+            await router.push(routePath)
+            return
+        }
 
         // 检测许可证
         await getVipLicenseEnabled(true)
@@ -159,10 +168,6 @@ async function handleLogin() {
         // 刷新处理一下数据
         await nextTick()
 
-        // 路由跳转，优先使用后端判定的默认区域
-        const fallbackRoutePath =
-            res.data.platformSuperAdmin || (res.data.platformAdmin && !res.data.tenantId) ? '/platform' : '/workspace/index'
-        const routePath = res.data.defaultArea === 'workspace' ? '/workspace/index' : res.data.defaultArea ? `/${res.data.defaultArea}` : fallbackRoutePath
         await router.push(routePath)
 
     } finally {
