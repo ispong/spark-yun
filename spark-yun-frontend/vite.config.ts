@@ -12,9 +12,6 @@ import {readFileSync} from 'node:fs'
 // 负责启动部署
 export default defineConfig({
 
-    // 后端发布包中前端资源挂载在 /static/**
-    base: '/static/',
-
     // 定义变量
     define: {
         __APP_VERSION__: JSON.stringify(readFileSync('../VERSION', 'utf-8').trim()),

@@ -21,11 +21,11 @@ public class SparkYunApplication {
         SpringApplication.run(SparkYunApplication.class, args);
     }
 
-    @GetMapping(value = {"/", "/auth", "/ssoauth", "/home/**", "/platform/**", "/admin/**", "/workspace/**",
-            "/personal-info", "/403", "/no-tenant", "/share/**", "/dashboard/**"})
+    @GetMapping(value = {"/", "/auth", "/ssoauth", "/platform/**", "/admin/**", "/workspace/**", "/personal-info",
+            "/403", "/share/**", "/dashboard/**"})
     public ResponseEntity<Resource> index() {
 
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).contentType(MediaType.TEXT_HTML)
-            .body(new ClassPathResource("frontend/index.html"));
+            .body(new ClassPathResource("index.html"));
     }
 }

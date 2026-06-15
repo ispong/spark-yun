@@ -62,9 +62,6 @@ spring:
     hibernate:
       ddl-auto: none
 
-  mvc:
-    static-path-pattern: /static/**
-
   h2:
     console:
       enabled: true
@@ -142,17 +139,15 @@ app:
     - /vip/form/getFormConfigForAnonymous
   open-url:
     - /
-    - /static/**
-    - /home/**
-    - /home*/**
+    - /manifest.json
+    - /favicon.ico
+    - /robots.txt
+    - /assets/**
     - /platform/**
     - /admin/**
     - /workspace/**
-    - /personal-info
+    - /personal-info/**
     - /403
-    - /no-tenant
-    - /favicon.ico
-    - /login
     - /ssoauth
     - /auth
     - /share/**
