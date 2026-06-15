@@ -90,15 +90,17 @@ public class AiConfigBizService {
     public Page<AiConfigRes> pageConfig(PageAiConfigReq request) {
 
         String keyword = request.getSearchKeyWord() == null ? "" : request.getSearchKeyWord();
-        return aiConfigRepository.search(requireTenantId(), keyword, PageRequest.of(request.getPage(), request.getPageSize()))
+        return aiConfigRepository
+            .search(requireTenantId(), keyword, PageRequest.of(request.getPage(), request.getPageSize()))
             .map(this::toConfigRes);
     }
 
     @Transactional(rollbackFor = Exception.class, readOnly = true)
     public List<AiConfigRes> listEnabledConfig() {
 
-        return aiConfigRepository.findAllByTenantIdAndStatusOrderByCreateDateTimeDesc(requireTenantId(),
-            AiConfigStatus.ENABLE).stream().map(this::toConfigRes).toList();
+        return aiConfigRepository
+            .findAllByTenantIdAndStatusOrderByCreateDateTimeDesc(requireTenantId(), AiConfigStatus.ENABLE).stream()
+            .map(this::toConfigRes).toList();
     }
 
     public void deleteConfig(DeleteAiConfigReq request) {
@@ -173,8 +175,8 @@ public class AiConfigBizService {
 
     private List<Message> toSpringAiMessages(AiChatReq request) {
 
-        List<Message> messages = request.getMessages().stream().filter(message -> !Strings.isEmpty(message.getContent()))
-            .map(this::toSpringAiMessage).toList();
+        List<Message> messages = request.getMessages().stream()
+            .filter(message -> !Strings.isEmpty(message.getContent())).map(this::toSpringAiMessage).toList();
         if (messages.isEmpty()) {
             throw new IsxAppException("请输入对话内容");
         }
@@ -287,8 +289,8 @@ public class AiConfigBizService {
         return AiConfigRes.builder().id(config.getId()).name(config.getName()).providerType(config.getProviderType())
             .baseUrl(config.getBaseUrl()).modelName(config.getModelName()).temperature(config.getTemperature())
             .maxTokens(config.getMaxTokens()).status(config.getStatus()).remark(config.getRemark())
-            .createDateTime(config.getCreateDateTime() == null ? null
-                : config.getCreateDateTime().format(DATE_TIME_FORMATTER))
+            .createDateTime(
+                config.getCreateDateTime() == null ? null : config.getCreateDateTime().format(DATE_TIME_FORMATTER))
             .build();
     }
 

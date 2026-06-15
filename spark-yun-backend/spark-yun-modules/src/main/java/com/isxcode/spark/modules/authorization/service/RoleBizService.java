@@ -143,22 +143,24 @@ public class RoleBizService {
     private Set<String> validPermissionCodes() {
 
         Set<String> result = new LinkedHashSet<>(WorkspacePermissionCatalog.allCodes());
-        interfacePermissions().forEach(module -> module.getPermissions()
-            .forEach(permission -> result.add(permission.getPermissionCode())));
+        interfacePermissions().forEach(
+            module -> module.getPermissions().forEach(permission -> result.add(permission.getPermissionCode())));
         return result;
     }
 
     private List<PermissionModuleRes> modulePermissions(List<String> actions, boolean dataPermission) {
 
         return WorkspacePermissionCatalog.modules().stream()
-            .map(module -> PermissionModuleRes.builder().code(module).name(WorkspacePermissionCatalog.moduleName(module))
-                .permissions(actions.stream()
-                    .map(action -> PermissionItemRes.builder().code(action).name(action).action(action)
-                        .permissionCode(dataPermission ? WorkspacePermissionCatalog.dataCode(module, action)
-                            : WorkspacePermissionCatalog.code(module, action))
-                        .build())
-                    .toList())
-                .build())
+            .map(
+                module -> PermissionModuleRes.builder().code(module).name(WorkspacePermissionCatalog.moduleName(module))
+                    .permissions(
+                        actions.stream()
+                            .map(action -> PermissionItemRes.builder().code(action).name(action).action(action)
+                                .permissionCode(dataPermission ? WorkspacePermissionCatalog.dataCode(module, action)
+                                    : WorkspacePermissionCatalog.code(module, action))
+                                .build())
+                            .toList())
+                    .build())
             .toList();
     }
 
@@ -166,28 +168,29 @@ public class RoleBizService {
 
         Map<String, List<PermissionItemRes>> groupedPermissions = new LinkedHashMap<>();
         WorkspacePermissionCatalog.modules().forEach(module -> groupedPermissions.put(module, new ArrayList<>()));
-        RequestMappingHandlerMapping requestMappingHandlerMapping = requestMappingHandlerMappingProvider.getIfAvailable();
+        RequestMappingHandlerMapping requestMappingHandlerMapping =
+            requestMappingHandlerMappingProvider.getIfAvailable();
         if (requestMappingHandlerMapping == null) {
             return List.of();
         }
 
-        requestMappingHandlerMapping.getHandlerMethods().keySet().forEach(mappingInfo -> mappingPaths(mappingInfo)
-            .forEach(path -> {
+        requestMappingHandlerMapping.getHandlerMethods().keySet()
+            .forEach(mappingInfo -> mappingPaths(mappingInfo).forEach(path -> {
                 String module = WorkspacePermissionCatalog.resolveModule(path);
                 if (module == null || !groupedPermissions.containsKey(module)) {
                     return;
                 }
                 List<String> methods = mappingMethods(mappingInfo);
                 methods.forEach(method -> groupedPermissions.get(module)
-                    .add(PermissionItemRes.builder().code(method + " " + path).name(method + " " + path)
-                        .method(method).path(path).action(WorkspacePermissionCatalog.resolveAction(path))
+                    .add(PermissionItemRes.builder().code(method + " " + path).name(method + " " + path).method(method)
+                        .path(path).action(WorkspacePermissionCatalog.resolveAction(path))
                         .permissionCode(WorkspacePermissionCatalog.apiCode(module, method, path)).build()));
             }));
 
-        return groupedPermissions.entrySet().stream().filter(entry -> !entry.getValue().isEmpty())
-            .map(entry -> PermissionModuleRes.builder().code(entry.getKey())
-                .name(WorkspacePermissionCatalog.moduleName(entry.getKey())).permissions(entry.getValue().stream()
-                    .sorted((left, right) -> left.getCode().compareTo(right.getCode())).toList())
+        return groupedPermissions
+            .entrySet().stream().filter(entry -> !entry.getValue().isEmpty()).map(entry -> PermissionModuleRes.builder()
+                .code(entry.getKey()).name(WorkspacePermissionCatalog.moduleName(entry.getKey())).permissions(entry
+                    .getValue().stream().sorted((left, right) -> left.getCode().compareTo(right.getCode())).toList())
                 .build())
             .toList();
     }

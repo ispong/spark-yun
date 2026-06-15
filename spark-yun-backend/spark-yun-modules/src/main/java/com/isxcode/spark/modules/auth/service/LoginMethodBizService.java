@@ -175,8 +175,8 @@ public class LoginMethodBizService {
 
     public Page<PageLoginCodeRecordRes> pageRecord(PageLoginCodeRecordReq pageLoginCodeRecordReq) {
 
-        String searchKeyWord = pageLoginCodeRecordReq.getSearchKeyWord() == null ? ""
-            : pageLoginCodeRecordReq.getSearchKeyWord();
+        String searchKeyWord =
+            pageLoginCodeRecordReq.getSearchKeyWord() == null ? "" : pageLoginCodeRecordReq.getSearchKeyWord();
         String channel = pageLoginCodeRecordReq.getChannel() == null ? "" : pageLoginCodeRecordReq.getChannel();
         Page<LoginCodeRecordEntity> recordPage = loginCodeRecordRepository.pageRecord(searchKeyWord, channel,
             PageRequest.of(pageLoginCodeRecordReq.getPage(), pageLoginCodeRecordReq.getPageSize()));
@@ -256,10 +256,9 @@ public class LoginMethodBizService {
 
     private void validatePhoneConfig(PhoneLoginConfig config) {
 
-        if (config == null || !"ALIYUN".equalsIgnoreCase(config.getProvider())
-            || Strings.isEmpty(config.getRegionId()) || Strings.isEmpty(config.getAccessKeyId())
-            || Strings.isEmpty(config.getAccessKeySecret()) || Strings.isEmpty(config.getSignName())
-            || Strings.isEmpty(config.getTemplateCode())) {
+        if (config == null || !"ALIYUN".equalsIgnoreCase(config.getProvider()) || Strings.isEmpty(config.getRegionId())
+            || Strings.isEmpty(config.getAccessKeyId()) || Strings.isEmpty(config.getAccessKeySecret())
+            || Strings.isEmpty(config.getSignName()) || Strings.isEmpty(config.getTemplateCode())) {
             throw new IsxAppException("手机配置未完成");
         }
         if (Strings.isEmpty(config.getTemplateParamName())) {
@@ -299,9 +298,8 @@ public class LoginMethodBizService {
 
     private void validateResendInterval(String channel, String receiver) {
 
-        Optional<LoginCodeRecordEntity> latestRecord =
-            loginCodeRecordRepository.findFirstByChannelAndReceiverAndSceneOrderByCreateDateTimeDesc(channel, receiver,
-                LoginCodeScene.LOGIN);
+        Optional<LoginCodeRecordEntity> latestRecord = loginCodeRecordRepository
+            .findFirstByChannelAndReceiverAndSceneOrderByCreateDateTimeDesc(channel, receiver, LoginCodeScene.LOGIN);
         if (latestRecord.isEmpty() || latestRecord.get().getCreateDateTime() == null
             || !LoginCodeSendStatus.SUCCESS.equals(latestRecord.get().getSendStatus())) {
             return;
@@ -398,10 +396,10 @@ public class LoginMethodBizService {
 
         return PageLoginCodeRecordRes.builder().id(record.getId()).channel(record.getChannel())
             .receiver(maskReceiver(record.getChannel(), record.getReceiver())).scene(record.getScene())
-            .sendStatus(record.getSendStatus()).verifyStatus(record.getVerifyStatus()).registered(record.getRegistered())
-            .autoTenantCreated(record.getAutoTenantCreated()).errorMessage(record.getErrorMessage())
-            .providerMessage(record.getProviderMessage()).createDateTime(record.getCreateDateTime())
-            .verifyDateTime(record.getVerifyDateTime()).build();
+            .sendStatus(record.getSendStatus()).verifyStatus(record.getVerifyStatus())
+            .registered(record.getRegistered()).autoTenantCreated(record.getAutoTenantCreated())
+            .errorMessage(record.getErrorMessage()).providerMessage(record.getProviderMessage())
+            .createDateTime(record.getCreateDateTime()).verifyDateTime(record.getVerifyDateTime()).build();
     }
 
     private String maskReceiver(String channel, String receiver) {

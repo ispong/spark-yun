@@ -117,7 +117,8 @@ public class ProductAccessService {
 
     public boolean hasWorkspaceApiPermission(AccessSnapshot access, String module, String method, String path) {
 
-        return access.hasAllWorkspacePermissions() || !WorkspacePermissionCatalog.hasApiPermissions(access.permissions())
+        return access.hasAllWorkspacePermissions()
+            || !WorkspacePermissionCatalog.hasApiPermissions(access.permissions())
             || access.permissions().contains(WorkspacePermissionCatalog.apiCode(module, method, path));
     }
 

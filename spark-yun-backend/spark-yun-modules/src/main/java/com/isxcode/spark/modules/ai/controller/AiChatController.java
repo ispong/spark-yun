@@ -49,6 +49,7 @@ public class AiChatController {
     @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<StreamingResponseBody> streamChat(@Valid @RequestBody AiChatReq request) {
 
-        return ResponseEntity.ok().contentType(MediaType.TEXT_EVENT_STREAM).body(aiConfigBizService.streamChat(request));
+        return ResponseEntity.ok().contentType(MediaType.TEXT_EVENT_STREAM)
+            .body(aiConfigBizService.streamChat(request));
     }
 }

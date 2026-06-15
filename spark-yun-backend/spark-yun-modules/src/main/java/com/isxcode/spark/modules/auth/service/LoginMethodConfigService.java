@@ -53,8 +53,8 @@ public class LoginMethodConfigService {
         LoginMethodConfigEntity config = getOrCreateConfig();
         LoginMethodRuntimeConfig oldConfig = toRuntimeConfig(config);
 
-        boolean accountEnabled = valueOrDefault(updateLoginMethodConfigReq.getAccountEnabled(),
-            oldConfig.getAccountEnabled());
+        boolean accountEnabled =
+            valueOrDefault(updateLoginMethodConfigReq.getAccountEnabled(), oldConfig.getAccountEnabled());
         boolean emailEnabled =
             valueOrDefault(updateLoginMethodConfigReq.getEmailEnabled(), oldConfig.getEmailEnabled());
         boolean phoneEnabled =
@@ -73,13 +73,13 @@ public class LoginMethodConfigService {
         config.setAccountEmailPasswordEnabled(valueOrDefault(
             updateLoginMethodConfigReq.getAccountEmailPasswordEnabled(), oldConfig.getAccountEmailPasswordEnabled()));
         config.setEmailEnabled(emailEnabled);
-        config.setEmailRegisterEnabled(valueOrDefault(updateLoginMethodConfigReq.getEmailRegisterEnabled(),
-            oldConfig.getEmailRegisterEnabled()));
+        config.setEmailRegisterEnabled(
+            valueOrDefault(updateLoginMethodConfigReq.getEmailRegisterEnabled(), oldConfig.getEmailRegisterEnabled()));
         config.setPhoneEnabled(phoneEnabled);
-        config.setPhoneRegisterEnabled(valueOrDefault(updateLoginMethodConfigReq.getPhoneRegisterEnabled(),
-            oldConfig.getPhoneRegisterEnabled()));
-        config.setAutoCreateTenant(valueOrDefault(updateLoginMethodConfigReq.getAutoCreateTenant(),
-            oldConfig.getAutoCreateTenant()));
+        config.setPhoneRegisterEnabled(
+            valueOrDefault(updateLoginMethodConfigReq.getPhoneRegisterEnabled(), oldConfig.getPhoneRegisterEnabled()));
+        config.setAutoCreateTenant(
+            valueOrDefault(updateLoginMethodConfigReq.getAutoCreateTenant(), oldConfig.getAutoCreateTenant()));
 
         LoginMethodConfigDto nextConfig =
             mergeSecretConfig(oldConfig.getConfig(), updateLoginMethodConfigReq.getConfig());
@@ -89,8 +89,8 @@ public class LoginMethodConfigService {
 
     public LoginMethodRuntimeConfig getRuntimeConfig() {
 
-        return toRuntimeConfig(loginMethodConfigRepository.findByConfigKey(GLOBAL_CONFIG_KEY)
-            .orElseGet(this::defaultConfigEntity));
+        return toRuntimeConfig(
+            loginMethodConfigRepository.findByConfigKey(GLOBAL_CONFIG_KEY).orElseGet(this::defaultConfigEntity));
     }
 
     private LoginMethodConfigEntity getOrCreateConfig() {
@@ -135,15 +135,13 @@ public class LoginMethodConfigService {
         boolean emailEnabled = valueOrDefault(config.getEmailEnabled(), false);
         boolean phoneEnabled = valueOrDefault(config.getPhoneEnabled(), false);
         return LoginMethodRuntimeConfig.builder()
-            .defaultLoginMethod(resolveDefaultLoginMethod(config.getDefaultLoginMethod(), accountEnabled, emailEnabled,
-                phoneEnabled))
+            .defaultLoginMethod(
+                resolveDefaultLoginMethod(config.getDefaultLoginMethod(), accountEnabled, emailEnabled, phoneEnabled))
             .accountEnabled(accountEnabled)
             .accountPhonePasswordEnabled(valueOrDefault(config.getAccountPhonePasswordEnabled(), false))
             .accountEmailPasswordEnabled(valueOrDefault(config.getAccountEmailPasswordEnabled(), false))
-            .emailEnabled(emailEnabled)
-            .emailRegisterEnabled(valueOrDefault(config.getEmailRegisterEnabled(), false))
-            .phoneEnabled(phoneEnabled)
-            .phoneRegisterEnabled(valueOrDefault(config.getPhoneRegisterEnabled(), false))
+            .emailEnabled(emailEnabled).emailRegisterEnabled(valueOrDefault(config.getEmailRegisterEnabled(), false))
+            .phoneEnabled(phoneEnabled).phoneRegisterEnabled(valueOrDefault(config.getPhoneRegisterEnabled(), false))
             .autoCreateTenant(valueOrDefault(config.getAutoCreateTenant(), true)).config(configDto).build();
     }
 
