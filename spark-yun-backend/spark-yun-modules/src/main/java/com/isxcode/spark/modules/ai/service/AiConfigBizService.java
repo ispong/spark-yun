@@ -3,17 +3,23 @@ package com.isxcode.spark.modules.ai.service;
 import com.isxcode.spark.api.ai.constants.AiConfigStatus;
 import com.isxcode.spark.api.ai.constants.AiProviderType;
 import com.isxcode.spark.api.ai.req.AiChatReq;
+import com.isxcode.spark.api.ai.req.DeleteAiChatSessionReq;
 import com.isxcode.spark.api.ai.req.DeleteAiConfigReq;
 import com.isxcode.spark.api.ai.req.PageAiConfigReq;
+import com.isxcode.spark.api.ai.req.SaveAiChatSessionReq;
 import com.isxcode.spark.api.ai.req.SaveAiConfigReq;
 import com.isxcode.spark.api.ai.req.TestAiConfigReq;
 import com.isxcode.spark.api.ai.res.AiChatRes;
+import com.isxcode.spark.api.ai.res.AiChatSessionRes;
 import com.isxcode.spark.api.ai.res.AiConfigRes;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.common.security.ContextHolder;
+import com.isxcode.spark.modules.ai.entity.AiChatSessionEntity;
 import com.isxcode.spark.modules.ai.entity.AiConfigEntity;
+import com.isxcode.spark.modules.ai.repository.AiChatSessionRepository;
 import com.isxcode.spark.modules.ai.repository.AiConfigRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -51,6 +57,8 @@ public class AiConfigBizService {
     private static final int DEFAULT_MAX_TOKENS = 2000;
 
     private final AiConfigRepository aiConfigRepository;
+
+    private final AiChatSessionRepository aiChatSessionRepository;
 
     private final ObjectMapper objectMapper;
 
@@ -109,6 +117,45 @@ public class AiConfigBizService {
     }
 
     @Transactional(rollbackFor = Exception.class, readOnly = true)
+    public List<AiChatSessionRes> listChatSessions() {
+
+        return aiChatSessionRepository
+            .findAllByTenantIdAndUserIdOrderByLastModifiedDateTimeDesc(requireTenantId(), requireUserId()).stream()
+            .map(this::toChatSessionRes).toList();
+    }
+
+    public AiChatSessionRes saveChatSession(SaveAiChatSessionReq request) {
+
+        getCurrentTenantConfig(request.getConfigId());
+        AiChatSessionEntity session = Strings.isEmpty(request.getId()) ? new AiChatSessionEntity()
+            : aiChatSessionRepository.findById(request.getId()).orElseGet(() -> {
+                AiChatSessionEntity newSession = new AiChatSessionEntity();
+                newSession.setId(request.getId());
+                return newSession;
+            });
+
+        if (session.getTenantId() != null && !requireTenantId().equals(session.getTenantId())) {
+            throw new IsxAppException("无权操作其他租户会话");
+        }
+        if (session.getUserId() != null && !requireUserId().equals(session.getUserId())) {
+            throw new IsxAppException("无权操作其他用户会话");
+        }
+
+        session.setTenantId(requireTenantId());
+        session.setUserId(requireUserId());
+        session.setConfigId(request.getConfigId());
+        session.setTitle(resolveSessionTitle(request.getTitle()));
+        session.setMessagesJson(toMessagesJson(request.getMessages()));
+        return toChatSessionRes(aiChatSessionRepository.save(session));
+    }
+
+    public void deleteChatSession(DeleteAiChatSessionReq request) {
+
+        AiChatSessionEntity session = getCurrentUserSession(request.getId());
+        aiChatSessionRepository.delete(session);
+    }
+
+    @Transactional(rollbackFor = Exception.class, readOnly = true)
     public void testConfig(TestAiConfigReq request) {
 
         AiConfigEntity config = getCurrentTenantConfig(request.getId());
@@ -154,6 +201,7 @@ public class AiConfigBizService {
 
         return outputStream -> {
             try {
+                writeSse(outputStream, "start", Map.of());
                 for (ChatResponse response : responseFlux.toIterable()) {
                     String content = extractContent(response);
                     if (!Strings.isEmpty(content)) {
@@ -294,11 +342,64 @@ public class AiConfigBizService {
             .build();
     }
 
+    private AiChatSessionEntity getCurrentUserSession(String id) {
+
+        AiChatSessionEntity session =
+            aiChatSessionRepository.findById(id).orElseThrow(() -> new IsxAppException("会话不存在"));
+        if (!requireTenantId().equals(session.getTenantId()) || !requireUserId().equals(session.getUserId())) {
+            throw new IsxAppException("无权操作其他用户会话");
+        }
+        return session;
+    }
+
+    private AiChatSessionRes toChatSessionRes(AiChatSessionEntity session) {
+
+        return AiChatSessionRes.builder().id(session.getId()).configId(session.getConfigId()).title(session.getTitle())
+            .updatedAt(session.getLastModifiedDateTime() == null ? null
+                : session.getLastModifiedDateTime().format(DATE_TIME_FORMATTER))
+            .messages(parseMessages(session.getMessagesJson())).build();
+    }
+
+    private String resolveSessionTitle(String title) {
+
+        String trimmedTitle = title == null ? "" : title.trim();
+        if (trimmedTitle.length() > 200) {
+            return trimmedTitle.substring(0, 200);
+        }
+        return trimmedTitle;
+    }
+
+    private String toMessagesJson(List<AiChatReq.AiChatMessageReq> messages) {
+
+        try {
+            return objectMapper.writeValueAsString(messages);
+        } catch (JsonProcessingException exception) {
+            throw new IsxAppException("会话消息序列化失败：" + exception.getMessage());
+        }
+    }
+
+    private List<AiChatReq.AiChatMessageReq> parseMessages(String messagesJson) {
+
+        try {
+            return objectMapper.readValue(messagesJson, new TypeReference<>() {});
+        } catch (JsonProcessingException exception) {
+            throw new IsxAppException("会话消息解析失败：" + exception.getMessage());
+        }
+    }
+
     private String requireTenantId() {
 
         if (Strings.isEmpty(ContextHolder.getTenantId())) {
             throw new IsxAppException("租户id丢失");
         }
         return ContextHolder.getTenantId();
+    }
+
+    private String requireUserId() {
+
+        if (Strings.isEmpty(ContextHolder.getUserId())) {
+            throw new IsxAppException("用户id丢失");
+        }
+        return ContextHolder.getUserId();
     }
 }

@@ -347,6 +347,11 @@ export const adminMenuListData: Array<Menu> = [
         code: 'ai-config',
         name: '智能配置',
         icon: 'MagicStick'
+    },
+    {
+        code: 'backend-setting',
+        name: '后台设置',
+        icon: 'Setting'
     }
 ]
 

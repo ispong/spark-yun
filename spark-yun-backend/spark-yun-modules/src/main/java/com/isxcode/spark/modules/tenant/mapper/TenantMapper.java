@@ -34,6 +34,7 @@ public interface TenantMapper {
         UpdateTenantForSystemAdminReq tetUpdateTenantBySystemAdminReq, TenantEntity tenantEntity);
 
     @Mapping(target = "introduce", source = "tetUpdateTenantByTenantAdminReq.introduce")
+    @Mapping(target = "name", source = "tetUpdateTenantByTenantAdminReq.name")
     @Mapping(target = "id", source = "tenantEntity.id")
     TenantEntity tetUpdateTenantByTenantAdminReqToTenantEntity(
         UpdateTenantForTenantAdminReq tetUpdateTenantByTenantAdminReq, TenantEntity tenantEntity);

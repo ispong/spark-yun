@@ -21,6 +21,29 @@ export function ListWorkspaceAiConfig(): Promise<any> {
     })
 }
 
+export function ListChatSessions(): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/api/workspace/ai/chat/sessions'
+    })
+}
+
+export function SaveChatSession(params: any): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/api/workspace/ai/chat/session/save',
+        params
+    })
+}
+
+export function DeleteChatSession(params: any): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/api/workspace/ai/chat/session/delete',
+        params
+    })
+}
+
 export async function StreamChatWithAi(
     params: any,
     handlers: StreamChatHandlers,
@@ -31,6 +54,7 @@ export async function StreamChatWithAi(
     const response = await fetch(`${urlPrefix}/api/workspace/ai/chat/stream`, {
         method: 'POST',
         headers: {
+            Accept: 'text/event-stream',
             'Content-Type': 'application/json',
             Authorization: authStore.token || '',
             tenant: authStore.tenantId || ''

@@ -9,5 +9,7 @@
 export interface UpdateTenantForTenantAdminReq {
   /** @minLength 1 */
   id: string;
+  /** @minLength 1 */
+  name: string;
   introduce?: string;
 }

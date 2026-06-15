@@ -1,7 +1,10 @@
 package com.isxcode.spark.modules.ai.controller;
 
 import com.isxcode.spark.api.ai.req.AiChatReq;
+import com.isxcode.spark.api.ai.req.DeleteAiChatSessionReq;
+import com.isxcode.spark.api.ai.req.SaveAiChatSessionReq;
 import com.isxcode.spark.api.ai.res.AiChatRes;
+import com.isxcode.spark.api.ai.res.AiChatSessionRes;
 import com.isxcode.spark.api.ai.res.AiConfigRes;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
@@ -11,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -45,11 +49,38 @@ public class AiChatController {
         return aiConfigBizService.chat(request);
     }
 
+    @Operation(summary = "查询AI聊天历史")
+    @PostMapping("/chat/sessions")
+    @SuccessResponse("查询成功")
+    public List<AiChatSessionRes> listChatSessions() {
+
+        return aiConfigBizService.listChatSessions();
+    }
+
+    @Operation(summary = "保存AI聊天历史")
+    @PostMapping("/chat/session/save")
+    @SuccessResponse("保存成功")
+    public AiChatSessionRes saveChatSession(@Valid @RequestBody SaveAiChatSessionReq request) {
+
+        return aiConfigBizService.saveChatSession(request);
+    }
+
+    @Operation(summary = "删除AI聊天历史")
+    @PostMapping("/chat/session/delete")
+    @SuccessResponse("删除成功")
+    public void deleteChatSession(@Valid @RequestBody DeleteAiChatSessionReq request) {
+
+        aiConfigBizService.deleteChatSession(request);
+    }
+
     @Operation(summary = "AI流式对话")
     @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<StreamingResponseBody> streamChat(@Valid @RequestBody AiChatReq request) {
 
         return ResponseEntity.ok().contentType(MediaType.TEXT_EVENT_STREAM)
+            .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-transform")
+            .header(HttpHeaders.CONNECTION, "keep-alive")
+            .header("X-Accel-Buffering", "no")
             .body(aiConfigBizService.streamChat(request));
     }
 }

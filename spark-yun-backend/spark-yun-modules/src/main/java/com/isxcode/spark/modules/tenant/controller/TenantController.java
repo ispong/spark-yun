@@ -68,7 +68,7 @@ public class TenantController {
         tenantBizService.updateTenantForSystemAdmin(updateTenantForSystemAdminReq);
     }
 
-    @Secured({RoleType.TENANT_SUPER_ADMIN})
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
     @Operation(summary = "租户管理员更新租户接口")
     @PostMapping("/updateTenantForTenantAdmin")
     @SuccessResponse("更新成功")

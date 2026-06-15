@@ -276,6 +276,12 @@ public class TenantBizService {
             throw new IsxAppException("租户不存在");
         }
 
+        tenantRepository.findByName(tetUpdateTenantByTenantAdminReq.getName()).ifPresent(tenantEntity -> {
+            if (!tenantEntity.getId().equals(tetUpdateTenantByTenantAdminReq.getId())) {
+                throw new IsxAppException("租户名称重复");
+            }
+        });
+
         // TetUpdateTenantByTenantAdminReq To TenantEntity
         TenantEntity tenantEntity = tenantMapper
             .tetUpdateTenantByTenantAdminReqToTenantEntity(tetUpdateTenantByTenantAdminReq, tenantEntityOptional.get());
