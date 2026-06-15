@@ -443,9 +443,11 @@ public class TenantBizService {
             isxAppProperties.getJwtKey(), isxAppProperties.getRefreshExpirationMin());
 
         return ChooseTenantRes.builder().token(token).refreshToken(refreshToken).tenantId(chooseTenantReq.getTenantId())
-            .role(role).systemAdmin(false).platformAdmin(access.platformAdmin()).tenantAdmin(access.tenantAdmin())
-            .normalAdmin(access.normalAdmin()).workspaceAllPermissions(access.hasAllWorkspacePermissions())
-            .permissions(List.copyOf(access.permissions())).defaultArea("workspace").build();
+            .role(role).systemAdmin(false).platformSuperAdmin(false).platformAdmin(access.platformAdmin())
+            .tenantSuperAdmin(access.tenantAdmin()).tenantAdmin(access.normalAdmin())
+            .tenantMember(access.hasTenantAccess()).normalAdmin(access.normalAdmin())
+            .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
+            .defaultArea("workspace").build();
     }
 
     public GetTenantRes getTenant(GetTenantReq getTenantReq) {

@@ -31,7 +31,8 @@
                         </div>
                     </template>
                     <template #platformAdmin="scopeSlot">
-                        <el-tag v-if="scopeSlot.row.platformAdmin" type="warning">平台管理员</el-tag>
+                        <el-tag v-if="scopeSlot.row.platformSuperAdmin" type="danger">平台超级管理员</el-tag>
+                        <el-tag v-else-if="scopeSlot.row.platformAdmin" type="warning">平台管理员</el-tag>
                         <span v-else>-</span>
                     </template>
                     <template #options="scopeSlot">
@@ -61,13 +62,13 @@
                                             修改密码
                                         </el-dropdown-item>
                                         <el-dropdown-item
-                                            v-if="authStore.userInfo?.systemAdmin && !scopeSlot.row.platformAdmin"
+                                            v-if="canSetPlatformAdmin(scopeSlot.row)"
                                             @click="changePlatformAdmin(scopeSlot.row, true)"
                                         >
                                             设为平台管理员
                                         </el-dropdown-item>
                                         <el-dropdown-item
-                                            v-if="scopeSlot.row.platformAdmin"
+                                            v-if="canCancelPlatformAdmin(scopeSlot.row)"
                                             @click="changePlatformAdmin(scopeSlot.row, false)"
                                         >
                                             取消平台管理员
@@ -196,6 +197,14 @@ function changePassword(data: any) {
                 })
         })
     }, data)
+}
+
+function canSetPlatformAdmin(data: any) {
+    return authStore.userInfo?.platformSuperAdmin && !data.platformSuperAdmin && !data.platformAdmin
+}
+
+function canCancelPlatformAdmin(data: any) {
+    return authStore.userInfo?.platformSuperAdmin && !data.platformSuperAdmin && data.platformAdmin
 }
 
 function changePlatformAdmin(data: any, platformAdmin: boolean) {

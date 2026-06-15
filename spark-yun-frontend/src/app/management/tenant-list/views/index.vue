@@ -84,7 +84,7 @@
                                     <el-dropdown-menu>
                                         <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
                                         <el-dropdown-item @click="openReplaceAdmin(scopeSlot.row)">
-                                            替换租户管理员
+                                            设置租户超级管理员
                                         </el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="!scopeSlot.row.checkLoding"
@@ -102,9 +102,9 @@
             </div>
         </LoadingPage>
         <AddModal ref="addModalRef" />
-        <el-dialog v-model="replaceAdminVisible" title="替换租户管理员" width="480px">
+        <el-dialog v-model="replaceAdminVisible" title="设置租户超级管理员" width="480px">
             <el-form label-position="top">
-                <el-form-item label="新租户管理员">
+                <el-form-item label="租户超级管理员">
                     <el-select v-model="replaceAdminForm.newAdminUserId" filterable>
                         <el-option
                             v-for="user in enabledUsers"
@@ -114,16 +114,16 @@
                         />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="旧租户管理员处理方式">
+                <el-form-item label="原租户超级管理员处理方式">
                     <el-radio-group v-model="replaceAdminForm.oldAdminAction">
-                        <el-radio label="KEEP">保留为普通成员</el-radio>
+                        <el-radio label="KEEP">保留为租户成员</el-radio>
                         <el-radio label="REMOVE">移出租户</el-radio>
                     </el-radio-group>
                 </el-form-item>
             </el-form>
             <template #footer>
                 <el-button @click="replaceAdminVisible = false">取消</el-button>
-                <el-button type="primary" :loading="replaceAdminLoading" @click="replaceAdmin">确认替换</el-button>
+                <el-button type="primary" :loading="replaceAdminLoading" @click="replaceAdmin">确认设置</el-button>
             </template>
         </el-dialog>
     </div>
@@ -274,7 +274,7 @@ function openReplaceAdmin(data: any) {
 
 function replaceAdmin() {
     if (!replaceAdminForm.newAdminUserId) {
-        ElMessage.warning('请选择新租户管理员')
+        ElMessage.warning('请选择租户超级管理员')
         return
     }
     replaceAdminLoading.value = true

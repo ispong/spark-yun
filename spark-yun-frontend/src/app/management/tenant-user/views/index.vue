@@ -24,10 +24,10 @@
                     <template #roleCode="scopeSlot">
                         <div class="btn-group">
                             <el-tag v-if="scopeSlot.row.roleCode === 'ROLE_TENANT_ADMIN'" class="ml-2" type="success">
-                                租户管理员
+                                租户超级管理员
                             </el-tag>
-                            <el-tag v-else-if="scopeSlot.row.normalAdmin" type="warning">普通管理员</el-tag>
-                            <el-tag v-else type="info">成员</el-tag>
+                            <el-tag v-else-if="scopeSlot.row.normalAdmin" type="warning">租户管理员</el-tag>
+                            <el-tag v-else type="info">租户成员</el-tag>
                         </div>
                     </template>
                     <template #status="scopeSlot">
@@ -38,14 +38,16 @@
                     <template #options="scopeSlot">
                         <div v-if="scopeSlot.row.roleCode !== 'ROLE_TENANT_ADMIN'" class="btn-group">
                             <template v-if="!scopeSlot.row.normalAdmin">
-                                <span v-if="!scopeSlot.row.authLoading" @click="giveAuth(scopeSlot.row)">管理授权</span>
+                                <span v-if="!scopeSlot.row.authLoading" @click="giveAuth(scopeSlot.row)">
+                                    设为租户管理员
+                                </span>
                                 <el-icon v-else class="is-loading">
                                     <Loading />
                                 </el-icon>
                             </template>
                             <template v-else>
                                 <span v-if="!scopeSlot.row.authLoading" @click="removeAuth(scopeSlot.row)">
-                                    取消授权
+                                    取消租户管理员
                                 </span>
                                 <el-icon v-else class="is-loading">
                                     <Loading />
@@ -57,7 +59,7 @@
                             </span>
                             <span @click="deleteData(scopeSlot.row)">移除</span>
                         </div>
-                        <span v-else class="tenant-admin-tip">平台管理维护</span>
+                        <span v-else class="tenant-admin-tip">平台租户管理维护</span>
                     </template>
                 </BlockTable>
             </div>

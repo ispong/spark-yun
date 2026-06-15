@@ -339,12 +339,12 @@ public class UserBizService {
         UserEntity target =
             userRepository.findById(setPlatformAdminReq.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
         checkBuiltInAdmin(target);
-        boolean callerIsSystemAdmin = userRepository.findById(ContextHolder.getUserId())
+        boolean callerIsPlatformSuperAdmin = userRepository.findById(ContextHolder.getUserId())
             .map(user -> RoleType.PLATFORM_SUPER_ADMIN.equals(user.getRoleCode())).orElse(false);
-        if (Boolean.TRUE.equals(setPlatformAdminReq.getPlatformAdmin()) && !callerIsSystemAdmin) {
-            throw new IsxAppException("只有超级管理员可以设置平台管理员");
+        if (!callerIsPlatformSuperAdmin) {
+            throw new IsxAppException("只有平台超级管理员可以设置平台管理员");
         }
-        target.setPlatformAdmin(setPlatformAdminReq.getPlatformAdmin());
+        target.setPlatformAdmin(Boolean.TRUE.equals(setPlatformAdminReq.getPlatformAdmin()));
         userRepository.save(target);
     }
 
@@ -461,7 +461,9 @@ public class UserBizService {
             .token(generateUserToken(userEntity.getId(), tenantId))
             .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId)
             .role(resolveCompatibilityRole(access, role)).systemAdmin(access.systemAdmin())
-            .platformAdmin(access.platformAdmin()).tenantAdmin(access.tenantAdmin()).normalAdmin(access.normalAdmin())
+            .platformSuperAdmin(access.systemAdmin()).platformAdmin(access.platformAdmin())
+            .tenantSuperAdmin(access.tenantAdmin()).tenantAdmin(access.normalAdmin())
+            .tenantMember(access.hasTenantAccess()).normalAdmin(access.normalAdmin())
             .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
             .defaultArea(access.systemAdmin() ? "platform" : "workspace").build();
     }

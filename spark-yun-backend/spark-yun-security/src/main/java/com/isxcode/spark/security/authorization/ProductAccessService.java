@@ -50,7 +50,8 @@ public class ProductAccessService {
         validateUser(user);
 
         boolean platformSuperAdmin = RoleType.PLATFORM_SUPER_ADMIN.equals(user.getRoleCode());
-        boolean platformAdmin = RoleType.PLATFORM_ADMIN.equals(user.getRoleCode());
+        boolean platformAdmin = RoleType.PLATFORM_ADMIN.equals(user.getRoleCode())
+            || Boolean.TRUE.equals(user.getPlatformAdmin());
         if (platformSuperAdmin) {
             return new AccessSnapshot(userId, null, true, true, false, false, Set.of());
         }

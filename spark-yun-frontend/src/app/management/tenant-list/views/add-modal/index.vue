@@ -24,7 +24,7 @@
                     controls-position="right"
                 />
             </el-form-item>
-            <el-form-item v-if="renderSence === 'new'" label="租户管理员来源">
+            <el-form-item v-if="renderSence === 'new'" label="租户超级管理员来源">
                 <el-radio-group v-model="adminUserMode">
                     <el-radio label="existing">选择已有用户</el-radio>
                     <el-radio label="new">新建用户</el-radio>
@@ -32,7 +32,7 @@
             </el-form-item>
             <el-form-item
                 v-if="renderSence === 'new' && adminUserMode === 'existing'"
-                label="租户管理员"
+                label="租户超级管理员"
                 prop="adminUserId"
             >
                 <el-select v-model="formData.adminUserId" placeholder="请选择">
@@ -142,7 +142,7 @@ const rules = reactive<FormRules>({
     adminUserId: [
         {
             required: true,
-            message: '请选择管理员',
+            message: '请选择租户超级管理员',
             trigger: ['change', 'blur']
         }
     ]
@@ -205,7 +205,7 @@ function okEvent() {
     form.value?.validate((valid) => {
         if (valid) {
             if (renderSence.value === 'new' && adminUserMode.value === 'existing' && !formData.adminUserId) {
-                ElMessage.warning('请选择租户管理员')
+                ElMessage.warning('请选择租户超级管理员')
                 return
             }
             if (

@@ -68,7 +68,7 @@ public class ProductAccessAuthorizationFilter extends OncePerRequestFilter {
     private void checkPlatformAccess() {
 
         AccessSnapshot access = productAccessService.resolve(ContextHolder.getUserId(), ContextHolder.getTenantId());
-        if (!access.systemAdmin() && (!access.platformAdmin() || access.tenantId() == null)) {
+        if (!access.systemAdmin() && !access.platformAdmin()) {
             throw new AccessDeniedException("无平台管理权限");
         }
     }
@@ -76,7 +76,7 @@ public class ProductAccessAuthorizationFilter extends OncePerRequestFilter {
     private void checkAdminAccess() {
 
         AccessSnapshot access = productAccessService.resolve(ContextHolder.getUserId(), ContextHolder.getTenantId());
-        if (!access.tenantAdmin() && !access.normalAdmin()) {
+        if (!access.platformAdmin() && !access.tenantAdmin() && !access.normalAdmin()) {
             throw new AccessDeniedException("无后台管理权限");
         }
     }

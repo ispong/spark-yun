@@ -32,9 +32,15 @@ public class GetUserRes {
 
     private Boolean systemAdmin;
 
+    private Boolean platformSuperAdmin;
+
     private Boolean platformAdmin;
 
+    private Boolean tenantSuperAdmin;
+
     private Boolean tenantAdmin;
+
+    private Boolean tenantMember;
 
     private Boolean normalAdmin;
 

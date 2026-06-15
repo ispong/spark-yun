@@ -6,7 +6,7 @@
                     <el-option v-for="item in userList" :key="item.id" :label="item.username" :value="item.id" />
                 </el-select>
             </el-form-item>
-            <el-form-item label="普通管理员">
+            <el-form-item label="租户管理员">
                 <el-switch v-model="formData.isTenantAdmin" />
             </el-form-item>
         </el-form>
