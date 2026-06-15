@@ -16,6 +16,9 @@
                     placeholder="请输入"
                 />
             </el-form-item>
+            <el-form-item v-if="renderSence === 'new'" label="角色">
+                <el-tag type="success">普通成员</el-tag>
+            </el-form-item>
             <el-form-item label="手机号" prop="phone">
                 <el-input v-model="formData.phone" maxlength="11" placeholder="请输入手机号" show-word-limit />
             </el-form-item>

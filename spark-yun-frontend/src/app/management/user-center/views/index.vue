@@ -32,8 +32,8 @@
                     </template>
                     <template #platformAdmin="scopeSlot">
                         <el-tag v-if="scopeSlot.row.platformSuperAdmin" type="danger">平台超级管理员</el-tag>
-                        <el-tag v-else-if="scopeSlot.row.platformAdmin" type="warning">平台管理员</el-tag>
-                        <span v-else>-</span>
+                        <el-tag v-else-if="scopeSlot.row.platformAdmin" type="warning">管理员</el-tag>
+                        <el-tag v-else type="success">普通成员</el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group">
