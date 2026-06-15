@@ -8,6 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AiChatSessionRepository extends JpaRepository<AiChatSessionEntity, String> {
 
-    List<AiChatSessionEntity> findAllByTenantIdAndUserIdOrderByLastModifiedDateTimeDesc(String tenantId,
-        String userId);
+    List<AiChatSessionEntity> findAllByTenantIdAndUserIdOrderByLastModifiedDateTimeDesc(String tenantId, String userId);
 }

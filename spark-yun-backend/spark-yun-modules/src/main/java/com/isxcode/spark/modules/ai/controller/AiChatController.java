@@ -78,9 +78,7 @@ public class AiChatController {
     public ResponseEntity<StreamingResponseBody> streamChat(@Valid @RequestBody AiChatReq request) {
 
         return ResponseEntity.ok().contentType(MediaType.TEXT_EVENT_STREAM)
-            .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-transform")
-            .header(HttpHeaders.CONNECTION, "keep-alive")
-            .header("X-Accel-Buffering", "no")
-            .body(aiConfigBizService.streamChat(request));
+            .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-transform").header(HttpHeaders.CONNECTION, "keep-alive")
+            .header("X-Accel-Buffering", "no").body(aiConfigBizService.streamChat(request));
     }
 }
