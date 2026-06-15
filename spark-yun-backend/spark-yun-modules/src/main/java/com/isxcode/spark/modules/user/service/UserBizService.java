@@ -87,7 +87,7 @@ public class UserBizService {
         }
 
         // 如果是系统管理员直接返回
-        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())) {
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())||RoleType.PLATFORM_ADMIN.equals(userEntity.getRoleCode())) {
             return buildLoginRes(userEntity, null, userEntity.getRoleCode());
         }
 

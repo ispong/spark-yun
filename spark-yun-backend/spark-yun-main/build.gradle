@@ -25,7 +25,7 @@ bootJar {
         into 'BOOT-INF/classes/frontend'
     }
 
-    from(rootProject.file('spark-yun-frontend/dist/static')) {
+    from(rootProject.file('spark-yun-frontend/dist')) {
         into 'BOOT-INF/classes/static'
     }
 
