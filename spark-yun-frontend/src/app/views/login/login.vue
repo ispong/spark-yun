@@ -66,22 +66,33 @@
                             />
                         </el-form-item>
                         <el-form-item prop="code">
-                            <el-input
-                                v-model="codeLoginModel.code"
-                                class="zqy-login__input"
-                                maxlength="6"
-                                placeholder="请输入6位验证码"
-                            >
-                                <template #append>
-                                    <el-button
-                                        :disabled="!!sendCodeCountdown"
-                                        :loading="sendCodeLoading"
-                                        @click="handleSendCode"
-                                    >
-                                        {{ sendCodeCountdown ? `${sendCodeCountdown}s` : '获取验证码' }}
-                                    </el-button>
-                                </template>
-                            </el-input>
+                            <div class="zqy-login__code-row">
+                                <div class="zqy-login__code-digits">
+                                    <input
+                                        v-for="(_, index) in codeDigits"
+                                        :key="index"
+                                        :ref="(element) => setCodeDigitRef(element, index)"
+                                        v-model="codeDigits[index]"
+                                        class="zqy-login__code-digit"
+                                        type="text"
+                                        inputmode="numeric"
+                                        autocomplete="one-time-code"
+                                        maxlength="1"
+                                        @input="handleCodeDigitInput($event, index)"
+                                        @keydown="handleCodeDigitKeydown($event, index)"
+                                        @paste="handleCodeDigitPaste($event, index)"
+                                        @focus="handleCodeDigitFocus($event)"
+                                    />
+                                </div>
+                                <el-button
+                                    class="zqy-login__send-code"
+                                    :disabled="!!sendCodeCountdown"
+                                    :loading="sendCodeLoading"
+                                    @click="handleSendCode"
+                                >
+                                    {{ sendCodeCountdown ? `${sendCodeCountdown}s` : '获取验证码' }}
+                                </el-button>
+                            </div>
                         </el-form-item>
                     </el-form>
 
@@ -96,59 +107,63 @@
                     </el-button>
 
                     <div v-if="showLoginActions" class="zqy-login__actions">
-                        <el-popover v-if="showCodeLogin" trigger="click" placement="bottom" :width="180">
-                            <template #reference>
-                                <span class="zqy-login__action-text">登录方式</span>
-                            </template>
-                            <div class="zqy-login__oauth-list">
-                                <el-button
-                                    v-if="openLoginConfig.accountEnabled && activeLoginMethod !== 'ACCOUNT'"
-                                    class="zqy-login__oauth-button"
-                                    type="primary"
-                                    @click="switchLoginMethod('ACCOUNT')"
-                                >
-                                    账号登录
-                                </el-button>
-                                <el-button
-                                    v-if="openLoginConfig.phoneEnabled && activeLoginMethod !== 'PHONE'"
-                                    class="zqy-login__oauth-button"
-                                    type="primary"
-                                    @click="switchLoginMethod('PHONE')"
-                                >
-                                    手机登录
-                                </el-button>
-                                <el-button
-                                    v-if="openLoginConfig.emailEnabled && activeLoginMethod !== 'EMAIL'"
-                                    class="zqy-login__oauth-button"
-                                    type="primary"
-                                    @click="switchLoginMethod('EMAIL')"
-                                >
-                                    邮箱登录
-                                </el-button>
-                            </div>
-                        </el-popover>
+                        <div class="zqy-login__action-left">
+                            <el-popover v-if="showCodeLogin" trigger="click" placement="bottom" :width="180">
+                                <template #reference>
+                                    <span class="zqy-login__action-text">登录方式</span>
+                                </template>
+                                <div class="zqy-login__oauth-list">
+                                    <el-button
+                                        v-if="openLoginConfig.accountEnabled && activeLoginMethod !== 'ACCOUNT'"
+                                        class="zqy-login__oauth-button"
+                                        type="primary"
+                                        @click="switchLoginMethod('ACCOUNT')"
+                                    >
+                                        账号登录
+                                    </el-button>
+                                    <el-button
+                                        v-if="openLoginConfig.phoneEnabled && activeLoginMethod !== 'PHONE'"
+                                        class="zqy-login__oauth-button"
+                                        type="primary"
+                                        @click="switchLoginMethod('PHONE')"
+                                    >
+                                        手机登录
+                                    </el-button>
+                                    <el-button
+                                        v-if="openLoginConfig.emailEnabled && activeLoginMethod !== 'EMAIL'"
+                                        class="zqy-login__oauth-button"
+                                        type="primary"
+                                        @click="switchLoginMethod('EMAIL')"
+                                    >
+                                        邮箱登录
+                                    </el-button>
+                                </div>
+                            </el-popover>
+                        </div>
 
-                        <el-popover
-                            v-if="oauthLoaded && oauthUrlList.length"
-                            trigger="click"
-                            placement="bottom"
-                            :width="180"
-                        >
-                            <template #reference>
-                                <span class="zqy-login__action-text">免密登录</span>
-                            </template>
-                            <div class="zqy-login__oauth-list">
-                                <el-button
-                                    v-for="item in oauthUrlList"
-                                    :key="item.invokeUrl"
-                                    class="zqy-login__oauth-button"
-                                    type="primary"
-                                    @click="handleRedirect(item)"
-                                >
-                                    {{ item.name }}
-                                </el-button>
-                            </div>
-                        </el-popover>
+                        <div class="zqy-login__action-right">
+                            <el-popover
+                                v-if="oauthLoaded && oauthUrlList.length"
+                                trigger="click"
+                                placement="bottom"
+                                :width="180"
+                            >
+                                <template #reference>
+                                    <span class="zqy-login__action-text">免密登录</span>
+                                </template>
+                                <div class="zqy-login__oauth-list">
+                                    <el-button
+                                        v-for="item in oauthUrlList"
+                                        :key="item.invokeUrl"
+                                        class="zqy-login__oauth-button"
+                                        type="primary"
+                                        @click="handleRedirect(item)"
+                                    >
+                                        {{ item.name }}
+                                    </el-button>
+                                </div>
+                            </el-popover>
+                        </div>
                     </div>
 
                 </div>
@@ -219,6 +234,8 @@ const codeLoginModel = reactive({
     receiver: '',
     code: ''
 })
+const codeDigits = reactive(['', '', '', '', '', ''])
+const codeDigitRefs = ref<Array<HTMLInputElement | null>>([])
 
 const codeLoginChannel = ref<LoginChannel>('PHONE')
 const openLoginConfig = reactive<OpenLoginMethodConfig>({
@@ -414,7 +431,7 @@ function switchLoginMethod(loginMethod: LoginMethodType, resetForm = true) {
     loginModel.account = ''
     loginModel.passwd = ''
     codeLoginModel.receiver = ''
-    codeLoginModel.code = ''
+    resetCodeDigits()
     clearSendCodeCountdown()
     nextTick(() => {
         elFormRef.value?.clearValidate()
@@ -434,6 +451,91 @@ function isLoginMethodEnabled(loginMethod: LoginMethodType | undefined) {
     if (loginMethod === 'ACCOUNT') return openLoginConfig.accountEnabled
     if (loginMethod === 'PHONE') return openLoginConfig.phoneEnabled
     return openLoginConfig.emailEnabled
+}
+
+function setCodeDigitRef(element: Element | null, index: number) {
+    codeDigitRefs.value[index] = element as HTMLInputElement | null
+}
+
+function handleCodeDigitInput(event: Event, index: number) {
+    const input = event.target as HTMLInputElement
+    const value = input.value.replace(/\D/g, '')
+    if (!value) {
+        codeDigits[index] = ''
+        input.value = ''
+        syncCodeDigits()
+        return
+    }
+
+    if (value.length > 1) {
+        applyCodeDigits(value, index)
+        return
+    }
+
+    codeDigits[index] = value
+    input.value = value
+    syncCodeDigits()
+    focusCodeDigit(index + 1)
+}
+
+function handleCodeDigitKeydown(event: KeyboardEvent, index: number) {
+    if (event.key === 'Backspace' && !codeDigits[index] && index > 0) {
+        codeDigits[index - 1] = ''
+        syncCodeDigits()
+        focusCodeDigit(index - 1)
+        event.preventDefault()
+        return
+    }
+    if (event.key === 'ArrowLeft') {
+        focusCodeDigit(index - 1)
+        event.preventDefault()
+        return
+    }
+    if (event.key === 'ArrowRight') {
+        focusCodeDigit(index + 1)
+        event.preventDefault()
+    }
+}
+
+function handleCodeDigitPaste(event: ClipboardEvent, index: number) {
+    event.preventDefault()
+    applyCodeDigits(event.clipboardData?.getData('text') || '', index)
+}
+
+function handleCodeDigitFocus(event: FocusEvent) {
+    const input = event.target as HTMLInputElement
+    input.select()
+}
+
+function applyCodeDigits(value: string, startIndex = 0) {
+    const digits = value.replace(/\D/g, '').slice(0, codeDigits.length - startIndex)
+    if (!digits) return
+    digits.split('').forEach((digit, offset) => {
+        codeDigits[startIndex + offset] = digit
+    })
+    syncCodeDigits()
+    focusCodeDigit(startIndex + digits.length)
+}
+
+function resetCodeDigits() {
+    codeDigits.forEach((_, index) => {
+        codeDigits[index] = ''
+    })
+    syncCodeDigits()
+}
+
+function syncCodeDigits() {
+    codeLoginModel.code = codeDigits.join('')
+    if (codeLoginModel.code.length === codeDigits.length) {
+        codeFormRef.value?.validateField('code').catch(() => {})
+    }
+}
+
+function focusCodeDigit(index: number) {
+    if (index < 0 || index >= codeDigits.length) return
+    nextTick(() => {
+        codeDigitRefs.value[index]?.focus()
+    })
 }
 
 async function handleSendCode() {
@@ -577,11 +679,25 @@ onBeforeUnmount(() => {
     .zqy-login__actions {
         height: 50px;
         display: flex;
-        justify-content: flex-end;
-        gap: 16px;
+        justify-content: space-between;
         align-items: center;
         font-size: getCssVar('font-size', 'extra-small');
         width: 100%;
+    }
+
+    .zqy-login__action-left,
+    .zqy-login__action-right {
+        min-width: 72px;
+        display: flex;
+        align-items: center;
+    }
+
+    .zqy-login__action-left {
+        justify-content: flex-start;
+    }
+
+    .zqy-login__action-right {
+        justify-content: flex-end;
     }
 
     .zqy-login__action-text {
@@ -608,13 +724,49 @@ onBeforeUnmount(() => {
     }
 
     .zqy-login__code-form {
-        .el-input-group__append {
-            padding: 0;
+        .zqy-login__code-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-            .el-button {
-                min-width: 92px;
-                border-radius: 0;
+        .zqy-login__code-digits {
+            flex: 1;
+            min-width: 0;
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .zqy-login__code-digit {
+            width: 100%;
+            height: 40px;
+            padding: 0;
+            border: 1px solid var(--el-border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            text-align: center;
+            color: getCssVar('text-color', 'primary');
+            font-size: 16px;
+            line-height: 40px;
+            outline: none;
+            background-color: #ffffff;
+            transition: all 0.3s ease;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('color', 'primary');
+                box-shadow: 0 0 0 2px rgba(var(--el-color-primary-rgb), 0.1);
             }
+        }
+
+        .zqy-login__send-code {
+            width: 88px;
+            height: 40px;
+            padding: 0;
+            flex: 0 0 88px;
+            font-size: 12px;
         }
     }
 

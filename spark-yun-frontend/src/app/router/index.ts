@@ -11,6 +11,7 @@ const UserCenter = () => import('@/app/management/user-center/views/index.vue')
 const TenantList = () => import('@/app/management/tenant-list/views/index.vue')
 const LoginMethod = () => import('@/app/management/login-method/views/index.vue')
 const License = () => import('@/app/management/license/views/index.vue')
+const PlatformSetting = () => import('@/app/management/platform-setting/views/index.vue')
 const OauthManagement = () => import('@/app/management/oauth-management/views/index.vue')
 const TenantUser = () => import('@/app/management/tenant-user/views/index.vue')
 const RoleManagement = () => import('@/app/management/role-management/views/index.vue')
@@ -85,6 +86,11 @@ const routes: Array<RouteRecordRaw> = [
                 path: 'license',
                 name: 'license',
                 component: License
+            },
+            {
+                path: 'settings',
+                name: 'platform-setting',
+                component: PlatformSetting
             },
             {
                 path: 'auth',

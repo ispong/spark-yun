@@ -265,8 +265,15 @@ export const menuListData: Array<Menu> = [
     },
     {
         code: 'license',
-        name: '证书安装',
+        name: '平台授权',
         icon: 'Files',
+        authType: ['ROLE_SYS_ADMIN'],
+        childPage: []
+    },
+    {
+        code: 'platform-setting',
+        name: '平台设置',
+        icon: 'Setting',
         authType: ['ROLE_SYS_ADMIN'],
         childPage: []
     }
@@ -279,7 +286,8 @@ const managementMenuCodes = new Set([
     'login-method',
     'tenant-user',
     'oauth-management',
-    'license'
+    'license',
+    'platform-setting'
 ])
 
 export const workspaceMenuListData = menuListData.filter((menu) => !managementMenuCodes.has(menu.code))
@@ -309,6 +317,11 @@ export const platformMenuListData: Array<Menu> = [
         code: 'license',
         name: '平台授权',
         icon: 'Files'
+    },
+    {
+        code: 'platform-setting',
+        name: '平台设置',
+        icon: 'Setting'
     }
 ]
 
@@ -322,11 +335,6 @@ export const adminMenuListData: Array<Menu> = [
         code: 'role-management',
         name: '角色管理',
         icon: 'Key'
-    },
-    {
-        code: 'org-management',
-        name: '组织架构',
-        icon: 'Share'
     }
 ]
 
