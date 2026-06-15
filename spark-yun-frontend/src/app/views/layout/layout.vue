@@ -187,6 +187,7 @@ const menuListData = computed(() => {
 const platformMenuPaths: Record<string, string> = {
     'user-center': '/platform/users',
     'tenant-list': '/platform/tenants',
+    'login-method': '/platform/login-method',
     license: '/platform/license',
     'oauth-management': '/platform/auth'
 }

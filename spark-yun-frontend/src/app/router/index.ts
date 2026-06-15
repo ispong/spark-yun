@@ -9,6 +9,7 @@ const SsoAuth = () => import('@/app/views/login/ssoauth')
 const Forbidden = () => import('@/app/views/system/forbidden.vue')
 const UserCenter = () => import('@/app/management/user-center/views/index.vue')
 const TenantList = () => import('@/app/management/tenant-list/views/index.vue')
+const LoginMethod = () => import('@/app/management/login-method/views/index.vue')
 const License = () => import('@/app/management/license/views/index.vue')
 const OauthManagement = () => import('@/app/management/oauth-management/views/index.vue')
 const TenantUser = () => import('@/app/management/tenant-user/views/index.vue')
@@ -74,6 +75,11 @@ const routes: Array<RouteRecordRaw> = [
                 path: 'tenants',
                 name: 'platform-tenant-list',
                 component: TenantList
+            },
+            {
+                path: 'login-method',
+                name: 'platform-login-method',
+                component: LoginMethod
             },
             {
                 path: 'license',

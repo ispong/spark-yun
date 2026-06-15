@@ -243,6 +243,13 @@ export const menuListData: Array<Menu> = [
         childPage: []
     },
     {
+        code: 'login-method',
+        name: '登录方式',
+        icon: 'Key',
+        authType: ['ROLE_SYS_ADMIN'],
+        childPage: []
+    },
+    {
         code: 'tenant-user',
         name: '租户成员',
         icon: 'User',
@@ -269,6 +276,7 @@ const managementMenuCodes = new Set([
     'tenant-management',
     'user-center',
     'tenant-list',
+    'login-method',
     'tenant-user',
     'oauth-management',
     'license'
@@ -288,14 +296,19 @@ export const platformMenuListData: Array<Menu> = [
         icon: 'OfficeBuilding'
     },
     {
-        code: 'license',
-        name: '平台授权',
-        icon: 'Files'
+        code: 'login-method',
+        name: '登录方式',
+        icon: 'Key'
     },
     {
         code: 'oauth-management',
         name: '免密登录',
         icon: 'Position'
+    },
+    {
+        code: 'license',
+        name: '平台授权',
+        icon: 'Files'
     }
 ]
 

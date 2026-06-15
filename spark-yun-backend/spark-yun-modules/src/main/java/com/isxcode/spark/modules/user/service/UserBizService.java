@@ -14,6 +14,8 @@ import com.isxcode.spark.api.user.res.*;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.backend.api.base.properties.IsxAppProperties;
 import com.isxcode.spark.common.utils.jwt.JwtUtils;
+import com.isxcode.spark.modules.auth.service.LoginMethodConfigService;
+import com.isxcode.spark.modules.auth.service.LoginMethodRuntimeConfig;
 import com.isxcode.spark.modules.tenant.service.TenantService;
 import com.isxcode.spark.security.authorization.AccessSnapshot;
 import com.isxcode.spark.security.authorization.ProductAccessService;
@@ -53,10 +55,17 @@ public class UserBizService {
 
     private final ProductAccessService productAccessService;
 
+    private final LoginMethodConfigService loginMethodConfigService;
+
     public LoginRes login(LoginReq usrLoginReq) {
 
+        LoginMethodRuntimeConfig loginMethodConfig = loginMethodConfigService.getRuntimeConfig();
+        if (!Boolean.TRUE.equals(loginMethodConfig.getAccountEnabled())) {
+            throw new IsxAppException("账号登录已关闭");
+        }
+
         // 判断用户是否存在
-        Optional<UserEntity> userEntityOptional = userRepository.findByAccount(usrLoginReq.getAccount());
+        Optional<UserEntity> userEntityOptional = findAccountLoginUser(usrLoginReq.getAccount(), loginMethodConfig);
         if (!userEntityOptional.isPresent()) {
             throw new IsxAppException("账号或者密码不正确");
         }
@@ -86,6 +95,13 @@ public class UserBizService {
             throw new IsxAppException("账号或者密码不正确");
         }
 
+        return loginAuthenticatedUser(userEntity);
+    }
+
+    public LoginRes loginAuthenticatedUser(UserEntity userEntity) {
+
+        validateUserStatus(userEntity);
+
         // 如果是平台超级管理员直接返回
         if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())) {
             return buildLoginRes(userEntity, null, resolvePlatformRole(userEntity));
@@ -95,10 +111,7 @@ public class UserBizService {
         List<TenantUserEntity> tenantUserEntities =
             tenantUserRepository.findAllByUserIdAndStatus(userEntity.getId(), UserStatus.ENABLE);
         if (tenantUserEntities.isEmpty()) {
-            if (isPlatformRole(userEntity)) {
-                return buildLoginRes(userEntity, null, resolvePlatformRole(userEntity));
-            }
-            throw new IsxAppException("当前账号暂无可访问租户，请联系管理员。");
+            return buildLoginRes(userEntity, null, resolveNoTenantRole(userEntity));
         }
 
         // 如果用户没有任何启动租户报错
@@ -113,10 +126,7 @@ public class UserBizService {
                 && LocalDateTime.now().isBefore(e.getValidEndDateTime());
         }).collect(Collectors.toList());
         if (enableTenants.isEmpty()) {
-            if (isPlatformRole(userEntity)) {
-                return buildLoginRes(userEntity, null, resolvePlatformRole(userEntity));
-            }
-            throw new IsxAppException("当前账号暂无可访问租户，请联系管理员。");
+            return buildLoginRes(userEntity, null, resolveNoTenantRole(userEntity));
         }
 
         // 如果用户当前租户id启动则返回当前租户，没有则随机挑一个
@@ -164,12 +174,15 @@ public class UserBizService {
 
         List<TenantUserEntity> memberships =
             tenantUserRepository.findAllByUserIdAndStatus(userEntity.getId(), UserStatus.ENABLE);
+        if (memberships.isEmpty()) {
+            return buildGetUserRes(userEntity, null, resolveNoTenantRole(userEntity));
+        }
         List<String> memberTenantIds = memberships.stream().map(TenantUserEntity::getTenantId).toList();
         List<TenantEntity> availableTenants =
             tenantRepository.findAllByIdInAndStatus(memberTenantIds, TenantStatus.ENABLE).stream()
                 .filter(this::isTenantInValidTime).toList();
         if (availableTenants.isEmpty()) {
-            throw new IsxAppException("当前账号暂无可访问租户，请联系管理员。");
+            return buildGetUserRes(userEntity, null, resolveNoTenantRole(userEntity));
         }
         List<String> availableTenantIds = availableTenants.stream().map(TenantEntity::getId).toList();
         String currentTenantId =
@@ -209,9 +222,9 @@ public class UserBizService {
             .orElseThrow(() -> new IsxAppException("401", "刷新token异常，请重新登录"));
         validateUserStatus(userEntity);
 
-        if (isPlatformRole(userEntity) && Strings.isEmpty(refreshUserToken.tenantId())) {
+        if (Strings.isEmpty(refreshUserToken.tenantId())) {
             String tenantId = refreshUserToken.tenantId();
-            return buildLoginRes(userEntity, tenantId, resolvePlatformRole(userEntity));
+            return buildLoginRes(userEntity, tenantId, resolveNoTenantRole(userEntity));
         }
 
         TenantUserEntity tenantUserEntity = validateTenantUser(userEntity.getId(), refreshUserToken.tenantId());
@@ -220,8 +233,10 @@ public class UserBizService {
 
     public LoginRes buildAuthenticatedLoginRes(UserEntity userEntity, String tenantId) {
 
-        if (isPlatformRole(userEntity) && Strings.isEmpty(tenantId)) {
-            return buildLoginRes(userEntity, null, resolvePlatformRole(userEntity));
+        validateUserStatus(userEntity);
+
+        if (Strings.isEmpty(tenantId)) {
+            return buildLoginRes(userEntity, null, resolveNoTenantRole(userEntity));
         }
         TenantUserEntity tenantUser = validateTenantUser(userEntity.getId(), tenantId);
         return buildLoginRes(userEntity, tenantId, tenantUser.getRoleCode());
@@ -423,6 +438,24 @@ public class UserBizService {
             isxAppProperties.getJwtKey(), isxAppProperties.getExpirationMin());
     }
 
+    private Optional<UserEntity> findAccountLoginUser(String account, LoginMethodRuntimeConfig loginMethodConfig) {
+
+        Optional<UserEntity> userEntityOptional = userRepository.findByAccount(account);
+        if (userEntityOptional.isPresent()) {
+            return userEntityOptional;
+        }
+        if (Boolean.TRUE.equals(loginMethodConfig.getAccountEmailPasswordEnabled())) {
+            userEntityOptional = userRepository.findByEmail(account);
+            if (userEntityOptional.isPresent()) {
+                return userEntityOptional;
+            }
+        }
+        if (Boolean.TRUE.equals(loginMethodConfig.getAccountPhonePasswordEnabled())) {
+            return userRepository.findByPhone(account);
+        }
+        return Optional.empty();
+    }
+
     private void validateUniqueUserFields(String username, String account, String phone, String email,
         String excludedUserId) {
 
@@ -528,6 +561,11 @@ public class UserBizService {
             return RoleType.PLATFORM_ADMIN;
         }
         return RoleType.PLATFORM_MEMBER;
+    }
+
+    private String resolveNoTenantRole(UserEntity userEntity) {
+
+        return isPlatformRole(userEntity) ? resolvePlatformRole(userEntity) : userEntity.getRoleCode();
     }
 
     private boolean isPlatformMember(AccessSnapshot access, String role) {
