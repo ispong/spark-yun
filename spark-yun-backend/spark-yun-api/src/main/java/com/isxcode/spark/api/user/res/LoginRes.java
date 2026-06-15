@@ -36,6 +36,9 @@ public class LoginRes {
     // 平台管理员
     private Boolean platformAdmin;
 
+    // 平台成员
+    private Boolean platformMember;
+
     // 租户超级管理员
     private Boolean tenantSuperAdmin;
 

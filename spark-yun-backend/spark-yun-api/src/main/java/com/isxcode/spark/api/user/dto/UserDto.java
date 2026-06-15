@@ -19,6 +19,8 @@ public class UserDto {
 
     private Boolean platformAdmin;
 
+    private String roleCode;
+
     private String createDateTime;
 
     private String phone;

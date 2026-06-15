@@ -16,6 +16,11 @@ public interface RoleType {
     String PLATFORM_ADMIN = "PLATFORM_ADMIN";
 
     /**
+     * 平台成员.
+     */
+    String PLATFORM_MEMBER = "PLATFORM_MEMBER";
+
+    /**
      * 租户超级管理员.
      */
     String TENANT_SUPER_ADMIN = "TENANT_SUPER_ADMIN";

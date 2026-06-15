@@ -36,6 +36,8 @@ public class GetUserRes {
 
     private Boolean platformAdmin;
 
+    private Boolean platformMember;
+
     private Boolean tenantSuperAdmin;
 
     private Boolean tenantAdmin;
