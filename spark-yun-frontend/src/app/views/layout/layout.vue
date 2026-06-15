@@ -109,7 +109,12 @@
         </div>
 
         <div class="zqy-layout__main">
-            <router-view :key="authStore.tenantId" />
+            <el-empty
+                v-if="showNoWorkspaceAccess"
+                class="zqy-layout__empty"
+                description="暂无可访问菜单，请联系管理员分配权限"
+            />
+            <router-view v-else :key="authStore.tenantId" />
         </div>
 
         <TenantSwitchDialog ref="tenantSwitchDialogRef" @tenant-name-change="activeTenantName = $event" />
@@ -191,13 +196,7 @@ const personalInfoRouteNames: Record<string, string> = {
 
 // 菜单显示哪些
 const menuViewData = computed(() => {
-    const areaMenus = currentArea.value === 'workspace'
-        ? filterWorkspaceMenus(
-              menuListData.value,
-              authStore.userInfo?.permissions || [],
-              !!authStore.userInfo?.workspaceAllPermissions
-          )
-        : menuListData.value
+    const areaMenus = menuListData.value
     return filterVipMenus(areaMenus, vipEnabled.value, licenseApiAvailable.value)
 })
 
@@ -245,6 +244,9 @@ const showAdminEntry = computed(() => {
 const showTenantSwitch = computed(() => hasWorkspaceAccess.value)
 const showPersonalInfo = computed(() => !isPlatformSuperAdmin.value)
 const isPersonalInfoRoute = computed(() => !!route.meta.personalInfo || route.name === 'personalInfo')
+const showNoWorkspaceAccess = computed(() => {
+    return currentArea.value === 'workspace' && vipChecked.value && !isPersonalInfoRoute.value && !menuViewData.value.length
+})
 
 function resolveIcon(icon: string) {
     return resolveComponent(icon)
@@ -261,23 +263,6 @@ function getCurrentMenu(menuList: Menu[], routeMenu: string, targetMenu?: Menu):
         }
     })
     return currentMenu
-}
-
-function filterWorkspaceMenus(menuList: Menu[], permissions: string[], allPermissions: boolean): Menu[] {
-    return menuList.reduce<Menu[]>((result, menu) => {
-        const children = menu.children ? filterWorkspaceMenus(menu.children, permissions, allPermissions) : undefined
-        const allowed =
-            allPermissions ||
-            permissions.includes(menu.permission || `workspace:${menu.code}:menu`) ||
-            !!children?.length
-        if (allowed) {
-            result.push({
-                ...menu,
-                children
-            })
-        }
-        return result
-    }, [])
 }
 
 function firstLeafMenu(menuList: Menu[]): Menu | undefined {
@@ -325,9 +310,7 @@ function handleSelect(index: Menu['code']) {
 
 function doLogout() {
     resetVipLicenseCache()
-    setTimeout(() => {
-        authStore.$reset()
-    })
+    authStore.$reset()
     ElMessage.success('退出成功')
     router.push({
         name: 'login'

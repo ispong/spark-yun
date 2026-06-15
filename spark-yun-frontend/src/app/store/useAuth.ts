@@ -45,10 +45,7 @@ export const useAuthStore = defineStore('authStore', {
             this.isCollapse = isCollapse
         },
         applyAuthResponse(this: AuthState, data: AuthResponse): void {
-            this.userInfo = {
-                ...this.userInfo,
-                ...data
-            }
+            this.userInfo = { ...data }
             this.token = data.token || ''
             this.tenantId = data.tenantId || ''
             this.role = data.role || ''

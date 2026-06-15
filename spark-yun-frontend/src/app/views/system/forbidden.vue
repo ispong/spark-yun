@@ -16,11 +16,17 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 function goDefault() {
-    router.replace(
+    const fallbackRoutePath =
         authStore.userInfo?.platformSuperAdmin || (authStore.userInfo?.platformAdmin && !authStore.tenantId)
             ? '/platform'
-            : '/workspace'
-    )
+            : '/workspace/index'
+    const routePath =
+        authStore.userInfo?.defaultArea === 'workspace'
+            ? '/workspace/index'
+            : authStore.userInfo?.defaultArea
+              ? `/${authStore.userInfo.defaultArea}`
+              : fallbackRoutePath
+    router.replace(routePath)
 }
 </script>
 

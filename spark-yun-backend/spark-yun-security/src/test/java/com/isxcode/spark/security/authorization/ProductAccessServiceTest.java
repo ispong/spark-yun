@@ -105,6 +105,38 @@ class ProductAccessServiceTest {
     }
 
     @Test
+    void tenantSuperAdminRoleCodeHasAllWorkspacePermissions() {
+
+        TenantUserEntity member = enabledMember(false);
+        member.setRoleCode(RoleType.TENANT_SUPER_ADMIN);
+        when(userRepository.findById("user")).thenReturn(Optional.of(enabledUser()));
+        when(tenantRepository.findById("tenant")).thenReturn(Optional.of(enabledTenant()));
+        when(tenantUserRepository.findByTenantIdAndUserId("tenant", "user")).thenReturn(Optional.of(member));
+
+        AccessSnapshot result = productAccessService.resolve("user", "tenant");
+
+        assertThat(result.tenantAdmin()).isTrue();
+        assertThat(result.hasAllWorkspacePermissions()).isTrue();
+        assertThat(result.permissions()).isEmpty();
+    }
+
+    @Test
+    void tenantAdminRoleCodeHasAllWorkspacePermissions() {
+
+        TenantUserEntity member = enabledMember(false);
+        member.setRoleCode(RoleType.TENANT_ADMIN);
+        when(userRepository.findById("user")).thenReturn(Optional.of(enabledUser()));
+        when(tenantRepository.findById("tenant")).thenReturn(Optional.of(enabledTenant()));
+        when(tenantUserRepository.findByTenantIdAndUserId("tenant", "user")).thenReturn(Optional.of(member));
+
+        AccessSnapshot result = productAccessService.resolve("user", "tenant");
+
+        assertThat(result.normalAdmin()).isTrue();
+        assertThat(result.hasAllWorkspacePermissions()).isTrue();
+        assertThat(result.permissions()).isEmpty();
+    }
+
+    @Test
     void disabledTenantCannotBeResolved() {
 
         TenantEntity tenant = enabledTenant();

@@ -82,12 +82,7 @@ function handleCommand(command: string): void {
 
 function clearStore() {
     resetVipLicenseCache()
-    authStore.setUserInfo({})
-    authStore.setToken('')
-    authStore.setTenantId('')
-    authStore.setRole('')
-    authStore.setRole('')
-    authStore.setCurrentMenu('')
+    authStore.$reset()
 }
 
 function getTenantList(): void {

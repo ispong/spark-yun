@@ -159,8 +159,10 @@ async function handleLogin() {
         // 刷新处理一下数据
         await nextTick()
 
-        // 路由跳转，如果是平台超级管理员，只能跳平台，如果是平台管理员，且没有租户，只能跳平台，其他都跳工作台
-        const routePath = res.data.platformSuperAdmin || (res.data.platformAdmin && !res.data.tenantId) ? '/platform' : '/workspace'
+        // 路由跳转，优先使用后端判定的默认区域
+        const fallbackRoutePath =
+            res.data.platformSuperAdmin || (res.data.platformAdmin && !res.data.tenantId) ? '/platform' : '/workspace/index'
+        const routePath = res.data.defaultArea === 'workspace' ? '/workspace/index' : res.data.defaultArea ? `/${res.data.defaultArea}` : fallbackRoutePath
         await router.push(routePath)
 
     } finally {

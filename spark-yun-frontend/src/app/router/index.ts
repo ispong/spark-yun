@@ -122,6 +122,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
             area: routeArea.workspace
         },
+        redirect: '/workspace/index',
         children: [
             createPersonalInfoRoute('workspace-personalInfo'),
             ...workspaceModuleRoutes

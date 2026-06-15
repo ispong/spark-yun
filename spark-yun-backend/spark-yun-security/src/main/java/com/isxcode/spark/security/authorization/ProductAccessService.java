@@ -67,8 +67,10 @@ public class ProductAccessService {
             throw new IsxAppException("用户被租户禁用，请联系管理员!");
         }
 
-        boolean tenantAdmin = userId.equals(tenant.getAdminUserId());
-        boolean normalAdmin = Boolean.TRUE.equals(member.getNormalAdmin());
+        boolean tenantAdmin = userId.equals(tenant.getAdminUserId())
+            || RoleType.TENANT_SUPER_ADMIN.equals(member.getRoleCode());
+        boolean normalAdmin =
+            Boolean.TRUE.equals(member.getNormalAdmin()) || RoleType.TENANT_ADMIN.equals(member.getRoleCode());
         Set<String> permissions = tenantAdmin || normalAdmin ? Set.of() : resolveWorkspacePermissions(tenantId, userId);
         return new AccessSnapshot(userId, tenantId, false, platformAdmin, tenantAdmin, normalAdmin, permissions);
     }

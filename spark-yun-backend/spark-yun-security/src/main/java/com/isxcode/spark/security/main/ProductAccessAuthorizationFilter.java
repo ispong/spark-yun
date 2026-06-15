@@ -87,7 +87,7 @@ public class ProductAccessAuthorizationFilter extends OncePerRequestFilter {
         if (access.systemAdmin()) {
             throw new AccessDeniedException("超级管理员不能进入工作台");
         }
-        if (!productAccessService.hasWorkspacePermission(access, module, action)) {
+        if (!access.hasTenantAccess()) {
             throw new AccessDeniedException("无工作台操作权限");
         }
     }

@@ -86,8 +86,8 @@ public class UserBizService {
             throw new IsxAppException("账号或者密码不正确");
         }
 
-        // 如果是平台角色直接返回
-        if (isPlatformRole(userEntity)) {
+        // 如果是平台超级管理员直接返回
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())) {
             return buildLoginRes(userEntity, null, resolvePlatformRole(userEntity));
         }
 
@@ -95,6 +95,9 @@ public class UserBizService {
         List<TenantUserEntity> tenantUserEntities =
             tenantUserRepository.findAllByUserIdAndStatus(userEntity.getId(), UserStatus.ENABLE);
         if (tenantUserEntities.isEmpty()) {
+            if (isPlatformRole(userEntity)) {
+                return buildLoginRes(userEntity, null, resolvePlatformRole(userEntity));
+            }
             throw new IsxAppException("当前账号暂无可访问租户，请联系管理员。");
         }
 
@@ -110,6 +113,9 @@ public class UserBizService {
                 && LocalDateTime.now().isBefore(e.getValidEndDateTime());
         }).collect(Collectors.toList());
         if (enableTenants.isEmpty()) {
+            if (isPlatformRole(userEntity)) {
+                return buildLoginRes(userEntity, null, resolvePlatformRole(userEntity));
+            }
             throw new IsxAppException("当前账号暂无可访问租户，请联系管理员。");
         }
 
@@ -476,17 +482,20 @@ public class UserBizService {
         if (access.systemAdmin()) {
             return RoleType.PLATFORM_SUPER_ADMIN;
         }
-        if (access.platformAdmin()) {
-            return RoleType.PLATFORM_ADMIN;
-        }
-        if (RoleType.PLATFORM_MEMBER.equals(fallbackRole)) {
-            return RoleType.PLATFORM_MEMBER;
-        }
         if (access.tenantAdmin()) {
             return RoleType.TENANT_SUPER_ADMIN;
         }
         if (access.normalAdmin()) {
             return RoleType.TENANT_ADMIN;
+        }
+        if (RoleType.TENANT_MEMBER.equals(fallbackRole)) {
+            return RoleType.TENANT_MEMBER;
+        }
+        if (access.platformAdmin()) {
+            return RoleType.PLATFORM_ADMIN;
+        }
+        if (RoleType.PLATFORM_MEMBER.equals(fallbackRole)) {
+            return RoleType.PLATFORM_MEMBER;
         }
         return fallbackRole == null ? RoleType.TENANT_MEMBER : fallbackRole;
     }
@@ -500,9 +509,13 @@ public class UserBizService {
 
     private boolean isPlatformRole(UserEntity userEntity) {
 
+        return isPlatformManagementRole(userEntity) || RoleType.PLATFORM_MEMBER.equals(userEntity.getRoleCode());
+    }
+
+    private boolean isPlatformManagementRole(UserEntity userEntity) {
+
         return RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())
             || RoleType.PLATFORM_ADMIN.equals(userEntity.getRoleCode())
-            || RoleType.PLATFORM_MEMBER.equals(userEntity.getRoleCode())
             || Boolean.TRUE.equals(userEntity.getPlatformAdmin());
     }
 

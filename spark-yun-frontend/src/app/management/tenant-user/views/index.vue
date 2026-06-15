@@ -23,11 +23,11 @@
                 >
                     <template #roleCode="scopeSlot">
                         <div class="btn-group">
-                            <el-tag v-if="scopeSlot.row.roleCode === 'ROLE_TENANT_ADMIN'" class="ml-2" type="success">
-                                租户超级管理员
+                            <el-tag v-if="isTenantSuperAdmin(scopeSlot.row)" class="ml-2" type="danger">
+                                超级管理员
                             </el-tag>
-                            <el-tag v-else-if="scopeSlot.row.normalAdmin" type="warning">租户管理员</el-tag>
-                            <el-tag v-else type="info">租户成员</el-tag>
+                            <el-tag v-else-if="isTenantAdmin(scopeSlot.row)" type="warning">管理员</el-tag>
+                            <el-tag v-else type="success">成员</el-tag>
                         </div>
                     </template>
                     <template #status="scopeSlot">
@@ -36,7 +36,7 @@
                         </el-tag>
                     </template>
                     <template #options="scopeSlot">
-                        <div v-if="scopeSlot.row.roleCode !== 'ROLE_TENANT_ADMIN'" class="btn-group">
+                        <div v-if="!isTenantSuperAdmin(scopeSlot.row)" class="btn-group">
                             <template v-if="!scopeSlot.row.normalAdmin">
                                 <span v-if="!scopeSlot.row.authLoading" @click="giveAuth(scopeSlot.row)">
                                     设为租户管理员
@@ -121,6 +121,18 @@ const selectedMember = ref<any>()
 const availableRoles = ref<any[]>([])
 
 const { currentTenant, tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
+
+function normalizeRoleCode(roleCode?: string) {
+    return roleCode?.replace(/^ROLE_/, '')
+}
+
+function isTenantSuperAdmin(data: any) {
+    return normalizeRoleCode(data.roleCode) === 'TENANT_SUPER_ADMIN'
+}
+
+function isTenantAdmin(data: any) {
+    return normalizeRoleCode(data.roleCode) === 'TENANT_ADMIN' || data.normalAdmin
+}
 
 function initData(tableLoading?: boolean) {
     if (!currentTenant.value.id) {

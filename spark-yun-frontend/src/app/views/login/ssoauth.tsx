@@ -23,7 +23,7 @@ export default defineComponent({
                     getVipLicenseEnabled(true).finally(() => {
                         ElMessage.success(res.msg)
                         nextTick(() => {
-                            router.push(res.data.defaultArea === 'platform' ? '/platform' : '/workspace')
+                            router.push(res.data.defaultArea === 'platform' ? '/platform' : '/workspace/index')
                         })
                     })
                 })
