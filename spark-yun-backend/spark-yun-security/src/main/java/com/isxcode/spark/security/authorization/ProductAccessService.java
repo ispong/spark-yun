@@ -53,10 +53,10 @@ public class ProductAccessService {
         boolean platformAdmin =
             RoleType.PLATFORM_ADMIN.equals(user.getRoleCode()) || Boolean.TRUE.equals(user.getPlatformAdmin());
         if (platformSuperAdmin) {
-            return new AccessSnapshot(userId, null, true, true, false, false, Set.of());
+            return new AccessSnapshot(userId, null, true, true, false, false, false, Set.of());
         }
         if (Strings.isEmpty(tenantId) || "undefined".equals(tenantId)) {
-            return new AccessSnapshot(userId, null, false, platformAdmin, false, false, Set.of());
+            return new AccessSnapshot(userId, null, false, platformAdmin, false, false, false, Set.of());
         }
 
         TenantEntity tenant = tenantRepository.findById(tenantId).orElseThrow(() -> new IsxAppException("当前租户不可用"));
@@ -71,11 +71,14 @@ public class ProductAccessService {
             userId.equals(tenant.getAdminUserId()) || RoleType.TENANT_SUPER_ADMIN.equals(member.getRoleCode());
         boolean normalAdmin =
             Boolean.TRUE.equals(member.getNormalAdmin()) || RoleType.TENANT_ADMIN.equals(member.getRoleCode());
-        Set<String> permissions = tenantAdmin || normalAdmin ? Set.of() : resolveWorkspacePermissions(tenantId, userId);
-        return new AccessSnapshot(userId, tenantId, false, platformAdmin, tenantAdmin, normalAdmin, permissions);
+        WorkspacePermissionResult workspacePermission =
+            tenantAdmin || normalAdmin ? new WorkspacePermissionResult(true, Set.of())
+                : resolveWorkspacePermissions(tenantId, userId);
+        return new AccessSnapshot(userId, tenantId, false, platformAdmin, tenantAdmin, normalAdmin,
+            workspacePermission.allPermissions(), workspacePermission.permissions());
     }
 
-    public Set<String> resolveWorkspacePermissions(String tenantId, String userId) {
+    public WorkspacePermissionResult resolveWorkspacePermissions(String tenantId, String userId) {
 
         Set<String> roleIds = memberRoleRepository.findAllByTenantIdAndUserId(tenantId, userId).stream()
             .map(MemberRoleEntity::getRoleId).collect(Collectors.toCollection(HashSet::new));
@@ -93,22 +96,43 @@ public class ProductAccessService {
         }
 
         if (roleIds.isEmpty()) {
-            return Set.of();
+            return new WorkspacePermissionResult(true, Set.of());
         }
         Set<String> enabledRoleIds =
             roleRepository.findAllById(roleIds).stream().filter(role -> TenantStatus.ENABLE.equals(role.getStatus()))
                 .map(RoleEntity::getId).collect(Collectors.toSet());
         if (enabledRoleIds.isEmpty()) {
-            return Set.of();
+            return new WorkspacePermissionResult(false, Set.of());
         }
-        return rolePermissionRepository.findAllByTenantIdAndRoleIdIn(tenantId, enabledRoleIds).stream()
-            .map(RolePermissionEntity::getPermissionCode).collect(Collectors.toUnmodifiableSet());
+        Set<String> permissions = rolePermissionRepository.findAllByTenantIdAndRoleIdIn(tenantId, enabledRoleIds)
+            .stream().map(RolePermissionEntity::getPermissionCode).collect(Collectors.toUnmodifiableSet());
+        return new WorkspacePermissionResult(false, permissions);
     }
 
     public boolean hasWorkspacePermission(AccessSnapshot access, String module, String action) {
 
         return access.hasAllWorkspacePermissions()
             || access.permissions().contains(WorkspacePermissionCatalog.code(module, action));
+    }
+
+    public boolean hasWorkspaceApiPermission(AccessSnapshot access, String module, String method, String path) {
+
+        return access.hasAllWorkspacePermissions() || !WorkspacePermissionCatalog.hasApiPermissions(access.permissions())
+            || access.permissions().contains(WorkspacePermissionCatalog.apiCode(module, method, path));
+    }
+
+    public boolean hasWorkspaceDataPermission(AccessSnapshot access, String module, String action) {
+
+        String dataAction = switch (action) {
+            case "view" -> "read";
+            case "create" -> "create";
+            case "edit" -> "update";
+            case "delete" -> "delete";
+            default -> null;
+        };
+        return dataAction == null || access.hasAllWorkspacePermissions()
+            || !WorkspacePermissionCatalog.hasDataPermissions(access.permissions())
+            || access.permissions().contains(WorkspacePermissionCatalog.dataCode(module, dataAction));
     }
 
     private void collectParentOrgIds(String orgId, Map<String, OrgEntity> orgMap, Set<String> result) {
@@ -148,4 +172,6 @@ public class ProductAccessService {
             throw new IsxAppException("当前租户不在有效期内");
         }
     }
+
+    public record WorkspacePermissionResult(boolean allPermissions, Set<String> permissions) {}
 }

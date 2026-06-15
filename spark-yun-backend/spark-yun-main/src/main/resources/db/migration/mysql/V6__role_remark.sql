@@ -1,0 +1,1 @@
+ALTER TABLE sy_role ADD COLUMN remark VARCHAR(500);

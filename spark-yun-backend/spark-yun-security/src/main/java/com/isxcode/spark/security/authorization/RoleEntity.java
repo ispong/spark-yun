@@ -41,6 +41,8 @@ public class RoleEntity {
 
     private String code;
 
+    private String remark;
+
     private String status;
 
     @CreatedDate

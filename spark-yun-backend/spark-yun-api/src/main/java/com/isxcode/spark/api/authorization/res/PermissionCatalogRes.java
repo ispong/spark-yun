@@ -13,4 +13,40 @@ public class PermissionCatalogRes {
     private List<String> actions;
 
     private List<String> permissionCodes;
+
+    private List<PermissionModuleRes> menuPermissions;
+
+    private List<PermissionModuleRes> buttonPermissions;
+
+    private List<PermissionModuleRes> interfacePermissions;
+
+    private List<PermissionModuleRes> dataPermissions;
+
+    @Data
+    @Builder
+    public static class PermissionModuleRes {
+
+        private String code;
+
+        private String name;
+
+        private List<PermissionItemRes> permissions;
+    }
+
+    @Data
+    @Builder
+    public static class PermissionItemRes {
+
+        private String code;
+
+        private String name;
+
+        private String permissionCode;
+
+        private String method;
+
+        private String path;
+
+        private String action;
+    }
 }

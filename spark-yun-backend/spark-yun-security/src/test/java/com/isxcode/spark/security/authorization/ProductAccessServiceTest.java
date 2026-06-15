@@ -105,6 +105,22 @@ class ProductAccessServiceTest {
     }
 
     @Test
+    void memberWithoutRoleBindingsHasAllWorkspacePermissions() {
+
+        when(userRepository.findById("user")).thenReturn(Optional.of(enabledUser()));
+        when(tenantRepository.findById("tenant")).thenReturn(Optional.of(enabledTenant()));
+        when(tenantUserRepository.findByTenantIdAndUserId("tenant", "user"))
+            .thenReturn(Optional.of(enabledMember(false)));
+        when(memberRoleRepository.findAllByTenantIdAndUserId("tenant", "user")).thenReturn(List.of());
+        when(orgMemberRepository.findAllByTenantIdAndUserId("tenant", "user")).thenReturn(List.of());
+
+        AccessSnapshot result = productAccessService.resolve("user", "tenant");
+
+        assertThat(result.hasAllWorkspacePermissions()).isTrue();
+        assertThat(result.permissions()).isEmpty();
+    }
+
+    @Test
     void tenantSuperAdminRoleCodeHasAllWorkspacePermissions() {
 
         TenantUserEntity member = enabledMember(false);

@@ -207,7 +207,8 @@ const personalInfoRouteNames: Record<string, string> = {
 
 // 菜单显示哪些
 const menuViewData = computed(() => {
-    const areaMenus = menuListData.value
+    const areaMenus =
+        currentArea.value === 'workspace' ? filterWorkspaceMenus(menuListData.value) : menuListData.value
     return filterVipMenus(areaMenus, vipEnabled.value, licenseApiAvailable.value)
 })
 
@@ -267,6 +268,22 @@ const showNoWorkspaceAccess = computed(() => {
 
 function resolveIcon(icon: string) {
     return resolveComponent(icon)
+}
+
+function filterWorkspaceMenus(menuList: Menu[]): Menu[] {
+    if (authStore.userInfo?.workspaceAllPermissions) {
+        return menuList
+    }
+    const permissions = authStore.userInfo?.permissions || []
+    return menuList
+        .map((menu) => {
+            if (menu.children?.length) {
+                const children = filterWorkspaceMenus(menu.children)
+                return children.length ? { ...menu, children } : null
+            }
+            return permissions.includes(`workspace:${menu.code}:menu`) ? menu : null
+        })
+        .filter((menu): menu is Menu => !!menu)
 }
 
 function getCurrentMenu(menuList: Menu[], routeMenu: string, targetMenu?: Menu): Menu | null {

@@ -334,7 +334,7 @@ export const adminMenuListData: Array<Menu> = [
     {
         code: 'role-management',
         name: '角色管理',
-        icon: 'Key'
+        icon: 'Guide'
     }
 ]
 

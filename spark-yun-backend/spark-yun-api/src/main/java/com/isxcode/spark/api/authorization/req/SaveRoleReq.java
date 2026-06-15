@@ -15,6 +15,8 @@ public class SaveRoleReq {
     @NotEmpty(message = "角色编码不能为空")
     private String code;
 
+    private String remark;
+
     private String status;
 
     private List<String> permissionCodes;

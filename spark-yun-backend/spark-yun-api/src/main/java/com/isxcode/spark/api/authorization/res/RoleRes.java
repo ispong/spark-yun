@@ -14,6 +14,8 @@ public class RoleRes {
 
     private String code;
 
+    private String remark;
+
     private String status;
 
     private List<String> permissionCodes;
