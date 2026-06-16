@@ -10,19 +10,20 @@
                                 <el-icon><User /></el-icon>
                                 账号登录
                             </div>
-                            <div class="zqy-login-method__header-switches">
-                                <span>首页登录方式</span>
-                                <el-switch
-                                    :model-value="form.defaultLoginMethod === 'ACCOUNT'"
-                                    :disabled="saving"
-                                    @change="changeDefaultLoginMethod('ACCOUNT', $event)"
-                                />
+                            <div class="zqy-login-method__header-switches zqy-login-method__header-placeholder" aria-hidden="true">
+                                <span>启用</span>
+                                <el-switch disabled />
                             </div>
                         </div>
                     </template>
                     <div class="zqy-login-method__card-body">
-                        <div class="zqy-login-method__option-row zqy-login-method__fixed-row">
-                            <span>账号+密码登录</span>
+                        <div class="zqy-login-method__option-row">
+                            <span>首页登录方式</span>
+                            <el-switch
+                                :model-value="form.defaultLoginMethod === 'ACCOUNT'"
+                                :disabled="saving"
+                                @change="changeDefaultLoginMethod('ACCOUNT', $event)"
+                            />
                         </div>
                         <div class="zqy-login-method__option-row">
                             <span>手机+密码登录</span>
@@ -51,19 +52,19 @@
                                 手机登录
                             </div>
                             <div class="zqy-login-method__header-switches">
-                                <span>首页登录方式</span>
-                                <el-switch
-                                    :model-value="form.defaultLoginMethod === 'PHONE'"
-                                    :disabled="!form.phoneEnabled || saving"
-                                    @change="changeDefaultLoginMethod('PHONE', $event)"
-                                />
+                                <span>启用</span>
+                                <el-switch v-model="form.phoneEnabled" :loading="saving" @change="persistConfig" />
                             </div>
                         </div>
                     </template>
                     <div class="zqy-login-method__card-body">
-                        <div class="zqy-login-method__option-row">
-                            <span>启用</span>
-                            <el-switch v-model="form.phoneEnabled" :loading="saving" @change="persistConfig" />
+                        <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.phoneEnabled }">
+                            <span>首页登录方式</span>
+                            <el-switch
+                                :model-value="form.defaultLoginMethod === 'PHONE'"
+                                :disabled="!form.phoneEnabled || saving"
+                                @change="changeDefaultLoginMethod('PHONE', $event)"
+                            />
                         </div>
                         <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.phoneEnabled }">
                             <span>自动注册</span>
@@ -94,19 +95,19 @@
                                 邮箱登录
                             </div>
                             <div class="zqy-login-method__header-switches">
-                                <span>首页登录方式</span>
-                                <el-switch
-                                    :model-value="form.defaultLoginMethod === 'EMAIL'"
-                                    :disabled="!form.emailEnabled || saving"
-                                    @change="changeDefaultLoginMethod('EMAIL', $event)"
-                                />
+                                <span>启用</span>
+                                <el-switch v-model="form.emailEnabled" :loading="saving" @change="persistConfig" />
                             </div>
                         </div>
                     </template>
                     <div class="zqy-login-method__card-body">
-                        <div class="zqy-login-method__option-row">
-                            <span>启用</span>
-                            <el-switch v-model="form.emailEnabled" :loading="saving" @change="persistConfig" />
+                        <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.emailEnabled }">
+                            <span>首页登录方式</span>
+                            <el-switch
+                                :model-value="form.defaultLoginMethod === 'EMAIL'"
+                                :disabled="!form.emailEnabled || saving"
+                                @change="changeDefaultLoginMethod('EMAIL', $event)"
+                            />
                         </div>
                         <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.emailEnabled }">
                             <span>自动注册</span>
@@ -463,22 +464,14 @@ onMounted(() => {
             content: '';
         }
 
-        &.zqy-login-method__card--account {
-            --login-method-accent: #3b82f6;
-        }
-
-        &.zqy-login-method__card--phone {
-            --login-method-accent: #10b981;
-        }
-
-        &.zqy-login-method__card--email {
-            --login-method-accent: #f59e0b;
-        }
-
         .el-card__header {
+            display: flex;
+            align-items: center;
+            min-height: 59px;
             padding: 16px 16px 14px;
             border-bottom-color: getCssVar('border-color', 'lighter');
             background: getCssVar('fill-color', 'blank');
+            box-sizing: border-box;
         }
 
         .el-card__body {
@@ -496,6 +489,7 @@ onMounted(() => {
         align-items: center;
         justify-content: space-between;
         gap: 12px;
+        width: 100%;
     }
 
     .zqy-login-method__card-name {
@@ -516,6 +510,11 @@ onMounted(() => {
         color: getCssVar('text-color', 'regular');
         font-size: 12px;
         white-space: nowrap;
+    }
+
+    .zqy-login-method__header-placeholder {
+        visibility: hidden;
+        pointer-events: none;
     }
 
     .zqy-login-method__card-body {
@@ -545,8 +544,17 @@ onMounted(() => {
         background: transparent;
         cursor: pointer;
 
+        .el-icon {
+            color: getCssVar('color-primary');
+            font-size: 16px;
+        }
+
         &:disabled {
             cursor: not-allowed;
+
+            .el-icon {
+                color: getCssVar('text-color', 'disabled');
+            }
         }
     }
 
@@ -570,11 +578,6 @@ onMounted(() => {
     .zqy-login-method {
         .zqy-login-method__content {
             grid-template-columns: 1fr;
-        }
-
-        .zqy-login-method__card-header {
-            align-items: flex-start;
-            flex-direction: column;
         }
     }
 }

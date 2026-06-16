@@ -22,6 +22,9 @@
                         <el-button class="tenant-batch-action" :loading="batchLoading" @click="batchDisableTenants">
                             禁用
                         </el-button>
+                        <el-button class="tenant-batch-action" :loading="batchLoading" @click="batchCheckTenants">
+                            检测
+                        </el-button>
                         <el-button class="tenant-batch-action" :loading="batchLoading" @click="batchDeleteTenants">
                             删除
                         </el-button>
@@ -280,6 +283,23 @@ function batchDisableTenants() {
     Promise.all(enableRows.map((row: any) => DisableTenantData({ tenantId: row.id })))
         .then(() => {
             ElMessage.success('批量禁用成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchCheckTenants() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(selectedRows.value.map((row: any) => CheckTenantData({ tenantId: row.id })))
+        .then(() => {
+            ElMessage.success('批量检测成功')
             initData(true)
         })
         .catch(() => {})

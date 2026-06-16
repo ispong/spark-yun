@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table tenant-user-page">
         <div class="zqy-table-top">
             <div class="tenant-user-toolbar-left">
                 <el-button type="primary" @click="handlePrimaryAction">
@@ -32,6 +32,30 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="tenant-user-batch-slide">
+                <div v-if="selectedRows.length" class="tenant-user-batch-mask">
+                    <div class="tenant-user-batch-actions">
+                        <el-button class="tenant-user-batch-action" :loading="batchLoading" @click="batchEnableMembers">
+                            启用
+                        </el-button>
+                        <el-button class="tenant-user-batch-action" :loading="batchLoading" @click="batchDisableMembers">
+                            禁用
+                        </el-button>
+                        <el-button class="tenant-user-batch-action" :loading="batchLoading" @click="batchGiveAuth">
+                            设为管理员
+                        </el-button>
+                        <el-button class="tenant-user-batch-action" :loading="batchLoading" @click="batchRemoveAuth">
+                            取消管理员
+                        </el-button>
+                        <el-button class="tenant-user-batch-action" :loading="batchLoading" @click="batchDeleteMembers">
+                            移除
+                        </el-button>
+                        <el-button class="tenant-user-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -39,6 +63,7 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #roleCode="scopeSlot">
                         <div class="btn-group">
@@ -50,46 +75,57 @@
                         </div>
                     </template>
                     <template #status="scopeSlot">
-                        <el-tag :type="statusTagType(scopeSlot.row.status)">
-                            {{ statusText(scopeSlot.row.status) }}
-                        </el-tag>
+                        <div class="btn-group">
+                            <el-tag v-if="scopeSlot.row.status === 'ENABLE'" class="ml-2" type="success">启用</el-tag>
+                            <el-tag v-if="scopeSlot.row.status === 'DISABLE'" class="ml-2" type="danger">禁用</el-tag>
+                            <el-tag v-if="scopeSlot.row.status === 'APPLYING'" class="ml-2" type="warning">
+                                申请中
+                            </el-tag>
+                        </div>
                     </template>
                     <template #options="scopeSlot">
-                        <div v-if="isApplying(scopeSlot.row)" class="btn-group tenant-user-action-group">
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                        <div class="btn-group tenant-user-action-group">
+                            <span class="tenant-user-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <el-dropdown trigger="click" popper-class="tenant-user-action-dropdown">
+                                <span class="click-show-more tenant-user-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item @click="approveApply(scopeSlot.row)">通过申请</el-dropdown-item>
-                                        <el-dropdown-item @click="rejectApply(scopeSlot.row)">拒绝申请</el-dropdown-item>
+                                        <template v-if="isApplying(scopeSlot.row)">
+                                            <el-dropdown-item @click="approveApply(scopeSlot.row)">
+                                                通过申请
+                                            </el-dropdown-item>
+                                            <el-dropdown-item @click="rejectApply(scopeSlot.row)">
+                                                拒绝申请
+                                            </el-dropdown-item>
+                                        </template>
+                                        <template v-else>
+                                            <el-dropdown-item
+                                                :disabled="scopeSlot.row.authLoading"
+                                                @click="
+                                                    !scopeSlot.row.authLoading &&
+                                                        (scopeSlot.row.normalAdmin
+                                                            ? removeAuth(scopeSlot.row)
+                                                            : giveAuth(scopeSlot.row))
+                                                "
+                                            >
+                                                <span v-if="!scopeSlot.row.authLoading">
+                                                    {{
+                                                        scopeSlot.row.normalAdmin ? '取消管理员' : '设为管理员'
+                                                    }}
+                                                </span>
+                                                <el-icon v-else class="is-loading">
+                                                    <Loading />
+                                                </el-icon>
+                                            </el-dropdown-item>
+                                            <el-dropdown-item @click="changeMemberStatus(scopeSlot.row)">
+                                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                                            </el-dropdown-item>
+                                            <el-dropdown-item @click="deleteData(scopeSlot.row)">移除</el-dropdown-item>
+                                        </template>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
                         </div>
-                        <div v-else-if="!isTenantSuperAdmin(scopeSlot.row)" class="btn-group">
-                            <template v-if="!scopeSlot.row.normalAdmin">
-                                <span v-if="!scopeSlot.row.authLoading" @click="giveAuth(scopeSlot.row)">
-                                    设为租户管理员
-                                </span>
-                                <el-icon v-else class="is-loading">
-                                    <Loading />
-                                </el-icon>
-                            </template>
-                            <template v-else>
-                                <span v-if="!scopeSlot.row.authLoading" @click="removeAuth(scopeSlot.row)">
-                                    取消租户管理员
-                                </span>
-                                <el-icon v-else class="is-loading">
-                                    <Loading />
-                                </el-icon>
-                            </template>
-                            <span @click="openRoleDialog(scopeSlot.row)">业务角色</span>
-                            <span @click="changeMemberStatus(scopeSlot.row)">
-                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
-                            </span>
-                            <span @click="deleteData(scopeSlot.row)">移除</span>
-                        </div>
-                        <span v-else class="tenant-admin-tip">平台租户管理维护</span>
                     </template>
                 </BlockTable>
             </div>
@@ -129,17 +165,6 @@
                 <el-button type="primary" :loading="inviteSaving" @click="saveInviteCode(false)">保存设置</el-button>
             </template>
         </el-dialog>
-        <el-dialog v-model="roleDialogVisible" title="分配业务角色" width="480px">
-            <el-checkbox-group v-model="selectedRoleIds">
-                <el-checkbox v-for="role in availableRoles" :key="role.id" :label="role.id">
-                    {{ role.name }}
-                </el-checkbox>
-            </el-checkbox-group>
-            <template #footer>
-                <el-button @click="roleDialogVisible = false">取消</el-button>
-                <el-button type="primary" :loading="roleSaving" @click="saveMemberRoles">保存</el-button>
-            </template>
-        </el-dialog>
     </div>
 </template>
 
@@ -162,7 +187,6 @@ import {
     SaveTenantInviteCode,
     ApproveTenantApply,
     RejectTenantApply,
-    SetMemberRoles,
     SetTenantMemberStatus
 } from '@/app/management/tenant-user/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -182,12 +206,10 @@ const tableConfig: any = reactive(TableConfig)
 const keyword = ref('')
 const loading = ref(false)
 const networkError = ref(false)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 const addModalRef = ref(null)
 const authStore = useAuthStore()
-const roleDialogVisible = ref(false)
-const roleSaving = ref(false)
-const selectedRoleIds = ref<string[]>([])
-const selectedMember = ref<any>()
 const availableRoles = ref<any[]>([])
 const route = useRoute()
 const platformTenants = ref<any[]>([])
@@ -220,20 +242,6 @@ function isApplying(data: any) {
     return data.status === 'APPLYING'
 }
 
-function statusText(status: string) {
-    if (status === 'APPLYING') {
-        return '申请中'
-    }
-    return status === 'ENABLE' ? '启用' : '禁用'
-}
-
-function statusTagType(status: string) {
-    if (status === 'APPLYING') {
-        return 'warning'
-    }
-    return status === 'ENABLE' ? 'success' : 'danger'
-}
-
 function initData(tableLoading?: boolean) {
     if (!activeTenantId.value) {
         tableConfig.tableData = []
@@ -255,6 +263,7 @@ function initData(tableLoading?: boolean) {
         .then((res: any) => {
             tableConfig.tableData = res.data.content
             tableConfig.pagination.total = res.data.totalElements
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = false
@@ -354,6 +363,25 @@ function addData() {
     })
 }
 
+function editData(data: any) {
+    addModalRef.value.showModal((formData: FormUser) => {
+        return new Promise((resolve: any, reject: any) => {
+            AddTenantUserData({
+                ...formData,
+                tenantId: activeTenantId.value
+            })
+                .then((res: any) => {
+                    ElMessage.success(res.msg)
+                    initData()
+                    resolve()
+                })
+                .catch((error: any) => {
+                    reject(error)
+                })
+        })
+    }, data)
+}
+
 function openInviteDialog() {
     if (!activeTenantId.value) {
         ElMessage.warning('请先选择租户')
@@ -445,29 +473,6 @@ function changeMemberStatus(data: any) {
     })
 }
 
-function openRoleDialog(data: any) {
-    selectedMember.value = data
-    selectedRoleIds.value = [...(data.roleIds || [])]
-    roleDialogVisible.value = true
-}
-
-function saveMemberRoles() {
-    roleSaving.value = true
-    SetMemberRoles({
-        userId: selectedMember.value.userId,
-        roleIds: selectedRoleIds.value,
-        tenantId: activeTenantId.value
-    })
-        .then((res: any) => {
-            ElMessage.success(res.msg)
-            roleDialogVisible.value = false
-            initData(true)
-        })
-        .finally(() => {
-            roleSaving.value = false
-        })
-}
-
 function approveApply(data: any) {
     ApproveTenantApply({
         tenantUserId: data.id
@@ -489,6 +494,132 @@ function rejectApply(data: any) {
             ElMessage.success(res.msg)
             initData()
         })
+    })
+}
+
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchEnableMembers() {
+    const disableRows = selectedRows.value.filter((row: any) => row.status === 'DISABLE')
+    if (!disableRows.length) {
+        ElMessage.warning('请选择禁用状态的成员')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(
+        disableRows.map((row: any) =>
+            SetTenantMemberStatus({
+                tenantUserId: row.id,
+                status: 'ENABLE'
+            })
+        )
+    )
+        .then(() => {
+            ElMessage.success('批量启用成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchDisableMembers() {
+    const enableRows = selectedRows.value.filter((row: any) => row.status === 'ENABLE')
+    if (!enableRows.length) {
+        ElMessage.warning('请选择启用状态的成员')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(
+        enableRows.map((row: any) =>
+            SetTenantMemberStatus({
+                tenantUserId: row.id,
+                status: 'DISABLE'
+            })
+        )
+    )
+        .then(() => {
+            ElMessage.success('批量禁用成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchGiveAuth() {
+    const memberRows = selectedRows.value.filter(
+        (row: any) => !isApplying(row) && !isTenantSuperAdmin(row) && !row.normalAdmin
+    )
+    if (!memberRows.length) {
+        ElMessage.warning('请选择非管理员成员')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(memberRows.map((row: any) => GiveAuth({ tenantUserId: row.id })))
+        .then(() => {
+            ElMessage.success('批量设为管理员成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchRemoveAuth() {
+    const adminRows = selectedRows.value.filter(
+        (row: any) => !isApplying(row) && !isTenantSuperAdmin(row) && row.normalAdmin
+    )
+    if (!adminRows.length) {
+        ElMessage.warning('请选择管理员成员')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(adminRows.map((row: any) => RemoveAuth({ tenantUserId: row.id })))
+        .then(() => {
+            ElMessage.success('批量取消管理员成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchDeleteMembers() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定移除选中的 ${selectedRows.value.length} 个成员吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(selectedRows.value.map((row: any) => DeleteTenantUser({ tenantUserId: row.id })))
+            .then(() => {
+                ElMessage.success('批量移除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
     })
 }
 
@@ -550,21 +681,102 @@ function loadAvailableRoles() {
 </script>
 
 <style lang="scss">
-.tenant-user-toolbar-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.zqy-seach-table.tenant-user-page {
+    .zqy-table-top {
+        position: relative;
+        overflow: hidden;
+        .tenant-user-batch-mask {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        .tenant-user-batch-slide-enter-active,
+        .tenant-user-batch-slide-leave-active {
+            transition:
+                transform 0.18s ease,
+                opacity 0.18s ease;
+            will-change: transform, opacity;
+        }
+        .tenant-user-batch-slide-enter-from,
+        .tenant-user-batch-slide-leave-to {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+        .tenant-user-batch-slide-enter-to,
+        .tenant-user-batch-slide-leave-from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .tenant-user-toolbar-left,
+    .tenant-user-batch-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
 
     .tenant-user-tenant-select {
         width: 220px;
     }
+
+    .tenant-user-batch-action {
+        min-width: 66px;
+        height: 32px;
+        line-height: 30px;
+        border-color: getCssVar('color', 'primary');
+        color: getCssVar('color', 'primary');
+        background-color: #fff;
+        &:hover,
+        &:focus {
+            border-color: getCssVar('color', 'primary');
+            color: #fff;
+            background-color: getCssVar('color', 'primary');
+        }
+    }
+
+    .tenant-user-batch-cancel {
+        min-width: 74px;
+        height: 32px;
+        line-height: 30px;
+        border-color: getCssVar('border-color');
+        color: getCssVar('text-color', 'regular');
+        background-color: #fff;
+        &:hover,
+        &:focus {
+            border-color: getCssVar('border-color');
+            color: getCssVar('text-color', 'regular');
+            background-color: #fff;
+        }
+    }
+
+    .tenant-user-action-group {
+        justify-content: center;
+        gap: 16px;
+        .tenant-user-action-button {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+            font-size: getCssVar('font-size', 'extra-small');
+        }
+    }
 }
 
-.tenant-user-action-group {
-    justify-content: center;
-}
-
-.tenant-admin-tip {
-    color: var(--el-text-color-secondary);
+.tenant-user-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
 }
 </style>

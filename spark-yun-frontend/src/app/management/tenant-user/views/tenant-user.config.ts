@@ -33,6 +33,7 @@ export interface TableConfig {
     tableData: Array<any>
     colConfigs: Array<colConfig>
     seqType: string
+    checkbox?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -53,7 +54,7 @@ export const colConfigs: colConfig[] = [
     },
     {
         prop: 'username',
-        title: '用户名',
+        title: '名称',
         minWidth: 100,
         showOverflowTooltip: true
     },
@@ -85,7 +86,7 @@ export const colConfigs: colConfig[] = [
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 240,
+        width: 120,
         fixed: 'right'
     }
 ]
@@ -99,5 +100,6 @@ export const TableConfig: TableConfig = {
         total: 0
     },
     seqType: 'seq',
+    checkbox: true,
     loading: false
 }
