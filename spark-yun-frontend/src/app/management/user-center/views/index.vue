@@ -22,6 +22,22 @@
                         <el-button class="user-batch-action" :loading="batchLoading" @click="batchDisableUsers">
                             禁用
                         </el-button>
+                        <el-button
+                            v-if="canManagePlatformAdmin"
+                            class="user-batch-action"
+                            :loading="batchLoading"
+                            @click="batchSetPlatformAdmin"
+                        >
+                            设为管理员
+                        </el-button>
+                        <el-button
+                            v-if="canManagePlatformAdmin"
+                            class="user-batch-action"
+                            :loading="batchLoading"
+                            @click="batchCancelPlatformAdmin"
+                        >
+                            取消管理员
+                        </el-button>
                         <el-button class="user-batch-action" :loading="batchLoading" @click="batchDeleteUsers">
                             删除
                         </el-button>
@@ -105,7 +121,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, computed } from 'vue'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
@@ -146,6 +162,7 @@ const batchLoading = ref(false)
 const addModalRef = ref(null)
 const passwordModalRef = ref(null)
 const authStore = useAuthStore()
+const canManagePlatformAdmin = computed(() => authStore.userInfo?.platformSuperAdmin || authStore.userInfo?.platformAdmin)
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -220,11 +237,11 @@ function changePassword(data: any) {
 }
 
 function canSetPlatformAdmin(data: any) {
-    return authStore.userInfo?.platformSuperAdmin && !data.platformSuperAdmin && !data.platformAdmin
+    return canManagePlatformAdmin.value && !data.platformSuperAdmin && !data.platformAdmin
 }
 
 function canCancelPlatformAdmin(data: any) {
-    return authStore.userInfo?.platformSuperAdmin && !data.platformSuperAdmin && data.platformAdmin
+    return canManagePlatformAdmin.value && !data.platformSuperAdmin && data.platformAdmin
 }
 
 function changePlatformAdmin(data: any, platformAdmin: boolean) {
@@ -288,6 +305,58 @@ function batchDisableUsers() {
     )
         .then(() => {
             ElMessage.success('批量禁用成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchSetPlatformAdmin() {
+    const normalRows = selectedRows.value.filter((row: any) => !row.platformSuperAdmin && !row.platformAdmin)
+    if (!normalRows.length) {
+        ElMessage.warning('请选择可设为管理员的用户')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(
+        normalRows.map((row: any) =>
+            SetPlatformAdmin({
+                userId: row.id,
+                platformAdmin: true
+            })
+        )
+    )
+        .then(() => {
+            ElMessage.success('批量设为管理员成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchCancelPlatformAdmin() {
+    const platformAdminRows = selectedRows.value.filter((row: any) => !row.platformSuperAdmin && row.platformAdmin)
+    if (!platformAdminRows.length) {
+        ElMessage.warning('请选择可取消管理员的用户')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(
+        platformAdminRows.map((row: any) =>
+            SetPlatformAdmin({
+                userId: row.id,
+                platformAdmin: false
+            })
+        )
+    )
+        .then(() => {
+            ElMessage.success('批量取消管理员成功')
             initData(true)
         })
         .catch(() => {})
