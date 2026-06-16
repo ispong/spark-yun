@@ -13,8 +13,34 @@
         :row-drag-config="rowDragConfig"
         @row-dragend="rowDragendEvent"
     >
-        <vxe-column v-if="tableConfig.seqType" :type="tableConfig.seqType" align="center" width="44" fixed="left">
-            <template #header>#</template>
+        <vxe-column
+            v-if="tableConfig.seqType"
+            :type="tableConfig.checkbox ? undefined : tableConfig.seqType"
+            align="center"
+            width="44"
+            fixed="left"
+        >
+            <template #header>
+                <el-checkbox
+                    v-if="tableConfig.checkbox"
+                    :model-value="isAllSelected"
+                    :indeterminate="isIndeterminate"
+                    @change="toggleAllRows"
+                    @click.stop
+                />
+                <template v-else>#</template>
+            </template>
+            <template v-if="tableConfig.checkbox" #default="{ row, rowIndex }">
+                <div class="block-table__selection-cell" :class="{ 'is--checked': isRowSelected(row) }">
+                    <span class="block-table__selection-seq">{{ seqMethod({ rowIndex }) }}</span>
+                    <el-checkbox
+                        class="block-table__selection-checkbox"
+                        :model-value="isRowSelected(row)"
+                        @change="toggleRow(row, $event)"
+                        @click.stop
+                    />
+                </div>
+            </template>
         </vxe-column>
         <template v-for="(colConfig, colIndex) in normalizedColConfigs">
             <vxe-column
@@ -61,29 +87,36 @@
             <EmptyPage />
         </template>
     </vxe-table>
-    <el-pagination
-        v-if="tableConfig.pagination"
-        class="pagination"
-        popper-class="pagination-popper"
-        background
-        layout="prev, pager, next, total, jumper"
-        :default-page-size="tableConfig.pagination.pageSize"
-        :default-current-page="tableConfig.pagination.currentPage"
-        :hide-on-single-page="false"
-        :total="tableConfig.pagination.total || 0"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-    />
+    <div v-if="tableConfig.pagination || $slots.footerLeft" class="block-table__footer">
+        <div class="block-table__footer-left">
+            <slot name="footerLeft" />
+        </div>
+        <el-pagination
+            v-if="tableConfig.pagination"
+            class="pagination"
+            popper-class="pagination-popper"
+            background
+            layout="sizes, prev, pager, next, total, jumper"
+            :page-size="tableConfig.pagination.pageSize"
+            :current-page="tableConfig.pagination.currentPage"
+            :page-sizes="tableConfig.pagination.pageSizes || [10, 20, 50, 100]"
+            :hide-on-single-page="false"
+            :total="tableConfig.pagination.total || 0"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+        />
+    </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps, defineEmits, reactive, ref } from 'vue'
+import { computed, defineProps, defineEmits, reactive, ref, watch } from 'vue'
 import EmptyPage from '@/app/components/empty-page/index.vue'
 import type { VxeTablePropTypes } from 'vxe-table'
 
 interface Pagination {
     currentPage: number
     pageSize: number
+    pageSizes?: number[]
     total: number
 }
 
@@ -104,6 +137,7 @@ interface TableConfig {
     tableData: Array<any>
     colConfigs: Array<colConfig>
     seqType?: string
+    checkbox?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -112,9 +146,10 @@ const props = defineProps<{
     tableConfig: TableConfig
 }>()
 
-const emit = defineEmits(['size-change', 'current-change', 'rowDragendEvent'])
+const emit = defineEmits(['size-change', 'current-change', 'rowDragendEvent', 'checkbox-change'])
 
 const vxeTableRef = ref<any>(null)
+const selectedRows = ref<any[]>([])
 
 const normalizedColConfigs = computed(() => {
     const columns = props.tableConfig.colConfigs || []
@@ -162,6 +197,24 @@ const rowDragConfig = reactive<VxeTablePropTypes.RowDragConfig<RowVO>>({
     trigger: 'cell'
 })
 
+const isAllSelected = computed(() => {
+    const tableData = props.tableConfig.tableData || []
+    return !!tableData.length && selectedRows.value.length === tableData.length
+})
+
+const isIndeterminate = computed(() => {
+    const tableData = props.tableConfig.tableData || []
+    return selectedRows.value.length > 0 && selectedRows.value.length < tableData.length
+})
+
+watch(
+    () => props.tableConfig.tableData,
+    () => {
+        selectedRows.value = []
+        emit('checkbox-change', [])
+    }
+)
+
 const handleSizeChange = (e: number) => {
     emit('size-change', e)
 }
@@ -187,6 +240,30 @@ function columnSlotAdapter(column: any, colConfig: any) {
 
 function rowDragendEvent(e: any) {
     emit('rowDragendEvent', vxeTableRef.value.getTableData())
+}
+
+function isRowSelected(row: any) {
+    return selectedRows.value.includes(row)
+}
+
+function emitSelectionChange() {
+    emit('checkbox-change', selectedRows.value)
+}
+
+function toggleRow(row: any, checked: boolean) {
+    if (checked) {
+        if (!isRowSelected(row)) {
+            selectedRows.value = [...selectedRows.value, row]
+        }
+    } else {
+        selectedRows.value = selectedRows.value.filter((selectedRow) => selectedRow !== row)
+    }
+    emitSelectionChange()
+}
+
+function toggleAllRows(checked: boolean) {
+    selectedRows.value = checked ? [...(props.tableConfig.tableData || [])] : []
+    emitSelectionChange()
 }
 </script>
 
@@ -216,6 +293,33 @@ function rowDragendEvent(e: any) {
         // height: getCssVar('menu', 'item-height');
         padding: 0;
         background-color: #fff;
+    }
+    .block-table__selection-cell {
+        position: relative;
+        display: flex;
+        width: 100%;
+        min-height: 40px;
+        align-items: center;
+        justify-content: center;
+        .block-table__selection-checkbox {
+            display: none;
+        }
+        &.is--checked {
+            .block-table__selection-seq {
+                display: none;
+            }
+            .block-table__selection-checkbox {
+                display: inline-flex;
+            }
+        }
+    }
+    .block-table__selection-cell:hover {
+        .block-table__selection-seq {
+            display: none;
+        }
+        .block-table__selection-checkbox {
+            display: inline-flex;
+        }
     }
     .vxe-table--header tr.vxe-header--row > th.block-table__fixed-left-end {
         .vxe-cell--col-resizable {
@@ -318,9 +422,19 @@ function rowDragendEvent(e: any) {
         }
     }
 }
+.block-table__footer {
+    display: flex;
+    min-height: 56px;
+    align-items: center;
+    justify-content: space-between;
+    .block-table__footer-left {
+        display: flex;
+        align-items: center;
+    }
+}
 .pagination {
     display: flex;
-    padding: 20px 0;
+    padding: 12px 0;
     margin-right: 0;
     justify-content: flex-end;
 

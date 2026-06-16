@@ -26,6 +26,7 @@ export interface colConfig {
 export interface Pagination {
     currentPage: number
     pageSize: number
+    pageSizes?: number[]
     total: number
 }
 
@@ -33,6 +34,7 @@ export interface TableConfig {
     tableData: Array<any>
     colConfigs: Array<colConfig>
     seqType: string
+    checkbox?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -115,8 +117,10 @@ export const TableConfig: TableConfig = {
     pagination: {
         currentPage: 1,
         pageSize: 10,
+        pageSizes: [10, 20, 50, 100],
         total: 0
     },
     seqType: 'seq',
+    checkbox: true,
     loading: false
 }

@@ -20,7 +20,21 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
+                    <template #footerLeft>
+                        <div v-if="selectedRows.length" class="user-batch-actions">
+                            <el-button class="user-batch-action" :loading="batchLoading" @click="batchEnableUsers">
+                                启用
+                            </el-button>
+                            <el-button class="user-batch-action" :loading="batchLoading" @click="batchDisableUsers">
+                                禁用
+                            </el-button>
+                            <el-button class="user-batch-action" :loading="batchLoading" @click="batchDeleteUsers">
+                                删除
+                            </el-button>
+                        </div>
+                    </template>
                     <template #account="scopeSlot">
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.account }}</span>
                     </template>
@@ -122,6 +136,8 @@ const tableConfig: any = reactive(TableConfig)
 const keyword = ref('')
 const loading = ref(false)
 const networkError = ref(false)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 const addModalRef = ref(null)
 const passwordModalRef = ref(null)
 const authStore = useAuthStore()
@@ -137,6 +153,7 @@ function initData(tableLoading?: boolean) {
         .then((res: any) => {
             tableConfig.tableData = res.data.content
             tableConfig.pagination.total = res.data.totalElements ?? res.data.total ?? res.data.content?.length ?? 0
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = false
@@ -215,6 +232,94 @@ function changePlatformAdmin(data: any, platformAdmin: boolean) {
     })
 }
 
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchEnableUsers() {
+    const disableRows = selectedRows.value.filter((row: any) => row.status === 'DISABLE')
+    if (!disableRows.length) {
+        ElMessage.warning('请选择禁用状态的用户')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(
+        disableRows.map((row: any) =>
+            EnableUser({
+                userId: row.id
+            })
+        )
+    )
+        .then(() => {
+            ElMessage.success('批量启用成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchDisableUsers() {
+    const enableRows = selectedRows.value.filter((row: any) => row.status === 'ENABLE')
+    if (!enableRows.length) {
+        ElMessage.warning('请选择启用状态的用户')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(
+        enableRows.map((row: any) =>
+            DisableUser({
+                userId: row.id
+            })
+        )
+    )
+        .then(() => {
+            ElMessage.success('批量禁用成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchDeleteUsers() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个用户吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(
+            selectedRows.value.map((row: any) =>
+                DeleteUser({
+                    userId: row.id
+                })
+            )
+        )
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
+    })
+}
+
 // 启用 or 禁用
 function changeStatus(data: any, status: boolean) {
     data.statusLoading = true
@@ -271,6 +376,7 @@ function inputEvent(e: string) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData()
 }
 
@@ -289,6 +395,25 @@ onMounted(() => {
 <style lang="scss">
 .zqy-seach-table {
     .zqy-table {
+        .user-batch-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            .user-batch-action {
+                min-width: 66px;
+                height: 32px;
+                line-height: 30px;
+                border-color: getCssVar('color', 'primary');
+                color: getCssVar('color', 'primary');
+                background-color: #fff;
+                &:hover,
+                &:focus {
+                    border-color: getCssVar('color', 'primary');
+                    color: #fff;
+                    background-color: getCssVar('color', 'primary');
+                }
+            }
+        }
         .user-action-group {
             justify-content: center;
             gap: 16px;
