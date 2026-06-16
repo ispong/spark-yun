@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table user-center-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addData">新建用户</el-button>
             <div class="zqy-seach">
@@ -13,6 +13,24 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="user-batch-slide">
+                <div v-if="selectedRows.length" class="user-batch-mask">
+                    <div class="user-batch-actions">
+                        <el-button class="user-batch-action" :loading="batchLoading" @click="batchEnableUsers">
+                            启用
+                        </el-button>
+                        <el-button class="user-batch-action" :loading="batchLoading" @click="batchDisableUsers">
+                            禁用
+                        </el-button>
+                        <el-button class="user-batch-action" :loading="batchLoading" @click="batchDeleteUsers">
+                            删除
+                        </el-button>
+                        <el-button class="user-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -22,19 +40,6 @@
                     @current-change="handleCurrentChange"
                     @checkbox-change="handleSelectionChange"
                 >
-                    <template #footerLeft>
-                        <div v-if="selectedRows.length" class="user-batch-actions">
-                            <el-button class="user-batch-action" :loading="batchLoading" @click="batchEnableUsers">
-                                启用
-                            </el-button>
-                            <el-button class="user-batch-action" :loading="batchLoading" @click="batchDisableUsers">
-                                禁用
-                            </el-button>
-                            <el-button class="user-batch-action" :loading="batchLoading" @click="batchDeleteUsers">
-                                删除
-                            </el-button>
-                        </div>
-                    </template>
                     <template #account="scopeSlot">
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.account }}</span>
                     </template>
@@ -393,27 +398,73 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
-.zqy-seach-table {
-    .zqy-table {
-        .user-batch-actions {
+.zqy-seach-table.user-center-page {
+    .zqy-table-top {
+        position: relative;
+        overflow: hidden;
+        .user-batch-mask {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
             display: flex;
             align-items: center;
-            gap: 10px;
-            .user-batch-action {
-                min-width: 66px;
-                height: 32px;
-                line-height: 30px;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        .user-batch-slide-enter-active,
+        .user-batch-slide-leave-active {
+            transition:
+                transform 0.18s ease,
+                opacity 0.18s ease;
+            will-change: transform, opacity;
+        }
+        .user-batch-slide-enter-from,
+        .user-batch-slide-leave-to {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+        .user-batch-slide-enter-to,
+        .user-batch-slide-leave-from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .user-batch-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        .user-batch-action {
+            min-width: 66px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('color', 'primary');
+            color: getCssVar('color', 'primary');
+            background-color: #fff;
+            &:hover,
+            &:focus {
                 border-color: getCssVar('color', 'primary');
-                color: getCssVar('color', 'primary');
-                background-color: #fff;
-                &:hover,
-                &:focus {
-                    border-color: getCssVar('color', 'primary');
-                    color: #fff;
-                    background-color: getCssVar('color', 'primary');
-                }
+                color: #fff;
+                background-color: getCssVar('color', 'primary');
             }
         }
+        .user-batch-cancel {
+            min-width: 74px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('border-color');
+            color: getCssVar('text-color', 'regular');
+            background-color: #fff;
+            &:hover,
+            &:focus {
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+            }
+        }
+    }
+    .zqy-table {
         .user-action-group {
             justify-content: center;
             gap: 16px;
