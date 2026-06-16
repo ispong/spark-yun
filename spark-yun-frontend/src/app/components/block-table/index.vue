@@ -16,14 +16,15 @@
         <vxe-column v-if="tableConfig.seqType" :type="tableConfig.seqType" align="center" width="44" fixed="left">
             <template #header>#</template>
         </vxe-column>
-        <template v-for="(colConfig, colIndex) in tableConfig.colConfigs">
+        <template v-for="(colConfig, colIndex) in normalizedColConfigs">
             <vxe-column
                 v-if="colConfig.customSlot"
-                :key="colConfig.prop"
+                :key="colConfig.prop || colConfig.title || colIndex"
                 :width="colConfig.width"
                 :field="colConfig.prop"
                 :fixed="colConfig.fixed"
-                :resizable="colIndex < tableConfig.colConfigs.length - 1"
+                :resizable="colIndex < normalizedColConfigs.length - 1"
+                :header-class-name="colConfig.headerClassName"
                 :show-header-overflow="colConfig.showHeaderOverflow || false"
                 :show-overflow="colConfig.showOverflowTooltip || true"
                 :drag-sort="colConfig.dragSort"
@@ -44,11 +45,12 @@
             </vxe-column>
             <vxe-column
                 v-else
-                :key="colConfig.prop + 's'"
+                :key="`${colConfig.prop || colConfig.title || colIndex}s`"
                 :show-header-overflow="colConfig.showHeaderOverflow || false"
                 :width="colConfig.width"
                 :field="colConfig.prop"
-                :resizable="colIndex < tableConfig.colConfigs.length - 1"
+                :resizable="colIndex < normalizedColConfigs.length - 1"
+                :header-class-name="colConfig.headerClassName"
                 :show-overflow="colConfig.showOverflowTooltip || true"
                 :drag-sort="colConfig.dragSort"
                 v-bind="colConfig"
@@ -75,7 +77,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, reactive, ref } from 'vue'
+import { computed, defineProps, defineEmits, reactive, ref } from 'vue'
 import EmptyPage from '@/app/components/empty-page/index.vue'
 import type { VxeTablePropTypes } from 'vxe-table'
 
@@ -86,13 +88,15 @@ interface Pagination {
 }
 
 interface colConfig {
-    prop: string
+    prop?: string
     title: string
     align?: string
     showOverflowTooltip?: boolean
     customSlot?: string
     minWidth?: number
     width?: number
+    fixed?: 'left' | 'right' | boolean | string
+    headerClassName?: string
     formatter?: () => string
 }
 
@@ -111,6 +115,47 @@ const props = defineProps<{
 const emit = defineEmits(['size-change', 'current-change', 'rowDragendEvent'])
 
 const vxeTableRef = ref<any>(null)
+
+const normalizedColConfigs = computed(() => {
+    const columns = props.tableConfig.colConfigs || []
+
+    return columns.map((colConfig, colIndex) => {
+        const headerClassNameList = [colConfig.headerClassName]
+
+        if (colIndex === 0) {
+            headerClassNameList.push('block-table__fixed-left-end')
+        }
+
+        if (colIndex === 1) {
+            headerClassNameList.push('block-table__fixed-left-next')
+        }
+
+        const nextColConfig = {
+            ...colConfig,
+            headerClassName: headerClassNameList.filter(Boolean).join(' ')
+        }
+
+        if ('fixed' in colConfig) {
+            return nextColConfig
+        }
+
+        if (colIndex === 0) {
+            return {
+                ...nextColConfig,
+                fixed: 'left'
+            }
+        }
+
+        if (colIndex === columns.length - 1) {
+            return {
+                ...nextColConfig,
+                fixed: 'right'
+            }
+        }
+
+        return nextColConfig
+    })
+})
 
 const rowDragConfig = reactive<VxeTablePropTypes.RowDragConfig<RowVO>>({
     // icon: 'vxe-icon-sort',
@@ -172,6 +217,24 @@ function rowDragendEvent(e: any) {
         padding: 0;
         background-color: #fff;
     }
+    .vxe-table--header tr.vxe-header--row > th.block-table__fixed-left-end {
+        .vxe-cell--col-resizable {
+            display: none;
+        }
+    }
+    .vxe-table--header tr.vxe-header--row > th.block-table__fixed-left-next {
+        position: relative;
+        &::before {
+            content: '';
+            position: absolute;
+            top: 25%;
+            bottom: 25%;
+            left: 0;
+            width: 1px;
+            pointer-events: none;
+            background-color: var(--vxe-ui-table-resizable-line-color);
+        }
+    }
     .vxe-table--body-wrapper {
         .vxe-table--body-inner-wrapper {
             min-height: unset !important;
@@ -179,6 +242,8 @@ function rowDragendEvent(e: any) {
     }
     .vxe-table--body tr > td.vxe-body--column {
         padding: 0;
+        color: getCssVar('text-color', 'primary');
+        border-bottom-color: getCssVar('border-color', 'lighter');
         .vxe-cell {
             font-size: getCssVar('font-size', 'extra-small');
 
@@ -206,8 +271,10 @@ function rowDragendEvent(e: any) {
         color: getCssVar('color', 'primary');
     }
     .vxe-body--row {
+        transition: background-color 0.16s ease;
         &.row--hover {
             .vxe-body--column {
+                background-color: getCssVar('fill-color', 'light');
                 &.is--drag-cell {
                     color: getCssVar('color', 'primary') !important;
                 }

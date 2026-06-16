@@ -36,28 +36,26 @@
                         <el-tag v-else type="success">普通成员</el-tag>
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <template v-if="scopeSlot.row.status === 'ENABLE'">
-                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, false)">
-                                    禁用
-                                </span>
-                                <el-icon v-else class="is-loading">
-                                    <Loading />
-                                </el-icon>
-                            </template>
-                            <template v-else>
-                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, true)">
-                                    启用
-                                </span>
-                                <el-icon v-else class="is-loading">
-                                    <Loading />
-                                </el-icon>
-                            </template>
+                        <div class="btn-group user-action-group">
+                            <span class="user-action-button" @click="editData(scopeSlot.row)">编辑</span>
                             <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                                <span class="click-show-more user-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item
+                                            :disabled="scopeSlot.row.statusLoading"
+                                            @click="
+                                                !scopeSlot.row.statusLoading &&
+                                                    changeStatus(scopeSlot.row, scopeSlot.row.status !== 'ENABLE')
+                                            "
+                                        >
+                                            <span v-if="!scopeSlot.row.statusLoading">
+                                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                                            </span>
+                                            <el-icon v-else class="is-loading">
+                                                <Loading />
+                                            </el-icon>
+                                        </el-dropdown-item>
                                         <el-dropdown-item @click="changePassword(scopeSlot.row)">
                                             修改密码
                                         </el-dropdown-item>
@@ -287,3 +285,20 @@ onMounted(() => {
     initData()
 })
 </script>
+
+<style lang="scss">
+.zqy-seach-table {
+    .zqy-table {
+        .user-action-group {
+            justify-content: center;
+            gap: 16px;
+            .user-action-button {
+                display: inline-flex;
+                align-items: center;
+                line-height: 1;
+                font-size: getCssVar('font-size', 'extra-small');
+            }
+        }
+    }
+}
+</style>
