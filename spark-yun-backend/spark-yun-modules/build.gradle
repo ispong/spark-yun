@@ -23,6 +23,7 @@ dependencies {
     api libs.spring.ai.openai
 
     implementation libs.poi.ooxml
+    implementation libs.pdfbox
     implementation libs.xmlbeans
     implementation libs.pull.parser
 

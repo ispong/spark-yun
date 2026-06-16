@@ -44,6 +44,50 @@ export function DeleteChatSession(params: any): Promise<any> {
     })
 }
 
+export function ListAiPrompts(): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/api/workspace/ai/prompts'
+    })
+}
+
+export function SaveAiPrompt(params: any): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/api/workspace/ai/prompt/save',
+        params
+    })
+}
+
+export function DeleteAiPrompt(params: any): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/api/workspace/ai/prompt/delete',
+        params
+    })
+}
+
+export async function ParseChatFile(file: File): Promise<any> {
+    const authStore = useAuthStore()
+    const urlPrefix = import.meta.env.VITE_VUE_APP_BASE_DOMAIN || ''
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await fetch(`${urlPrefix}/api/workspace/ai/chat/file/parse`, {
+        method: 'POST',
+        headers: {
+            authorization: authStore.token || '',
+            Authorization: authStore.token || '',
+            tenant: authStore.tenantId || ''
+        },
+        body: formData
+    })
+    const result = await response.json()
+    if (!response.ok || `${result.code}` !== '200') {
+        throw new Error(result.msg || '文件解析失败')
+    }
+    return result
+}
+
 export async function StreamChatWithAi(
     params: any,
     handlers: StreamChatHandlers,

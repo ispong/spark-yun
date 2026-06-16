@@ -39,6 +39,7 @@ mongodb-bson = "5.8.0"
 mysql-connector = "9.7.0"
 openapi = "2.8.17"
 poi = "5.5.1"
+pdfbox = "3.0.6"
 pmd = "7.25.0"
 prql = "0.5.2"
 pull-parser = "2.1.10"
@@ -125,6 +126,7 @@ mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.re
 mongodb-bson = { module = "org.mongodb:bson", version.ref = "mongodb-bson" }
 mysql-connector = { module = "com.mysql:mysql-connector-j", version.ref = "mysql-connector" }
 poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "poi" }
+pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 pull-parser = { module = "pull-parser:pull-parser", version.ref = "pull-parser" }
 spark-catalyst = { module = "org.apache.spark:spark-catalyst_2.13", version.ref = "spark" }
 spark-core = { module = "org.apache.spark:spark-core_2.13", version.ref = "spark" }

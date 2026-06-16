@@ -628,7 +628,6 @@ onBeforeUnmount(() => {
         min-height: 100vh;
         display: grid;
         grid-template-columns: minmax(0, 1fr) 380px;
-        gap: 96px;
         padding: 0 72px 0 96px;
         align-items: center;
         max-width: 1480px;
