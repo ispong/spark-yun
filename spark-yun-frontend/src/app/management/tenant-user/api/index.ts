@@ -96,10 +96,55 @@ export function SetTenantMemberStatus(params: { tenantUserId: string; status: st
     })
 }
 
-export function SetMemberRoles(params: { userId: string; roleIds: string[] }): Promise<any> {
+export function SetMemberRoles(params: { userId: string; roleIds: string[]; tenantId?: string }): Promise<any> {
     return http.request({
         method: 'post',
         url: '/api/admin/members/setRoles',
+        params
+    })
+}
+
+export function GetTenantInviteCode(params: { tenantId?: string }): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/getInviteCode',
+        params
+    })
+}
+
+export function SaveTenantInviteCode(params: {
+    tenantId?: string
+    validDays: number
+    roleIds: string[]
+    regenerate?: boolean
+}): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/saveInviteCode',
+        params
+    })
+}
+
+export function ApplyTenantInviteCode(params: { inviteCode: string }): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/applyInviteCode',
+        params
+    })
+}
+
+export function ApproveTenantApply(params: { tenantUserId: string }): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/approveApply',
+        params
+    })
+}
+
+export function RejectTenantApply(params: { tenantUserId: string }): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/tenant-user/rejectApply',
         params
     })
 }

@@ -97,6 +97,12 @@
                             </el-icon>
                             个人中心
                         </div>
+                        <div v-if="showApplyTenant" class="zqy-layout__user-menu-option" @click="openApplyTenantDialog">
+                            <el-icon>
+                                <School />
+                            </el-icon>
+                            加入租户
+                        </div>
                         <div class="zqy-layout__user-menu-option" @click="handleCommand('logout')">
                             <el-icon>
                                 <SwitchButton />
@@ -118,13 +124,30 @@
         </div>
 
         <TenantSwitchDialog ref="tenantSwitchDialogRef" @tenant-name-change="activeTenantName = $event" />
+        <el-dialog v-model="applyTenantDialogVisible" title="加入租户" width="420px">
+            <el-form label-position="top">
+                <el-form-item label="邀请码">
+                    <el-input
+                        v-model="applyTenantForm.inviteCode"
+                        placeholder="请输入邀请码"
+                        clearable
+                        :maxlength="64"
+                        @keyup.enter="submitApplyTenant"
+                    />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="applyTenantDialogVisible = false">取消</el-button>
+                <el-button type="primary" :loading="applyTenantLoading" @click="submitApplyTenant">提交</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, resolveComponent, watch } from 'vue'
+import { computed, onMounted, reactive, ref, resolveComponent, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, OfficeBuilding, ScaleToOriginal, SetUp, SwitchButton, User } from '@element-plus/icons-vue'
+import { Monitor, OfficeBuilding, ScaleToOriginal, School, SetUp, SwitchButton, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 import logoURLSmall from '@/app/assets/imgs/logo.png'
@@ -146,6 +169,7 @@ import {
     type Menu
 } from './menu.config'
 import TenantSwitchDialog from './tenant-switch-dialog.vue'
+import { ApplyTenantInviteCode } from '@/app/management/tenant-user/api'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -157,6 +181,11 @@ const isCollapse = ref(true)
 const menuVisible = ref(false)
 const tenantSwitchDialogRef = ref<InstanceType<typeof TenantSwitchDialog>>()
 const activeTenantName = ref('切换租户')
+const applyTenantDialogVisible = ref(false)
+const applyTenantLoading = ref(false)
+const applyTenantForm = reactive({
+    inviteCode: ''
+})
 
 const currentArea = computed(() => {
     if (route.path.startsWith('/platform')) {
@@ -187,6 +216,7 @@ const menuListData = computed(() => {
 const platformMenuPaths: Record<string, string> = {
     'user-center': '/platform/users',
     'tenant-list': '/platform/tenants',
+    'platform-tenant-user': '/platform/tenant-members',
     'login-method': '/platform/login-method',
     license: '/platform/license',
     'platform-setting': '/platform/settings',
@@ -264,6 +294,7 @@ const showAdminEntry = computed(() => {
 const showTenantSwitch = computed(() => hasWorkspaceAccess.value)
 const isPersonalInfoRoute = computed(() => !!route.meta.personalInfo || route.name === 'personalInfo')
 const showPersonalInfo = computed(() => !isPlatformSuperAdmin.value && !isPersonalInfoRoute.value)
+const showApplyTenant = computed(() => !isPlatformSuperAdmin.value)
 const showNoWorkspaceAccess = computed(() => {
     return currentArea.value === 'workspace' && vipChecked.value && !isPersonalInfoRoute.value && !menuViewData.value.length
 })
@@ -393,6 +424,32 @@ function handleCommand(command: 'logout') {
 function openTenantDialog() {
     menuVisible.value = false
     tenantSwitchDialogRef.value?.open()
+}
+
+function openApplyTenantDialog() {
+    menuVisible.value = false
+    applyTenantForm.inviteCode = ''
+    applyTenantDialogVisible.value = true
+}
+
+function submitApplyTenant() {
+    const inviteCode = applyTenantForm.inviteCode.trim()
+    if (!inviteCode) {
+        ElMessage.warning('请输入邀请码')
+        return
+    }
+    applyTenantLoading.value = true
+    ApplyTenantInviteCode({
+        inviteCode
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg || '申请提交成功')
+            applyTenantDialogVisible.value = false
+            applyTenantForm.inviteCode = ''
+        })
+        .finally(() => {
+            applyTenantLoading.value = false
+        })
 }
 
 onMounted(async () => {

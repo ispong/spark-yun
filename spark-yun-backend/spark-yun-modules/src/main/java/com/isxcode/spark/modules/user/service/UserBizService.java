@@ -360,10 +360,12 @@ public class UserBizService {
         UserEntity target =
             userRepository.findById(setPlatformAdminReq.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
         checkBuiltInAdmin(target);
-        boolean callerIsPlatformSuperAdmin = userRepository.findById(ContextHolder.getUserId())
-            .map(user -> RoleType.PLATFORM_SUPER_ADMIN.equals(user.getRoleCode())).orElse(false);
-        if (!callerIsPlatformSuperAdmin) {
-            throw new IsxAppException("只有平台超级管理员可以设置平台管理员");
+        boolean callerCanManagePlatformAdmin = userRepository.findById(ContextHolder.getUserId())
+            .map(user -> RoleType.PLATFORM_SUPER_ADMIN.equals(user.getRoleCode())
+                || RoleType.PLATFORM_ADMIN.equals(user.getRoleCode()) || Boolean.TRUE.equals(user.getPlatformAdmin()))
+            .orElse(false);
+        if (!callerCanManagePlatformAdmin) {
+            throw new IsxAppException("只有平台管理员可以设置平台管理员");
         }
         target.setPlatformAdmin(Boolean.TRUE.equals(setPlatformAdminReq.getPlatformAdmin()));
         target.setRoleCode(target.getPlatformAdmin() ? RoleType.PLATFORM_ADMIN : RoleType.PLATFORM_MEMBER);
@@ -603,7 +605,7 @@ public class UserBizService {
         TenantUserEntity tenantUserEntity = tenantUserRepository.findByTenantIdAndUserId(tenantId, userId)
             .orElseThrow(() -> new IsxAppException("401", "用户不在租户中，请重新登录"));
 
-        if (TenantStatus.DISABLE.equals(tenantUserEntity.getStatus())) {
+        if (!UserStatus.ENABLE.equals(tenantUserEntity.getStatus())) {
             throw new IsxAppException("401", "用户被租户禁用，请重新登录");
         }
 

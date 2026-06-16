@@ -12,6 +12,7 @@ import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import lombok.Data;
+import org.apache.logging.log4j.util.Strings;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -54,6 +55,8 @@ public class MemberRoleEntity {
     @PrePersist
     public void prePersist() {
 
-        tenantId = ContextHolder.getTenantId();
+        if (!Strings.isEmpty(ContextHolder.getTenantId())) {
+            tenantId = ContextHolder.getTenantId();
+        }
     }
 }

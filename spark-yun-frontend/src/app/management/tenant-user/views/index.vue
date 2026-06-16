@@ -2,7 +2,26 @@
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
     <div class="zqy-seach-table">
         <div class="zqy-table-top">
-            <el-button type="primary" @click="addData">添加成员</el-button>
+            <div class="tenant-user-toolbar-left">
+                <el-button type="primary" @click="handlePrimaryAction">
+                    {{ isPlatformTenantMemberPage ? '添加成员' : '邀请码' }}
+                </el-button>
+                <el-select
+                    v-if="isPlatformTenantMemberPage"
+                    v-model="selectedTenantId"
+                    class="tenant-user-tenant-select"
+                    filterable
+                    placeholder="请选择租户"
+                    @change="handlePlatformTenantChange"
+                >
+                    <el-option
+                        v-for="tenant in platformTenants"
+                        :key="tenant.id"
+                        :label="tenant.name"
+                        :value="tenant.id"
+                    />
+                </el-select>
+            </div>
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
@@ -31,12 +50,23 @@
                         </div>
                     </template>
                     <template #status="scopeSlot">
-                        <el-tag :type="scopeSlot.row.status === 'ENABLE' ? 'success' : 'danger'">
-                            {{ scopeSlot.row.status === 'ENABLE' ? '启用' : '禁用' }}
+                        <el-tag :type="statusTagType(scopeSlot.row.status)">
+                            {{ statusText(scopeSlot.row.status) }}
                         </el-tag>
                     </template>
                     <template #options="scopeSlot">
-                        <div v-if="!isTenantSuperAdmin(scopeSlot.row)" class="btn-group">
+                        <div v-if="isApplying(scopeSlot.row)" class="btn-group tenant-user-action-group">
+                            <el-dropdown trigger="click">
+                                <span class="click-show-more">更多</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="approveApply(scopeSlot.row)">通过申请</el-dropdown-item>
+                                        <el-dropdown-item @click="rejectApply(scopeSlot.row)">拒绝申请</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                        <div v-else-if="!isTenantSuperAdmin(scopeSlot.row)" class="btn-group">
                             <template v-if="!scopeSlot.row.normalAdmin">
                                 <span v-if="!scopeSlot.row.authLoading" @click="giveAuth(scopeSlot.row)">
                                     设为租户管理员
@@ -65,6 +95,40 @@
             </div>
         </LoadingPage>
         <AddModal ref="addModalRef" />
+        <el-dialog v-model="inviteDialogVisible" title="租户邀请码" width="520px">
+            <el-form label-position="top">
+                <el-form-item label="邀请码">
+                    <el-input v-model="inviteForm.inviteCode" readonly>
+                        <template #append>
+                            <el-button @click="copyInviteCode">复制</el-button>
+                        </template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="有效期">
+                    <el-select v-model="inviteForm.validDays">
+                        <el-option label="1 天" :value="1" />
+                        <el-option label="7 天" :value="7" />
+                        <el-option label="30 天" :value="30" />
+                        <el-option label="永久有效" :value="0" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="绑定角色">
+                    <el-select v-model="inviteForm.roleIds" multiple clearable placeholder="可不选择角色">
+                        <el-option
+                            v-for="role in availableRoles"
+                            :key="role.id"
+                            :label="role.name"
+                            :value="role.id"
+                        />
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="inviteDialogVisible = false">取消</el-button>
+                <el-button :loading="inviteSaving" @click="saveInviteCode(true)">重新生成</el-button>
+                <el-button type="primary" :loading="inviteSaving" @click="saveInviteCode(false)">保存设置</el-button>
+            </template>
+        </el-dialog>
         <el-dialog v-model="roleDialogVisible" title="分配业务角色" width="480px">
             <el-checkbox-group v-model="selectedRoleIds">
                 <el-checkbox v-for="role in availableRoles" :key="role.id" :label="role.id">
@@ -80,7 +144,8 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, onMounted } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
@@ -93,6 +158,10 @@ import {
     DeleteTenantUser,
     GiveAuth,
     RemoveAuth,
+    GetTenantInviteCode,
+    SaveTenantInviteCode,
+    ApproveTenantApply,
+    RejectTenantApply,
     SetMemberRoles,
     SetTenantMemberStatus
 } from '@/app/management/tenant-user/api'
@@ -101,6 +170,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useSwitchTenant } from '@/app/hooks/switch-tenant'
 import { useAuthStore } from '@/app/store/useAuth'
 import { ListRole } from '@/app/management/admin/api'
+import { GetTenantList } from '@/app/management/tenant-list/api'
 
 interface FormUser {
     isTenantAdmin: boolean
@@ -119,8 +189,20 @@ const roleSaving = ref(false)
 const selectedRoleIds = ref<string[]>([])
 const selectedMember = ref<any>()
 const availableRoles = ref<any[]>([])
+const route = useRoute()
+const platformTenants = ref<any[]>([])
+const selectedTenantId = ref('')
+const inviteDialogVisible = ref(false)
+const inviteSaving = ref(false)
+const inviteForm = reactive({
+    inviteCode: '',
+    validDays: 7,
+    roleIds: [] as string[]
+})
 
 const { currentTenant, tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
+const isPlatformTenantMemberPage = computed(() => route.path.startsWith('/platform'))
+const activeTenantId = computed(() => (isPlatformTenantMemberPage.value ? selectedTenantId.value : currentTenant.value.id))
 
 function normalizeRoleCode(roleCode?: string) {
     return roleCode?.replace(/^ROLE_/, '')
@@ -134,8 +216,26 @@ function isTenantAdmin(data: any) {
     return normalizeRoleCode(data.roleCode) === 'TENANT_ADMIN' || data.normalAdmin
 }
 
+function isApplying(data: any) {
+    return data.status === 'APPLYING'
+}
+
+function statusText(status: string) {
+    if (status === 'APPLYING') {
+        return '申请中'
+    }
+    return status === 'ENABLE' ? '启用' : '禁用'
+}
+
+function statusTagType(status: string) {
+    if (status === 'APPLYING') {
+        return 'warning'
+    }
+    return status === 'ENABLE' ? 'success' : 'danger'
+}
+
 function initData(tableLoading?: boolean) {
-    if (!currentTenant.value.id) {
+    if (!activeTenantId.value) {
         tableConfig.tableData = []
         tableConfig.pagination.total = 0
         loading.value = false
@@ -150,7 +250,7 @@ function initData(tableLoading?: boolean) {
         page: tableConfig.pagination.currentPage - 1,
         pageSize: tableConfig.pagination.pageSize,
         searchKeyWord: keyword.value,
-        tenantId: currentTenant.value.id
+        tenantId: activeTenantId.value
     })
         .then((res: any) => {
             tableConfig.tableData = res.data.content
@@ -169,6 +269,11 @@ function initData(tableLoading?: boolean) {
 }
 
 function initDefaultTenantUserData() {
+    if (isPlatformTenantMemberPage.value) {
+        initPlatformTenantUserData()
+        return
+    }
+
     initSwitchTenant()
         .then(() => {
             if (!tenantList.value.length) {
@@ -181,6 +286,7 @@ function initDefaultTenantUserData() {
             }
             const activeTenant = tenantList.value.find((item) => item.id === authStore.tenantId) || tenantList.value[0]
             onTenantChange(activeTenant.id)
+            loadAvailableRoles()
             initData()
         })
         .catch(() => {
@@ -192,12 +298,49 @@ function initDefaultTenantUserData() {
         })
 }
 
+function initPlatformTenantUserData() {
+    GetTenantList({
+        page: 0,
+        pageSize: 999,
+        searchKeyWord: ''
+    })
+        .then((res: any) => {
+            platformTenants.value = res.data.content || []
+            selectedTenantId.value = selectedTenantId.value || platformTenants.value[0]?.id || ''
+            loadAvailableRoles()
+            initData()
+        })
+        .catch(() => {
+            platformTenants.value = []
+            selectedTenantId.value = ''
+            tableConfig.tableData = []
+            tableConfig.pagination.total = 0
+            loading.value = false
+            tableConfig.loading = false
+            networkError.value = true
+        })
+}
+
+function handlePlatformTenantChange() {
+    tableConfig.pagination.currentPage = 1
+    loadAvailableRoles()
+    initData()
+}
+
+function handlePrimaryAction() {
+    if (isPlatformTenantMemberPage.value) {
+        addData()
+        return
+    }
+    openInviteDialog()
+}
+
 function addData() {
     addModalRef.value.showModal((formData: FormUser) => {
         return new Promise((resolve: any, reject: any) => {
             AddTenantUserData({
                 ...formData,
-                tenantId: currentTenant.value.id
+                tenantId: activeTenantId.value
             })
                 .then((res: any) => {
                     ElMessage.success(res.msg)
@@ -209,6 +352,55 @@ function addData() {
                 })
         })
     })
+}
+
+function openInviteDialog() {
+    if (!activeTenantId.value) {
+        ElMessage.warning('请先选择租户')
+        return
+    }
+    inviteDialogVisible.value = true
+    loadAvailableRoles()
+    GetTenantInviteCode({
+        tenantId: activeTenantId.value
+    }).then((res: any) => {
+        inviteForm.inviteCode = res.data.inviteCode || ''
+        inviteForm.validDays = res.data.validDays ?? 7
+        inviteForm.roleIds = [...(res.data.roleIds || [])]
+    })
+}
+
+function saveInviteCode(regenerate: boolean) {
+    inviteSaving.value = true
+    SaveTenantInviteCode({
+        tenantId: activeTenantId.value,
+        validDays: inviteForm.validDays,
+        roleIds: inviteForm.roleIds,
+        regenerate
+    })
+        .then((res: any) => {
+            inviteForm.inviteCode = res.data.inviteCode || ''
+            inviteForm.validDays = res.data.validDays ?? inviteForm.validDays
+            inviteForm.roleIds = [...(res.data.roleIds || [])]
+            ElMessage.success(regenerate ? '邀请码已重新生成' : '邀请码设置已保存')
+        })
+        .finally(() => {
+            inviteSaving.value = false
+        })
+}
+
+function copyInviteCode() {
+    if (!inviteForm.inviteCode) {
+        return
+    }
+    navigator.clipboard
+        ?.writeText(inviteForm.inviteCode)
+        .then(() => {
+            ElMessage.success('邀请码已复制')
+        })
+        .catch(() => {
+            ElMessage.error('复制失败，请手动复制')
+        })
 }
 
 // 授权
@@ -263,7 +455,8 @@ function saveMemberRoles() {
     roleSaving.value = true
     SetMemberRoles({
         userId: selectedMember.value.userId,
-        roleIds: selectedRoleIds.value
+        roleIds: selectedRoleIds.value,
+        tenantId: activeTenantId.value
     })
         .then((res: any) => {
             ElMessage.success(res.msg)
@@ -273,6 +466,30 @@ function saveMemberRoles() {
         .finally(() => {
             roleSaving.value = false
         })
+}
+
+function approveApply(data: any) {
+    ApproveTenantApply({
+        tenantUserId: data.id
+    }).then((res: any) => {
+        ElMessage.success(res.msg)
+        initData(true)
+    })
+}
+
+function rejectApply(data: any) {
+    ElMessageBox.confirm('确定拒绝该租户申请吗？', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        RejectTenantApply({
+            tenantUserId: data.id
+        }).then((res: any) => {
+            ElMessage.success(res.msg)
+            initData()
+        })
+    })
 }
 
 // 删除
@@ -313,18 +530,38 @@ onMounted(() => {
     tableConfig.pagination.currentPage = 1
     tableConfig.pagination.pageSize = 10
     initDefaultTenantUserData()
-    ListRole().then((res: any) => {
-        availableRoles.value = res.data || []
-    })
 })
+
+function loadAvailableRoles() {
+    if (!activeTenantId.value) {
+        availableRoles.value = []
+        return
+    }
+    ListRole({
+        tenantId: activeTenantId.value
+    })
+        .then((res: any) => {
+            availableRoles.value = res.data || []
+        })
+        .catch(() => {
+            availableRoles.value = []
+        })
+}
 </script>
 
 <style lang="scss">
-.zqy-tenant__select {
-    flex: 1;
+.tenant-user-toolbar-left {
     display: flex;
-    justify-content: flex-start;
-    margin-left: 12px;
+    align-items: center;
+    gap: 12px;
+
+    .tenant-user-tenant-select {
+        width: 220px;
+    }
+}
+
+.tenant-user-action-group {
+    justify-content: center;
 }
 
 .tenant-admin-tip {

@@ -5,10 +5,14 @@ import com.isxcode.spark.common.security.ContextHolder;
 import cn.hutool.core.util.DesensitizedUtil;
 import com.isxcode.spark.api.tenant.req.*;
 import com.isxcode.spark.api.tenant.res.PageTenantUserRes;
+import com.isxcode.spark.api.tenant.res.TenantInviteRes;
+import com.isxcode.spark.api.tenant.constants.TenantStatus;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.constants.UserStatus;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.modules.license.repository.LicenseStore;
+import com.isxcode.spark.modules.tenant.entity.TenantInviteEntity;
+import com.isxcode.spark.modules.tenant.repository.TenantInviteRepository;
 import com.isxcode.spark.security.authorization.MemberRoleEntity;
 import com.isxcode.spark.security.authorization.MemberRoleRepository;
 import com.isxcode.spark.security.authorization.OrgMemberRepository;
@@ -20,6 +24,10 @@ import com.isxcode.spark.security.user.TenantUserRepository;
 import com.isxcode.spark.security.user.UserEntity;
 import com.isxcode.spark.security.user.UserRepository;
 
+import cn.hutool.core.util.IdUtil;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +59,8 @@ public class TenantUserBizService {
 
     private final RoleRepository roleRepository;
 
+    private final TenantInviteRepository tenantInviteRepository;
+
     public void addTenantUser(AddTenantUserReq turAddTenantUserReq) {
 
         String tenantId = resolveTenantId(turAddTenantUserReq.getTenantId());
@@ -80,7 +90,7 @@ public class TenantUserBizService {
         Optional<TenantUserEntity> tenantUserEntityOptional =
             tenantUserRepository.findByTenantIdAndUserId(tenantId, turAddTenantUserReq.getUserId());
         if (tenantUserEntityOptional.isPresent()) {
-            throw new IsxAppException("该成员已经是项目成员");
+            throw new IsxAppException("该用户已是租户成员");
         }
 
         // 初始化租户用户
@@ -97,6 +107,69 @@ public class TenantUserBizService {
 
         // 持久化数据
         tenantUserRepository.save(tenantUserEntity);
+    }
+
+    public TenantInviteRes getTenantInvite(GetTenantInviteReq request) {
+
+        String tenantId = resolveTenantId(request.getTenantId());
+        TenantInviteEntity invite = tenantInviteRepository.findFirstByTenantIdOrderByCreateDateTimeDesc(tenantId)
+            .orElseGet(() -> createDefaultInvite(tenantId));
+        return toTenantInviteRes(invite);
+    }
+
+    public TenantInviteRes saveTenantInvite(SaveTenantInviteReq request) {
+
+        String tenantId = resolveTenantId(request.getTenantId());
+        TenantInviteEntity invite = tenantInviteRepository.findFirstByTenantIdOrderByCreateDateTimeDesc(tenantId)
+            .orElseGet(() -> createDefaultInvite(tenantId));
+
+        if (Boolean.TRUE.equals(request.getRegenerate())) {
+            invite.setInviteCode(generateInviteCode());
+        }
+
+        Integer validDays = request.getValidDays() == null ? 7 : request.getValidDays();
+        if (!List.of(0, 1, 7, 30).contains(validDays)) {
+            throw new IsxAppException("邀请码有效期不合法");
+        }
+        invite.setValidDays(validDays);
+        invite.setExpireDateTime(validDays <= 0 ? null : LocalDateTime.now().plusDays(validDays));
+        invite.setRoleIds(joinRoleIds(tenantId, request.getRoleIds()));
+        return toTenantInviteRes(tenantInviteRepository.save(invite));
+    }
+
+    public void applyTenantInvite(ApplyTenantInviteReq request) {
+
+        UserEntity user =
+            userRepository.findById(ContextHolder.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
+        if (RoleType.PLATFORM_SUPER_ADMIN.equals(user.getRoleCode())) {
+            throw new IsxAppException("平台超级管理员不能申请租户");
+        }
+
+        TenantInviteEntity invite = tenantInviteRepository.findByInviteCode(request.getInviteCode().trim())
+            .orElseThrow(() -> new IsxAppException("邀请码无效"));
+        if (invite.getExpireDateTime() != null && LocalDateTime.now().isAfter(invite.getExpireDateTime())) {
+            throw new IsxAppException("邀请码已过期，请联系管理员重新获取");
+        }
+
+        TenantEntity tenant = tenantService.getTenant(invite.getTenantId());
+        if (!TenantStatus.ENABLE.equals(tenant.getStatus())) {
+            throw new IsxAppException("邀请码对应租户不可用");
+        }
+
+        Optional<TenantUserEntity> memberOptional =
+            tenantUserRepository.findByTenantIdAndUserId(invite.getTenantId(), user.getId());
+        if (memberOptional.isPresent()) {
+            TenantUserEntity member = memberOptional.get();
+            if (UserStatus.APPLYING.equals(member.getStatus())) {
+                throw new IsxAppException("你已提交申请，请等待管理员审核");
+            }
+            throw new IsxAppException("你已是该租户成员，无需重复申请");
+        }
+
+        TenantUserEntity member = TenantUserEntity.builder().tenantId(invite.getTenantId()).userId(user.getId())
+            .status(UserStatus.APPLYING).normalAdmin(false).roleCode(RoleType.TENANT_MEMBER)
+            .applyRoleIds(invite.getRoleIds()).applyInviteCode(invite.getInviteCode()).build();
+        tenantUserRepository.save(member);
     }
 
     public Page<PageTenantUserRes> pageTenantUser(PageTenantUserReq turAddTenantUserReq) {
@@ -185,25 +258,104 @@ public class TenantUserBizService {
             tenantUserRepository.findById(request.getTenantUserId()).orElseThrow(() -> new IsxAppException("成员不存在"));
         checkTenantPermission(member.getTenantId());
         checkTenantAdminTarget(member);
+        if (UserStatus.APPLYING.equals(member.getStatus())) {
+            throw new IsxAppException("申请中的成员不能直接启用或禁用");
+        }
         member.setStatus(request.getStatus());
         tenantUserRepository.save(member);
     }
 
     public void setMemberRoles(SetMemberRolesReq request) {
 
-        String tenantId = resolveTenantId(null);
+        String tenantId = resolveTenantId(request.getTenantId());
         tenantUserRepository.findByTenantIdAndUserId(tenantId, request.getUserId())
             .orElseThrow(() -> new IsxAppException("成员不存在"));
-        memberRoleRepository.deleteAllByTenantIdAndUserId(tenantId, request.getUserId());
-        if (request.getRoleIds() == null) {
+        saveMemberRoles(tenantId, request.getUserId(), request.getRoleIds());
+    }
+
+    public void approveTenantApply(ReviewTenantApplyReq request) {
+
+        TenantUserEntity member =
+            tenantUserRepository.findById(request.getTenantUserId()).orElseThrow(() -> new IsxAppException("申请不存在"));
+        checkTenantPermission(member.getTenantId());
+        if (!UserStatus.APPLYING.equals(member.getStatus())) {
+            throw new IsxAppException("该成员不是申请中状态");
+        }
+
+        member.setStatus(UserStatus.ENABLE);
+        tenantUserRepository.save(member);
+        saveMemberRoles(member.getTenantId(), member.getUserId(), splitRoleIds(member.getApplyRoleIds()));
+    }
+
+    public void rejectTenantApply(ReviewTenantApplyReq request) {
+
+        TenantUserEntity member =
+            tenantUserRepository.findById(request.getTenantUserId()).orElseThrow(() -> new IsxAppException("申请不存在"));
+        checkTenantPermission(member.getTenantId());
+        if (!UserStatus.APPLYING.equals(member.getStatus())) {
+            throw new IsxAppException("该成员不是申请中状态");
+        }
+        tenantUserRepository.delete(member);
+    }
+
+    private TenantInviteEntity createDefaultInvite(String tenantId) {
+
+        TenantInviteEntity invite = new TenantInviteEntity();
+        invite.setTenantId(tenantId);
+        invite.setInviteCode(generateInviteCode());
+        invite.setValidDays(7);
+        invite.setExpireDateTime(LocalDateTime.now().plusDays(7));
+        invite.setRoleIds("");
+        return tenantInviteRepository.save(invite);
+    }
+
+    private TenantInviteRes toTenantInviteRes(TenantInviteEntity invite) {
+
+        return TenantInviteRes.builder().tenantId(invite.getTenantId()).inviteCode(invite.getInviteCode())
+            .validDays(invite.getValidDays()).expireDateTime(invite.getExpireDateTime())
+            .roleIds(splitRoleIds(invite.getRoleIds())).build();
+    }
+
+    private String generateInviteCode() {
+
+        String inviteCode;
+        do {
+            inviteCode = IdUtil.fastSimpleUUID().substring(0, 8).toUpperCase();
+        } while (tenantInviteRepository.findByInviteCode(inviteCode).isPresent());
+        return inviteCode;
+    }
+
+    private String joinRoleIds(String tenantId, List<String> roleIds) {
+
+        if (roleIds == null || roleIds.isEmpty()) {
+            return "";
+        }
+        List<String> distinctRoleIds = roleIds.stream().filter(roleId -> !Strings.isEmpty(roleId)).distinct().toList();
+        distinctRoleIds.forEach(roleId -> roleRepository.findById(roleId)
+            .filter(role -> tenantId.equals(role.getTenantId())).orElseThrow(() -> new IsxAppException("角色不属于当前租户")));
+        return String.join(",", distinctRoleIds);
+    }
+
+    private List<String> splitRoleIds(String roleIds) {
+
+        if (Strings.isEmpty(roleIds)) {
+            return List.of();
+        }
+        return Arrays.stream(roleIds.split(",")).filter(roleId -> !Strings.isEmpty(roleId)).distinct().toList();
+    }
+
+    private void saveMemberRoles(String tenantId, String userId, List<String> roleIds) {
+
+        memberRoleRepository.deleteAllByTenantIdAndUserId(tenantId, userId);
+        if (roleIds == null || roleIds.isEmpty()) {
             return;
         }
-        request.getRoleIds().stream().distinct().forEach(roleId -> {
+        roleIds.forEach(roleId -> {
             roleRepository.findById(roleId).filter(role -> tenantId.equals(role.getTenantId()))
                 .orElseThrow(() -> new IsxAppException("角色不属于当前租户"));
             MemberRoleEntity memberRole = new MemberRoleEntity();
             memberRole.setTenantId(tenantId);
-            memberRole.setUserId(request.getUserId());
+            memberRole.setUserId(userId);
             memberRole.setRoleId(roleId);
             memberRoleRepository.save(memberRole);
         });
@@ -211,7 +363,7 @@ public class TenantUserBizService {
 
     private String resolveTenantId(String tenantId) {
 
-        if (isSysAdmin()) {
+        if (hasPlatformAccess()) {
             if (Strings.isEmpty(tenantId)) {
                 throw new IsxAppException("请指定租户id");
             }
@@ -231,17 +383,18 @@ public class TenantUserBizService {
 
     private void checkTenantPermission(String tenantId) {
 
-        if (!isSysAdmin()
+        if (!hasPlatformAccess()
             && (Strings.isEmpty(ContextHolder.getTenantId()) || !ContextHolder.getTenantId().equals(tenantId))) {
             throw new IsxAppException("无权操作其他租户");
         }
     }
 
-    private boolean isSysAdmin() {
+    private boolean hasPlatformAccess() {
 
         return SecurityContextHolder.getContext().getAuthentication() != null
             && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(authority -> RoleType.PLATFORM_SUPER_ADMIN.equals(authority.getAuthority()));
+                .anyMatch(authority -> RoleType.PLATFORM_SUPER_ADMIN.equals(authority.getAuthority())
+                    || RoleType.PLATFORM_ADMIN.equals(authority.getAuthority()));
     }
 
     private void checkTenantAdminTarget(TenantUserEntity member) {

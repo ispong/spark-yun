@@ -290,6 +290,7 @@ const managementMenuCodes = new Set([
     'tenant-management',
     'user-center',
     'tenant-list',
+    'platform-tenant-user',
     'login-method',
     'tenant-user',
     'oauth-management',
@@ -309,6 +310,11 @@ export const platformMenuListData: Array<Menu> = [
         code: 'tenant-list',
         name: '租户管理',
         icon: 'OfficeBuilding'
+    },
+    {
+        code: 'platform-tenant-user',
+        name: '租户成员',
+        icon: 'User'
     },
     {
         code: 'login-method',

@@ -8,10 +8,11 @@ export function PageRole(params: any): Promise<any> {
     })
 }
 
-export function ListRole(): Promise<any> {
+export function ListRole(params: { tenantId?: string } = {}): Promise<any> {
     return http.request({
         method: 'post',
-        url: '/api/admin/roles/list'
+        url: '/api/admin/roles/list',
+        params
     })
 }
 

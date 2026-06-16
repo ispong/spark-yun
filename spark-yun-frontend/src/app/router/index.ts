@@ -80,6 +80,11 @@ const routes: Array<RouteRecordRaw> = [
                 component: TenantList
             },
             {
+                path: 'tenant-members',
+                name: 'platform-tenant-user',
+                component: TenantUser
+            },
+            {
                 path: 'login-method',
                 name: 'platform-login-method',
                 component: LoginMethod

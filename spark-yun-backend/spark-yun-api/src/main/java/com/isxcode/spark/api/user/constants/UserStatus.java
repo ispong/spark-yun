@@ -5,4 +5,6 @@ public interface UserStatus {
     String ENABLE = "ENABLE";
 
     String DISABLE = "DISABLE";
+
+    String APPLYING = "APPLYING";
 }

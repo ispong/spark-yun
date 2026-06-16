@@ -4,6 +4,7 @@ import com.isxcode.spark.annotation.vip.LicenseApi;
 import com.isxcode.spark.api.main.constants.ModuleCode;
 import com.isxcode.spark.api.tenant.req.*;
 import com.isxcode.spark.api.tenant.res.PageTenantUserRes;
+import com.isxcode.spark.api.tenant.res.TenantInviteRes;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
 import com.isxcode.spark.common.userlog.UserLog;
@@ -28,7 +29,8 @@ public class TenantUserController {
     private final TenantUserBizService tenantUserBizService;
 
     @LicenseApi
-    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
     @Operation(summary = "添加用户接口")
     @PostMapping("/addTenantUser")
     @SuccessResponse("添加成功")
@@ -37,7 +39,8 @@ public class TenantUserController {
         tenantUserBizService.addTenantUser(addTenantUserReq);
     }
 
-    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
     @Operation(summary = "查询租户用户列表接口")
     @PostMapping("/pageTenantUser")
     @SuccessResponse("查询成功")
@@ -46,7 +49,8 @@ public class TenantUserController {
         return tenantUserBizService.pageTenantUser(pageTenantUserReq);
     }
 
-    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
     @Operation(summary = "移除用户接口")
     @PostMapping("/removeTenantUser")
     @UserLog
@@ -56,7 +60,8 @@ public class TenantUserController {
         tenantUserBizService.removeTenantUser(removeTenantUserReq);
     }
 
-    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
     @Operation(summary = "设置为普通管理员接口")
     @PostMapping("/setTenantAdmin")
     @UserLog
@@ -66,7 +71,8 @@ public class TenantUserController {
         tenantUserBizService.setTenantAdmin(setTenantAdminReq);
     }
 
-    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
     @Operation(summary = "取消普通管理员接口")
     @PostMapping("/removeTenantAdmin")
     @UserLog
@@ -76,7 +82,8 @@ public class TenantUserController {
         tenantUserBizService.removeTenantAdmin(removeTenantAdminReq);
     }
 
-    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
     @Operation(summary = "修改成员状态接口")
     @PostMapping("/setStatus")
     @UserLog
@@ -86,7 +93,8 @@ public class TenantUserController {
         tenantUserBizService.setTenantMemberStatus(request);
     }
 
-    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
     @Operation(summary = "设置成员角色接口")
     @PostMapping("/setRoles")
     @UserLog
@@ -94,5 +102,57 @@ public class TenantUserController {
     public void setMemberRoles(@Valid @RequestBody SetMemberRolesReq request) {
 
         tenantUserBizService.setMemberRoles(request);
+    }
+
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
+    @Operation(summary = "获取租户邀请码接口")
+    @PostMapping("/getInviteCode")
+    @SuccessResponse("查询成功")
+    public TenantInviteRes getTenantInvite(@Valid @RequestBody GetTenantInviteReq request) {
+
+        return tenantUserBizService.getTenantInvite(request);
+    }
+
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
+    @Operation(summary = "保存租户邀请码接口")
+    @PostMapping("/saveInviteCode")
+    @SuccessResponse("保存成功")
+    public TenantInviteRes saveTenantInvite(@Valid @RequestBody SaveTenantInviteReq request) {
+
+        return tenantUserBizService.saveTenantInvite(request);
+    }
+
+    @Secured({RoleType.PLATFORM_ADMIN, RoleType.PLATFORM_MEMBER, RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN,
+            RoleType.TENANT_MEMBER})
+    @Operation(summary = "申请加入租户接口")
+    @PostMapping("/applyInviteCode")
+    @SuccessResponse("申请提交成功")
+    public void applyTenantInvite(@Valid @RequestBody ApplyTenantInviteReq request) {
+
+        tenantUserBizService.applyTenantInvite(request);
+    }
+
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
+    @Operation(summary = "通过租户申请接口")
+    @PostMapping("/approveApply")
+    @UserLog
+    @SuccessResponse("通过成功")
+    public void approveTenantApply(@Valid @RequestBody ReviewTenantApplyReq request) {
+
+        tenantUserBizService.approveTenantApply(request);
+    }
+
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
+    @Operation(summary = "拒绝租户申请接口")
+    @PostMapping("/rejectApply")
+    @UserLog
+    @SuccessResponse("拒绝成功")
+    public void rejectTenantApply(@Valid @RequestBody ReviewTenantApplyReq request) {
+
+        tenantUserBizService.rejectTenantApply(request);
     }
 }

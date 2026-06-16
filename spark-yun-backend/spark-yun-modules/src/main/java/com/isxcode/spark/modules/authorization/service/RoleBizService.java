@@ -1,6 +1,7 @@
 package com.isxcode.spark.modules.authorization.service;
 
 import com.isxcode.spark.api.authorization.req.DeleteRoleReq;
+import com.isxcode.spark.api.authorization.req.ListRoleReq;
 import com.isxcode.spark.api.authorization.req.PageRoleReq;
 import com.isxcode.spark.api.authorization.req.SaveRoleReq;
 import com.isxcode.spark.api.authorization.res.PermissionCatalogRes;
@@ -8,6 +9,7 @@ import com.isxcode.spark.api.authorization.res.PermissionCatalogRes.PermissionIt
 import com.isxcode.spark.api.authorization.res.PermissionCatalogRes.PermissionModuleRes;
 import com.isxcode.spark.api.authorization.res.RoleRes;
 import com.isxcode.spark.api.tenant.constants.TenantStatus;
+import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.common.security.ContextHolder;
 import com.isxcode.spark.security.authorization.MemberRoleRepository;
@@ -33,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 @RequiredArgsConstructor
@@ -98,14 +101,15 @@ public class RoleBizService {
         String tenantId = requireTenantId();
         return roleRepository
             .search(tenantId, request.getSearchKeyWord(), PageRequest.of(request.getPage(), request.getPageSize()))
-            .map(this::toRoleRes);
+            .map(role -> toRoleRes(role, tenantId));
     }
 
     @Transactional(rollbackFor = Exception.class, readOnly = true)
-    public List<RoleRes> listRole() {
+    public List<RoleRes> listRole(ListRoleReq request) {
 
-        return roleRepository.findAllByTenantIdAndStatus(requireTenantId(), TenantStatus.ENABLE).stream()
-            .map(this::toRoleRes).toList();
+        String tenantId = resolveTenantId(request.getTenantId());
+        return roleRepository.findAllByTenantIdAndStatus(tenantId, TenantStatus.ENABLE).stream()
+            .map(role -> toRoleRes(role, tenantId)).toList();
     }
 
     public void deleteRole(DeleteRoleReq request) {
@@ -131,11 +135,10 @@ public class RoleBizService {
             .dataPermissions(modulePermissions(WorkspacePermissionCatalog.dataActions(), true)).build();
     }
 
-    private RoleRes toRoleRes(RoleEntity role) {
+    private RoleRes toRoleRes(RoleEntity role, String tenantId) {
 
-        List<String> permissionCodes =
-            rolePermissionRepository.findAllByTenantIdAndRoleId(requireTenantId(), role.getId()).stream()
-                .map(RolePermissionEntity::getPermissionCode).toList();
+        List<String> permissionCodes = rolePermissionRepository.findAllByTenantIdAndRoleId(tenantId, role.getId())
+            .stream().map(RolePermissionEntity::getPermissionCode).toList();
         return RoleRes.builder().id(role.getId()).name(role.getName()).code(role.getCode()).remark(role.getRemark())
             .status(role.getStatus()).permissionCodes(permissionCodes).build();
     }
@@ -230,5 +233,29 @@ public class RoleBizService {
             throw new IsxAppException("租户id丢失");
         }
         return ContextHolder.getTenantId();
+    }
+
+    private String resolveTenantId(String tenantId) {
+
+        if (hasPlatformAccess()) {
+            if (Strings.isEmpty(tenantId)) {
+                throw new IsxAppException("请指定租户id");
+            }
+            return tenantId;
+        }
+
+        String currentTenantId = requireTenantId();
+        if (!Strings.isEmpty(tenantId) && !currentTenantId.equals(tenantId)) {
+            throw new IsxAppException("无权操作其他租户角色");
+        }
+        return currentTenantId;
+    }
+
+    private boolean hasPlatformAccess() {
+
+        return SecurityContextHolder.getContext().getAuthentication() != null
+            && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(authority -> RoleType.PLATFORM_SUPER_ADMIN.equals(authority.getAuthority())
+                    || RoleType.PLATFORM_ADMIN.equals(authority.getAuthority()));
     }
 }
