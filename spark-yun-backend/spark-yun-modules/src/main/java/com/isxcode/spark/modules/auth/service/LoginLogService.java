@@ -47,10 +47,8 @@ public class LoginLogService {
         String searchKeyWord = pageLoginLogReq.getSearchKeyWord() == null ? "" : pageLoginLogReq.getSearchKeyWord();
         String loginMethod = pageLoginLogReq.getLoginMethod() == null ? "" : pageLoginLogReq.getLoginMethod();
         String loginStatus = pageLoginLogReq.getLoginStatus() == null ? "" : pageLoginLogReq.getLoginStatus();
-        return loginLogRepository
-            .pageLog(searchKeyWord, loginMethod, loginStatus,
-                PageRequest.of(pageLoginLogReq.getPage(), pageLoginLogReq.getPageSize()))
-            .map(this::toPageLoginLogRes);
+        return loginLogRepository.pageLog(searchKeyWord, loginMethod, loginStatus,
+            PageRequest.of(pageLoginLogReq.getPage(), pageLoginLogReq.getPageSize())).map(this::toPageLoginLogRes);
     }
 
     private void record(String loginMethod, String accountIdentifier, String userId, String loginStatus,

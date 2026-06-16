@@ -60,10 +60,10 @@ public class LoginMethodConfigService {
         boolean phoneEnabled =
             valueOrDefault(updateLoginMethodConfigReq.getPhoneEnabled(), oldConfig.getPhoneEnabled());
         boolean accountPasswordEnabled = true;
-        boolean accountPhonePasswordEnabled = valueOrDefault(updateLoginMethodConfigReq.getAccountPhonePasswordEnabled(),
-            oldConfig.getAccountPhonePasswordEnabled());
-        boolean accountEmailPasswordEnabled = valueOrDefault(updateLoginMethodConfigReq.getAccountEmailPasswordEnabled(),
-            oldConfig.getAccountEmailPasswordEnabled());
+        boolean accountPhonePasswordEnabled = valueOrDefault(
+            updateLoginMethodConfigReq.getAccountPhonePasswordEnabled(), oldConfig.getAccountPhonePasswordEnabled());
+        boolean accountEmailPasswordEnabled = valueOrDefault(
+            updateLoginMethodConfigReq.getAccountEmailPasswordEnabled(), oldConfig.getAccountEmailPasswordEnabled());
         String defaultLoginMethod = resolveDefaultLoginMethod(
             valueOrDefault(updateLoginMethodConfigReq.getDefaultLoginMethod(), oldConfig.getDefaultLoginMethod()),
             accountEnabled, emailEnabled, phoneEnabled);
@@ -144,8 +144,7 @@ public class LoginMethodConfigService {
         return LoginMethodRuntimeConfig.builder()
             .defaultLoginMethod(
                 resolveDefaultLoginMethod(config.getDefaultLoginMethod(), accountEnabled, emailEnabled, phoneEnabled))
-            .accountEnabled(accountEnabled)
-            .accountPasswordEnabled(true)
+            .accountEnabled(accountEnabled).accountPasswordEnabled(true)
             .accountPhonePasswordEnabled(valueOrDefault(config.getAccountPhonePasswordEnabled(), false))
             .accountEmailPasswordEnabled(valueOrDefault(config.getAccountEmailPasswordEnabled(), false))
             .emailEnabled(emailEnabled).emailRegisterEnabled(valueOrDefault(config.getEmailRegisterEnabled(), false))
