@@ -73,7 +73,7 @@
                     <template #options="scopeSlot">
                         <div class="btn-group user-action-group">
                             <span class="user-action-button" @click="editData(scopeSlot.row)">编辑</span>
-                            <el-dropdown trigger="click">
+                            <el-dropdown trigger="click" popper-class="user-action-dropdown">
                                 <span class="click-show-more user-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
@@ -98,13 +98,13 @@
                                             v-if="canSetPlatformAdmin(scopeSlot.row)"
                                             @click="changePlatformAdmin(scopeSlot.row, true)"
                                         >
-                                            设为平台管理员
+                                            设为管理员
                                         </el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="canCancelPlatformAdmin(scopeSlot.row)"
                                             @click="changePlatformAdmin(scopeSlot.row, false)"
                                         >
-                                            取消平台管理员
+                                            取消管理员
                                         </el-dropdown-item>
                                         <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
                                     </el-dropdown-menu>
@@ -549,6 +549,18 @@ onMounted(() => {
                 font-size: getCssVar('font-size', 'extra-small');
             }
         }
+    }
+}
+
+.user-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
     }
 }
 </style>
