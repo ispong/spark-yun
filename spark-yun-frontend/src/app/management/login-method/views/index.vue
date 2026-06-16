@@ -132,8 +132,13 @@
             </div>
         </LoadingPage>
 
-        <el-dialog v-model="phoneConfigVisible" title="短信配置" width="640px">
-            <el-form class="zqy-login-method__dialog-form" label-position="top">
+        <el-dialog
+            v-model="phoneConfigVisible"
+            class="login-method-config-dialog"
+            title="短信配置"
+            width="520px"
+        >
+            <el-form class="zqy-login-method__dialog-form zqy-login-method__dialog-form--single" label-position="top">
                 <el-form-item label="类型">
                     <el-select v-model="form.config.phoneConfig.provider">
                         <el-option label="阿里云短信" value="ALIYUN" />
@@ -167,20 +172,30 @@
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button @click="phoneConfigVisible = false">关闭</el-button>
-                <el-button :loading="saving" @click="saveConfigWithMessage">保存配置</el-button>
-                <el-button
-                    type="primary"
-                    :loading="testingChannel === 'PHONE'"
-                    @click="testConfig('PHONE')"
-                >
-                    测试发送
-                </el-button>
+                <div class="login-method-config-dialog__footer">
+                    <el-button
+                        class="login-method-config-dialog__test-button"
+                        type="primary"
+                        :loading="testingChannel === 'PHONE'"
+                        @click="testConfig('PHONE')"
+                    >
+                        测试发送
+                    </el-button>
+                    <div class="login-method-config-dialog__footer-actions">
+                        <el-button @click="phoneConfigVisible = false">关闭</el-button>
+                        <el-button type="primary" :loading="saving" @click="saveConfigWithMessage">保存配置</el-button>
+                    </div>
+                </div>
             </template>
         </el-dialog>
 
-        <el-dialog v-model="emailConfigVisible" title="邮箱配置" width="640px">
-            <el-form class="zqy-login-method__dialog-form" label-position="top">
+        <el-dialog
+            v-model="emailConfigVisible"
+            class="login-method-config-dialog"
+            title="邮箱配置"
+            width="520px"
+        >
+            <el-form class="zqy-login-method__dialog-form zqy-login-method__dialog-form--single" label-position="top">
                 <el-form-item label="类型">
                     <el-select v-model="form.config.emailConfig.provider" @change="applyEmailProvider">
                         <el-option label="QQ邮箱" value="QQ" />
@@ -190,7 +205,7 @@
                     <el-input v-model="form.config.emailConfig.host" />
                 </el-form-item>
                 <el-form-item label="SMTP端口">
-                    <el-input-number v-model="form.config.emailConfig.port" :min="1" :max="65535" />
+                    <el-input-number v-model="form.config.emailConfig.port" :min="1" :max="65535" :controls="false" />
                 </el-form-item>
                 <el-form-item label="用户名">
                     <el-input v-model="form.config.emailConfig.username" />
@@ -203,35 +218,33 @@
                         placeholder="留空表示不修改"
                     />
                 </el-form-item>
-                <el-form-item label="发件邮箱">
-                    <el-input v-model="form.config.emailConfig.fromAddress" />
-                </el-form-item>
-                <el-form-item label="发件人名称">
-                    <el-input v-model="form.config.emailConfig.fromName" />
-                </el-form-item>
-                <el-form-item label="邮件标题">
-                    <el-input v-model="form.config.emailConfig.subject" />
-                </el-form-item>
-                <el-form-item label="SSL">
-                    <el-switch v-model="form.config.emailConfig.ssl" />
-                </el-form-item>
-                <el-form-item label="STARTTLS">
-                    <el-switch v-model="form.config.emailConfig.startTls" />
-                </el-form-item>
+                <div class="zqy-login-method__switch-row">
+                    <el-form-item label="SSL">
+                        <el-switch v-model="form.config.emailConfig.ssl" />
+                    </el-form-item>
+                    <el-form-item label="STARTTLS">
+                        <el-switch v-model="form.config.emailConfig.startTls" />
+                    </el-form-item>
+                </div>
                 <el-form-item label="测试邮箱">
                     <el-input v-model="emailTestReceiver" placeholder="请输入接收邮箱" />
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button @click="emailConfigVisible = false">关闭</el-button>
-                <el-button :loading="saving" @click="saveConfigWithMessage">保存配置</el-button>
-                <el-button
-                    type="primary"
-                    :loading="testingChannel === 'EMAIL'"
-                    @click="testConfig('EMAIL')"
-                >
-                    测试发送
-                </el-button>
+                <div class="login-method-config-dialog__footer">
+                    <el-button
+                        class="login-method-config-dialog__test-button"
+                        type="primary"
+                        :loading="testingChannel === 'EMAIL'"
+                        @click="testConfig('EMAIL')"
+                    >
+                        测试发送
+                    </el-button>
+                    <div class="login-method-config-dialog__footer-actions">
+                        <el-button @click="emailConfigVisible = false">关闭</el-button>
+                        <el-button type="primary" :loading="saving" @click="saveConfigWithMessage">保存配置</el-button>
+                    </div>
+                </div>
             </template>
         </el-dialog>
     </div>
@@ -282,6 +295,7 @@ function createDefaultForm(): LoginMethodConfig {
                 provider: 'QQ',
                 host: 'smtp.qq.com',
                 port: 465,
+                fromName: '至轻云',
                 ssl: true,
                 startTls: false,
                 subject: '至轻云登录验证码'
@@ -325,7 +339,11 @@ function cloneForm(): LoginMethodConfig {
     form.accountEnabled = true
     form.accountPasswordEnabled = true
     form.defaultLoginMethod = resolveDefaultLoginMethod(form.defaultLoginMethod, form)
-    return JSON.parse(JSON.stringify(form))
+    const data = JSON.parse(JSON.stringify(form))
+    data.config.emailConfig.fromAddress = data.config.emailConfig.fromAddress || data.config.emailConfig.username || ''
+    data.config.emailConfig.fromName = data.config.emailConfig.fromName || '至轻云'
+    data.config.emailConfig.subject = data.config.emailConfig.subject || '至轻云登录验证码'
+    return data
 }
 
 function initData(tableLoading?: boolean) {
@@ -570,6 +588,123 @@ onMounted(() => {
         .el-select,
         .el-input-number {
             width: 100%;
+        }
+    }
+
+    .zqy-login-method__dialog-form--single {
+        display: block;
+    }
+}
+
+.login-method-config-dialog {
+    --login-method-modal-x-padding: 20px;
+    --login-method-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--login-method-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--login-method-modal-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+        text-align: center;
+    }
+
+    .el-dialog__headerbtn {
+        top: 0;
+        width: 42px;
+        height: 46px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--login-method-modal-x-padding);
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--login-method-modal-border-color);
+        }
+    }
+
+    .login-method-config-dialog__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        width: 100%;
+    }
+
+    .login-method-config-dialog__footer-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .login-method-config-dialog__test-button {
+        margin-left: 0;
+    }
+
+    .zqy-login-method__dialog-form {
+        padding: 14px var(--login-method-modal-x-padding) 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-input-number,
+        .el-select {
+            width: 100%;
+        }
+
+        .el-input__wrapper {
+            border-radius: 2px;
+        }
+    }
+
+    .zqy-login-method__switch-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+
+        .el-form-item {
+            margin-bottom: 20px;
         }
     }
 }

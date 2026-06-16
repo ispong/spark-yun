@@ -257,13 +257,6 @@ export const menuListData: Array<Menu> = [
         childPage: []
     },
     {
-        code: 'login-log',
-        name: '登录日志',
-        icon: 'Tickets',
-        authType: ['ROLE_SYS_ADMIN'],
-        childPage: []
-    },
-    {
         code: 'tenant-user',
         name: '租户成员',
         icon: 'User',
@@ -274,6 +267,13 @@ export const menuListData: Array<Menu> = [
         code: 'oauth-management',
         name: '免密登录',
         icon: 'Position',
+        authType: ['ROLE_SYS_ADMIN'],
+        childPage: []
+    },
+    {
+        code: 'login-log',
+        name: '登录日志',
+        icon: 'Tickets',
         authType: ['ROLE_SYS_ADMIN'],
         childPage: []
     },
@@ -330,14 +330,14 @@ export const platformMenuListData: Array<Menu> = [
         icon: 'Key'
     },
     {
-        code: 'login-log',
-        name: '登录日志',
-        icon: 'Tickets'
-    },
-    {
         code: 'oauth-management',
         name: '免密登录',
         icon: 'Position'
+    },
+    {
+        code: 'login-log',
+        name: '登录日志',
+        icon: 'Tickets'
     },
     {
         code: 'license',

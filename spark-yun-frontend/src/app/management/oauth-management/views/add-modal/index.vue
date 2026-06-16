@@ -102,6 +102,7 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
+    customClass: 'oauth-add-modal',
     closeOnClickModal: false
 })
 const formData = reactive<ConfigParam>({
@@ -248,8 +249,87 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.add-computer-group {
-    padding: 12px 20px 0 20px;
-    box-sizing: border-box;
+.oauth-add-modal.zqy-block-modal {
+    --oauth-modal-x-padding: 20px;
+    --oauth-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--oauth-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--oauth-modal-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__headerbtn {
+        top: 0;
+        width: 42px;
+        height: 46px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--oauth-modal-x-padding);
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--oauth-modal-border-color);
+        }
+    }
+
+    .add-computer-group {
+        padding: 14px var(--oauth-modal-x-padding) 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+    }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table oauth-management-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addData">新建免密</el-button>
             <div class="zqy-seach">
@@ -13,6 +13,24 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="oauth-batch-slide">
+                <div v-if="selectedRows.length" class="oauth-batch-mask">
+                    <div class="oauth-batch-actions">
+                        <el-button class="oauth-batch-action" :loading="batchLoading" @click="batchEnableOauth">
+                            启用
+                        </el-button>
+                        <el-button class="oauth-batch-action" :loading="batchLoading" @click="batchDisableOauth">
+                            禁用
+                        </el-button>
+                        <el-button class="oauth-batch-action" :loading="batchLoading" @click="batchDeleteOauth">
+                            删除
+                        </el-button>
+                        <el-button class="oauth-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -20,6 +38,7 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #name="scopeSlot">
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
@@ -31,31 +50,29 @@
                         </div>
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <template v-if="scopeSlot.row.status === 'ENABLE'">
-                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, false)">
-                                    禁用
-                                </span>
-                                <el-icon v-else class="is-loading">
-                                    <Loading />
-                                </el-icon>
-                            </template>
-                            <template v-else>
-                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, true)">
-                                    启用
-                                </span>
-                                <el-icon v-else class="is-loading">
-                                    <Loading />
-                                </el-icon>
-                            </template>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                        <div class="btn-group oauth-action-group">
+                            <span class="oauth-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <el-dropdown trigger="click" popper-class="oauth-action-dropdown">
+                                <span class="click-show-more oauth-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item @click="getUrlEvent(scopeSlot.row)">
                                             复制链接
                                         </el-dropdown-item>
-                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item
+                                            :disabled="scopeSlot.row.statusLoading"
+                                            @click="
+                                                !scopeSlot.row.statusLoading &&
+                                                    changeStatus(scopeSlot.row, scopeSlot.row.status !== 'ENABLE')
+                                            "
+                                        >
+                                            <span v-if="!scopeSlot.row.statusLoading">
+                                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                                            </span>
+                                            <el-icon v-else class="is-loading">
+                                                <Loading />
+                                            </el-icon>
+                                        </el-dropdown-item>
                                         <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
@@ -91,6 +108,8 @@ import {
 const keyword = ref<string>('')
 const loading = ref<boolean>(false)
 const networkError = ref<boolean>(false)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 const addModalRef = ref<any>(null)
 
 const breadCrumbList = reactive(BreadCrumbList)
@@ -107,6 +126,7 @@ function initData(tableLoading?: boolean) {
         .then((res: any) => {
             tableConfig.tableData = res.data.content
             tableConfig.pagination.total = res.data.totalElements
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = false
@@ -114,6 +134,7 @@ function initData(tableLoading?: boolean) {
         .catch(() => {
             tableConfig.tableData = []
             tableConfig.pagination.total = 0
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = true
@@ -149,6 +170,76 @@ function editData(row: any) {
                 })
         })
     }, row)
+}
+
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchEnableOauth() {
+    const disableRows = selectedRows.value.filter((row: any) => row.status === 'DISABLE')
+    if (!disableRows.length) {
+        ElMessage.warning('请选择禁用状态的免密配置')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(disableRows.map((row: any) => OauthEnableData({ id: row.id })))
+        .then(() => {
+            ElMessage.success('批量启用成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchDisableOauth() {
+    const enableRows = selectedRows.value.filter((row: any) => row.status === 'ENABLE')
+    if (!enableRows.length) {
+        ElMessage.warning('请选择启用状态的免密配置')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(enableRows.map((row: any) => OauthDisableData({ id: row.id })))
+        .then(() => {
+            ElMessage.success('批量禁用成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchDeleteOauth() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个免密配置吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(selectedRows.value.map((row: any) => OauthDeleteData({ id: row.id })))
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
+    })
 }
 
 // 启用 or 禁用
@@ -232,3 +323,97 @@ onMounted(() => {
     initData()
 })
 </script>
+
+<style lang="scss">
+.zqy-seach-table.oauth-management-page {
+    .zqy-table-top {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .oauth-batch-mask {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 20px;
+        box-sizing: border-box;
+        background-color: #fff;
+    }
+
+    .oauth-batch-slide-enter-active,
+    .oauth-batch-slide-leave-active {
+        transition:
+            transform 0.18s ease,
+            opacity 0.18s ease;
+        will-change: transform, opacity;
+    }
+
+    .oauth-batch-slide-enter-from,
+    .oauth-batch-slide-leave-to {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+
+    .oauth-batch-slide-enter-to,
+    .oauth-batch-slide-leave-from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .oauth-batch-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .oauth-batch-action {
+        min-width: 66px;
+        height: 32px;
+        line-height: 30px;
+        border-color: getCssVar('color', 'primary');
+        color: getCssVar('color', 'primary');
+        background-color: #fff;
+
+        &:hover,
+        &:focus {
+            border-color: getCssVar('color', 'primary');
+            color: #fff;
+            background-color: getCssVar('color', 'primary');
+        }
+    }
+
+    .oauth-batch-cancel {
+        height: 32px;
+        line-height: 30px;
+    }
+
+    .oauth-action-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .oauth-action-button {
+        color: getCssVar('color', 'primary');
+        cursor: pointer;
+        white-space: nowrap;
+    }
+}
+
+.oauth-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+</style>

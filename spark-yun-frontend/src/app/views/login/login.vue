@@ -108,61 +108,52 @@
 
                     <div v-if="showLoginActions" class="zqy-login__actions">
                         <div class="zqy-login__action-left">
-                            <el-popover v-if="showCodeLogin" trigger="click" placement="bottom" :width="180">
-                                <template #reference>
-                                    <span class="zqy-login__action-text">登录方式</span>
+                            <el-dropdown v-if="showCodeLogin" trigger="click" popper-class="login-method-dropdown">
+                                <span class="zqy-login__action-text">登录方式</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item
+                                            v-if="openLoginConfig.accountEnabled && activeLoginMethod !== 'ACCOUNT'"
+                                            @click="switchLoginMethod('ACCOUNT')"
+                                        >
+                                            账号登录
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="openLoginConfig.phoneEnabled && activeLoginMethod !== 'PHONE'"
+                                            @click="switchLoginMethod('PHONE')"
+                                        >
+                                            手机登录
+                                        </el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="openLoginConfig.emailEnabled && activeLoginMethod !== 'EMAIL'"
+                                            @click="switchLoginMethod('EMAIL')"
+                                        >
+                                            邮箱登录
+                                        </el-dropdown-item>
+                                    </el-dropdown-menu>
                                 </template>
-                                <div class="zqy-login__oauth-list">
-                                    <el-button
-                                        v-if="openLoginConfig.accountEnabled && activeLoginMethod !== 'ACCOUNT'"
-                                        class="zqy-login__oauth-button"
-                                        type="primary"
-                                        @click="switchLoginMethod('ACCOUNT')"
-                                    >
-                                        账号登录
-                                    </el-button>
-                                    <el-button
-                                        v-if="openLoginConfig.phoneEnabled && activeLoginMethod !== 'PHONE'"
-                                        class="zqy-login__oauth-button"
-                                        type="primary"
-                                        @click="switchLoginMethod('PHONE')"
-                                    >
-                                        手机登录
-                                    </el-button>
-                                    <el-button
-                                        v-if="openLoginConfig.emailEnabled && activeLoginMethod !== 'EMAIL'"
-                                        class="zqy-login__oauth-button"
-                                        type="primary"
-                                        @click="switchLoginMethod('EMAIL')"
-                                    >
-                                        邮箱登录
-                                    </el-button>
-                                </div>
-                            </el-popover>
+                            </el-dropdown>
                         </div>
 
                         <div class="zqy-login__action-right">
-                            <el-popover
+                            <el-dropdown
                                 v-if="oauthLoaded && oauthUrlList.length"
                                 trigger="click"
-                                placement="bottom"
-                                :width="180"
+                                popper-class="login-method-dropdown"
                             >
-                                <template #reference>
-                                    <span class="zqy-login__action-text">免密登录</span>
+                                <span class="zqy-login__action-text">免密登录</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item
+                                            v-for="item in oauthUrlList"
+                                            :key="item.invokeUrl"
+                                            @click="handleRedirect(item)"
+                                        >
+                                            {{ item.name }}
+                                        </el-dropdown-item>
+                                    </el-dropdown-menu>
                                 </template>
-                                <div class="zqy-login__oauth-list">
-                                    <el-button
-                                        v-for="item in oauthUrlList"
-                                        :key="item.invokeUrl"
-                                        class="zqy-login__oauth-button"
-                                        type="primary"
-                                        @click="handleRedirect(item)"
-                                    >
-                                        {{ item.name }}
-                                    </el-button>
-                                </div>
-                            </el-popover>
+                            </el-dropdown>
                         </div>
                     </div>
 
@@ -738,6 +729,7 @@ onBeforeUnmount(() => {
         margin: 0;
         font-size: 12px;
         height: 32px;
+        justify-content: flex-start;
     }
 
     .zqy-login__code-form {
@@ -882,5 +874,18 @@ onBeforeUnmount(() => {
         }
     }
 
+}
+
+.login-method-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
 }
 </style>
