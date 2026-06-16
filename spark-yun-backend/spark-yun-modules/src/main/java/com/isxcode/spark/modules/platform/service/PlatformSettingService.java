@@ -25,13 +25,16 @@ public class PlatformSettingService {
     public GetPlatformSettingRes getSetting() {
 
         PlatformSettingEntity setting = getOrCreateSetting();
-        return GetPlatformSettingRes.builder().description(setting.getDescription()).build();
+        return GetPlatformSettingRes.builder().description(setting.getDescription())
+            .autoCreateTenant(valueOrDefault(setting.getAutoCreateTenant(), true)).build();
     }
 
     public void updateSetting(UpdatePlatformSettingReq updatePlatformSettingReq) {
 
         PlatformSettingEntity setting = getOrCreateSetting();
         setting.setDescription(updatePlatformSettingReq.getDescription());
+        setting.setAutoCreateTenant(valueOrDefault(updatePlatformSettingReq.getAutoCreateTenant(),
+            valueOrDefault(setting.getAutoCreateTenant(), true)));
         platformSettingRepository.save(setting);
     }
 
@@ -46,7 +49,13 @@ public class PlatformSettingService {
         PlatformSettingEntity setting = new PlatformSettingEntity();
         setting.setSettingKey(GLOBAL_SETTING_KEY);
         setting.setDescription("");
+        setting.setAutoCreateTenant(true);
         return setting;
+    }
+
+    private boolean valueOrDefault(Boolean value, boolean defaultValue) {
+
+        return value == null ? defaultValue : value;
     }
 
     private <T> T withSystemUser(Supplier<T> supplier) {

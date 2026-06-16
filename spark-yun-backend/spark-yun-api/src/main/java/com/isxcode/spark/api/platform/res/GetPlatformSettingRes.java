@@ -8,4 +8,6 @@ import lombok.Data;
 public class GetPlatformSettingRes {
 
     private String description;
+
+    private Boolean autoCreateTenant;
 }

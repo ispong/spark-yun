@@ -2,6 +2,7 @@ import { http } from '@/app/utils/http'
 
 export interface PlatformSetting {
     description: string
+    autoCreateTenant: boolean
 }
 
 export function GetPlatformSetting(): Promise<any> {

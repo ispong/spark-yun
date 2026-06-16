@@ -1,304 +1,288 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
     <div class="zqy-login-method zqy-seach-table">
-        <div class="zqy-table-top">
-            <div class="zqy-login-method__settings">
-                <div class="zqy-login-method__setting-item">
-                    <span>默认登录方式</span>
-                    <el-select
-                        v-model="form.defaultLoginMethod"
-                        class="zqy-login-method__default-select"
-                        :disabled="saving"
-                        @change="saveConfig(true)"
-                    >
-                        <el-option
-                            v-for="item in defaultLoginMethodOptions"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value"
-                        />
-                    </el-select>
-                </div>
-                <div class="zqy-login-method__setting-item">
-                    <span>自动注册初始化租户</span>
-                    <el-switch
-                        v-model="form.autoCreateTenant"
-                        :loading="saving"
-                        @change="saveConfig(true)"
-                    />
-                </div>
-            </div>
-            <el-button :loading="loading" @click="initData(false)">刷新</el-button>
-        </div>
-
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-login-method__content">
-                <div class="zqy-login-method__cards">
-                    <el-card class="zqy-login-method__card">
-                        <template #header>
-                            <div class="zqy-login-method__card-title">
-                                <span>
-                                    <el-icon><User /></el-icon>
-                                    账号登录
-                                </span>
+                <el-card class="zqy-login-method__card zqy-login-method__card--account" shadow="never">
+                    <template #header>
+                        <div class="zqy-login-method__card-header">
+                            <div class="zqy-login-method__card-name">
+                                <el-icon><User /></el-icon>
+                                账号登录
+                            </div>
+                            <div class="zqy-login-method__header-switches">
+                                <span>首页登录方式</span>
                                 <el-switch
-                                    v-model="form.accountEnabled"
-                                    :loading="saving"
-                                    @change="saveConfig(true)"
+                                    :model-value="form.defaultLoginMethod === 'ACCOUNT'"
+                                    :disabled="saving"
+                                    @change="changeDefaultLoginMethod('ACCOUNT', $event)"
                                 />
                             </div>
-                        </template>
-                        <div class="zqy-login-method__card-body">
-                            <el-checkbox
+                        </div>
+                    </template>
+                    <div class="zqy-login-method__card-body">
+                        <div class="zqy-login-method__option-row zqy-login-method__fixed-row">
+                            <span>账号+密码登录</span>
+                        </div>
+                        <div class="zqy-login-method__option-row">
+                            <span>手机+密码登录</span>
+                            <el-switch
                                 v-model="form.accountPhonePasswordEnabled"
-                                :disabled="!form.accountEnabled || saving"
-                                @change="saveConfig(true)"
-                            >
-                                支持手机+密码登录
-                            </el-checkbox>
-                            <el-checkbox
+                                :disabled="saving"
+                                @change="persistConfig"
+                            />
+                        </div>
+                        <div class="zqy-login-method__option-row">
+                            <span>邮箱+密码登录</span>
+                            <el-switch
                                 v-model="form.accountEmailPasswordEnabled"
-                                :disabled="!form.accountEnabled || saving"
-                                @change="saveConfig(true)"
-                            >
-                                支持邮箱+密码登录
-                            </el-checkbox>
-                        </div>
-                    </el-card>
-
-                    <el-card class="zqy-login-method__card">
-                        <template #header>
-                            <div class="zqy-login-method__card-title">
-                                <span>
-                                    <el-icon><Message /></el-icon>
-                                    邮箱登录
-                                </span>
-                                <el-switch
-                                    v-model="form.emailEnabled"
-                                    :loading="saving"
-                                    @change="saveConfig(true)"
-                                />
-                            </div>
-                        </template>
-                        <div class="zqy-login-method__card-body">
-                            <div class="zqy-login-method__switch-row">
-                                <span>支持注册</span>
-                                <el-switch
-                                    v-model="form.emailRegisterEnabled"
-                                    :disabled="saving"
-                                    @change="saveConfig(true)"
-                                />
-                            </div>
-                            <el-form label-position="top" class="zqy-login-method__form">
-                                <el-form-item label="SMTP服务器">
-                                    <el-input v-model="form.config.emailConfig.host" />
-                                </el-form-item>
-                                <el-form-item label="SMTP端口">
-                                    <el-input-number v-model="form.config.emailConfig.port" :min="1" :max="65535" />
-                                </el-form-item>
-                                <el-form-item label="用户名">
-                                    <el-input v-model="form.config.emailConfig.username" />
-                                </el-form-item>
-                                <el-form-item label="密码">
-                                    <el-input
-                                        v-model="form.config.emailConfig.password"
-                                        type="password"
-                                        show-password
-                                    />
-                                </el-form-item>
-                                <el-form-item label="发件邮箱">
-                                    <el-input v-model="form.config.emailConfig.fromAddress" />
-                                </el-form-item>
-                                <el-form-item label="邮件标题">
-                                    <el-input v-model="form.config.emailConfig.subject" />
-                                </el-form-item>
-                                <el-form-item label="SSL">
-                                    <el-switch v-model="form.config.emailConfig.ssl" />
-                                </el-form-item>
-                                <el-form-item label="STARTTLS">
-                                    <el-switch v-model="form.config.emailConfig.startTls" />
-                                </el-form-item>
-                            </el-form>
-                            <div class="zqy-login-method__actions">
-                                <el-button :loading="saving" type="primary" @click="saveConfig(false)">
-                                    保存配置
-                                </el-button>
-                                <el-button @click="showRecord('EMAIL')">发送记录</el-button>
-                            </div>
-                        </div>
-                    </el-card>
-
-                    <el-card class="zqy-login-method__card">
-                        <template #header>
-                            <div class="zqy-login-method__card-title">
-                                <span>
-                                    <el-icon><Iphone /></el-icon>
-                                    手机登录
-                                </span>
-                                <el-switch
-                                    v-model="form.phoneEnabled"
-                                    :loading="saving"
-                                    @change="saveConfig(true)"
-                                />
-                            </div>
-                        </template>
-                        <div class="zqy-login-method__card-body">
-                            <div class="zqy-login-method__switch-row">
-                                <span>支持注册</span>
-                                <el-switch
-                                    v-model="form.phoneRegisterEnabled"
-                                    :disabled="saving"
-                                    @change="saveConfig(true)"
-                                />
-                            </div>
-                            <el-form label-position="top" class="zqy-login-method__form">
-                                <el-form-item label="服务商">
-                                    <el-select v-model="form.config.phoneConfig.provider">
-                                        <el-option label="阿里云" value="ALIYUN" />
-                                    </el-select>
-                                </el-form-item>
-                                <el-form-item label="RegionId">
-                                    <el-input v-model="form.config.phoneConfig.regionId" />
-                                </el-form-item>
-                                <el-form-item label="AccessKeyId">
-                                    <el-input v-model="form.config.phoneConfig.accessKeyId" />
-                                </el-form-item>
-                                <el-form-item label="AccessKeySecret">
-                                    <el-input
-                                        v-model="form.config.phoneConfig.accessKeySecret"
-                                        type="password"
-                                        show-password
-                                    />
-                                </el-form-item>
-                                <el-form-item label="短信签名">
-                                    <el-input v-model="form.config.phoneConfig.signName" />
-                                </el-form-item>
-                                <el-form-item label="模板Code">
-                                    <el-input v-model="form.config.phoneConfig.templateCode" />
-                                </el-form-item>
-                                <el-form-item label="验证码变量名">
-                                    <el-input v-model="form.config.phoneConfig.templateParamName" />
-                                </el-form-item>
-                            </el-form>
-                            <div class="zqy-login-method__actions">
-                                <el-button :loading="saving" type="primary" @click="saveConfig(false)">
-                                    保存配置
-                                </el-button>
-                                <el-button @click="showRecord('PHONE')">发送记录</el-button>
-                            </div>
-                        </div>
-                    </el-card>
-                </div>
-
-                <div class="zqy-login-method__records">
-                    <div class="zqy-login-method__records-top">
-                        <div class="zqy-login-method__records-title">发送记录</div>
-                        <div class="zqy-login-method__records-tools">
-                            <el-select v-model="recordChannel" clearable placeholder="全部方式" @change="initRecord">
-                                <el-option label="邮箱登录" value="EMAIL" />
-                                <el-option label="手机登录" value="PHONE" />
-                            </el-select>
-                            <el-input
-                                v-model="recordKeyword"
-                                placeholder="请输入接收账号/状态 回车搜索"
-                                clearable
-                                @input="inputEvent"
-                                @keyup.enter="initRecord"
+                                :disabled="saving"
+                                @change="persistConfig"
                             />
                         </div>
                     </div>
-                    <div class="zqy-table">
-                        <BlockTable
-                            :table-config="tableConfig"
-                            @size-change="handleSizeChange"
-                            @current-change="handleCurrentChange"
+                </el-card>
+
+                <el-card class="zqy-login-method__card zqy-login-method__card--phone" shadow="never">
+                    <template #header>
+                        <div class="zqy-login-method__card-header">
+                            <div class="zqy-login-method__card-name">
+                                <el-icon><Iphone /></el-icon>
+                                手机登录
+                            </div>
+                            <div class="zqy-login-method__header-switches">
+                                <span>首页登录方式</span>
+                                <el-switch
+                                    :model-value="form.defaultLoginMethod === 'PHONE'"
+                                    :disabled="!form.phoneEnabled || saving"
+                                    @change="changeDefaultLoginMethod('PHONE', $event)"
+                                />
+                            </div>
+                        </div>
+                    </template>
+                    <div class="zqy-login-method__card-body">
+                        <div class="zqy-login-method__option-row">
+                            <span>启用</span>
+                            <el-switch v-model="form.phoneEnabled" :loading="saving" @change="persistConfig" />
+                        </div>
+                        <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.phoneEnabled }">
+                            <span>自动注册</span>
+                            <el-switch
+                                v-model="form.phoneRegisterEnabled"
+                                :disabled="!form.phoneEnabled || saving"
+                                @change="persistConfig"
+                            />
+                        </div>
+                        <button
+                            class="zqy-login-method__config-row"
+                            :class="{ 'is-disabled': !form.phoneEnabled }"
+                            type="button"
+                            :disabled="!form.phoneEnabled || saving"
+                            @click="phoneConfigVisible = true"
                         >
-                            <template #channel="scopeSlot">
-                                <el-tag v-if="scopeSlot.row.channel === 'EMAIL'">邮箱登录</el-tag>
-                                <el-tag v-else type="success">手机登录</el-tag>
-                            </template>
-                            <template #sendStatus="scopeSlot">
-                                <el-tag v-if="scopeSlot.row.sendStatus === 'SUCCESS'" type="success">成功</el-tag>
-                                <el-tag v-else type="danger">失败</el-tag>
-                            </template>
-                            <template #verifyStatus="scopeSlot">
-                                <el-tag :type="getVerifyStatusType(scopeSlot.row.verifyStatus)">
-                                    {{ getVerifyStatusText(scopeSlot.row.verifyStatus) }}
-                                </el-tag>
-                            </template>
-                            <template #booleanTag="scopeSlot">
-                                <el-tag v-if="scopeSlot.row.registered" type="success">是</el-tag>
-                                <el-tag v-else>否</el-tag>
-                            </template>
-                            <template #tenantTag="scopeSlot">
-                                <el-tag v-if="scopeSlot.row.autoTenantCreated" type="success">是</el-tag>
-                                <el-tag v-else>否</el-tag>
-                            </template>
-                        </BlockTable>
+                            <span>短信配置</span>
+                            <el-icon><Setting /></el-icon>
+                        </button>
                     </div>
-                </div>
+                </el-card>
+
+                <el-card class="zqy-login-method__card zqy-login-method__card--email" shadow="never">
+                    <template #header>
+                        <div class="zqy-login-method__card-header">
+                            <div class="zqy-login-method__card-name">
+                                <el-icon><Message /></el-icon>
+                                邮箱登录
+                            </div>
+                            <div class="zqy-login-method__header-switches">
+                                <span>首页登录方式</span>
+                                <el-switch
+                                    :model-value="form.defaultLoginMethod === 'EMAIL'"
+                                    :disabled="!form.emailEnabled || saving"
+                                    @change="changeDefaultLoginMethod('EMAIL', $event)"
+                                />
+                            </div>
+                        </div>
+                    </template>
+                    <div class="zqy-login-method__card-body">
+                        <div class="zqy-login-method__option-row">
+                            <span>启用</span>
+                            <el-switch v-model="form.emailEnabled" :loading="saving" @change="persistConfig" />
+                        </div>
+                        <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.emailEnabled }">
+                            <span>自动注册</span>
+                            <el-switch
+                                v-model="form.emailRegisterEnabled"
+                                :disabled="!form.emailEnabled || saving"
+                                @change="persistConfig"
+                            />
+                        </div>
+                        <button
+                            class="zqy-login-method__config-row"
+                            :class="{ 'is-disabled': !form.emailEnabled }"
+                            type="button"
+                            :disabled="!form.emailEnabled || saving"
+                            @click="emailConfigVisible = true"
+                        >
+                            <span>邮箱配置</span>
+                            <el-icon><Setting /></el-icon>
+                        </button>
+                    </div>
+                </el-card>
             </div>
         </LoadingPage>
+
+        <el-dialog v-model="phoneConfigVisible" title="短信配置" width="640px">
+            <el-form class="zqy-login-method__dialog-form" label-position="top">
+                <el-form-item label="类型">
+                    <el-select v-model="form.config.phoneConfig.provider">
+                        <el-option label="阿里云短信" value="ALIYUN" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="RegionId">
+                    <el-input v-model="form.config.phoneConfig.regionId" />
+                </el-form-item>
+                <el-form-item label="AccessKeyId">
+                    <el-input v-model="form.config.phoneConfig.accessKeyId" />
+                </el-form-item>
+                <el-form-item label="AccessKeySecret">
+                    <el-input
+                        v-model="form.config.phoneConfig.accessKeySecret"
+                        type="password"
+                        show-password
+                        placeholder="留空表示不修改"
+                    />
+                </el-form-item>
+                <el-form-item label="短信签名">
+                    <el-input v-model="form.config.phoneConfig.signName" />
+                </el-form-item>
+                <el-form-item label="模板Code">
+                    <el-input v-model="form.config.phoneConfig.templateCode" />
+                </el-form-item>
+                <el-form-item label="验证码变量名">
+                    <el-input v-model="form.config.phoneConfig.templateParamName" />
+                </el-form-item>
+                <el-form-item label="测试手机号">
+                    <el-input v-model="phoneTestReceiver" placeholder="请输入接收手机号" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="phoneConfigVisible = false">关闭</el-button>
+                <el-button :loading="saving" @click="saveConfigWithMessage">保存配置</el-button>
+                <el-button
+                    type="primary"
+                    :loading="testingChannel === 'PHONE'"
+                    @click="testConfig('PHONE')"
+                >
+                    测试发送
+                </el-button>
+            </template>
+        </el-dialog>
+
+        <el-dialog v-model="emailConfigVisible" title="邮箱配置" width="640px">
+            <el-form class="zqy-login-method__dialog-form" label-position="top">
+                <el-form-item label="类型">
+                    <el-select v-model="form.config.emailConfig.provider" @change="applyEmailProvider">
+                        <el-option label="QQ邮箱" value="QQ" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="SMTP服务器">
+                    <el-input v-model="form.config.emailConfig.host" />
+                </el-form-item>
+                <el-form-item label="SMTP端口">
+                    <el-input-number v-model="form.config.emailConfig.port" :min="1" :max="65535" />
+                </el-form-item>
+                <el-form-item label="用户名">
+                    <el-input v-model="form.config.emailConfig.username" />
+                </el-form-item>
+                <el-form-item label="授权码">
+                    <el-input
+                        v-model="form.config.emailConfig.password"
+                        type="password"
+                        show-password
+                        placeholder="留空表示不修改"
+                    />
+                </el-form-item>
+                <el-form-item label="发件邮箱">
+                    <el-input v-model="form.config.emailConfig.fromAddress" />
+                </el-form-item>
+                <el-form-item label="发件人名称">
+                    <el-input v-model="form.config.emailConfig.fromName" />
+                </el-form-item>
+                <el-form-item label="邮件标题">
+                    <el-input v-model="form.config.emailConfig.subject" />
+                </el-form-item>
+                <el-form-item label="SSL">
+                    <el-switch v-model="form.config.emailConfig.ssl" />
+                </el-form-item>
+                <el-form-item label="STARTTLS">
+                    <el-switch v-model="form.config.emailConfig.startTls" />
+                </el-form-item>
+                <el-form-item label="测试邮箱">
+                    <el-input v-model="emailTestReceiver" placeholder="请输入接收邮箱" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="emailConfigVisible = false">关闭</el-button>
+                <el-button :loading="saving" @click="saveConfigWithMessage">保存配置</el-button>
+                <el-button
+                    type="primary"
+                    :loading="testingChannel === 'EMAIL'"
+                    @click="testConfig('EMAIL')"
+                >
+                    测试发送
+                </el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Iphone, Message, User } from '@element-plus/icons-vue'
+import { Iphone, Message, Setting, User } from '@element-plus/icons-vue'
 
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
-import BlockTable from '@/app/components/block-table/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import {
     GetLoginMethodConfig,
-    PageLoginCodeRecord,
+    TestLoginConfig,
     UpdateLoginMethodConfig,
     type LoginChannel,
     type LoginMethodConfig,
     type LoginMethodType
 } from '@/app/management/login-method/api'
-import { BreadCrumbList, TableConfig } from './login-method.config'
+import { BreadCrumbList } from './login-method.config'
 
 const breadCrumbList = reactive(BreadCrumbList)
-const tableConfig: any = reactive(TableConfig)
 const loading = ref(false)
 const saving = ref(false)
 const networkError = ref(false)
-const recordKeyword = ref('')
-const recordChannel = ref('')
+const phoneConfigVisible = ref(false)
+const emailConfigVisible = ref(false)
+const phoneTestReceiver = ref('')
+const emailTestReceiver = ref('')
+const testingChannel = ref<LoginChannel | ''>('')
 
 const form = reactive<LoginMethodConfig>(createDefaultForm())
-const defaultLoginMethodOptions = computed(() => {
-    const options: Array<{ label: string; value: LoginMethodType }> = []
-    if (form.accountEnabled) {
-        options.push({ label: '账号登录', value: 'ACCOUNT' })
-    }
-    if (form.phoneEnabled) {
-        options.push({ label: '手机登录', value: 'PHONE' })
-    }
-    if (form.emailEnabled) {
-        options.push({ label: '邮箱登录', value: 'EMAIL' })
-    }
-    return options
-})
 
 function createDefaultForm(): LoginMethodConfig {
     return {
         defaultLoginMethod: 'ACCOUNT',
         accountEnabled: true,
+        accountPasswordEnabled: true,
         accountPhonePasswordEnabled: false,
         accountEmailPasswordEnabled: false,
         emailEnabled: false,
         emailRegisterEnabled: false,
         phoneEnabled: false,
         phoneRegisterEnabled: false,
-        autoCreateTenant: true,
         config: {
             emailConfig: {
-                port: 587,
-                ssl: false,
-                startTls: true,
+                provider: 'QQ',
+                host: 'smtp.qq.com',
+                port: 465,
+                ssl: true,
+                startTls: false,
                 subject: '至轻云登录验证码'
             },
             phoneConfig: {
@@ -326,6 +310,8 @@ function normalizeConfig(data: Partial<LoginMethodConfig>): LoginMethodConfig {
             }
         }
     }
+    config.accountEnabled = true
+    config.accountPasswordEnabled = true
     config.defaultLoginMethod = resolveDefaultLoginMethod(config.defaultLoginMethod, config)
     return config
 }
@@ -335,6 +321,8 @@ function applyConfig(data: Partial<LoginMethodConfig>) {
 }
 
 function cloneForm(): LoginMethodConfig {
+    form.accountEnabled = true
+    form.accountPasswordEnabled = true
     form.defaultLoginMethod = resolveDefaultLoginMethod(form.defaultLoginMethod, form)
     return JSON.parse(JSON.stringify(form))
 }
@@ -347,7 +335,6 @@ function initData(tableLoading?: boolean) {
             applyConfig(res.data || {})
             loading.value = false
             networkError.value = false
-            initRecord()
         })
         .catch(() => {
             loading.value = false
@@ -355,84 +342,50 @@ function initData(tableLoading?: boolean) {
         })
 }
 
-function saveConfig(silent: boolean) {
-    if (!form.accountEnabled && !form.emailEnabled && !form.phoneEnabled) {
-        ElMessage.error('至少需要开启一种登录方式')
+function persistConfig() {
+    saveConfig(true).catch(() => undefined)
+}
+
+function saveConfigWithMessage() {
+    saveConfig(false).catch(() => undefined)
+}
+
+function saveConfig(silent: boolean): Promise<void> {
+    if (!validateConfig()) {
         initData(true)
-        return
+        return Promise.reject(new Error('invalid login method config'))
     }
     form.defaultLoginMethod = resolveDefaultLoginMethod(form.defaultLoginMethod, form)
     saving.value = true
-    UpdateLoginMethodConfig(cloneForm())
+    return UpdateLoginMethodConfig(cloneForm())
         .then((res: any) => {
             if (!silent) {
                 ElMessage.success(res.msg)
             }
             applyConfig(res.data || form)
         })
-        .catch(() => {
+        .catch((error) => {
             initData(true)
+            return Promise.reject(error)
         })
         .finally(() => {
             saving.value = false
         })
 }
 
-function initRecord() {
-    PageLoginCodeRecord({
-        page: tableConfig.pagination.currentPage - 1,
-        pageSize: tableConfig.pagination.pageSize,
-        searchKeyWord: recordKeyword.value,
-        channel: recordChannel.value
-    })
-        .then((res: any) => {
-            tableConfig.tableData = res.data.content
-            tableConfig.pagination.total = res.data.totalElements
-            tableConfig.loading = false
-        })
-        .catch(() => {
-            tableConfig.tableData = []
-            tableConfig.pagination.total = 0
-            tableConfig.loading = false
-        })
+function validateConfig() {
+    form.accountEnabled = true
+    form.accountPasswordEnabled = true
+    return true
 }
 
-function showRecord(channel: LoginChannel) {
-    recordChannel.value = channel
-    tableConfig.pagination.currentPage = 1
-    initRecord()
-}
-
-function inputEvent(value: string) {
-    if (value === '') {
-        initRecord()
+function changeDefaultLoginMethod(loginMethod: LoginMethodType, enabled: boolean | string | number) {
+    if (!enabled) {
+        ElMessage.warning('首页登录方式必须保留一个')
+        return
     }
-}
-
-function handleSizeChange(size: number) {
-    tableConfig.pagination.pageSize = size
-    initRecord()
-}
-
-function handleCurrentChange(page: number) {
-    tableConfig.pagination.currentPage = page
-    initRecord()
-}
-
-function getVerifyStatusType(status: string) {
-    if (status === 'VERIFIED') return 'success'
-    if (status === 'WAIT') return 'warning'
-    return 'danger'
-}
-
-function getVerifyStatusText(status: string) {
-    const statusText: Record<string, string> = {
-        WAIT: '待验证',
-        VERIFIED: '已验证',
-        EXPIRED: '已过期',
-        FAIL: '失败'
-    }
-    return statusText[status] || status
+    form.defaultLoginMethod = loginMethod
+    persistConfig()
 }
 
 function resolveDefaultLoginMethod(defaultLoginMethod: LoginMethodType | undefined, config: LoginMethodConfig): LoginMethodType {
@@ -444,147 +397,184 @@ function resolveDefaultLoginMethod(defaultLoginMethod: LoginMethodType | undefin
     return 'EMAIL'
 }
 
+function applyEmailProvider() {
+    if (form.config.emailConfig.provider !== 'QQ') {
+        return
+    }
+    form.config.emailConfig.host = 'smtp.qq.com'
+    form.config.emailConfig.port = 465
+    form.config.emailConfig.ssl = true
+    form.config.emailConfig.startTls = false
+}
+
+async function testConfig(channel: LoginChannel) {
+    const receiver = channel === 'PHONE' ? phoneTestReceiver.value : emailTestReceiver.value
+    if (!receiver) {
+        ElMessage.warning(channel === 'PHONE' ? '请输入测试手机号' : '请输入测试邮箱')
+        return
+    }
+    testingChannel.value = channel
+    try {
+        await saveConfig(true)
+        await TestLoginConfig({
+            channel,
+            receiver
+        })
+        ElMessage.success('测试发送成功')
+    } catch {
+        // The shared HTTP handler has already shown the specific error message.
+    } finally {
+        testingChannel.value = ''
+    }
+}
+
 onMounted(() => {
-    tableConfig.pagination.currentPage = 1
-    tableConfig.pagination.pageSize = 10
     initData()
 })
 </script>
 
 <style lang="scss">
 .zqy-login-method {
-    .zqy-login-method__settings {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-    }
-
-    .zqy-login-method__setting-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: getCssVar('text-color', 'primary');
-        font-size: getCssVar('font-size', 'small');
-    }
-
-    .zqy-login-method__default-select {
-        width: 132px;
-    }
-
     .zqy-login-method__content {
-        height: calc(100vh - 114px);
-        overflow: auto;
-        padding: 0 20px 20px;
-        box-sizing: border-box;
-    }
-
-    .zqy-login-method__cards {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 16px;
-        align-items: stretch;
+        padding: 16px 20px 20px;
+        box-sizing: border-box;
     }
 
     .zqy-login-method__card {
+        --login-method-accent: #{getCssVar('color-primary')};
+
+        position: relative;
         min-width: 0;
+        overflow: hidden;
+        border: 1px solid getCssVar('border-color');
+        border-radius: 8px;
+        box-shadow: 0 8px 20px rgb(31 35 41 / 8%);
+
+        &::before {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--login-method-accent);
+            content: '';
+        }
+
+        &.zqy-login-method__card--account {
+            --login-method-accent: #3b82f6;
+        }
+
+        &.zqy-login-method__card--phone {
+            --login-method-accent: #10b981;
+        }
+
+        &.zqy-login-method__card--email {
+            --login-method-accent: #f59e0b;
+        }
 
         .el-card__header {
-            padding: 14px 16px;
+            padding: 16px 16px 14px;
+            border-bottom-color: getCssVar('border-color', 'lighter');
+            background: getCssVar('fill-color', 'blank');
         }
 
         .el-card__body {
-            padding: 16px;
+            padding: 12px 16px 16px;
         }
     }
 
-    .zqy-login-method__card-title {
+    .zqy-login-method__fixed-row {
+        color: getCssVar('text-color', 'primary');
+        font-weight: 500;
+    }
+
+    .zqy-login-method__card-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
+    }
+
+    .zqy-login-method__card-name {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
         color: getCssVar('text-color', 'primary');
         font-size: 14px;
         font-weight: 600;
+    }
 
-        span {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            min-width: 0;
-        }
+    .zqy-login-method__header-switches {
+        display: grid;
+        grid-template-columns: auto auto;
+        align-items: center;
+        gap: 8px;
+        color: getCssVar('text-color', 'regular');
+        font-size: 12px;
+        white-space: nowrap;
     }
 
     .zqy-login-method__card-body {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
     }
 
-    .zqy-login-method__switch-row {
+    .zqy-login-method__option-row,
+    .zqy-login-method__config-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        min-height: 32px;
-        color: getCssVar('text-color', 'regular');
-        font-size: getCssVar('font-size', 'extra-small');
+        min-height: 36px;
+        padding: 0;
+        color: inherit;
+        font-size: 13px;
+
+        &.is-disabled {
+            color: getCssVar('text-color', 'disabled');
+        }
     }
 
-    .zqy-login-method__form {
+    .zqy-login-method__config-row {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+
+        &:disabled {
+            cursor: not-allowed;
+        }
+    }
+
+    .zqy-login-method__dialog-form {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0 12px;
+        gap: 0 16px;
 
         .el-form-item {
-            margin-bottom: 12px;
-        }
-    }
-
-    .zqy-login-method__actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-        padding-top: 4px;
-    }
-
-    .zqy-login-method__records {
-        margin-top: 20px;
-        border-top: 1px solid var(--el-border-color-light);
-        padding-top: 16px;
-    }
-
-    .zqy-login-method__records-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        padding-bottom: 12px;
-    }
-
-    .zqy-login-method__records-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: getCssVar('text-color', 'primary');
-    }
-
-    .zqy-login-method__records-tools {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-
-        .el-select {
-            width: 120px;
+            margin-bottom: 14px;
         }
 
-        .el-input {
-            width: 300px;
+        .el-select,
+        .el-input-number {
+            width: 100%;
         }
     }
 }
 
 @media (max-width: 1200px) {
     .zqy-login-method {
-        .zqy-login-method__cards {
+        .zqy-login-method__content {
             grid-template-columns: 1fr;
+        }
+
+        .zqy-login-method__card-header {
+            align-items: flex-start;
+            flex-direction: column;
         }
     }
 }

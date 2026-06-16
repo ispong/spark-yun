@@ -37,6 +37,8 @@ public class LoginMethodConfigEntity {
 
     private Boolean accountEnabled;
 
+    private Boolean accountPasswordEnabled;
+
     private Boolean accountPhonePasswordEnabled;
 
     private Boolean accountEmailPasswordEnabled;

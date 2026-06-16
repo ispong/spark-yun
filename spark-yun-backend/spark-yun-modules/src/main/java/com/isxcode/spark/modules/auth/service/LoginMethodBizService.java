@@ -14,6 +14,7 @@ import com.aliyun.teautil.models.RuntimeOptions;
 import com.isxcode.spark.api.auth.constants.LoginCodeScene;
 import com.isxcode.spark.api.auth.constants.LoginCodeSendStatus;
 import com.isxcode.spark.api.auth.constants.LoginCodeVerifyStatus;
+import com.isxcode.spark.api.auth.constants.LoginLogMethod;
 import com.isxcode.spark.api.auth.constants.LoginMethodType;
 import com.isxcode.spark.api.auth.dto.EmailLoginConfig;
 import com.isxcode.spark.api.auth.dto.PhoneLoginConfig;
@@ -21,7 +22,6 @@ import com.isxcode.spark.api.auth.req.PageLoginCodeRecordReq;
 import com.isxcode.spark.api.auth.req.SendLoginCodeReq;
 import com.isxcode.spark.api.auth.req.VerifyLoginCodeReq;
 import com.isxcode.spark.api.auth.res.PageLoginCodeRecordRes;
-import com.isxcode.spark.api.tenant.req.AddTenantReq;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.constants.UserStatus;
 import com.isxcode.spark.api.user.res.LoginRes;
@@ -29,7 +29,6 @@ import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.common.security.ContextHolder;
 import com.isxcode.spark.modules.auth.entity.LoginCodeRecordEntity;
 import com.isxcode.spark.modules.auth.repository.LoginCodeRecordRepository;
-import com.isxcode.spark.modules.tenant.service.biz.TenantBizService;
 import com.isxcode.spark.modules.user.service.UserBizService;
 import com.isxcode.spark.security.user.UserEntity;
 import com.isxcode.spark.security.user.UserRepository;
@@ -74,7 +73,7 @@ public class LoginMethodBizService {
 
     private final UserBizService userBizService;
 
-    private final TenantBizService tenantBizService;
+    private final LoginLogService loginLogService;
 
     public void sendCode(SendLoginCodeReq sendLoginCodeReq) {
 
@@ -117,60 +116,74 @@ public class LoginMethodBizService {
     public LoginRes verifyLogin(VerifyLoginCodeReq verifyLoginCodeReq) {
 
         return withSystemUser(() -> {
-            String channel = normalizeChannel(verifyLoginCodeReq.getChannel());
-            String receiver = normalizeReceiver(channel, verifyLoginCodeReq.getReceiver());
-            String code = verifyLoginCodeReq.getCode().trim();
-            if (!code.matches("^\\d{6}$")) {
-                throw new IsxAppException("验证码格式不正确");
-            }
-
-            LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
-            validateChannelEnabled(channel, config);
-            LoginCodeRecordEntity record = loginCodeRecordRepository
-                .findFirstByChannelAndReceiverAndSceneAndSendStatusOrderByCreateDateTimeDesc(channel, receiver,
-                    LoginCodeScene.LOGIN, LoginCodeSendStatus.SUCCESS)
-                .orElseThrow(() -> new IsxAppException("请先获取验证码"));
-
-            if (!LoginCodeVerifyStatus.WAIT.equals(record.getVerifyStatus())) {
-                throw new IsxAppException("验证码已失效，请重新获取");
-            }
-            if (record.getExpireDateTime() == null || LocalDateTime.now().isAfter(record.getExpireDateTime())) {
-                record.setVerifyStatus(LoginCodeVerifyStatus.EXPIRED);
-                loginCodeRecordRepository.save(record);
-                throw new IsxAppException("验证码已过期，请重新获取");
-            }
-            if (!buildCodeHash(receiver, code).equals(record.getCodeHash())) {
-                int failCount = record.getVerifyFailCount() == null ? 1 : record.getVerifyFailCount() + 1;
-                record.setVerifyFailCount(failCount);
-                if (failCount >= MAX_VERIFY_FAIL_COUNT) {
-                    record.setVerifyStatus(LoginCodeVerifyStatus.FAIL);
-                }
-                loginCodeRecordRepository.save(record);
-                throw new IsxAppException("验证码不正确");
-            }
-
-            UserEntity user = findUser(channel, receiver).orElse(null);
+            String loginMethod = resolveCodeLoginLogMethod(verifyLoginCodeReq.getChannel());
+            String receiver = valueOrEmpty(verifyLoginCodeReq.getReceiver()).trim();
+            String userId = null;
             boolean registered = false;
-            boolean autoTenantCreated = false;
-            if (user == null) {
-                validateRegisterEnabled(channel, config);
-                user = createAutoRegisterUser(channel, receiver);
-                registered = true;
-                if (Boolean.TRUE.equals(config.getAutoCreateTenant())) {
-                    initTenantForAutoRegisterUser(user);
-                    user = userRepository.findById(user.getId()).orElse(user);
-                    autoTenantCreated = true;
+            try {
+                String channel = normalizeChannel(verifyLoginCodeReq.getChannel());
+                loginMethod = resolveCodeLoginLogMethod(channel);
+                receiver = normalizeReceiver(channel, verifyLoginCodeReq.getReceiver());
+                String code = verifyLoginCodeReq.getCode().trim();
+                if (!code.matches("^\\d{6}$")) {
+                    throw new IsxAppException("验证码格式不正确");
                 }
+
+                LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
+                validateChannelEnabled(channel, config);
+                LoginCodeRecordEntity record = loginCodeRecordRepository
+                    .findFirstByChannelAndReceiverAndSceneAndSendStatusOrderByCreateDateTimeDesc(channel, receiver,
+                        LoginCodeScene.LOGIN, LoginCodeSendStatus.SUCCESS)
+                    .orElseThrow(() -> new IsxAppException("请先获取验证码"));
+
+                if (!LoginCodeVerifyStatus.WAIT.equals(record.getVerifyStatus())) {
+                    throw new IsxAppException("验证码已失效，请重新获取");
+                }
+                if (record.getExpireDateTime() == null || LocalDateTime.now().isAfter(record.getExpireDateTime())) {
+                    record.setVerifyStatus(LoginCodeVerifyStatus.EXPIRED);
+                    loginCodeRecordRepository.save(record);
+                    throw new IsxAppException("验证码已过期，请重新获取");
+                }
+                if (!buildCodeHash(receiver, code).equals(record.getCodeHash())) {
+                    int failCount = record.getVerifyFailCount() == null ? 1 : record.getVerifyFailCount() + 1;
+                    record.setVerifyFailCount(failCount);
+                    if (failCount >= MAX_VERIFY_FAIL_COUNT) {
+                        record.setVerifyStatus(LoginCodeVerifyStatus.FAIL);
+                    }
+                    loginCodeRecordRepository.save(record);
+                    throw new IsxAppException("验证码不正确");
+                }
+
+                UserEntity user = findUser(channel, receiver).orElse(null);
+                if (user == null) {
+                    validateRegisterEnabled(channel, config);
+                    user = createAutoRegisterUser(channel, receiver);
+                    registered = true;
+                }
+                userId = user.getId();
+
+                record.setVerifyStatus(LoginCodeVerifyStatus.VERIFIED);
+                record.setVerifyDateTime(LocalDateTime.now());
+                record.setRegistered(registered);
+                record.setAutoTenantCreated(false);
+                loginCodeRecordRepository.save(record);
+
+                LoginRes loginRes = userBizService.loginAuthenticatedUser(user);
+                loginLogService.recordSuccess(loginMethod, receiver, userId, registered);
+                return loginRes;
+            } catch (RuntimeException exception) {
+                loginLogService.recordFail(loginMethod, receiver, userId, registered, exception.getMessage());
+                throw exception;
             }
-
-            record.setVerifyStatus(LoginCodeVerifyStatus.VERIFIED);
-            record.setVerifyDateTime(LocalDateTime.now());
-            record.setRegistered(registered);
-            record.setAutoTenantCreated(autoTenantCreated);
-            loginCodeRecordRepository.save(record);
-
-            return userBizService.loginAuthenticatedUser(user);
         });
+    }
+
+    public void testSendCode(SendLoginCodeReq sendLoginCodeReq) {
+
+        String channel = normalizeChannel(sendLoginCodeReq.getChannel());
+        String receiver = normalizeReceiver(channel, sendLoginCodeReq.getReceiver());
+        LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
+        sendCodeMessage(channel, receiver, generateCode(), config);
     }
 
     public Page<PageLoginCodeRecordRes> pageRecord(PageLoginCodeRecordReq pageLoginCodeRecordReq) {
@@ -339,16 +352,6 @@ public class LoginMethodBizService {
         return userRepository.save(user);
     }
 
-    private void initTenantForAutoRegisterUser(UserEntity user) {
-
-        AddTenantReq addTenantReq = new AddTenantReq();
-        addTenantReq.setName(user.getUsername() + "的租户");
-        addTenantReq.setAdminUserId(user.getId());
-        addTenantReq.setMaxMemberNum(1);
-        addTenantReq.setMaxWorkflowNum(1);
-        tenantBizService.addTenant(addTenantReq);
-    }
-
     private String generateUniqueAccount() {
 
         String account = "u" + IdUtil.getSnowflakeNextIdStr();
@@ -375,6 +378,15 @@ public class LoginMethodBizService {
             throw new IsxAppException("登录方式不支持");
         }
         return normalizedChannel;
+    }
+
+    private String resolveCodeLoginLogMethod(String channel) {
+
+        String normalizedChannel = channel == null ? "" : channel.trim().toUpperCase();
+        if (LoginMethodType.PHONE.equals(normalizedChannel)) {
+            return LoginLogMethod.PHONE_CODE;
+        }
+        return LoginLogMethod.EMAIL_CODE;
     }
 
     private String normalizeReceiver(String channel, String receiver) {
@@ -426,6 +438,11 @@ public class LoginMethodBizService {
             return value;
         }
         return value.substring(0, TEXT_LIMIT);
+    }
+
+    private String valueOrEmpty(String value) {
+
+        return value == null ? "" : value;
     }
 
     private <T> T withSystemUser(Supplier<T> supplier) {

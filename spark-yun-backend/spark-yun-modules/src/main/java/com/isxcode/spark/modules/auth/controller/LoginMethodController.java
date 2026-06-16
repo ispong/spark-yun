@@ -1,15 +1,18 @@
 package com.isxcode.spark.modules.auth.controller;
 
 import com.isxcode.spark.api.auth.req.PageLoginCodeRecordReq;
+import com.isxcode.spark.api.auth.req.PageLoginLogReq;
 import com.isxcode.spark.api.auth.req.SendLoginCodeReq;
 import com.isxcode.spark.api.auth.req.UpdateLoginMethodConfigReq;
 import com.isxcode.spark.api.auth.req.VerifyLoginCodeReq;
 import com.isxcode.spark.api.auth.res.GetLoginMethodConfigRes;
 import com.isxcode.spark.api.auth.res.GetOpenLoginMethodConfigRes;
 import com.isxcode.spark.api.auth.res.PageLoginCodeRecordRes;
+import com.isxcode.spark.api.auth.res.PageLoginLogRes;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.res.LoginRes;
 import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
+import com.isxcode.spark.modules.auth.service.LoginLogService;
 import com.isxcode.spark.modules.auth.service.LoginMethodBizService;
 import com.isxcode.spark.modules.auth.service.LoginMethodConfigService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,6 +36,8 @@ public class LoginMethodController {
 
     private final LoginMethodBizService loginMethodBizService;
 
+    private final LoginLogService loginLogService;
+
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "获取登录方式配置")
     @PostMapping("/getConfig")
@@ -52,12 +57,30 @@ public class LoginMethodController {
     }
 
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Operation(summary = "测试登录验证码配置")
+    @PostMapping("/testSendCode")
+    @SuccessResponse("发送成功")
+    public void testSendCode(@Valid @RequestBody SendLoginCodeReq sendLoginCodeReq) {
+
+        loginMethodBizService.testSendCode(sendLoginCodeReq);
+    }
+
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "分页查询验证码发送记录")
     @PostMapping("/pageRecord")
     @SuccessResponse("查询成功")
     public Page<PageLoginCodeRecordRes> pageRecord(@Valid @RequestBody PageLoginCodeRecordReq pageLoginCodeRecordReq) {
 
         return loginMethodBizService.pageRecord(pageLoginCodeRecordReq);
+    }
+
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
+    @Operation(summary = "分页查询登录日志")
+    @PostMapping("/pageLoginLog")
+    @SuccessResponse("查询成功")
+    public Page<PageLoginLogRes> pageLoginLog(@Valid @RequestBody PageLoginLogReq pageLoginLogReq) {
+
+        return loginLogService.pageLog(pageLoginLogReq);
     }
 
     @Operation(summary = "获取开放登录方式配置")

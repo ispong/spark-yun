@@ -37,6 +37,8 @@ public class PlatformSettingEntity {
     @Column(length = 2000)
     private String description;
 
+    private Boolean autoCreateTenant;
+
     @CreatedDate
     private LocalDateTime createDateTime;
 

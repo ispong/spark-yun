@@ -3,6 +3,9 @@
     <div class="zqy-platform-setting">
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData">
             <el-form class="zqy-platform-setting__form" label-position="top">
+                <el-form-item label="注册创建租户">
+                    <el-switch v-model="form.autoCreateTenant" />
+                </el-form-item>
                 <el-form-item label="平台描述">
                     <el-input
                         v-model="form.description"
@@ -35,7 +38,8 @@ const saving = ref(false)
 const networkError = ref(false)
 
 const form = reactive<PlatformSetting>({
-    description: ''
+    description: '',
+    autoCreateTenant: true
 })
 
 function initData() {
@@ -44,6 +48,7 @@ function initData() {
     GetPlatformSetting()
         .then((res: any) => {
             form.description = res.data?.description || ''
+            form.autoCreateTenant = res.data?.autoCreateTenant ?? true
             loading.value = false
         })
         .catch(() => {
@@ -55,7 +60,8 @@ function initData() {
 function saveSetting() {
     saving.value = true
     UpdatePlatformSetting({
-        description: form.description
+        description: form.description,
+        autoCreateTenant: form.autoCreateTenant
     })
         .then((res: any) => {
             ElMessage.success(res.msg)

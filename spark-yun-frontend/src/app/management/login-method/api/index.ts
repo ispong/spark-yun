@@ -5,6 +5,7 @@ export type LoginChannel = 'EMAIL' | 'PHONE'
 export type LoginMethodType = 'ACCOUNT' | LoginChannel
 
 export interface EmailLoginConfig {
+    provider?: string
     host?: string
     port?: number
     username?: string
@@ -29,13 +30,13 @@ export interface PhoneLoginConfig {
 export interface LoginMethodConfig {
     defaultLoginMethod: LoginMethodType
     accountEnabled: boolean
+    accountPasswordEnabled: boolean
     accountPhonePasswordEnabled: boolean
     accountEmailPasswordEnabled: boolean
     emailEnabled: boolean
     emailRegisterEnabled: boolean
     phoneEnabled: boolean
     phoneRegisterEnabled: boolean
-    autoCreateTenant: boolean
     config: {
         emailConfig: EmailLoginConfig
         phoneConfig: PhoneLoginConfig
@@ -57,15 +58,24 @@ export function UpdateLoginMethodConfig(params: LoginMethodConfig): Promise<any>
     })
 }
 
-export function PageLoginCodeRecord(params: {
+export function TestLoginConfig(params: { channel: LoginChannel; receiver: string }): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/api/platform/login-method/testSendCode',
+        params
+    })
+}
+
+export function PageLoginLog(params: {
     page: number
     pageSize: number
     searchKeyWord: string
-    channel?: string
+    loginMethod?: string
+    loginStatus?: string
 }): Promise<any> {
     return http.request({
         method: 'post',
-        url: '/api/platform/login-method/pageRecord',
+        url: '/api/platform/login-method/pageLoginLog',
         params
     })
 }

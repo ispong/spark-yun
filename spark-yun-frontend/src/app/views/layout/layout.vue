@@ -218,6 +218,7 @@ const platformMenuPaths: Record<string, string> = {
     'tenant-list': '/platform/tenants',
     'platform-tenant-user': '/platform/tenant-members',
     'login-method': '/platform/login-method',
+    'login-log': '/platform/login-log',
     license: '/platform/license',
     'platform-setting': '/platform/settings',
     'oauth-management': '/platform/auth'

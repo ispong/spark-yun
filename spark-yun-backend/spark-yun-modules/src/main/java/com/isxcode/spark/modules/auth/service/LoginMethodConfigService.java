@@ -41,6 +41,7 @@ public class LoginMethodConfigService {
         LoginMethodRuntimeConfig runtimeConfig = getRuntimeConfig();
         return GetOpenLoginMethodConfigRes.builder().defaultLoginMethod(runtimeConfig.getDefaultLoginMethod())
             .accountEnabled(runtimeConfig.getAccountEnabled())
+            .accountPasswordEnabled(runtimeConfig.getAccountPasswordEnabled())
             .accountPhonePasswordEnabled(runtimeConfig.getAccountPhonePasswordEnabled())
             .accountEmailPasswordEnabled(runtimeConfig.getAccountEmailPasswordEnabled())
             .emailEnabled(runtimeConfig.getEmailEnabled()).emailRegisterEnabled(runtimeConfig.getEmailRegisterEnabled())
@@ -53,33 +54,31 @@ public class LoginMethodConfigService {
         LoginMethodConfigEntity config = getOrCreateConfig();
         LoginMethodRuntimeConfig oldConfig = toRuntimeConfig(config);
 
-        boolean accountEnabled =
-            valueOrDefault(updateLoginMethodConfigReq.getAccountEnabled(), oldConfig.getAccountEnabled());
+        boolean accountEnabled = true;
         boolean emailEnabled =
             valueOrDefault(updateLoginMethodConfigReq.getEmailEnabled(), oldConfig.getEmailEnabled());
         boolean phoneEnabled =
             valueOrDefault(updateLoginMethodConfigReq.getPhoneEnabled(), oldConfig.getPhoneEnabled());
-        if (!accountEnabled && !emailEnabled && !phoneEnabled) {
-            throw new IsxAppException("至少需要开启一种登录方式");
-        }
+        boolean accountPasswordEnabled = true;
+        boolean accountPhonePasswordEnabled = valueOrDefault(updateLoginMethodConfigReq.getAccountPhonePasswordEnabled(),
+            oldConfig.getAccountPhonePasswordEnabled());
+        boolean accountEmailPasswordEnabled = valueOrDefault(updateLoginMethodConfigReq.getAccountEmailPasswordEnabled(),
+            oldConfig.getAccountEmailPasswordEnabled());
         String defaultLoginMethod = resolveDefaultLoginMethod(
             valueOrDefault(updateLoginMethodConfigReq.getDefaultLoginMethod(), oldConfig.getDefaultLoginMethod()),
             accountEnabled, emailEnabled, phoneEnabled);
 
         config.setDefaultLoginMethod(defaultLoginMethod);
         config.setAccountEnabled(accountEnabled);
-        config.setAccountPhonePasswordEnabled(valueOrDefault(
-            updateLoginMethodConfigReq.getAccountPhonePasswordEnabled(), oldConfig.getAccountPhonePasswordEnabled()));
-        config.setAccountEmailPasswordEnabled(valueOrDefault(
-            updateLoginMethodConfigReq.getAccountEmailPasswordEnabled(), oldConfig.getAccountEmailPasswordEnabled()));
+        config.setAccountPasswordEnabled(accountPasswordEnabled);
+        config.setAccountPhonePasswordEnabled(accountPhonePasswordEnabled);
+        config.setAccountEmailPasswordEnabled(accountEmailPasswordEnabled);
         config.setEmailEnabled(emailEnabled);
         config.setEmailRegisterEnabled(
             valueOrDefault(updateLoginMethodConfigReq.getEmailRegisterEnabled(), oldConfig.getEmailRegisterEnabled()));
         config.setPhoneEnabled(phoneEnabled);
         config.setPhoneRegisterEnabled(
             valueOrDefault(updateLoginMethodConfigReq.getPhoneRegisterEnabled(), oldConfig.getPhoneRegisterEnabled()));
-        config.setAutoCreateTenant(
-            valueOrDefault(updateLoginMethodConfigReq.getAutoCreateTenant(), oldConfig.getAutoCreateTenant()));
 
         LoginMethodConfigDto nextConfig =
             mergeSecretConfig(oldConfig.getConfig(), updateLoginMethodConfigReq.getConfig());
@@ -105,6 +104,7 @@ public class LoginMethodConfigService {
         config.setConfigKey(GLOBAL_CONFIG_KEY);
         config.setDefaultLoginMethod(LoginMethodType.ACCOUNT);
         config.setAccountEnabled(true);
+        config.setAccountPasswordEnabled(true);
         config.setAccountPhonePasswordEnabled(false);
         config.setAccountEmailPasswordEnabled(false);
         config.setEmailEnabled(false);
@@ -119,7 +119,14 @@ public class LoginMethodConfigService {
     private LoginMethodConfigDto defaultConfigDto() {
 
         LoginMethodConfigDto config = new LoginMethodConfigDto();
-        config.setEmailConfig(new EmailLoginConfig());
+        EmailLoginConfig emailConfig = new EmailLoginConfig();
+        emailConfig.setProvider("QQ");
+        emailConfig.setHost("smtp.qq.com");
+        emailConfig.setPort(465);
+        emailConfig.setSsl(true);
+        emailConfig.setStartTls(false);
+        emailConfig.setSubject("至轻云登录验证码");
+        config.setEmailConfig(emailConfig);
         PhoneLoginConfig phoneConfig = new PhoneLoginConfig();
         phoneConfig.setProvider("ALIYUN");
         phoneConfig.setRegionId("cn-hangzhou");
@@ -131,18 +138,19 @@ public class LoginMethodConfigService {
     private LoginMethodRuntimeConfig toRuntimeConfig(LoginMethodConfigEntity config) {
 
         LoginMethodConfigDto configDto = parseConfig(config.getConfigJson());
-        boolean accountEnabled = valueOrDefault(config.getAccountEnabled(), true);
+        boolean accountEnabled = true;
         boolean emailEnabled = valueOrDefault(config.getEmailEnabled(), false);
         boolean phoneEnabled = valueOrDefault(config.getPhoneEnabled(), false);
         return LoginMethodRuntimeConfig.builder()
             .defaultLoginMethod(
                 resolveDefaultLoginMethod(config.getDefaultLoginMethod(), accountEnabled, emailEnabled, phoneEnabled))
             .accountEnabled(accountEnabled)
+            .accountPasswordEnabled(true)
             .accountPhonePasswordEnabled(valueOrDefault(config.getAccountPhonePasswordEnabled(), false))
             .accountEmailPasswordEnabled(valueOrDefault(config.getAccountEmailPasswordEnabled(), false))
             .emailEnabled(emailEnabled).emailRegisterEnabled(valueOrDefault(config.getEmailRegisterEnabled(), false))
             .phoneEnabled(phoneEnabled).phoneRegisterEnabled(valueOrDefault(config.getPhoneRegisterEnabled(), false))
-            .autoCreateTenant(valueOrDefault(config.getAutoCreateTenant(), true)).config(configDto).build();
+            .config(configDto).build();
     }
 
     private GetLoginMethodConfigRes toConfigRes(LoginMethodConfigEntity entity, boolean maskSecret) {
@@ -154,11 +162,12 @@ public class LoginMethodConfigService {
         }
         return GetLoginMethodConfigRes.builder().defaultLoginMethod(runtimeConfig.getDefaultLoginMethod())
             .accountEnabled(runtimeConfig.getAccountEnabled())
+            .accountPasswordEnabled(runtimeConfig.getAccountPasswordEnabled())
             .accountPhonePasswordEnabled(runtimeConfig.getAccountPhonePasswordEnabled())
             .accountEmailPasswordEnabled(runtimeConfig.getAccountEmailPasswordEnabled())
             .emailEnabled(runtimeConfig.getEmailEnabled()).emailRegisterEnabled(runtimeConfig.getEmailRegisterEnabled())
             .phoneEnabled(runtimeConfig.getPhoneEnabled()).phoneRegisterEnabled(runtimeConfig.getPhoneRegisterEnabled())
-            .autoCreateTenant(runtimeConfig.getAutoCreateTenant()).config(config).build();
+            .config(config).build();
     }
 
     private LoginMethodConfigDto parseConfig(String configJson) {
@@ -171,7 +180,10 @@ public class LoginMethodConfigService {
             return defaultConfigDto();
         }
         if (config.getEmailConfig() == null) {
-            config.setEmailConfig(new EmailLoginConfig());
+            config.setEmailConfig(defaultConfigDto().getEmailConfig());
+        }
+        if (Strings.isEmpty(config.getEmailConfig().getProvider())) {
+            config.getEmailConfig().setProvider("QQ");
         }
         if (config.getPhoneConfig() == null) {
             PhoneLoginConfig phoneConfig = new PhoneLoginConfig();
@@ -194,6 +206,9 @@ public class LoginMethodConfigService {
         LoginMethodConfigDto nextConfig = updateConfig == null ? cloneConfig(oldConfig) : cloneConfig(updateConfig);
         if (nextConfig.getEmailConfig() == null) {
             nextConfig.setEmailConfig(new EmailLoginConfig());
+        }
+        if (Strings.isEmpty(nextConfig.getEmailConfig().getProvider())) {
+            nextConfig.getEmailConfig().setProvider("QQ");
         }
         if (nextConfig.getPhoneConfig() == null) {
             nextConfig.setPhoneConfig(new PhoneLoginConfig());

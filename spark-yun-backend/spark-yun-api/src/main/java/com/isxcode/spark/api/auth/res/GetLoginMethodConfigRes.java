@@ -12,6 +12,8 @@ public class GetLoginMethodConfigRes {
 
     private Boolean accountEnabled;
 
+    private Boolean accountPasswordEnabled;
+
     private Boolean accountPhonePasswordEnabled;
 
     private Boolean accountEmailPasswordEnabled;
@@ -23,8 +25,6 @@ public class GetLoginMethodConfigRes {
     private Boolean phoneEnabled;
 
     private Boolean phoneRegisterEnabled;
-
-    private Boolean autoCreateTenant;
 
     private LoginMethodConfigDto config;
 }

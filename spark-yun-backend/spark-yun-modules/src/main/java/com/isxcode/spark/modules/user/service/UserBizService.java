@@ -6,6 +6,7 @@ import com.isxcode.spark.common.security.RefreshUserToken;
 
 
 import cn.hutool.crypto.SecureUtil;
+import com.isxcode.spark.api.auth.constants.LoginLogMethod;
 import com.isxcode.spark.api.tenant.constants.TenantStatus;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.constants.UserStatus;
@@ -14,6 +15,7 @@ import com.isxcode.spark.api.user.res.*;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.backend.api.base.properties.IsxAppProperties;
 import com.isxcode.spark.common.utils.jwt.JwtUtils;
+import com.isxcode.spark.modules.auth.service.LoginLogService;
 import com.isxcode.spark.modules.auth.service.LoginMethodConfigService;
 import com.isxcode.spark.modules.auth.service.LoginMethodRuntimeConfig;
 import com.isxcode.spark.modules.tenant.service.TenantService;
@@ -57,45 +59,59 @@ public class UserBizService {
 
     private final LoginMethodConfigService loginMethodConfigService;
 
+    private final LoginLogService loginLogService;
+
     public LoginRes login(LoginReq usrLoginReq) {
 
-        LoginMethodRuntimeConfig loginMethodConfig = loginMethodConfigService.getRuntimeConfig();
-        if (!Boolean.TRUE.equals(loginMethodConfig.getAccountEnabled())) {
-            throw new IsxAppException("账号登录已关闭");
-        }
-
-        // 判断用户是否存在
-        Optional<UserEntity> userEntityOptional = findAccountLoginUser(usrLoginReq.getAccount(), loginMethodConfig);
-        if (!userEntityOptional.isPresent()) {
-            throw new IsxAppException("账号或者密码不正确");
-        }
-        UserEntity userEntity = userEntityOptional.get();
-
-        // 判断用户是否在有效期内
-        if (userEntity.getValidStartDateTime() != null && userEntity.getValidEndDateTime() != null) {
-            if (LocalDateTime.now().isBefore(userEntity.getValidStartDateTime())
-                || LocalDateTime.now().isAfter(userEntity.getValidEndDateTime())) {
-                throw new IsxAppException("用户账号不在有效期内，请联系管理员");
+        String account = usrLoginReq == null ? "" : usrLoginReq.getAccount();
+        String loginMethod = resolvePasswordLoginLogMethod(account);
+        String userId = null;
+        try {
+            LoginMethodRuntimeConfig loginMethodConfig = loginMethodConfigService.getRuntimeConfig();
+            if (!Boolean.TRUE.equals(loginMethodConfig.getAccountEnabled())) {
+                throw new IsxAppException("账号登录已关闭");
             }
-        }
 
-        // 判断用户是否禁用
-        if (UserStatus.DISABLE.equals(userEntity.getStatus())) {
-            throw new IsxAppException("账号已被禁用，请联系管理员");
-        }
+            // 判断用户是否存在
+            Optional<UserEntity> userEntityOptional = findAccountLoginUser(account, loginMethodConfig);
+            if (!userEntityOptional.isPresent()) {
+                throw new IsxAppException("账号或者密码不正确");
+            }
+            UserEntity userEntity = userEntityOptional.get();
+            userId = userEntity.getId();
 
-        // 如果是系统管理员，首次登录，插入配置的密码并保存
-        if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode()) && Strings.isEmpty(userEntity.getPasswd())) {
-            userEntity.setPasswd(SecureUtil.md5(isxAppProperties.getAdminPasswd()));
-            userRepository.save(userEntity);
-        }
+            // 判断用户是否在有效期内
+            if (userEntity.getValidStartDateTime() != null && userEntity.getValidEndDateTime() != null) {
+                if (LocalDateTime.now().isBefore(userEntity.getValidStartDateTime())
+                    || LocalDateTime.now().isAfter(userEntity.getValidEndDateTime())) {
+                    throw new IsxAppException("用户账号不在有效期内，请联系管理员");
+                }
+            }
 
-        // 判断密码是否合法
-        if (!SecureUtil.md5(usrLoginReq.getPasswd()).equals(userEntity.getPasswd())) {
-            throw new IsxAppException("账号或者密码不正确");
-        }
+            // 判断用户是否禁用
+            if (UserStatus.DISABLE.equals(userEntity.getStatus())) {
+                throw new IsxAppException("账号已被禁用，请联系管理员");
+            }
 
-        return loginAuthenticatedUser(userEntity);
+            // 如果是系统管理员，首次登录，插入配置的密码并保存
+            if (RoleType.PLATFORM_SUPER_ADMIN.equals(userEntity.getRoleCode())
+                && Strings.isEmpty(userEntity.getPasswd())) {
+                userEntity.setPasswd(SecureUtil.md5(isxAppProperties.getAdminPasswd()));
+                userRepository.save(userEntity);
+            }
+
+            // 判断密码是否合法
+            if (!SecureUtil.md5(usrLoginReq.getPasswd()).equals(userEntity.getPasswd())) {
+                throw new IsxAppException("账号或者密码不正确");
+            }
+
+            LoginRes loginRes = loginAuthenticatedUser(userEntity);
+            loginLogService.recordSuccess(loginMethod, account, userId, false);
+            return loginRes;
+        } catch (RuntimeException exception) {
+            loginLogService.recordFail(loginMethod, account, userId, false, exception.getMessage());
+            throw exception;
+        }
     }
 
     public LoginRes loginAuthenticatedUser(UserEntity userEntity) {
@@ -442,12 +458,14 @@ public class UserBizService {
 
     private Optional<UserEntity> findAccountLoginUser(String account, LoginMethodRuntimeConfig loginMethodConfig) {
 
-        Optional<UserEntity> userEntityOptional = userRepository.findByAccount(account);
-        if (userEntityOptional.isPresent()) {
-            return userEntityOptional;
+        if (Boolean.TRUE.equals(loginMethodConfig.getAccountPasswordEnabled())) {
+            Optional<UserEntity> userEntityOptional = userRepository.findByAccount(account);
+            if (userEntityOptional.isPresent()) {
+                return userEntityOptional;
+            }
         }
         if (Boolean.TRUE.equals(loginMethodConfig.getAccountEmailPasswordEnabled())) {
-            userEntityOptional = userRepository.findByEmail(account);
+            Optional<UserEntity> userEntityOptional = userRepository.findByEmail(account);
             if (userEntityOptional.isPresent()) {
                 return userEntityOptional;
             }
@@ -456,6 +474,17 @@ public class UserBizService {
             return userRepository.findByPhone(account);
         }
         return Optional.empty();
+    }
+
+    private String resolvePasswordLoginLogMethod(String account) {
+
+        if (account != null && account.trim().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            return LoginLogMethod.EMAIL_PASSWORD;
+        }
+        if (account != null && account.trim().matches("^\\d{5,20}$")) {
+            return LoginLogMethod.PHONE_PASSWORD;
+        }
+        return LoginLogMethod.ACCOUNT_PASSWORD;
     }
 
     private void validateUniqueUserFields(String username, String account, String phone, String email,

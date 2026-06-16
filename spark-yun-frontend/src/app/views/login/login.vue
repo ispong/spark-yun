@@ -203,6 +203,7 @@ interface OauthUrl {
 interface OpenLoginMethodConfig {
     defaultLoginMethod: LoginMethodType
     accountEnabled: boolean
+    accountPasswordEnabled: boolean
     accountPhonePasswordEnabled: boolean
     accountEmailPasswordEnabled: boolean
     emailEnabled: boolean
@@ -241,6 +242,7 @@ const codeLoginChannel = ref<LoginChannel>('PHONE')
 const openLoginConfig = reactive<OpenLoginMethodConfig>({
     defaultLoginMethod: 'ACCOUNT',
     accountEnabled: true,
+    accountPasswordEnabled: true,
     accountPhonePasswordEnabled: false,
     accountEmailPasswordEnabled: false,
     emailEnabled: false,
@@ -288,7 +290,16 @@ const codeLoginRules: FormRules = {
     ]
 }
 
-const accountLoginEnabled = computed(() => openLoginConfig.accountEnabled !== false)
+const accountLoginEnabled = computed(() => {
+    return (
+        openLoginConfig.accountEnabled !== false &&
+        (
+            openLoginConfig.accountPasswordEnabled ||
+            openLoginConfig.accountPhonePasswordEnabled ||
+            openLoginConfig.accountEmailPasswordEnabled
+        )
+    )
+})
 const activeLoginEnabled = computed(() => isLoginMethodEnabled(activeLoginMethod.value))
 const activeLoginLoading = computed(() => {
     return activeLoginMethod.value === 'ACCOUNT' ? btnLoading.value : codeLoginLoading.value
@@ -299,14 +310,21 @@ const loginTitle = computed(() => {
     return '用户登录'
 })
 const accountLoginPlaceholder = computed(() => {
-    if (openLoginConfig.accountPhonePasswordEnabled && openLoginConfig.accountEmailPasswordEnabled) {
-        return '请输入账号/邮箱/手机号'
+    const options: string[] = []
+    if (openLoginConfig.accountPasswordEnabled) {
+        options.push('账号')
     }
     if (openLoginConfig.accountPhonePasswordEnabled) {
-        return '请输入账号/手机号'
+        options.push('手机号')
     }
     if (openLoginConfig.accountEmailPasswordEnabled) {
-        return '请输入账号/邮箱'
+        options.push('邮箱')
+    }
+    if (options.length === 3) {
+        return '请输入账号/手机号/邮箱'
+    }
+    if (options.length) {
+        return `请输入${options.join('/')}`
     }
     return '请输入账号'
 })
@@ -318,7 +336,7 @@ const showLoginActions = computed(() => {
 })
 const enabledLoginMethodCount = computed(() => {
     return (
-        Number(openLoginConfig.accountEnabled) +
+        Number(accountLoginEnabled.value) +
         Number(openLoginConfig.phoneEnabled) +
         Number(openLoginConfig.emailEnabled)
     )
@@ -448,7 +466,7 @@ function resolveDefaultLoginMethod(defaultLoginMethod: LoginMethodType | undefin
 
 function isLoginMethodEnabled(loginMethod: LoginMethodType | undefined) {
     if (!loginMethod) return false
-    if (loginMethod === 'ACCOUNT') return openLoginConfig.accountEnabled
+    if (loginMethod === 'ACCOUNT') return accountLoginEnabled.value
     if (loginMethod === 'PHONE') return openLoginConfig.phoneEnabled
     return openLoginConfig.emailEnabled
 }

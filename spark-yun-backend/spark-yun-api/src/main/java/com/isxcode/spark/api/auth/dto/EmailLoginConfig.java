@@ -6,6 +6,9 @@ import lombok.Data;
 @Data
 public class EmailLoginConfig {
 
+    @Schema(title = "邮箱服务商", example = "QQ")
+    private String provider;
+
     @Schema(title = "SMTP服务器", example = "smtp.example.com")
     private String host;
 
