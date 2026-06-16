@@ -6,7 +6,7 @@
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
-                    placeholder="请输入用户名/手机号/邮箱 回车进行搜索"
+                    placeholder="请输入名称/手机号/邮箱 回车进行搜索"
                     :maxlength="200"
                     clearable
                     @input="inputEvent"
@@ -68,7 +68,7 @@
                     <template #platformAdmin="scopeSlot">
                         <el-tag v-if="scopeSlot.row.platformSuperAdmin" type="danger">平台超级管理员</el-tag>
                         <el-tag v-else-if="scopeSlot.row.platformAdmin" type="warning">管理员</el-tag>
-                        <el-tag v-else type="success">普通成员</el-tag>
+                        <el-tag v-else class="platform-user-tag">平台用户</el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group user-action-group">
@@ -534,6 +534,11 @@ onMounted(() => {
         }
     }
     .zqy-table {
+        .platform-user-tag {
+            --el-tag-text-color: #2563eb;
+            --el-tag-border-color: #93c5fd;
+            --el-tag-bg-color: #eff6ff;
+        }
         .user-action-group {
             justify-content: center;
             gap: 16px;

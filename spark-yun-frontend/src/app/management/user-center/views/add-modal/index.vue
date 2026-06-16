@@ -4,7 +4,7 @@
             <el-form-item label="账号" prop="account">
                 <el-input v-model="formData.account" maxlength="100" placeholder="请输入" show-word-limit />
             </el-form-item>
-            <el-form-item label="用户名" prop="username">
+            <el-form-item label="名称" prop="username">
                 <el-input v-model="formData.username" maxlength="100" placeholder="请输入" show-word-limit />
             </el-form-item>
             <el-form-item v-if="renderSence === 'new'" label="密码" prop="passwd">
@@ -17,7 +17,7 @@
                 />
             </el-form-item>
             <el-form-item v-if="renderSence === 'new'" label="角色">
-                <el-tag type="success">普通成员</el-tag>
+                <el-tag class="platform-user-tag">平台用户</el-tag>
             </el-form-item>
             <el-form-item label="手机号" prop="phone">
                 <el-input v-model="formData.phone" maxlength="11" placeholder="请输入手机号" show-word-limit />
@@ -126,7 +126,7 @@ const rules = reactive<FormRules>({
     username: [
         {
             required: true,
-            message: '请输入用户名',
+            message: '请输入名称',
             trigger: ['change']
         }
     ],
@@ -231,5 +231,10 @@ defineExpose({
 .add-computer-group {
     padding: 12px 20px 0 20px;
     box-sizing: border-box;
+    .platform-user-tag {
+        color: #2563eb;
+        border-color: #93c5fd;
+        background-color: #eff6ff;
+    }
 }
 </style>

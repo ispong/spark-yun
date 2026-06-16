@@ -56,7 +56,7 @@ export const colConfigs: colConfig[] = [
     },
     {
         prop: 'username',
-        title: '用户名',
+        title: '名称',
         minWidth: 100,
         showOverflowTooltip: true
     },
@@ -92,7 +92,7 @@ export const colConfigs: colConfig[] = [
     },
     {
         prop: 'platformAdmin',
-        title: '平台身份',
+        title: '平台角色',
         minWidth: 110,
         customSlot: 'platformAdmin'
     },
