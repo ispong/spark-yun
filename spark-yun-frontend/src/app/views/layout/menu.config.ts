@@ -18,13 +18,6 @@ export const menuListData: Array<Menu> = [
         childPage: []
     },
     {
-        code: 'index',
-        name: '首页',
-        icon: 'Monitor',
-        authType: ['ROLE_TENANT_MEMBER', 'ROLE_TENANT_ADMIN'],
-        childPage: []
-    },
-    {
         code: 'resource-management',
         name: '资源管理',
         icon: 'School',
@@ -142,6 +135,13 @@ export const menuListData: Array<Menu> = [
                 code: 'schedule',
                 name: '调度历史',
                 icon: 'DocumentRemove',
+                authType: ['ROLE_TENANT_MEMBER', 'ROLE_TENANT_ADMIN'],
+                childPage: []
+            },
+            {
+                code: 'index',
+                name: '系统监控',
+                icon: 'Monitor',
                 authType: ['ROLE_TENANT_MEMBER', 'ROLE_TENANT_ADMIN'],
                 childPage: []
             }
