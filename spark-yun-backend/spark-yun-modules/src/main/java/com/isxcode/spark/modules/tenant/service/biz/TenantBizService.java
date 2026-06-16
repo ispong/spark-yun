@@ -19,6 +19,7 @@ import com.isxcode.spark.backend.api.base.properties.IsxAppProperties;
 import com.isxcode.spark.common.security.RefreshUserToken;
 import com.isxcode.spark.common.utils.jwt.JwtUtils;
 import com.isxcode.spark.modules.license.repository.LicenseStore;
+import com.isxcode.spark.modules.user.service.UserService;
 import com.isxcode.spark.security.authorization.AccessSnapshot;
 import com.isxcode.spark.security.authorization.MemberRoleRepository;
 import com.isxcode.spark.security.authorization.OrgMemberRepository;
@@ -70,6 +71,7 @@ public class TenantBizService {
     private final OrgMemberRepository orgMemberRepository;
 
     private final UserBizService userBizService;
+    private final UserService userService;
 
     public void addTenant(AddTenantReq tetAddTenantReq) {
 
@@ -214,6 +216,7 @@ public class TenantBizService {
         result.getContent().forEach(e -> {
             e.setUsedWorkflowNum(String.valueOf(allData(() -> workflowRepository.countByTenantId(e.getId()))));
             e.setUsedMemberNum(String.valueOf(tenantUserRepository.countByTenantId(e.getId())));
+            e.setAdminUserName(String.valueOf(userService.getUserName(e.getAdminUserId())));
         });
         return result;
     }

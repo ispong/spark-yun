@@ -34,6 +34,7 @@ export interface TableConfig {
     tableData: Array<any>
     colConfigs: Array<colConfig>
     seqType: string
+    checkbox?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -60,16 +61,16 @@ export const colConfigs: colConfig[] = [
         customSlot: 'memberProgress'
     },
     {
-        prop: 'adminUserId',
-        title: '租户超级管理员',
-        minWidth: 160,
-        showOverflowTooltip: true
-    },
-    {
         prop: 'maxWorkflowNum',
         title: '作业流数',
         minWidth: 180,
         customSlot: 'workflowProgress'
+    },
+    {
+        prop: 'adminUserName',
+        title: '租户管理员',
+        minWidth: 160,
+        showOverflowTooltip: true
     },
     {
         prop: 'status',
@@ -104,7 +105,7 @@ export const colConfigs: colConfig[] = [
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 80,
+        width: 120,
         fixed: 'right'
     }
 ]
@@ -118,5 +119,6 @@ export const TableConfig: TableConfig = {
         total: 0
     },
     seqType: 'seq',
+    checkbox: true,
     loading: false
 }

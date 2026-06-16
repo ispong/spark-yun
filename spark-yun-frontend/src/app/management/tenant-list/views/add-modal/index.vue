@@ -24,38 +24,11 @@
                     controls-position="right"
                 />
             </el-form-item>
-            <el-form-item v-if="renderSence === 'new'" label="租户超级管理员来源">
-                <el-radio-group v-model="adminUserMode">
-                    <el-radio label="existing">选择已有用户</el-radio>
-                    <el-radio label="new">新建用户</el-radio>
-                </el-radio-group>
-            </el-form-item>
-            <el-form-item
-                v-if="renderSence === 'new' && adminUserMode === 'existing'"
-                label="租户超级管理员"
-                prop="adminUserId"
-            >
+            <el-form-item v-if="renderSence === 'new'" label="租户管理员" prop="adminUserId">
                 <el-select v-model="formData.adminUserId" placeholder="请选择">
                     <el-option v-for="item in userList" :key="item.id" :label="item.username" :value="item.id" />
                 </el-select>
             </el-form-item>
-            <template v-if="renderSence === 'new' && adminUserMode === 'new'">
-                <el-form-item label="用户名">
-                    <el-input v-model="formData.adminUsername" placeholder="请输入" />
-                </el-form-item>
-                <el-form-item label="登录账号">
-                    <el-input v-model="formData.adminAccount" placeholder="请输入" />
-                </el-form-item>
-                <el-form-item label="初始密码">
-                    <el-input v-model="formData.adminPassword" type="password" show-password placeholder="请输入" />
-                </el-form-item>
-                <el-form-item label="手机号">
-                    <el-input v-model="formData.adminPhone" placeholder="请输入" />
-                </el-form-item>
-                <el-form-item label="邮箱">
-                    <el-input v-model="formData.adminEmail" placeholder="请输入" />
-                </el-form-item>
-            </template>
             <el-form-item label="备注">
                 <el-input
                     v-model="formData.remark"
@@ -90,13 +63,11 @@ import { reactive, defineExpose, ref, nextTick } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { GetUserInfoList } from '@/app/management/tenant-user/api'
-import dayjs from 'dayjs'
 
 const form = ref<FormInstance>()
 const callback = ref<any>()
 const userList = ref([])
 const renderSence = ref('new')
-const adminUserMode = ref<'existing' | 'new'>('existing')
 const modelConfig = reactive({
     title: '新建租户',
     visible: false,
@@ -114,6 +85,7 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
+    customClass: 'tenant-add-modal',
     closeOnClickModal: false
 })
 const formData = reactive({
@@ -122,11 +94,6 @@ const formData = reactive({
     maxWorkflowNum: 20,
     adminUserId: '',
     createAdminUser: false,
-    adminUsername: '',
-    adminAccount: '',
-    adminPassword: '',
-    adminPhone: '',
-    adminEmail: '',
     validDateTime: [],
     remark: '',
     id: ''
@@ -142,7 +109,7 @@ const rules = reactive<FormRules>({
     adminUserId: [
         {
             required: true,
-            message: '请选择租户超级管理员',
+            message: '请选择租户管理员',
             trigger: ['change', 'blur']
         }
     ]
@@ -170,12 +137,6 @@ function showModal(cb: () => void, data: any): void {
         formData.maxMemberNum = 2
         formData.maxWorkflowNum = 5
         formData.adminUserId = ''
-        formData.adminUsername = ''
-        formData.adminAccount = ''
-        formData.adminPassword = ''
-        formData.adminPhone = ''
-        formData.adminEmail = ''
-        adminUserMode.value = 'existing'
         formData.remark = ''
         formData.validDateTime = []
         formData.id = ''
@@ -204,24 +165,16 @@ function getUserOfSystem() {
 function okEvent() {
     form.value?.validate((valid) => {
         if (valid) {
-            if (renderSence.value === 'new' && adminUserMode.value === 'existing' && !formData.adminUserId) {
-                ElMessage.warning('请选择租户超级管理员')
-                return
-            }
-            if (
-                renderSence.value === 'new' &&
-                adminUserMode.value === 'new' &&
-                (!formData.adminUsername || !formData.adminAccount || !formData.adminPassword)
-            ) {
-                ElMessage.warning('请填写新管理员的用户名、账号和密码')
+            if (renderSence.value === 'new' && !formData.adminUserId) {
+                ElMessage.warning('请选择租户管理员')
                 return
             }
             modelConfig.okConfig.loading = true
             callback
                 .value({
                     ...formData,
-                    createAdminUser: adminUserMode.value === 'new',
-                    adminUserId: adminUserMode.value === 'existing' ? formData.adminUserId : undefined,
+                    createAdminUser: false,
+                    adminUserId: formData.adminUserId,
                     id: formData.id ? formData.id : undefined
                 })
                 .then((res: any) => {
@@ -251,9 +204,98 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.add-computer-group {
-    padding: 12px 20px 0 20px;
-    box-sizing: border-box;
+.tenant-add-modal.zqy-block-modal {
+    --tenant-modal-x-padding: 20px;
+    --tenant-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--tenant-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+        .el-dialog__title {
+            display: block;
+            line-height: 28px;
+        }
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--tenant-modal-border-color);
+        }
+    }
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--tenant-modal-x-padding);
+        align-items: center;
+        border-top: none;
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--tenant-modal-border-color);
+        }
+    }
+    .add-computer-group {
+        padding: 14px var(--tenant-modal-x-padding) 4px;
+        box-sizing: border-box;
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+        .el-form-item__content,
+        .el-input,
+        .el-input-number,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+    }
+    .valid-time {
+        position: absolute;
+        left: var(--tenant-modal-x-padding);
+        display: flex;
+        align-items: center;
+        height: 28px;
+        .el-date-editor--datetimerange {
+            width: 300px;
+            height: 28px;
+            padding: 0 6px;
+            .el-range-input {
+                font-size: 12px;
+            }
+            .el-range-separator {
+                max-width: 8px;
+                padding: 0;
+            }
+        }
+    }
 }
 .el-date-range-picker {
     .el-picker-panel__footer {
@@ -261,18 +303,17 @@ defineExpose({
         justify-content: space-between;
     }
 }
-.valid-time {
-    position: absolute;
-    left: 20px;
-    .el-date-editor--datetimerange {
-        width: 300px;
-        height: 28px;
-        padding: 0;
-        .el-range-input {
-            font-size: 12px;
+@media (max-width: 560px) {
+    .tenant-add-modal.zqy-block-modal {
+        .el-dialog__footer {
+            padding-top: 48px;
         }
-        .el-range-separator {
-            max-width: 8px;
+        .valid-time {
+            top: 12px;
+            right: var(--tenant-modal-x-padding);
+            .el-date-editor--datetimerange {
+                width: 100%;
+            }
         }
     }
 }

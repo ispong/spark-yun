@@ -29,6 +29,8 @@ public class PageTenantRes {
 
     private String adminUserId;
 
+    private String adminUserName;
+
     private String checkDateTime;
 
     @JsonSerialize(using = LocalDateTimeSerializer.class)

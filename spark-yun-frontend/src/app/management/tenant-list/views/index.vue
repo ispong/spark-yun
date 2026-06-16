@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table tenant-list-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addData">新建租户</el-button>
             <div class="zqy-seach">
@@ -13,6 +13,24 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="tenant-batch-slide">
+                <div v-if="selectedRows.length" class="tenant-batch-mask">
+                    <div class="tenant-batch-actions">
+                        <el-button class="tenant-batch-action" :loading="batchLoading" @click="batchEnableTenants">
+                            启用
+                        </el-button>
+                        <el-button class="tenant-batch-action" :loading="batchLoading" @click="batchDisableTenants">
+                            禁用
+                        </el-button>
+                        <el-button class="tenant-batch-action" :loading="batchLoading" @click="batchDeleteTenants">
+                            删除
+                        </el-button>
+                        <el-button class="tenant-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(true)">
             <div class="zqy-table">
@@ -20,6 +38,7 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #name="scopeSlot">
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
@@ -61,30 +80,25 @@
                         </div>
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <template v-if="scopeSlot.row.status === 'ENABLE'">
-                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, false)">
-                                    禁用
-                                </span>
-                                <el-icon v-else class="is-loading">
-                                    <Loading />
-                                </el-icon>
-                            </template>
-                            <template v-else>
-                                <span v-if="!scopeSlot.row.statusLoading" @click="changeStatus(scopeSlot.row, true)">
-                                    启用
-                                </span>
-                                <el-icon v-else class="is-loading">
-                                    <Loading />
-                                </el-icon>
-                            </template>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                        <div class="btn-group tenant-action-group">
+                            <span class="tenant-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <el-dropdown trigger="click" popper-class="tenant-action-dropdown">
+                                <span class="click-show-more tenant-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
-                                        <el-dropdown-item @click="openReplaceAdmin(scopeSlot.row)">
-                                            设置租户超级管理员
+                                        <el-dropdown-item
+                                            :disabled="scopeSlot.row.statusLoading"
+                                            @click="
+                                                !scopeSlot.row.statusLoading &&
+                                                    changeStatus(scopeSlot.row, scopeSlot.row.status !== 'ENABLE')
+                                            "
+                                        >
+                                            <span v-if="!scopeSlot.row.statusLoading">
+                                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                                            </span>
+                                            <el-icon v-else class="is-loading">
+                                                <Loading />
+                                            </el-icon>
                                         </el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="!scopeSlot.row.checkLoding"
@@ -102,30 +116,6 @@
             </div>
         </LoadingPage>
         <AddModal ref="addModalRef" />
-        <el-dialog v-model="replaceAdminVisible" title="设置租户超级管理员" width="480px">
-            <el-form label-position="top">
-                <el-form-item label="租户超级管理员">
-                    <el-select v-model="replaceAdminForm.newAdminUserId" filterable>
-                        <el-option
-                            v-for="user in enabledUsers"
-                            :key="user.id"
-                            :label="`${user.username} (${user.account})`"
-                            :value="user.id"
-                        />
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="原租户超级管理员处理方式">
-                    <el-radio-group v-model="replaceAdminForm.oldAdminAction">
-                        <el-radio label="KEEP">保留为租户成员</el-radio>
-                        <el-radio label="REMOVE">移出租户</el-radio>
-                    </el-radio-group>
-                </el-form-item>
-            </el-form>
-            <template #footer>
-                <el-button @click="replaceAdminVisible = false">取消</el-button>
-                <el-button type="primary" :loading="replaceAdminLoading" @click="replaceAdmin">确认设置</el-button>
-            </template>
-        </el-dialog>
     </div>
 </template>
 
@@ -144,14 +134,12 @@ import {
     CheckTenantData,
     DisableTenantData,
     EnableTenantData,
-    UpdateTenantData,
-    ReplaceTenantAdminData
+    UpdateTenantData
 } from '@/app/management/tenant-list/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 import eventBus from '@/app/utils/eventBus'
 import { useAuthStore } from '@/app/store/useAuth'
-import { GetUserInfoList } from '@/app/management/tenant-user/api'
 
 interface FormTenant {
     adminUserId?: string
@@ -169,17 +157,11 @@ const authStore = useAuthStore()
 const keyword = ref('')
 const loading = ref(false)
 const networkError = ref(false)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 const addModalRef = ref(null)
 const breadCrumbList = reactive(BreadCrumbList)
 const tableConfig: any = reactive(TableConfig)
-const replaceAdminVisible = ref(false)
-const replaceAdminLoading = ref(false)
-const enabledUsers = ref<any[]>([])
-const replaceAdminForm = reactive({
-    tenantId: '',
-    newAdminUserId: '',
-    oldAdminAction: 'KEEP' as 'KEEP' | 'REMOVE'
-})
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -192,6 +174,7 @@ function initData(tableLoading?: boolean) {
         .then((res: any) => {
             tableConfig.tableData = res.data.content
             tableConfig.pagination.total = res.data.totalElements
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = false
@@ -228,7 +211,7 @@ function addData() {
 }
 
 function editData(data: any) {
-    addModalRef.value.showModal((formData: FormUser) => {
+    addModalRef.value.showModal((formData: FormTenant) => {
         return new Promise((resolve: any, reject: any) => {
             UpdateTenantData(formData)
                 .then((res: any) => {
@@ -258,35 +241,81 @@ function checkTenant(data: any) {
         })
 }
 
-function openReplaceAdmin(data: any) {
-    replaceAdminForm.tenantId = data.id
-    replaceAdminForm.newAdminUserId = ''
-    replaceAdminForm.oldAdminAction = 'KEEP'
-    GetUserInfoList({
-        page: 0,
-        pageSize: 999,
-        searchKeyWord: ''
-    }).then((res: any) => {
-        enabledUsers.value = res.data.content || []
-        replaceAdminVisible.value = true
-    })
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
 }
 
-function replaceAdmin() {
-    if (!replaceAdminForm.newAdminUserId) {
-        ElMessage.warning('请选择租户超级管理员')
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchEnableTenants() {
+    const disableRows = selectedRows.value.filter((row: any) => row.status === 'DISABLE')
+    if (!disableRows.length) {
+        ElMessage.warning('请选择禁用状态的租户')
         return
     }
-    replaceAdminLoading.value = true
-    ReplaceTenantAdminData(replaceAdminForm)
-        .then((res: any) => {
-            ElMessage.success(res.msg)
-            replaceAdminVisible.value = false
+
+    batchLoading.value = true
+    Promise.all(disableRows.map((row: any) => EnableTenantData({ tenantId: row.id })))
+        .then(() => {
+            ElMessage.success('批量启用成功')
             initData(true)
         })
+        .catch(() => {})
         .finally(() => {
-            replaceAdminLoading.value = false
+            batchLoading.value = false
         })
+}
+
+function batchDisableTenants() {
+    const enableRows = selectedRows.value.filter((row: any) => row.status === 'ENABLE')
+    if (!enableRows.length) {
+        ElMessage.warning('请选择启用状态的租户')
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(enableRows.map((row: any) => DisableTenantData({ tenantId: row.id })))
+        .then(() => {
+            ElMessage.success('批量禁用成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchDeleteTenants() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个租户吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(
+            selectedRows.value.map((row: any) =>
+                DeleteTenantData({
+                    tenantId: row.id,
+                    tenantName: row.name
+                })
+            )
+        )
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
+    })
 }
 
 // 启用 or 禁用
@@ -383,7 +412,72 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
-.zqy-seach-table {
+.zqy-seach-table.tenant-list-page {
+    .zqy-table-top {
+        position: relative;
+        overflow: hidden;
+        .tenant-batch-mask {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        .tenant-batch-slide-enter-active,
+        .tenant-batch-slide-leave-active {
+            transition:
+                transform 0.18s ease,
+                opacity 0.18s ease;
+            will-change: transform, opacity;
+        }
+        .tenant-batch-slide-enter-from,
+        .tenant-batch-slide-leave-to {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+        .tenant-batch-slide-enter-to,
+        .tenant-batch-slide-leave-from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .tenant-batch-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        .tenant-batch-action {
+            min-width: 66px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('color', 'primary');
+            color: getCssVar('color', 'primary');
+            background-color: #fff;
+            &:hover,
+            &:focus {
+                border-color: getCssVar('color', 'primary');
+                color: #fff;
+                background-color: getCssVar('color', 'primary');
+            }
+        }
+        .tenant-batch-cancel {
+            min-width: 74px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('border-color');
+            color: getCssVar('text-color', 'regular');
+            background-color: #fff;
+            &:hover,
+            &:focus {
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+            }
+        }
+    }
     .resource-progress {
         min-width: 120px;
         padding-right: 6px;
@@ -399,6 +493,29 @@ onMounted(() => {
     .resource-progress__value {
         color: getCssVar('text-color', 'secondary');
         white-space: nowrap;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+
+    .tenant-action-group {
+        justify-content: center;
+        gap: 16px;
+        .tenant-action-button {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+            font-size: getCssVar('font-size', 'extra-small');
+        }
+    }
+}
+
+.tenant-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
         font-size: getCssVar('font-size', 'extra-small');
     }
 }
