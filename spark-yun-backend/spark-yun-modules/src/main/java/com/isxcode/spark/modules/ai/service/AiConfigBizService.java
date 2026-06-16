@@ -187,7 +187,8 @@ public class AiConfigBizService {
     public AiPromptRes savePrompt(SaveAiPromptReq request) {
 
         String tenantId = requireTenantId();
-        AiPromptEntity prompt = Strings.isEmpty(request.getId()) ? new AiPromptEntity() : getCurrentTenantPrompt(request.getId());
+        AiPromptEntity prompt =
+            Strings.isEmpty(request.getId()) ? new AiPromptEntity() : getCurrentTenantPrompt(request.getId());
         String promptName = request.getName().trim();
 
         aiPromptRepository.findByTenantIdAndName(tenantId, promptName).ifPresent(existing -> {
@@ -516,10 +517,10 @@ public class AiConfigBizService {
             || lowerFileName.endsWith(".json") || lowerFileName.endsWith(".xml") || lowerFileName.endsWith(".html")
             || lowerFileName.endsWith(".htm") || lowerFileName.endsWith(".sql") || lowerFileName.endsWith(".log")
             || lowerFileName.endsWith(".yml") || lowerFileName.endsWith(".yaml")
-            || lowerFileName.endsWith(".properties") || lowerFileName.endsWith(".java")
-            || lowerFileName.endsWith(".py") || lowerFileName.endsWith(".js") || lowerFileName.endsWith(".ts")
-            || lowerFileName.endsWith(".vue") || lowerFileName.endsWith(".css") || lowerFileName.endsWith(".scss")
-            || lowerFileName.endsWith(".sh") || lowerFileName.endsWith(".bat");
+            || lowerFileName.endsWith(".properties") || lowerFileName.endsWith(".java") || lowerFileName.endsWith(".py")
+            || lowerFileName.endsWith(".js") || lowerFileName.endsWith(".ts") || lowerFileName.endsWith(".vue")
+            || lowerFileName.endsWith(".css") || lowerFileName.endsWith(".scss") || lowerFileName.endsWith(".sh")
+            || lowerFileName.endsWith(".bat");
     }
 
     private String limitExtractedContent(String content) {
@@ -530,8 +531,7 @@ public class AiConfigBizService {
         if (content.length() <= MAX_EXTRACTED_FILE_CHARS) {
             return content;
         }
-        return content.substring(0, MAX_EXTRACTED_FILE_CHARS) + "\n\n[文件内容过长，已截取前"
-            + MAX_EXTRACTED_FILE_CHARS + "个字符]";
+        return content.substring(0, MAX_EXTRACTED_FILE_CHARS) + "\n\n[文件内容过长，已截取前" + MAX_EXTRACTED_FILE_CHARS + "个字符]";
     }
 
     private String resolveSessionTitle(String title) {
