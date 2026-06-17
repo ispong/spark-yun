@@ -52,48 +52,36 @@
             <template v-else>
                 <el-tabs v-model="activeTab" class="role-tabs" @tab-change="handleTabChange">
                     <el-tab-pane label="角色成员" name="members">
-                        <div class="role-tab-toolbar">
-                            <el-input
-                                v-model="memberKeyword"
-                                clearable
-                                :prefix-icon="Search"
-                                placeholder="搜索成员账号、姓名、手机或邮箱"
-                                @keyup.enter="loadMembers()"
-                                @clear="loadMembers()"
-                            />
-                            <el-button :icon="Refresh" @click="loadMembers()">刷新</el-button>
-                        </div>
-                        <el-table v-loading="memberLoading" :data="members" height="520">
-                            <el-table-column label="加入角色" width="100">
-                                <template #default="{ row }">
-                                    <el-checkbox
-                                        :model-value="hasMemberRole(row)"
-                                        :disabled="!!memberSaving[row.userId]"
-                                        @change="(checked) => saveMemberRole(row, checked)"
+                        <div class="role-member-panel">
+                            <div class="zqy-table-top role-member-toolbar">
+                                <div class="role-member-toolbar__left">
+                                    <el-button type="primary" @click="openMemberAdder">添加成员</el-button>
+                                </div>
+                                <div class="zqy-seach role-member-search">
+                                    <el-input
+                                        v-model="memberKeyword"
+                                        clearable
+                                        :prefix-icon="Search"
+                                        placeholder="搜索成员账号、姓名、手机或邮箱"
+                                        @keyup.enter="searchMembers"
+                                        @clear="searchMembers"
                                     />
-                                </template>
-                            </el-table-column>
-                            <el-table-column prop="username" label="成员名称" min-width="140" />
-                            <el-table-column prop="account" label="账号" min-width="160" />
-                            <el-table-column prop="phone" label="手机号" min-width="140" />
-                            <el-table-column prop="email" label="邮箱" min-width="180" />
-                            <el-table-column label="状态" width="100">
-                                <template #default="{ row }">
-                                    <el-tag :type="row.status === 'ENABLE' ? 'success' : 'info'">
-                                        {{ row.status === 'ENABLE' ? '启用' : '禁用' }}
-                                    </el-tag>
-                                </template>
-                            </el-table-column>
-                        </el-table>
-                        <el-pagination
-                            v-model:current-page="memberPage"
-                            v-model:page-size="memberPageSize"
-                            class="role-pagination"
-                            layout="total, sizes, prev, pager, next"
-                            :total="memberTotal"
-                            @current-change="loadMembers"
-                            @size-change="loadMembers"
-                        />
+                                </div>
+                            </div>
+                            <div class="zqy-table role-member-table">
+                                <BlockTable
+                                    :table-config="memberTableConfig"
+                                    @size-change="handleMemberSizeChange"
+                                    @current-change="handleMemberCurrentChange"
+                                >
+                                    <template #status="scopeSlot">
+                                        <el-tag :type="scopeSlot.row.status === 'ENABLE' ? 'success' : 'danger'">
+                                            {{ scopeSlot.row.status === 'ENABLE' ? '启用' : '禁用' }}
+                                        </el-tag>
+                                    </template>
+                                </BlockTable>
+                            </div>
+                        </div>
                     </el-tab-pane>
 
                     <el-tab-pane label="菜单权限" name="menus">
@@ -173,13 +161,48 @@
             </div>
         </template>
     </el-dialog>
+
+    <el-dialog
+        v-model="memberAdderVisible"
+        class="role-editor-dialog"
+        title="添加成员"
+        width="520px"
+        :close-on-click-modal="false"
+        destroy-on-close
+    >
+        <el-form class="role-editor-form" label-position="top">
+            <el-form-item label="选择成员">
+                <el-select
+                    v-model="memberAdderUserIds"
+                    multiple
+                    filterable
+                    placeholder="请选择要加入当前角色的成员"
+                    :loading="memberAdderLoading"
+                >
+                    <el-option
+                        v-for="member in memberAdderOptions"
+                        :key="member.userId"
+                        :label="`${member.username} (${member.account})`"
+                        :value="member.userId"
+                    />
+                </el-select>
+            </el-form-item>
+        </el-form>
+        <template #footer>
+            <div class="role-editor-footer">
+                <el-button @click="memberAdderVisible = false">取消</el-button>
+                <el-button type="primary" :loading="memberAdding" @click="addSelectedMembers">保存</el-button>
+            </div>
+        </template>
+    </el-dialog>
 </template>
 
 <script lang="ts" setup>
 import { computed, defineComponent, h, onMounted, reactive, ref, type PropType } from 'vue'
-import { Delete, Edit, Plus, Refresh, Search } from '@element-plus/icons-vue'
+import { Delete, Edit, Plus, Search } from '@element-plus/icons-vue'
 import { ElCheckbox, ElMessage, ElMessageBox } from 'element-plus'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import BlockTable from '@/app/components/block-table/index.vue'
 import { DeleteRole, GetPermissionCatalog, PageRole, SaveRole } from '@/app/management/admin/api'
 import { GetUserList, SetMemberRoles } from '@/app/management/tenant-user/api'
 
@@ -316,7 +339,11 @@ const members = ref<MemberItem[]>([])
 const memberPage = ref(1)
 const memberPageSize = ref(10)
 const memberTotal = ref(0)
-const memberSaving = reactive<Record<string, boolean>>({})
+const memberAdderVisible = ref(false)
+const memberAdderLoading = ref(false)
+const memberAdding = ref(false)
+const memberAdderOptions = ref<MemberItem[]>([])
+const memberAdderUserIds = ref<string[]>([])
 
 const roleForm = reactive({
     id: '',
@@ -331,6 +358,49 @@ const catalog = reactive({
     dataPermissions: [] as PermissionModule[],
     permissionCodes: [] as string[]
 })
+
+const memberTableConfig = computed(() => ({
+    tableData: members.value,
+    colConfigs: [
+        {
+            prop: 'account',
+            title: '账号',
+            minWidth: 120,
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'username',
+            title: '名称',
+            minWidth: 120,
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'phone',
+            title: '手机号',
+            minWidth: 120,
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'email',
+            title: '邮箱',
+            minWidth: 160,
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'status',
+            title: '状态',
+            minWidth: 90,
+            customSlot: 'status'
+        }
+    ],
+    pagination: {
+        currentPage: memberPage.value,
+        pageSize: memberPageSize.value,
+        total: memberTotal.value
+    },
+    seqType: 'seq',
+    loading: memberLoading.value
+}))
 
 function loadRoles(selectRoleCode?: string) {
     loading.value = true
@@ -485,31 +555,70 @@ function loadMembers() {
         })
 }
 
+function searchMembers() {
+    memberPage.value = 1
+    loadMembers()
+}
+
+function handleMemberSizeChange(pageSize: number) {
+    memberPageSize.value = pageSize
+    memberPage.value = 1
+    loadMembers()
+}
+
+function handleMemberCurrentChange(currentPage: number) {
+    memberPage.value = currentPage
+    loadMembers()
+}
+
 function hasMemberRole(member: MemberItem) {
     return !!selectedRole.value && !!member.roleIds?.includes(selectedRole.value.id)
 }
 
-function saveMemberRole(member: MemberItem, checked: unknown) {
+function openMemberAdder() {
     if (!selectedRole.value) {
         return
     }
-    const roleIds = new Set(member.roleIds || [])
-    if (checked) {
-        roleIds.add(selectedRole.value.id)
-    } else {
-        roleIds.delete(selectedRole.value.id)
-    }
-    memberSaving[member.userId] = true
-    SetMemberRoles({
-        userId: member.userId,
-        roleIds: Array.from(roleIds)
+    memberAdderVisible.value = true
+    memberAdderUserIds.value = []
+    memberAdderLoading.value = true
+    GetUserList({
+        page: 0,
+        pageSize: 500,
+        searchKeyWord: ''
     })
         .then((res: any) => {
-            ElMessage.success(res.msg)
-            member.roleIds = Array.from(roleIds)
+            memberAdderOptions.value = (res.data.content || []).filter((member: MemberItem) => !hasMemberRole(member))
         })
         .finally(() => {
-            memberSaving[member.userId] = false
+            memberAdderLoading.value = false
+        })
+}
+
+function addSelectedMembers() {
+    if (!selectedRole.value || !memberAdderUserIds.value.length) {
+        ElMessage.warning('请选择成员')
+        return
+    }
+    const selectedMembers = memberAdderOptions.value.filter((member) => memberAdderUserIds.value.includes(member.userId))
+    memberAdding.value = true
+    Promise.all(
+        selectedMembers.map((member) => {
+            const roleIds = new Set(member.roleIds || [])
+            roleIds.add(selectedRole.value!.id)
+            return SetMemberRoles({
+                userId: member.userId,
+                roleIds: Array.from(roleIds)
+            })
+        })
+    )
+        .then(() => {
+            ElMessage.success('添加成功')
+            memberAdderVisible.value = false
+            loadMembers()
+        })
+        .finally(() => {
+            memberAdding.value = false
         })
 }
 
@@ -561,6 +670,40 @@ onMounted(() => {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+}
+
+.role-member-panel {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.role-member-toolbar {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+    padding: 0 0 12px;
+    box-sizing: border-box;
+}
+
+.role-member-toolbar__left {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.role-member-search {
+    width: 320px;
+    max-width: 48%;
+}
+
+.role-member-table {
+    min-height: 0;
+    flex: 1;
 }
 
 .role-list {
@@ -669,6 +812,14 @@ onMounted(() => {
     height: 100%;
 }
 
+:deep(.role-tabs > .el-tabs__content) {
+    height: calc(100% - 55px);
+}
+
+:deep(.role-tabs > .el-tabs__content > .el-tab-pane) {
+    height: 100%;
+}
+
 .role-tab-toolbar {
     margin-bottom: 12px;
 
@@ -678,11 +829,6 @@ onMounted(() => {
 }
 
 .role-tab-footer {
-    margin-top: 12px;
-    justify-content: flex-end;
-}
-
-.role-pagination {
     margin-top: 12px;
     justify-content: flex-end;
 }
