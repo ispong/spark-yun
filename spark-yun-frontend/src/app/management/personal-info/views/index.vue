@@ -3,97 +3,105 @@
     <div class="personal-info">
         <div class="personal-info__content">
             <template v-if="activeMenu === 'basic-info'">
-                <el-form
-                    ref="elFormRef"
-                    class="personal-info__form"
-                    :model="personalModel"
-                    label-position="top"
-                    :rules="personalRule"
-                >
-                    <el-form-item label="账号">
-                        <el-input v-model="personalModel.account" placeholder="--" disabled />
-                    </el-form-item>
-                    <el-form-item label="用户名" prop="username">
-                        <el-input
-                            v-model="personalModel.username"
-                            maxlength="100"
-                            placeholder="请输入"
-                            show-word-limit
-                        />
-                    </el-form-item>
-                    <el-form-item label="手机号" prop="phone">
-                        <el-input
-                            v-model="personalModel.phone"
-                            maxlength="100"
-                            placeholder="请输入"
-                            show-word-limit
-                        />
-                    </el-form-item>
-                    <el-form-item label="邮箱" prop="email">
-                        <el-input
-                            v-model="personalModel.email"
-                            maxlength="100"
-                            placeholder="请输入"
-                            show-word-limit
-                        />
-                    </el-form-item>
-                    <el-form-item label="备注">
-                        <el-input
-                            v-model="personalModel.remark"
-                            show-word-limit
-                            type="textarea"
-                            maxlength="200"
-                            :autosize="{ minRows: 4, maxRows: 4 }"
-                            placeholder="请输入"
-                        />
-                    </el-form-item>
-                </el-form>
+                <div class="personal-info__panel">
+                    <el-form
+                        ref="elFormRef"
+                        class="personal-info__form"
+                        :model="personalModel"
+                        label-position="top"
+                        :rules="personalRule"
+                    >
+                        <el-form-item label="账号">
+                            <el-input v-model="personalModel.account" placeholder="--" disabled />
+                        </el-form-item>
+                        <el-form-item label="用户名" prop="username">
+                            <el-input
+                                v-model="personalModel.username"
+                                maxlength="100"
+                                placeholder="请输入"
+                                show-word-limit
+                            />
+                        </el-form-item>
+                        <el-form-item label="手机号" prop="phone">
+                            <el-input
+                                v-model="personalModel.phone"
+                                maxlength="100"
+                                placeholder="请输入"
+                                show-word-limit
+                            />
+                        </el-form-item>
+                        <el-form-item label="邮箱" prop="email">
+                            <el-input
+                                v-model="personalModel.email"
+                                maxlength="100"
+                                placeholder="请输入"
+                                show-word-limit
+                            />
+                        </el-form-item>
+                        <el-form-item label="备注">
+                            <el-input
+                                v-model="personalModel.remark"
+                                show-word-limit
+                                type="textarea"
+                                maxlength="200"
+                                :autosize="{ minRows: 4, maxRows: 4 }"
+                                placeholder="请输入"
+                            />
+                        </el-form-item>
+                    </el-form>
 
-                <el-button type="primary" @click="handleSave">保存</el-button>
+                    <div class="personal-info__actions">
+                        <el-button type="primary" @click="handleSave">保存</el-button>
+                    </div>
+                </div>
             </template>
 
             <template v-else>
-                <el-form
-                    ref="passwordFormRef"
-                    class="personal-info__form"
-                    :model="passwordModel"
-                    label-position="top"
-                    :rules="passwordRule"
-                >
-                    <el-form-item label="原密码" prop="oldPassword">
-                        <el-input
-                            v-model="passwordModel.oldPassword"
-                            type="password"
-                            show-password
-                            placeholder="请输入原密码"
-                        />
-                    </el-form-item>
-                    <el-form-item label="新密码" prop="newPassword">
-                        <el-input
-                            v-model="passwordModel.newPassword"
-                            type="password"
-                            show-password
-                            placeholder="请输入新密码"
-                        />
-                    </el-form-item>
-                    <el-form-item label="确认新密码" prop="confirmPassword">
-                        <el-input
-                            v-model="passwordModel.confirmPassword"
-                            type="password"
-                            show-password
-                            placeholder="请再次输入新密码"
-                        />
-                    </el-form-item>
-                </el-form>
+                <div class="personal-info__panel">
+                    <el-form
+                        ref="passwordFormRef"
+                        class="personal-info__form"
+                        :model="passwordModel"
+                        label-position="top"
+                        :rules="passwordRule"
+                    >
+                        <el-form-item label="原密码" prop="oldPassword">
+                            <el-input
+                                v-model="passwordModel.oldPassword"
+                                type="password"
+                                show-password
+                                placeholder="请输入原密码"
+                            />
+                        </el-form-item>
+                        <el-form-item label="新密码" prop="newPassword">
+                            <el-input
+                                v-model="passwordModel.newPassword"
+                                type="password"
+                                show-password
+                                placeholder="请输入新密码"
+                            />
+                        </el-form-item>
+                        <el-form-item label="确认新密码" prop="confirmPassword">
+                            <el-input
+                                v-model="passwordModel.confirmPassword"
+                                type="password"
+                                show-password
+                                placeholder="请再次输入新密码"
+                            />
+                        </el-form-item>
+                    </el-form>
 
-                <el-button type="primary" @click="handleChangePassword">确认修改</el-button>
+                    <div class="personal-info__actions">
+                        <el-button type="primary" @click="handleChangePassword">确认修改</el-button>
+                    </div>
+                </div>
             </template>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { PasswordModel, PersonalModel } from './personal-info'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
@@ -211,12 +219,17 @@ const passwordRule: FormRules = {
     ]
 }
 
-const breadCrumbList = [
+const menuTitleMap: Record<PersonalInfoMenu, string> = {
+    'basic-info': '基础信息',
+    'change-password': '修改密码'
+}
+
+const breadCrumbList = computed(() => [
     {
-        name: '设置',
+        name: menuTitleMap[activeMenu.value],
         code: 'personal-info'
     }
-]
+])
 
 watch(
     () => route.query.tab,

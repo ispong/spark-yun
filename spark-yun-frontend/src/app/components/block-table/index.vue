@@ -51,7 +51,7 @@
                 :fixed="colConfig.fixed"
                 :resizable="colIndex < normalizedColConfigs.length - 1"
                 :header-class-name="colConfig.headerClassName"
-                :show-header-overflow="colConfig.showHeaderOverflow || false"
+                :show-header-overflow="colConfig.showHeaderOverflow ?? true"
                 :show-overflow="colConfig.showOverflowTooltip || true"
                 :drag-sort="colConfig.dragSort"
                 v-bind="colConfig"
@@ -72,7 +72,7 @@
             <vxe-column
                 v-else
                 :key="`${colConfig.prop || colConfig.title || colIndex}s`"
-                :show-header-overflow="colConfig.showHeaderOverflow || false"
+                :show-header-overflow="colConfig.showHeaderOverflow ?? true"
                 :width="colConfig.width"
                 :field="colConfig.prop"
                 :resizable="colIndex < normalizedColConfigs.length - 1"
@@ -124,6 +124,7 @@ interface colConfig {
     prop?: string
     title: string
     align?: string
+    showHeaderOverflow?: boolean
     showOverflowTooltip?: boolean
     customSlot?: string
     minWidth?: number
@@ -293,6 +294,11 @@ function toggleAllRows(checked: boolean) {
         // height: getCssVar('menu', 'item-height');
         padding: 0;
         background-color: #fff;
+        .vxe-cell {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
     .block-table__selection-cell {
         position: relative;

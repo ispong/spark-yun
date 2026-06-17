@@ -77,7 +77,7 @@
                             <el-icon>
                                 <SetUp />
                             </el-icon>
-                            工作台
+                            工作空间
                         </div>
                         <div v-if="showAdminEntry" class="zqy-layout__user-menu-option" @click="goArea('/admin')">
                             <el-icon>

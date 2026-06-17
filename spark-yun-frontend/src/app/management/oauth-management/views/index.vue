@@ -391,22 +391,25 @@ onMounted(() => {
     }
 
     .oauth-action-group {
-        display: flex;
-        align-items: center;
         justify-content: center;
-        gap: 12px;
-    }
+        gap: 16px;
 
-    .oauth-action-button {
-        color: getCssVar('color', 'primary');
-        cursor: pointer;
-        white-space: nowrap;
+        .oauth-action-button {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+            font-size: getCssVar('font-size', 'extra-small');
+            color: getCssVar('color', 'primary');
+            cursor: pointer;
+            white-space: nowrap;
+        }
     }
 }
 
 .oauth-action-dropdown {
     .el-dropdown-menu {
         padding: 4px 0;
+        min-width: 76px;
     }
 
     .el-dropdown-menu__item {
@@ -414,6 +417,10 @@ onMounted(() => {
         line-height: 26px;
         font-family: Avenir, Helvetica, Arial, sans-serif;
         font-size: getCssVar('font-size', 'extra-small');
+
+        .el-icon {
+            font-size: getCssVar('font-size', 'extra-small');
+        }
     }
 }
 </style>
