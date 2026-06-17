@@ -24,6 +24,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import { useAuthStore } from '@/app/store/useAuth'
+import eventBus from '@/app/utils/eventBus'
 import { GetTenant, UpdateTenantForTenantAdmin } from '@/app/management/backend-setting/api'
 
 const authStore = useAuthStore()
@@ -83,6 +84,7 @@ function saveSetting() {
         })
             .then(() => {
                 ElMessage.success('保存成功')
+                eventBus.emit('tenantListUpdate')
                 loadSetting()
             })
             .finally(() => {

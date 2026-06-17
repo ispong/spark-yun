@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS sy_login_method_config
   config_key VARCHAR(200) NOT NULL,
   default_login_method VARCHAR(100) DEFAULT 'ACCOUNT' NOT NULL,
   account_enabled BOOLEAN DEFAULT TRUE NOT NULL,
-  account_phone_password_enabled BOOLEAN DEFAULT FALSE NOT NULL,
-  account_email_password_enabled BOOLEAN DEFAULT FALSE NOT NULL,
+  account_phone_password_enabled BOOLEAN DEFAULT TRUE NOT NULL,
+  account_email_password_enabled BOOLEAN DEFAULT TRUE NOT NULL,
   email_enabled BOOLEAN DEFAULT FALSE NOT NULL,
   email_register_enabled BOOLEAN DEFAULT FALSE NOT NULL,
   phone_enabled BOOLEAN DEFAULT FALSE NOT NULL,
@@ -56,7 +56,7 @@ INSERT INTO sy_login_method_config (
   config_json, create_by, create_date_time, last_modified_by, last_modified_date_time, version_number, deleted
 )
 SELECT
-  'sy_login_method_config_default', 'GLOBAL', 'ACCOUNT', TRUE, FALSE, FALSE,
+  'sy_login_method_config_default', 'GLOBAL', 'ACCOUNT', TRUE, TRUE, TRUE,
   FALSE, FALSE, FALSE, FALSE, TRUE,
   '{"emailConfig":{},"phoneConfig":{"provider":"ALIYUN","regionId":"cn-hangzhou","templateParamName":"code"}}',
   'system', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 0, 0

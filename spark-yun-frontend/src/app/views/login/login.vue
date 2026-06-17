@@ -236,8 +236,8 @@ const openLoginConfig = reactive<OpenLoginMethodConfig>({
     defaultLoginMethod: 'ACCOUNT',
     accountEnabled: true,
     accountPasswordEnabled: true,
-    accountPhonePasswordEnabled: false,
-    accountEmailPasswordEnabled: false,
+    accountPhonePasswordEnabled: true,
+    accountEmailPasswordEnabled: true,
     emailEnabled: false,
     emailRegisterEnabled: false,
     phoneEnabled: false,
@@ -659,8 +659,10 @@ onBeforeUnmount(() => {
     .zqy-login__body {
         min-height: 100vh;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 380px;
-        padding: 0 72px 0 96px;
+        grid-template-columns: minmax(420px, 1fr) minmax(340px, 380px);
+        gap: 64px;
+        padding: 104px 72px 56px 96px;
+        box-sizing: border-box;
         align-items: center;
         max-width: 1480px;
         margin: 0 auto;
@@ -675,7 +677,7 @@ onBeforeUnmount(() => {
     }
 
     .zqy-login__preview {
-        width: min(78%, 800px);
+        width: min(100%, 800px);
         max-width: 800px;
         height: auto;
     }
@@ -688,7 +690,9 @@ onBeforeUnmount(() => {
 
     .zqy-login__card {
         width: 100%;
+        min-width: 0;
         padding: 46px 30px;
+        box-sizing: border-box;
         border-radius: 8px;
         box-shadow: 0 0 10px var(--el-border-color);
         display: flex;
@@ -897,6 +901,81 @@ onBeforeUnmount(() => {
         }
     }
 
+    @media (max-width: 1180px) {
+        .zqy-login__body {
+            grid-template-columns: minmax(320px, 1fr) minmax(320px, 360px);
+            gap: 40px;
+            padding: 104px 40px 48px;
+        }
+
+        .zqy-login__preview {
+            max-width: 640px;
+        }
+    }
+
+    @media (max-width: 900px) {
+        overflow: auto;
+
+        .zqy-login__header {
+            position: static;
+            padding: 28px 24px 0;
+        }
+
+        .zqy-login__brand {
+            width: 148px;
+        }
+
+        .zqy-login__body {
+            min-height: auto;
+            display: flex;
+            justify-content: center;
+            padding: 36px 24px 40px;
+        }
+
+        .zqy-login__visual {
+            display: none;
+        }
+
+        .zqy-login__panel {
+            width: 100%;
+            max-width: 380px;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 430px) {
+        .zqy-login__body {
+            padding: 28px 16px 32px;
+        }
+
+        .zqy-login__card {
+            padding: 34px 20px;
+        }
+
+        .zqy-login__title {
+            line-height: 64px;
+        }
+
+        .zqy-login__code-form {
+            .zqy-login__code-row {
+                gap: 8px;
+            }
+
+            .zqy-login__code-digits {
+                gap: 4px;
+            }
+
+            .zqy-login__code-digit {
+                height: 38px;
+                line-height: 38px;
+            }
+
+            .zqy-login__send-code {
+                width: 78px;
+                flex-basis: 78px;
+            }
+        }
+    }
 }
 
 .login-method-dropdown {

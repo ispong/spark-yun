@@ -105,8 +105,8 @@ public class LoginMethodConfigService {
         config.setDefaultLoginMethod(LoginMethodType.ACCOUNT);
         config.setAccountEnabled(true);
         config.setAccountPasswordEnabled(true);
-        config.setAccountPhonePasswordEnabled(false);
-        config.setAccountEmailPasswordEnabled(false);
+        config.setAccountPhonePasswordEnabled(true);
+        config.setAccountEmailPasswordEnabled(true);
         config.setEmailEnabled(false);
         config.setEmailRegisterEnabled(false);
         config.setPhoneEnabled(false);
@@ -145,8 +145,8 @@ public class LoginMethodConfigService {
             .defaultLoginMethod(
                 resolveDefaultLoginMethod(config.getDefaultLoginMethod(), accountEnabled, emailEnabled, phoneEnabled))
             .accountEnabled(accountEnabled).accountPasswordEnabled(true)
-            .accountPhonePasswordEnabled(valueOrDefault(config.getAccountPhonePasswordEnabled(), false))
-            .accountEmailPasswordEnabled(valueOrDefault(config.getAccountEmailPasswordEnabled(), false))
+            .accountPhonePasswordEnabled(valueOrDefault(config.getAccountPhonePasswordEnabled(), true))
+            .accountEmailPasswordEnabled(valueOrDefault(config.getAccountEmailPasswordEnabled(), true))
             .emailEnabled(emailEnabled).emailRegisterEnabled(valueOrDefault(config.getEmailRegisterEnabled(), false))
             .phoneEnabled(phoneEnabled).phoneRegisterEnabled(valueOrDefault(config.getPhoneRegisterEnabled(), false))
             .config(configDto).build();

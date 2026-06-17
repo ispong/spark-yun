@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -63,6 +63,7 @@ import { ChangeTenantData } from '@/app/api'
 import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { useSwitchTenant, type TenantInfo } from '@/app/hooks/switch-tenant'
 import { useAuthStore } from '@/app/store/useAuth'
+import eventBus from '@/app/utils/eventBus'
 import { http } from '@/app/utils/http'
 import { getVipLicenseEnabled } from '@/app/utils/vip-license'
 
@@ -172,10 +173,16 @@ function open() {
     selectedTenantId.value = authStore.tenantId
     tenantKeyword.value = ''
     tenantDialogVisible.value = true
+    loadTenantList()
 }
 
 onMounted(() => {
     loadTenantList()
+    eventBus.on('tenantListUpdate', loadTenantList)
+})
+
+onUnmounted(() => {
+    eventBus.off('tenantListUpdate', loadTenantList)
 })
 
 watch(
