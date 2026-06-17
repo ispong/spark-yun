@@ -19,4 +19,6 @@ public class RoleRes {
     private String status;
 
     private List<String> permissionCodes;
+
+    private List<RoleInstancePermissionRes> instancePermissions;
 }

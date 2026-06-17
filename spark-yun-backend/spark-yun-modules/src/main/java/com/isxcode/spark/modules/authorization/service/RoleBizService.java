@@ -1,20 +1,32 @@
 package com.isxcode.spark.modules.authorization.service;
 
+import com.isxcode.spark.api.authorization.constants.RoleInstanceResourceType;
 import com.isxcode.spark.api.authorization.req.DeleteRoleReq;
+import com.isxcode.spark.api.authorization.req.GetRoleInstancePermissionReq;
 import com.isxcode.spark.api.authorization.req.ListRoleReq;
+import com.isxcode.spark.api.authorization.req.PageRoleInstanceResourceReq;
 import com.isxcode.spark.api.authorization.req.PageRoleReq;
+import com.isxcode.spark.api.authorization.req.SaveRoleInstancePermissionReq;
 import com.isxcode.spark.api.authorization.req.SaveRoleReq;
+import com.isxcode.spark.api.authorization.res.PageRoleInstanceResourceRes;
 import com.isxcode.spark.api.authorization.res.PermissionCatalogRes;
 import com.isxcode.spark.api.authorization.res.PermissionCatalogRes.PermissionItemRes;
 import com.isxcode.spark.api.authorization.res.PermissionCatalogRes.PermissionModuleRes;
+import com.isxcode.spark.api.authorization.res.RoleInstancePermissionRes;
 import com.isxcode.spark.api.authorization.res.RoleRes;
 import com.isxcode.spark.api.tenant.constants.TenantStatus;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.common.security.ContextHolder;
+import com.isxcode.spark.modules.cluster.repository.ClusterNodeRepository;
+import com.isxcode.spark.modules.cluster.repository.ClusterRepository;
+import com.isxcode.spark.modules.datasource.repository.DatasourceRepository;
+import com.isxcode.spark.modules.file.repository.FileRepository;
 import com.isxcode.spark.security.authorization.MemberRoleRepository;
 import com.isxcode.spark.security.authorization.OrgRoleRepository;
 import com.isxcode.spark.security.authorization.RoleEntity;
+import com.isxcode.spark.security.authorization.RoleInstancePermissionEntity;
+import com.isxcode.spark.security.authorization.RoleInstancePermissionRepository;
 import com.isxcode.spark.security.authorization.RolePermissionEntity;
 import com.isxcode.spark.security.authorization.RolePermissionRepository;
 import com.isxcode.spark.security.authorization.RoleRepository;
@@ -46,9 +58,19 @@ public class RoleBizService {
 
     private final RolePermissionRepository rolePermissionRepository;
 
+    private final RoleInstancePermissionRepository roleInstancePermissionRepository;
+
     private final MemberRoleRepository memberRoleRepository;
 
     private final OrgRoleRepository orgRoleRepository;
+
+    private final ClusterRepository clusterRepository;
+
+    private final ClusterNodeRepository clusterNodeRepository;
+
+    private final DatasourceRepository datasourceRepository;
+
+    private final FileRepository fileRepository;
 
     private final ObjectProvider<RequestMappingHandlerMapping> requestMappingHandlerMappingProvider;
 
@@ -93,6 +115,11 @@ public class RoleBizService {
                 rolePermissionRepository.save(permission);
             });
         }
+
+        if (request.getInstancePermissions() != null) {
+            request.getInstancePermissions().forEach(permission -> saveInstancePermission(savedRole.getId(),
+                permission.getResourceType(), permission.getAllEnabled(), permission.getResourceIds()));
+        }
     }
 
     @Transactional(rollbackFor = Exception.class, readOnly = true)
@@ -121,7 +148,70 @@ public class RoleBizService {
             throw new IsxAppException("已绑定用户或组织的角色不能删除");
         }
         rolePermissionRepository.deleteAllByTenantIdAndRoleId(tenantId, role.getId());
+        roleInstancePermissionRepository.deleteAllByTenantIdAndRoleId(tenantId, role.getId());
         roleRepository.delete(role);
+    }
+
+    public void saveInstancePermission(SaveRoleInstancePermissionReq request) {
+
+        saveInstancePermission(request.getRoleId(), request.getResourceType(), request.getAllEnabled(),
+            request.getResourceIds());
+    }
+
+    private void saveInstancePermission(String roleId, String requestResourceType, Boolean allEnabled,
+        List<String> resourceIds) {
+
+        String tenantId = requireTenantId();
+        RoleEntity role = getCurrentTenantRole(roleId);
+        String resourceType = requireResourceType(requestResourceType);
+        RoleInstancePermissionEntity permission = roleInstancePermissionRepository
+            .findByTenantIdAndRoleIdAndResourceType(tenantId, role.getId(), resourceType)
+            .orElseGet(RoleInstancePermissionEntity::new);
+        permission.setTenantId(tenantId);
+        permission.setRoleId(role.getId());
+        permission.setResourceType(resourceType);
+        permission.setAllEnabled(Boolean.TRUE.equals(allEnabled));
+        permission.setResourceIds(joinResourceIds(resourceIds));
+        roleInstancePermissionRepository.save(permission);
+    }
+
+    @Transactional(rollbackFor = Exception.class, readOnly = true)
+    public RoleInstancePermissionRes getInstancePermission(GetRoleInstancePermissionReq request) {
+
+        String tenantId = requireTenantId();
+        RoleEntity role = getCurrentTenantRole(request.getRoleId());
+        String resourceType = requireResourceType(request.getResourceType());
+        return roleInstancePermissionRepository.findByTenantIdAndRoleIdAndResourceType(tenantId, role.getId(),
+                resourceType)
+            .map(permission -> RoleInstancePermissionRes.builder().roleId(role.getId()).resourceType(resourceType)
+                .allEnabled(Boolean.TRUE.equals(permission.getAllEnabled()))
+                .resourceIds(splitResourceIds(permission.getResourceIds())).build())
+            .orElseGet(() -> RoleInstancePermissionRes.builder().roleId(role.getId()).resourceType(resourceType)
+                .allEnabled(true).resourceIds(List.of()).build());
+    }
+
+    @Transactional(rollbackFor = Exception.class, readOnly = true)
+    public Page<PageRoleInstanceResourceRes> pageInstanceResource(PageRoleInstanceResourceReq request) {
+
+        String resourceType = requireResourceType(request.getResourceType());
+        PageRequest pageRequest = PageRequest.of(request.getPage(), request.getPageSize());
+        String keyword = request.getSearchKeyWord();
+        return switch (resourceType) {
+            case RoleInstanceResourceType.CLUSTER -> clusterRepository.pageCluster(keyword, pageRequest)
+                .map(cluster -> PageRoleInstanceResourceRes.builder().id(cluster.getId()).name(cluster.getName())
+                    .type(cluster.getClusterType()).status(cluster.getStatus()).remark(cluster.getRemark()).build());
+            case RoleInstanceResourceType.CLUSTER_NODE -> clusterNodeRepository.searchAllNodes(keyword, pageRequest)
+                .map(node -> PageRoleInstanceResourceRes.builder().id(node.getId()).name(node.getName())
+                    .type(node.getHost()).status(node.getStatus()).remark(node.getRemark()).build());
+            case RoleInstanceResourceType.DATASOURCE -> datasourceRepository.searchAll(keyword, null, pageRequest)
+                .map(datasource -> PageRoleInstanceResourceRes.builder().id(datasource.getId())
+                    .name(datasource.getName()).type(datasource.getDbType()).status(datasource.getStatus())
+                    .remark(datasource.getRemark()).build());
+            case RoleInstanceResourceType.RESOURCE_FILE -> fileRepository.searchAll(keyword, null, pageRequest)
+                .map(file -> PageRoleInstanceResourceRes.builder().id(file.getId()).name(file.getFileName())
+                    .type(file.getFileType()).status(null).remark(file.getRemark()).build());
+            default -> throw new IsxAppException("资源类型不支持");
+        };
     }
 
     public PermissionCatalogRes permissionCatalog() {
@@ -140,7 +230,15 @@ public class RoleBizService {
         List<String> permissionCodes = rolePermissionRepository.findAllByTenantIdAndRoleId(tenantId, role.getId())
             .stream().map(RolePermissionEntity::getPermissionCode).toList();
         return RoleRes.builder().id(role.getId()).name(role.getName()).code(role.getCode()).remark(role.getRemark())
-            .status(role.getStatus()).permissionCodes(permissionCodes).build();
+            .status(role.getStatus()).permissionCodes(permissionCodes)
+            .instancePermissions(roleInstancePermissionRepository.findAllByTenantIdAndRoleId(tenantId, role.getId())
+                .stream()
+                .map(permission -> RoleInstancePermissionRes.builder().roleId(role.getId())
+                    .resourceType(permission.getResourceType())
+                    .allEnabled(Boolean.TRUE.equals(permission.getAllEnabled()))
+                    .resourceIds(splitResourceIds(permission.getResourceIds())).build())
+                .toList())
+            .build();
     }
 
     private Set<String> validPermissionCodes() {
@@ -225,6 +323,32 @@ public class RoleBizService {
             throw new IsxAppException("无权操作其他租户角色");
         }
         return role;
+    }
+
+    private String requireResourceType(String resourceType) {
+
+        if (List.of(RoleInstanceResourceType.CLUSTER, RoleInstanceResourceType.CLUSTER_NODE,
+            RoleInstanceResourceType.DATASOURCE, RoleInstanceResourceType.RESOURCE_FILE).contains(resourceType)) {
+            return resourceType;
+        }
+        throw new IsxAppException("资源类型不支持");
+    }
+
+    private String joinResourceIds(List<String> resourceIds) {
+
+        if (resourceIds == null || resourceIds.isEmpty()) {
+            return "";
+        }
+        return resourceIds.stream().filter(id -> !Strings.isEmpty(id)).distinct().reduce((left, right) -> left + "," + right)
+            .orElse("");
+    }
+
+    private List<String> splitResourceIds(String resourceIds) {
+
+        if (Strings.isEmpty(resourceIds)) {
+            return List.of();
+        }
+        return List.of(resourceIds.split(",")).stream().filter(id -> !Strings.isEmpty(id)).distinct().toList();
     }
 
     private String requireTenantId() {

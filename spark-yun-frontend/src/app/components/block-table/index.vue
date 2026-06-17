@@ -25,6 +25,7 @@
                     v-if="tableConfig.checkbox"
                     :model-value="isAllSelected"
                     :indeterminate="isIndeterminate"
+                    :disabled="tableConfig.checkboxDisabled"
                     @change="toggleAllRows"
                     @click.stop
                 />
@@ -36,6 +37,7 @@
                     <el-checkbox
                         class="block-table__selection-checkbox"
                         :model-value="isRowSelected(row)"
+                        :disabled="tableConfig.checkboxDisabled"
                         @change="toggleRow(row, $event)"
                         @click.stop
                     />
@@ -139,6 +141,9 @@ interface TableConfig {
     colConfigs: Array<colConfig>
     seqType?: string
     checkbox?: boolean
+    checkboxDisabled?: boolean
+    rowKey?: string
+    selectedRowKeys?: string[]
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -200,19 +205,28 @@ const rowDragConfig = reactive<VxeTablePropTypes.RowDragConfig<RowVO>>({
 
 const isAllSelected = computed(() => {
     const tableData = props.tableConfig.tableData || []
-    return !!tableData.length && selectedRows.value.length === tableData.length
+    return !!tableData.length && tableData.every((row) => isRowSelected(row))
 })
 
 const isIndeterminate = computed(() => {
     const tableData = props.tableConfig.tableData || []
-    return selectedRows.value.length > 0 && selectedRows.value.length < tableData.length
+    const selectedCount = tableData.filter((row) => isRowSelected(row)).length
+    return selectedCount > 0 && selectedCount < tableData.length
 })
 
 watch(
-    () => props.tableConfig.tableData,
+    () => [props.tableConfig.tableData, props.tableConfig.selectedRowKeys],
     () => {
+        if (props.tableConfig.selectedRowKeys) {
+            const selectedKeySet = new Set(props.tableConfig.selectedRowKeys)
+            selectedRows.value = (props.tableConfig.tableData || []).filter((row) => selectedKeySet.has(getRowKey(row)))
+            return
+        }
         selectedRows.value = []
         emit('checkbox-change', [])
+    },
+    {
+        immediate: true
     }
 )
 
@@ -243,7 +257,15 @@ function rowDragendEvent(e: any) {
     emit('rowDragendEvent', vxeTableRef.value.getTableData())
 }
 
+function getRowKey(row: any) {
+    const key = props.tableConfig.rowKey || 'id'
+    return row?.[key]
+}
+
 function isRowSelected(row: any) {
+    if (props.tableConfig.selectedRowKeys) {
+        return props.tableConfig.selectedRowKeys.includes(getRowKey(row))
+    }
     return selectedRows.value.includes(row)
 }
 
@@ -252,6 +274,7 @@ function emitSelectionChange() {
 }
 
 function toggleRow(row: any, checked: boolean) {
+    if (props.tableConfig.checkboxDisabled) return
     if (checked) {
         if (!isRowSelected(row)) {
             selectedRows.value = [...selectedRows.value, row]
@@ -263,6 +286,7 @@ function toggleRow(row: any, checked: boolean) {
 }
 
 function toggleAllRows(checked: boolean) {
+    if (props.tableConfig.checkboxDisabled) return
     selectedRows.value = checked ? [...(props.tableConfig.tableData || [])] : []
     emitSelectionChange()
 }

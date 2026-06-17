@@ -1,10 +1,15 @@
 package com.isxcode.spark.modules.authorization.controller;
 
 import com.isxcode.spark.api.authorization.req.DeleteRoleReq;
+import com.isxcode.spark.api.authorization.req.GetRoleInstancePermissionReq;
 import com.isxcode.spark.api.authorization.req.ListRoleReq;
+import com.isxcode.spark.api.authorization.req.PageRoleInstanceResourceReq;
 import com.isxcode.spark.api.authorization.req.PageRoleReq;
+import com.isxcode.spark.api.authorization.req.SaveRoleInstancePermissionReq;
 import com.isxcode.spark.api.authorization.req.SaveRoleReq;
+import com.isxcode.spark.api.authorization.res.PageRoleInstanceResourceRes;
 import com.isxcode.spark.api.authorization.res.PermissionCatalogRes;
+import com.isxcode.spark.api.authorization.res.RoleInstancePermissionRes;
 import com.isxcode.spark.api.authorization.res.RoleRes;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
@@ -76,5 +81,34 @@ public class RoleController {
     public PermissionCatalogRes permissionCatalog() {
 
         return roleBizService.permissionCatalog();
+    }
+
+    @Operation(summary = "查询角色实例权限资源列表")
+    @PostMapping("/pageInstanceResource")
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @SuccessResponse("查询成功")
+    public Page<PageRoleInstanceResourceRes> pageInstanceResource(
+        @Valid @RequestBody PageRoleInstanceResourceReq request) {
+
+        return roleBizService.pageInstanceResource(request);
+    }
+
+    @Operation(summary = "查询角色实例权限配置")
+    @PostMapping("/getInstancePermission")
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @SuccessResponse("查询成功")
+    public RoleInstancePermissionRes getInstancePermission(@Valid @RequestBody GetRoleInstancePermissionReq request) {
+
+        return roleBizService.getInstancePermission(request);
+    }
+
+    @Operation(summary = "保存角色实例权限配置")
+    @PostMapping("/saveInstancePermission")
+    @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
+    @UserLog
+    @SuccessResponse("保存成功")
+    public void saveInstancePermission(@Valid @RequestBody SaveRoleInstancePermissionReq request) {
+
+        roleBizService.saveInstancePermission(request);
     }
 }

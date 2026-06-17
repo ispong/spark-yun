@@ -114,16 +114,70 @@
                     <el-tab-pane label="功能权限" name="buttons">
                         <PermissionMatrix
                             :modules="catalog.buttonPermissions"
-                            :permission-codes="permissionCodes"
+                            :permission-codes="visiblePermissionCodes"
                             :labels="buttonLabels"
                             :disabled="buttonAllChecked"
                             @change="setPermission"
                         />
                         <div class="role-permission-footer">
-                            <el-checkbox :model-value="buttonAllChecked" @change="setButtonAllChecked">全选</el-checkbox>
+                            <el-checkbox :model-value="buttonAllChecked" @change="setButtonAllChecked">
+                                全选
+                            </el-checkbox>
                             <el-button type="primary" :loading="permissionSaving" @click="savePermissions">
                                 保存
                             </el-button>
+                        </div>
+                    </el-tab-pane>
+
+                    <el-tab-pane
+                        v-for="resourceType in instanceResourceTypes"
+                        :key="resourceType.code"
+                        :label="resourceType.name"
+                        :name="resourceType.code"
+                    >
+                        <div class="role-instance-panel">
+                            <div class="role-instance-toolbar">
+                                <el-input
+                                    v-model="instancePermissionState[resourceType.code].keyword"
+                                    clearable
+                                    :prefix-icon="Search"
+                                    placeholder="搜索名称、类型或备注"
+                                    @keyup.enter="searchInstanceResources(resourceType.code)"
+                                    @clear="searchInstanceResources(resourceType.code)"
+                                />
+                            </div>
+                            <div
+                                class="role-instance-table"
+                                :class="{
+                                    'role-instance-table--disabled':
+                                        instancePermissionState[resourceType.code].allEnabled
+                                }"
+                            >
+                                <BlockTable
+                                    :table-config="getInstanceTableConfig(resourceType.code)"
+                                    @size-change="(pageSize) => handleInstanceSizeChange(resourceType.code, pageSize)"
+                                    @current-change="(page) => handleInstancePageChange(resourceType.code, page)"
+                                    @checkbox-change="(rows) => handleInstanceSelectionChange(resourceType.code, rows)"
+                                >
+                                    <template #footerLeft>
+                                        <div class="role-instance-actions">
+                                            <el-checkbox
+                                                v-model="instancePermissionState[resourceType.code].allEnabled"
+                                                @change="handleInstanceAllChange(resourceType.code)"
+                                            >
+                                                全选
+                                            </el-checkbox>
+                                            <el-button
+                                                type="primary"
+                                                :loading="instancePermissionState[resourceType.code].saving"
+                                                @click="saveInstancePermission(resourceType.code)"
+                                            >
+                                                保存
+                                            </el-button>
+                                        </div>
+                                    </template>
+                                </BlockTable>
+                            </div>
                         </div>
                     </el-tab-pane>
 
@@ -201,8 +255,18 @@ import { ElCheckbox, ElMessage, ElMessageBox } from 'element-plus'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import { useAuthStore } from '@/app/store/useAuth'
-import { DeleteRole, GetPermissionCatalog, PageRole, SaveRole } from '@/app/management/admin/api'
+import {
+    DeleteRole,
+    GetPermissionCatalog,
+    PageRole,
+    SaveRole
+} from '@/app/management/admin/api'
 import { GetUserList, PageRoleMember, SetMemberRoles } from '@/app/management/tenant-user/api'
+import {
+    GetComputerGroupList,
+    GetDatasourceList,
+    GetFileCenterList
+} from '@/app/shared/api/resources'
 
 interface RoleItem {
     id: string
@@ -211,6 +275,7 @@ interface RoleItem {
     remark?: string
     status?: string
     permissionCodes?: string[]
+    instancePermissions?: RoleInstancePermissionItem[]
 }
 
 interface PermissionItem {
@@ -238,12 +303,63 @@ interface MemberItem {
     roleIds?: string[]
 }
 
+type InstanceResourceType = 'CLUSTER' | 'DATASOURCE' | 'RESOURCE_FILE'
+
+interface InstanceResourceItem {
+    id: string
+    name: string
+    type?: string
+    status?: string
+    remark?: string
+}
+
+interface InstancePermissionState {
+    allEnabled: boolean
+    resourceIds: string[]
+    tableData: InstanceResourceItem[]
+    page: number
+    pageSize: number
+    total: number
+    keyword: string
+    loading: boolean
+    saving: boolean
+    loaded: boolean
+}
+
+interface RoleInstancePermissionItem {
+    roleId?: string
+    resourceType: InstanceResourceType
+    allEnabled: boolean
+    resourceIds?: string[]
+}
+
 const buttonLabels: Record<string, string> = {
     view: '查看',
     create: '新增',
     edit: '编辑',
     delete: '删除',
     execute: '执行'
+}
+
+const instanceResourceTypes: Array<{ code: InstanceResourceType; name: string }> = [
+    { code: 'CLUSTER', name: '计算集群' },
+    { code: 'DATASOURCE', name: '数据源' },
+    { code: 'RESOURCE_FILE', name: '资源文件' }
+]
+
+function createInstancePermissionState(): InstancePermissionState {
+    return {
+        allEnabled: true,
+        resourceIds: [],
+        tableData: [],
+        page: 1,
+        pageSize: 10,
+        total: 0,
+        keyword: '',
+        loading: false,
+        saving: false,
+        loaded: false
+    }
 }
 
 const PermissionMatrix = defineComponent({
@@ -326,7 +442,7 @@ const loading = ref(false)
 const roles = ref<RoleItem[]>([])
 const selectedRole = ref<RoleItem | null>(null)
 const authStore = useAuthStore()
-const activeTab = ref('members')
+const activeTab = ref<'members' | 'buttons' | InstanceResourceType>('members')
 const roleEditorVisible = ref(false)
 const roleSaving = ref(false)
 const permissionSaving = ref(false)
@@ -345,6 +461,12 @@ const memberAdding = ref(false)
 const memberRemoving = ref(false)
 const memberAdderOptions = ref<MemberItem[]>([])
 const memberAdderUserIds = ref<string[]>([])
+const instancePermissionState = reactive<Record<InstanceResourceType, InstancePermissionState>>({
+    CLUSTER: createInstancePermissionState(),
+    DATASOURCE: createInstancePermissionState(),
+    RESOURCE_FILE: createInstancePermissionState()
+})
+const visiblePermissionCodes = computed(() => (buttonAllChecked.value ? [] : permissionCodes.value))
 
 const roleForm = reactive({
     id: '',
@@ -402,6 +524,44 @@ const memberTableConfig = computed(() => ({
     loading: memberLoading.value
 }))
 
+function getInstanceTableConfig(resourceType: InstanceResourceType) {
+    const state = instancePermissionState[resourceType]
+    return {
+        tableData: state.tableData,
+        colConfigs: [
+            {
+                prop: 'name',
+                title: '名称',
+                minWidth: 160,
+                showOverflowTooltip: true
+            },
+            {
+                prop: 'type',
+                title: '类型',
+                minWidth: 120,
+                showOverflowTooltip: true
+            },
+            {
+                prop: 'remark',
+                title: '备注',
+                minWidth: 180,
+                showOverflowTooltip: true
+            }
+        ],
+        pagination: {
+            currentPage: state.page,
+            pageSize: state.pageSize,
+            total: state.total
+        },
+        seqType: 'seq',
+        checkbox: true,
+        checkboxDisabled: state.allEnabled,
+        rowKey: 'id',
+        selectedRowKeys: state.resourceIds,
+        loading: state.loading
+    }
+}
+
 function loadRoles(selectRoleCode?: string) {
     loading.value = true
     PageRole({
@@ -421,6 +581,7 @@ function loadRoles(selectRoleCode?: string) {
             } else {
                 selectedRole.value = null
                 permissionCodes.value = []
+                resetInstancePermissionStates()
             }
         })
         .finally(() => {
@@ -432,7 +593,7 @@ function loadCatalog() {
     GetPermissionCatalog().then((res: any) => {
         catalog.buttonPermissions = res.data.buttonPermissions || []
         catalog.permissionCodes = res.data.permissionCodes || []
-        applyCheckedPermissionGroups()
+        syncButtonAllChecked()
     })
 }
 
@@ -440,10 +601,13 @@ function selectRole(role: RoleItem) {
     selectedRole.value = role
     memberPage.value = 1
     permissionCodes.value = [...(role.permissionCodes || [])]
-    buttonAllChecked.value = true
-    applyCheckedPermissionGroups()
+    syncButtonAllChecked()
+    resetInstancePermissionStates()
     if (activeTab.value === 'members') {
         loadMembers()
+    } else if (isInstanceResourceType(activeTab.value)) {
+        loadInstancePermission(activeTab.value)
+        loadInstanceResources(activeTab.value)
     }
 }
 
@@ -515,22 +679,23 @@ function getPermissionCodes(modules: PermissionModule[]) {
         .filter((code): code is string => !!code)
 }
 
-function applyAllPermissions(modules: PermissionModule[]) {
-    const nextCodes = new Set(permissionCodes.value)
-    getPermissionCodes(modules).forEach((code) => nextCodes.add(code))
-    permissionCodes.value = Array.from(nextCodes)
-}
-
-function applyCheckedPermissionGroups() {
+function syncButtonAllChecked() {
+    const allButtonCodes = getPermissionCodes(catalog.buttonPermissions)
+    if (!selectedRole.value || !allButtonCodes.length) {
+        buttonAllChecked.value = true
+        return
+    }
+    const currentCodes = new Set(permissionCodes.value)
+    buttonAllChecked.value = allButtonCodes.every((code) => currentCodes.has(code))
     if (buttonAllChecked.value) {
-        applyAllPermissions(catalog.buttonPermissions)
+        permissionCodes.value = []
     }
 }
 
 function setButtonAllChecked(checked: unknown) {
     buttonAllChecked.value = !!checked
     if (buttonAllChecked.value) {
-        applyAllPermissions(catalog.buttonPermissions)
+        permissionCodes.value = []
     }
 }
 
@@ -538,7 +703,7 @@ function savePermissions() {
     if (!selectedRole.value) {
         return
     }
-    applyCheckedPermissionGroups()
+    const savePermissionCodes = buttonAllChecked.value ? getPermissionCodes(catalog.buttonPermissions) : permissionCodes.value
     permissionSaving.value = true
     SaveRole({
         id: selectedRole.value.id,
@@ -546,11 +711,11 @@ function savePermissions() {
         code: selectedRole.value.code,
         remark: selectedRole.value.remark,
         status: selectedRole.value.status || 'ENABLE',
-        permissionCodes: permissionCodes.value
+        permissionCodes: savePermissionCodes
     })
         .then((res: any) => {
             ElMessage.success(res.msg)
-            selectedRole.value!.permissionCodes = [...permissionCodes.value]
+            selectedRole.value!.permissionCodes = [...savePermissionCodes]
             loadRoles(selectedRole.value!.code)
         })
         .finally(() => {
@@ -561,7 +726,161 @@ function savePermissions() {
 function handleTabChange(tab: string | number) {
     if (tab === 'members') {
         loadMembers()
+        return
     }
+    if (isInstanceResourceType(tab)) {
+        loadInstancePermission(tab)
+        loadInstanceResources(tab)
+    }
+}
+
+function isInstanceResourceType(value: unknown): value is InstanceResourceType {
+    return instanceResourceTypes.some((resourceType) => resourceType.code === value)
+}
+
+function resetInstancePermissionStates() {
+    instanceResourceTypes.forEach((resourceType) => {
+        Object.assign(instancePermissionState[resourceType.code], createInstancePermissionState())
+    })
+}
+
+function loadInstancePermission(resourceType: InstanceResourceType) {
+    if (!selectedRole.value) return
+    const state = instancePermissionState[resourceType]
+    const permission = selectedRole.value.instancePermissions?.find(
+        (item) => item.resourceType === resourceType
+    )
+    state.allEnabled = permission?.allEnabled !== false
+    state.resourceIds = permission?.resourceIds || []
+}
+
+function getPagedContent(res: any) {
+    return res?.data?.content || []
+}
+
+function getPagedTotal(res: any) {
+    return res?.data?.totalElements || res?.data?.page?.totalElements || 0
+}
+
+function getResourcePageRequest(resourceType: InstanceResourceType, state: InstancePermissionState) {
+    const pageParams = {
+        page: state.page - 1,
+        pageSize: state.pageSize,
+        searchKeyWord: state.keyword
+    }
+
+    if (resourceType === 'CLUSTER') {
+        return GetComputerGroupList(pageParams).then((res: any) => ({
+            content: getPagedContent(res).map((cluster: any) => ({
+                id: cluster.id,
+                name: cluster.name,
+                type: cluster.clusterType,
+                status: cluster.status,
+                remark: cluster.remark
+            })),
+            totalElements: getPagedTotal(res)
+        }))
+    }
+
+    if (resourceType === 'DATASOURCE') {
+        return GetDatasourceList(pageParams).then((res: any) => ({
+            content: getPagedContent(res).map((datasource: any) => ({
+                id: datasource.id,
+                name: datasource.name,
+                type: datasource.dbType,
+                status: datasource.status,
+                remark: datasource.remark
+            })),
+            totalElements: getPagedTotal(res)
+        }))
+    }
+
+    return GetFileCenterList(pageParams).then((res: any) => ({
+        content: getPagedContent(res).map((file: any) => ({
+            id: file.id,
+            name: file.fileName,
+            type: file.fileType,
+            status: '',
+            remark: file.remark
+        })),
+        totalElements: getPagedTotal(res)
+    }))
+}
+
+function loadInstanceResources(resourceType: InstanceResourceType) {
+    const state = instancePermissionState[resourceType]
+    state.loading = true
+    getResourcePageRequest(resourceType, state)
+        .then((res: any) => {
+            state.tableData = res.content || []
+            state.total = res.totalElements || 0
+            state.loaded = true
+        })
+        .finally(() => {
+            state.loading = false
+        })
+}
+
+function searchInstanceResources(resourceType: InstanceResourceType) {
+    instancePermissionState[resourceType].page = 1
+    loadInstanceResources(resourceType)
+}
+
+function handleInstancePageChange(resourceType: InstanceResourceType, page: number) {
+    instancePermissionState[resourceType].page = page
+    loadInstanceResources(resourceType)
+}
+
+function handleInstanceSizeChange(resourceType: InstanceResourceType, pageSize: number) {
+    instancePermissionState[resourceType].pageSize = pageSize
+    instancePermissionState[resourceType].page = 1
+    loadInstanceResources(resourceType)
+}
+
+function handleInstanceSelectionChange(resourceType: InstanceResourceType, rows: InstanceResourceItem[]) {
+    const state = instancePermissionState[resourceType]
+    if (state.allEnabled) return
+    const currentPageIds = new Set(state.tableData.map((item) => item.id))
+    const selectedIds = new Set(state.resourceIds.filter((id) => !currentPageIds.has(id)))
+    rows.forEach((row) => selectedIds.add(row.id))
+    state.resourceIds = Array.from(selectedIds)
+}
+
+function handleInstanceAllChange(resourceType: InstanceResourceType) {
+    const state = instancePermissionState[resourceType]
+    if (state.allEnabled) {
+        state.resourceIds = []
+    }
+}
+
+function saveInstancePermission(resourceType: InstanceResourceType) {
+    if (!selectedRole.value) return
+    const state = instancePermissionState[resourceType]
+    state.saving = true
+    const nextInstancePermissions = instanceResourceTypes.map((item) => {
+        const itemState = instancePermissionState[item.code]
+        return {
+            roleId: selectedRole.value!.id,
+            resourceType: item.code,
+            allEnabled: itemState.allEnabled,
+            resourceIds: itemState.allEnabled ? [] : itemState.resourceIds
+        }
+    })
+    SaveRole({
+        id: selectedRole.value.id,
+        name: selectedRole.value.name,
+        code: selectedRole.value.code,
+        remark: selectedRole.value.remark,
+        status: selectedRole.value.status || 'ENABLE',
+        instancePermissions: nextInstancePermissions
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+            selectedRole.value!.instancePermissions = nextInstancePermissions
+        })
+        .finally(() => {
+            state.saving = false
+        })
 }
 
 function loadMembers() {
@@ -1022,6 +1341,20 @@ onMounted(() => {
     height: 100%;
 }
 
+:deep(.role-tabs > .el-tabs__header) {
+    border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+:deep(.role-tabs > .el-tabs__header .el-tabs__nav-wrap::after) {
+    display: none;
+}
+
+:deep(.role-tabs > .el-tabs__header .el-tabs__item) {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 40px;
+}
+
 :deep(.role-tabs > .el-tabs__content) {
     height: calc(100% - 55px);
 }
@@ -1050,6 +1383,45 @@ onMounted(() => {
     gap: 16px;
     margin-top: 12px;
     padding-left: 12px;
+}
+
+.role-instance-panel {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.role-instance-toolbar {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+
+    .el-input {
+        width: 280px;
+        max-width: 100%;
+    }
+}
+
+.role-instance-table {
+    flex: 1;
+    min-height: 0;
+
+    &.role-instance-table--disabled {
+        :deep(.block-table__selection-cell),
+        :deep(.block-table .el-checkbox) {
+            opacity: 0.45;
+        }
+    }
+}
+
+.role-instance-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-left: 15px;
+    flex-shrink: 0;
 }
 
 :deep(.permission-matrix) {

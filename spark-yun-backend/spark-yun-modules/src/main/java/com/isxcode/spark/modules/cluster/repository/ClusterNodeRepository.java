@@ -29,5 +29,9 @@ public interface ClusterNodeRepository extends JpaRepository<ClusterNodeEntity, 
     Page<ClusterNodeEntity> searchAll(@Param("keyword") String searchKeyWord, @Param("engineId") String engineId,
         Pageable pageable);
 
+    @Query("SELECT E FROM ClusterNodeEntity E WHERE E.name LIKE %:keyword% "
+        + "OR E.remark LIKE %:keyword% OR E.host LIKE %:keyword% order by E.createDateTime desc ")
+    Page<ClusterNodeEntity> searchAllNodes(@Param("keyword") String searchKeyWord, Pageable pageable);
+
     Optional<ClusterNodeEntity> findByIdAndClusterId(String id, String clusterId);
 }
