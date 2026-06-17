@@ -51,6 +51,16 @@ public class TenantUserController {
 
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
             RoleType.TENANT_ADMIN})
+    @Operation(summary = "查询角色成员列表接口")
+    @PostMapping("/pageRoleMember")
+    @SuccessResponse("查询成功")
+    public Page<PageTenantUserRes> pageRoleMember(@Valid @RequestBody PageRoleMemberReq request) {
+
+        return tenantUserBizService.pageRoleMember(request);
+    }
+
+    @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN, RoleType.TENANT_SUPER_ADMIN,
+            RoleType.TENANT_ADMIN})
     @Operation(summary = "移除用户接口")
     @PostMapping("/removeTenantUser")
     @UserLog

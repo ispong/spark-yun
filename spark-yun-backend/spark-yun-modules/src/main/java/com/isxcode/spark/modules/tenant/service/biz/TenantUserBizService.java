@@ -180,6 +180,28 @@ public class TenantUserBizService {
             tenantUserRepository.searchTenantUser(tenantId, turAddTenantUserReq.getSearchKeyWord(),
                 PageRequest.of(turAddTenantUserReq.getPage(), turAddTenantUserReq.getPageSize()));
 
+        fillMemberRoleInfo(tenantId, tenantUserPage);
+
+        return tenantUserPage;
+    }
+
+    public Page<PageTenantUserRes> pageRoleMember(PageRoleMemberReq request) {
+
+        String tenantId = resolveTenantId(request.getTenantId());
+        roleRepository.findById(request.getRoleId()).filter(role -> tenantId.equals(role.getTenantId()))
+            .orElseThrow(() -> new IsxAppException("角色不属于当前租户"));
+
+        Page<PageTenantUserRes> roleMemberPage =
+            tenantUserRepository.searchRoleMember(tenantId, request.getRoleId(), request.getSearchKeyWord(),
+                PageRequest.of(request.getPage(), request.getPageSize()));
+
+        fillMemberRoleInfo(tenantId, roleMemberPage);
+
+        return roleMemberPage;
+    }
+
+    private void fillMemberRoleInfo(String tenantId, Page<PageTenantUserRes> tenantUserPage) {
+
         tenantUserPage.getContent().forEach(item -> {
             item.setPhone(
                 Strings.isEmpty(item.getPhone()) ? item.getPhone() : DesensitizedUtil.mobilePhone(item.getPhone()));
@@ -187,8 +209,6 @@ public class TenantUserBizService {
             item.setRoleIds(memberRoleRepository.findAllByTenantIdAndUserId(tenantId, item.getUserId()).stream()
                 .map(MemberRoleEntity::getRoleId).toList());
         });
-
-        return tenantUserPage;
     }
 
     public void removeTenantUser(RemoveTenantUserReq removeTenantUserReq) {

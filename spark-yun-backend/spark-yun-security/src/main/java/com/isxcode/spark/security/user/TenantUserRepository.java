@@ -33,6 +33,18 @@ public interface TenantUserRepository extends JpaRepository<TenantUserEntity, St
     Page<PageTenantUserRes> searchTenantUser(@Param("tenantId") String tenantId,
         @Param("searchKeyWord") String searchKeyWord, Pageable pageable);
 
+    @Query(value = "select " + "   new com.isxcode.spark.api.tenant.res.PageTenantUserRes(T.id , "
+        + "   U.account , " + "   U.username , " + "   U.phone , " + "   U.email , "
+        + "   T.roleCode,T.normalAdmin,T.status,U.id) "
+        + "from TenantUserEntity T left join UserEntity U on T.userId = U.id "
+        + "join MemberRoleEntity M on M.tenantId = T.tenantId and M.userId = T.userId "
+        + "WHERE U.roleCode != 'PLATFORM_SUPER_ADMIN' " + "   and T.tenantId=:tenantId "
+        + "   and M.roleId=:roleId " + "   and (U.username LIKE %:searchKeyWord% "
+        + "OR U.account LIKE %:searchKeyWord% " + "OR U.phone LIKE %:searchKeyWord% "
+        + "OR U.email LIKE %:searchKeyWord%) order by T.createDateTime desc ")
+    Page<PageTenantUserRes> searchRoleMember(@Param("tenantId") String tenantId, @Param("roleId") String roleId,
+        @Param("searchKeyWord") String searchKeyWord, Pageable pageable);
+
     long countByTenantId(String tenantId);
 
     void deleteAllByUserId(String userId);

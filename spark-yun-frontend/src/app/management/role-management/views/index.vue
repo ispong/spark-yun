@@ -50,7 +50,9 @@
         </aside>
 
         <section class="role-page__detail">
-            <el-empty v-if="!selectedRole" description="请选择左侧角色" />
+            <div v-if="!selectedRole" class="role-page__empty">
+                <el-empty description="请选择左侧角色" />
+            </div>
             <template v-else>
                 <el-tabs v-model="activeTab" class="role-tabs" @tab-change="handleTabChange">
                     <el-tab-pane label="角色成员" name="members">
@@ -177,7 +179,7 @@
                     <el-option
                         v-for="member in memberAdderOptions"
                         :key="member.userId"
-                        :label="`${member.username} (${member.account})`"
+                        :label="member.username"
                         :value="member.userId"
                     />
                 </el-select>
@@ -200,7 +202,7 @@ import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import { useAuthStore } from '@/app/store/useAuth'
 import { DeleteRole, GetPermissionCatalog, PageRole, SaveRole } from '@/app/management/admin/api'
-import { GetUserList, SetMemberRoles } from '@/app/management/tenant-user/api'
+import { GetUserList, PageRoleMember, SetMemberRoles } from '@/app/management/tenant-user/api'
 
 interface RoleItem {
     id: string
@@ -436,6 +438,7 @@ function loadCatalog() {
 
 function selectRole(role: RoleItem) {
     selectedRole.value = role
+    memberPage.value = 1
     permissionCodes.value = [...(role.permissionCodes || [])]
     buttonAllChecked.value = true
     applyCheckedPermissionGroups()
@@ -563,6 +566,8 @@ function handleTabChange(tab: string | number) {
 
 function loadMembers() {
     if (!selectedRole.value) {
+        members.value = []
+        memberTotal.value = 0
         return
     }
     if (!authStore.tenantId) {
@@ -571,11 +576,12 @@ function loadMembers() {
         return
     }
     memberLoading.value = true
-    GetUserList({
+    PageRoleMember({
         page: memberPage.value - 1,
         pageSize: memberPageSize.value,
         searchKeyWord: memberKeyword.value,
-        tenantId: authStore.tenantId
+        tenantId: authStore.tenantId,
+        roleId: selectedRole.value.id
     })
         .then((res: any) => {
             members.value = res.data.content || []
@@ -646,10 +652,10 @@ function addSelectedMembers() {
         ElMessage.warning('请选择成员')
         return
     }
-    const selectedMembers = memberAdderOptions.value.filter((member) => memberAdderUserIds.value.includes(member.userId))
+    const membersToAdd = memberAdderOptions.value.filter((member) => memberAdderUserIds.value.includes(member.userId))
     memberAdding.value = true
     Promise.all(
-        selectedMembers.map((member) => {
+        membersToAdd.map((member) => {
             const roleIds = new Set(member.roleIds || [])
             roleIds.add(selectedRole.value!.id)
             return SetMemberRoles({
@@ -700,7 +706,6 @@ function removeMembers(targetMembers: MemberItem[]) {
         )
             .then(() => {
                 ElMessage.success('删除成功')
-                selectedMembers.value = []
                 loadMembers()
             })
             .finally(() => {
@@ -721,6 +726,7 @@ onMounted(() => {
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);
     border: 1px solid var(--el-border-color-lighter);
+    border-top: 0;
     background-color: #ffffff;
 }
 
@@ -998,8 +1004,18 @@ onMounted(() => {
 
 .role-page__detail {
     min-width: 0;
+    display: flex;
+    flex-direction: column;
     padding: 16px 20px;
     overflow: hidden;
+}
+
+.role-page__empty {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .role-tabs {

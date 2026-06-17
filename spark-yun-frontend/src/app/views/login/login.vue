@@ -108,6 +108,27 @@
 
                     <div v-if="showLoginActions" class="zqy-login__actions">
                         <div class="zqy-login__action-left">
+                            <el-dropdown
+                                v-if="oauthLoaded && oauthUrlList.length"
+                                trigger="click"
+                                popper-class="login-method-dropdown"
+                            >
+                                <span class="zqy-login__action-text">免密登录</span>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item
+                                            v-for="item in oauthUrlList"
+                                            :key="item.invokeUrl"
+                                            @click="handleRedirect(item)"
+                                        >
+                                            {{ item.name }}
+                                        </el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+
+                        <div class="zqy-login__action-right">
                             <el-dropdown v-if="showCodeLogin" trigger="click" popper-class="login-method-dropdown">
                                 <span class="zqy-login__action-text">登录方式</span>
                                 <template #dropdown>
@@ -129,27 +150,6 @@
                                             @click="switchLoginMethod('EMAIL')"
                                         >
                                             邮箱登录
-                                        </el-dropdown-item>
-                                    </el-dropdown-menu>
-                                </template>
-                            </el-dropdown>
-                        </div>
-
-                        <div class="zqy-login__action-right">
-                            <el-dropdown
-                                v-if="oauthLoaded && oauthUrlList.length"
-                                trigger="click"
-                                popper-class="login-method-dropdown"
-                            >
-                                <span class="zqy-login__action-text">免密登录</span>
-                                <template #dropdown>
-                                    <el-dropdown-menu>
-                                        <el-dropdown-item
-                                            v-for="item in oauthUrlList"
-                                            :key="item.invokeUrl"
-                                            @click="handleRedirect(item)"
-                                        >
-                                            {{ item.name }}
                                         </el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>

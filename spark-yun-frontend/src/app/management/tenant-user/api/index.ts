@@ -104,6 +104,14 @@ export function SetMemberRoles(params: { userId: string; roleIds: string[]; tena
     })
 }
 
+export function PageRoleMember(params: SerchParams & { roleId: string }): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/api/admin/members/pageRoleMember',
+        params
+    })
+}
+
 export function GetTenantInviteCode(params: { tenantId?: string }): Promise<any> {
     return http.request({
         method: 'post',
