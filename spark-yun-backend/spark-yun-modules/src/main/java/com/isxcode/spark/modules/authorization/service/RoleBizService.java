@@ -181,8 +181,8 @@ public class RoleBizService {
         String tenantId = requireTenantId();
         RoleEntity role = getCurrentTenantRole(request.getRoleId());
         String resourceType = requireResourceType(request.getResourceType());
-        return roleInstancePermissionRepository.findByTenantIdAndRoleIdAndResourceType(tenantId, role.getId(),
-                resourceType)
+        return roleInstancePermissionRepository
+            .findByTenantIdAndRoleIdAndResourceType(tenantId, role.getId(), resourceType)
             .map(permission -> RoleInstancePermissionRes.builder().roleId(role.getId()).resourceType(resourceType)
                 .allEnabled(Boolean.TRUE.equals(permission.getAllEnabled()))
                 .resourceIds(splitResourceIds(permission.getResourceIds())).build())
@@ -231,13 +231,13 @@ public class RoleBizService {
             .stream().map(RolePermissionEntity::getPermissionCode).toList();
         return RoleRes.builder().id(role.getId()).name(role.getName()).code(role.getCode()).remark(role.getRemark())
             .status(role.getStatus()).permissionCodes(permissionCodes)
-            .instancePermissions(roleInstancePermissionRepository.findAllByTenantIdAndRoleId(tenantId, role.getId())
-                .stream()
-                .map(permission -> RoleInstancePermissionRes.builder().roleId(role.getId())
-                    .resourceType(permission.getResourceType())
-                    .allEnabled(Boolean.TRUE.equals(permission.getAllEnabled()))
-                    .resourceIds(splitResourceIds(permission.getResourceIds())).build())
-                .toList())
+            .instancePermissions(
+                roleInstancePermissionRepository.findAllByTenantIdAndRoleId(tenantId, role.getId()).stream()
+                    .map(permission -> RoleInstancePermissionRes.builder().roleId(role.getId())
+                        .resourceType(permission.getResourceType())
+                        .allEnabled(Boolean.TRUE.equals(permission.getAllEnabled()))
+                        .resourceIds(splitResourceIds(permission.getResourceIds())).build())
+                    .toList())
             .build();
     }
 
@@ -339,8 +339,8 @@ public class RoleBizService {
         if (resourceIds == null || resourceIds.isEmpty()) {
             return "";
         }
-        return resourceIds.stream().filter(id -> !Strings.isEmpty(id)).distinct().reduce((left, right) -> left + "," + right)
-            .orElse("");
+        return resourceIds.stream().filter(id -> !Strings.isEmpty(id)).distinct()
+            .reduce((left, right) -> left + "," + right).orElse("");
     }
 
     private List<String> splitResourceIds(String resourceIds) {

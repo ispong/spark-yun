@@ -191,9 +191,8 @@ public class TenantUserBizService {
         roleRepository.findById(request.getRoleId()).filter(role -> tenantId.equals(role.getTenantId()))
             .orElseThrow(() -> new IsxAppException("角色不属于当前租户"));
 
-        Page<PageTenantUserRes> roleMemberPage =
-            tenantUserRepository.searchRoleMember(tenantId, request.getRoleId(), request.getSearchKeyWord(),
-                PageRequest.of(request.getPage(), request.getPageSize()));
+        Page<PageTenantUserRes> roleMemberPage = tenantUserRepository.searchRoleMember(tenantId, request.getRoleId(),
+            request.getSearchKeyWord(), PageRequest.of(request.getPage(), request.getPageSize()));
 
         fillMemberRoleInfo(tenantId, roleMemberPage);
 
