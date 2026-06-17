@@ -79,7 +79,7 @@
                             :class="{ 'is-disabled': !form.phoneEnabled }"
                             type="button"
                             :disabled="!form.phoneEnabled || saving"
-                            @click="phoneConfigVisible = true"
+                            @click="openPhoneConfig"
                         >
                             <span>短信配置</span>
                             <el-icon><Setting /></el-icon>
@@ -173,14 +173,25 @@
             </el-form>
             <template #footer>
                 <div class="login-method-config-dialog__footer">
-                    <el-button
-                        class="login-method-config-dialog__test-button"
-                        type="primary"
-                        :loading="testingChannel === 'PHONE'"
-                        @click="testConfig('PHONE')"
-                    >
-                        测试发送
-                    </el-button>
+                    <div class="login-method-config-dialog__test-actions">
+                        <el-button
+                            class="login-method-config-dialog__test-button"
+                            type="primary"
+                            :loading="testingChannel === 'PHONE'"
+                            @click="testConfig('PHONE')"
+                        >
+                            测试发送
+                        </el-button>
+                        <el-button
+                            v-if="phoneTestErrorMessage"
+                            class="login-method-config-dialog__test-error"
+                            link
+                            type="danger"
+                            @click="showPhoneTestError"
+                        >
+                            连接失败
+                        </el-button>
+                    </div>
                     <div class="login-method-config-dialog__footer-actions">
                         <el-button @click="phoneConfigVisible = false">关闭</el-button>
                         <el-button type="primary" :loading="saving" @click="saveConfigWithMessage">保存配置</el-button>
@@ -252,7 +263,7 @@
 
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Iphone, Message, Setting, User } from '@element-plus/icons-vue'
 
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
@@ -276,6 +287,9 @@ const emailConfigVisible = ref(false)
 const phoneTestReceiver = ref('')
 const emailTestReceiver = ref('')
 const testingChannel = ref<LoginChannel | ''>('')
+const phoneTestErrorMessage = ref('')
+const phonePattern = /^1[3-9]\d{9}$/
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const form = reactive<LoginMethodConfig>(createDefaultForm())
 
@@ -426,13 +440,29 @@ function applyEmailProvider() {
     form.config.emailConfig.startTls = false
 }
 
+function openPhoneConfig() {
+    phoneTestErrorMessage.value = ''
+    phoneConfigVisible.value = true
+}
+
 async function testConfig(channel: LoginChannel) {
-    const receiver = channel === 'PHONE' ? phoneTestReceiver.value : emailTestReceiver.value
+    const receiver = (channel === 'PHONE' ? phoneTestReceiver.value : emailTestReceiver.value).trim()
     if (!receiver) {
         ElMessage.warning(channel === 'PHONE' ? '请输入测试手机号' : '请输入测试邮箱')
         return
     }
+    if (channel === 'PHONE' && !phonePattern.test(receiver)) {
+        ElMessage.warning('请输入正确的测试手机号')
+        return
+    }
+    if (channel === 'EMAIL' && !emailPattern.test(receiver)) {
+        ElMessage.warning('请输入正确的测试邮箱')
+        return
+    }
     testingChannel.value = channel
+    if (channel === 'PHONE') {
+        phoneTestErrorMessage.value = ''
+    }
     try {
         await saveConfig(true)
         await TestLoginConfig({
@@ -440,11 +470,35 @@ async function testConfig(channel: LoginChannel) {
             receiver
         })
         ElMessage.success('测试发送成功')
-    } catch {
+    } catch (error) {
+        if (channel === 'PHONE') {
+            phoneTestErrorMessage.value = getErrorMessage(error)
+        }
         // The shared HTTP handler has already shown the specific error message.
     } finally {
         testingChannel.value = ''
     }
+}
+
+function getErrorMessage(error: unknown) {
+    if (error instanceof Error && error.message) {
+        return error.message
+    }
+    if (typeof error === 'string' && error) {
+        return error
+    }
+    if (error && typeof error === 'object') {
+        const data = error as { msg?: string; message?: string }
+        return data.msg || data.message || JSON.stringify(error)
+    }
+    return '测试发送失败'
+}
+
+function showPhoneTestError() {
+    ElMessageBox.alert(phoneTestErrorMessage.value, '连接失败', {
+        confirmButtonText: '确定',
+        customClass: 'login-method-test-error-dialog'
+    })
 }
 
 onMounted(() => {
@@ -666,8 +720,19 @@ onMounted(() => {
         gap: 12px;
     }
 
+    .login-method-config-dialog__test-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     .login-method-config-dialog__test-button {
         margin-left: 0;
+    }
+
+    .login-method-config-dialog__test-error {
+        margin-left: 0;
+        padding: 0;
     }
 
     .zqy-login-method__dialog-form {

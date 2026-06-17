@@ -228,6 +228,8 @@ const codeLoginModel = reactive({
 })
 const codeDigits = reactive(['', '', '', '', '', ''])
 const codeDigitRefs = ref<Array<HTMLInputElement | null>>([])
+const phonePattern = /^1[3-9]\d{9}$/
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const codeLoginChannel = ref<LoginChannel>('PHONE')
 const openLoginConfig = reactive<OpenLoginMethodConfig>({
@@ -265,6 +267,10 @@ const codeLoginRules: FormRules = {
             required: true,
             message: '请输入接收账号',
             trigger: ['blur', 'change']
+        },
+        {
+            validator: validateCodeReceiver,
+            trigger: ['blur', 'change']
         }
     ],
     code: [
@@ -291,6 +297,23 @@ const accountLoginEnabled = computed(() => {
         )
     )
 })
+
+function validateCodeReceiver(_: unknown, value: string, callback: (error?: Error) => void) {
+    const receiver = (value || '').trim()
+    if (!receiver) {
+        callback()
+        return
+    }
+    if (codeLoginChannel.value === 'PHONE' && !phonePattern.test(receiver)) {
+        callback(new Error('请输入正确的手机号'))
+        return
+    }
+    if (codeLoginChannel.value === 'EMAIL' && !emailPattern.test(receiver)) {
+        callback(new Error('请输入正确的邮箱'))
+        return
+    }
+    callback()
+}
 const activeLoginEnabled = computed(() => isLoginMethodEnabled(activeLoginMethod.value))
 const activeLoginLoading = computed(() => {
     return activeLoginMethod.value === 'ACCOUNT' ? btnLoading.value : codeLoginLoading.value

@@ -85,16 +85,16 @@ export const colConfigs: colConfig[] = [
         showOverflowTooltip: true
     },
     {
-        prop: 'status',
-        title: '状态',
-        minWidth: 100,
-        customSlot: 'statusTag'
-    },
-    {
         prop: 'platformAdmin',
         title: '平台角色',
         minWidth: 110,
         customSlot: 'platformAdmin'
+    },
+    {
+        prop: 'status',
+        title: '状态',
+        minWidth: 100,
+        customSlot: 'statusTag'
     },
     {
         prop: 'remark',

@@ -73,12 +73,6 @@ export const colConfigs: colConfig[] = [
         showOverflowTooltip: true
     },
     {
-        prop: 'status',
-        title: '状态',
-        minWidth: 100,
-        customSlot: 'statusTag'
-    },
-    {
         prop: 'validStartDateTime',
         title: '有效开始时间',
         minWidth: 140,
@@ -94,6 +88,12 @@ export const colConfigs: colConfig[] = [
         prop: 'checkDateTime',
         title: '检测时间',
         minWidth: 140
+    },
+    {
+        prop: 'status',
+        title: '状态',
+        minWidth: 100,
+        customSlot: 'statusTag'
     },
     {
         prop: 'remark',

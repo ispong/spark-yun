@@ -67,11 +67,9 @@
                 >
                     <template #roleCode="scopeSlot">
                         <div class="btn-group">
-                            <el-tag v-if="isTenantSuperAdmin(scopeSlot.row)" class="ml-2" type="danger">
-                                超级管理员
-                            </el-tag>
+                            <el-tag v-if="isTenantSuperAdmin(scopeSlot.row)" type="danger">超级管理员</el-tag>
                             <el-tag v-else-if="isTenantAdmin(scopeSlot.row)" type="warning">管理员</el-tag>
-                            <el-tag v-else type="success">成员</el-tag>
+                            <el-tag v-else class="tenant-member-tag">成员</el-tag>
                         </div>
                     </template>
                     <template #status="scopeSlot">
@@ -762,6 +760,14 @@ function loadAvailableRoles() {
             border-color: getCssVar('border-color');
             color: getCssVar('text-color', 'regular');
             background-color: #fff;
+        }
+    }
+
+    .zqy-table {
+        .tenant-member-tag {
+            --el-tag-text-color: #2563eb;
+            --el-tag-border-color: #93c5fd;
+            --el-tag-bg-color: #eff6ff;
         }
     }
 

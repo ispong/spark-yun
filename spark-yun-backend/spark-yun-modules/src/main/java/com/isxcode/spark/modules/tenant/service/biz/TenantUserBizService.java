@@ -401,7 +401,7 @@ public class TenantUserBizService {
 
         TenantEntity tenant = tenantService.getTenant(member.getTenantId());
         if (member.getUserId().equals(tenant.getAdminUserId())) {
-            throw new IsxAppException("租户管理员只能在平台管理中替换");
+            throw new IsxAppException("租户超级管理员只能使用平台超级管理员配置");
         }
     }
 }

@@ -63,7 +63,7 @@ public class LoginMethodBizService {
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{5,20}$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
 
     private final LoginMethodConfigService loginMethodConfigService;
 
