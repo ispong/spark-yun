@@ -14,17 +14,35 @@
                 <el-button type="primary" :icon="Plus" class="role-page__add-button" @click="openRoleEditor()" />
             </div>
             <div v-loading="loading" class="role-list">
-                <button
+                <div
                     v-for="role in roles"
                     :key="role.id"
                     class="role-list__item"
                     :class="{ 'is-active': selectedRole?.id === role.id }"
-                    type="button"
+                    role="button"
+                    tabindex="0"
                     @click="selectRole(role)"
+                    @keydown.enter.prevent="selectRole(role)"
+                    @keydown.space.prevent="selectRole(role)"
                 >
                     <span class="role-list__name">{{ role.name }}</span>
-                    <span class="role-list__code">{{ role.code }}</span>
-                </button>
+                    <span class="role-list__actions">
+                        <el-button
+                            link
+                            :icon="Edit"
+                            class="role-list__action"
+                            title="编辑"
+                            @click.stop="openRoleEditor(role)"
+                        />
+                        <el-button
+                            link
+                            :icon="Delete"
+                            class="role-list__action role-list__action--danger"
+                            title="删除"
+                            @click.stop="removeRole(role)"
+                        />
+                    </span>
+                </div>
                 <el-empty v-if="!roles.length && !loading" :image-size="80" description="暂无角色" />
             </div>
         </aside>
@@ -32,18 +50,6 @@
         <section class="role-page__detail">
             <el-empty v-if="!selectedRole" description="请选择左侧角色" />
             <template v-else>
-                <div class="role-detail__header">
-                    <div class="role-detail__title">
-                        <strong>{{ selectedRole.name }}</strong>
-                        <el-tag size="small" type="info">{{ selectedRole.code }}</el-tag>
-                        <span v-if="selectedRole.remark" class="role-detail__remark">{{ selectedRole.remark }}</span>
-                    </div>
-                    <div class="role-detail__actions">
-                        <el-button :icon="Edit" @click="openRoleEditor(selectedRole)">编辑</el-button>
-                        <el-button :icon="Delete" type="danger" plain @click="removeRole(selectedRole)">删除</el-button>
-                    </div>
-                </div>
-
                 <el-tabs v-model="activeTab" class="role-tabs" @tab-change="handleTabChange">
                     <el-tab-pane label="角色成员" name="members">
                         <div class="role-tab-toolbar">
@@ -123,45 +129,6 @@
                         </div>
                     </el-tab-pane>
 
-                    <el-tab-pane label="接口权限" name="interfaces">
-                        <div class="role-tab-toolbar">
-                            <el-input
-                                v-model="interfaceKeyword"
-                                clearable
-                                :prefix-icon="Search"
-                                placeholder="搜索接口地址"
-                            />
-                            <el-button type="primary" :loading="permissionSaving" @click="savePermissions">
-                                保存权限
-                            </el-button>
-                        </div>
-                        <div class="permission-api-list">
-                            <div v-for="module in filteredInterfacePermissions" :key="module.code" class="permission-api">
-                                <div class="permission-api__module">
-                                    <strong>{{ module.name }}</strong>
-                                    <el-checkbox
-                                        :model-value="isModuleChecked(module.permissions)"
-                                        :indeterminate="isModuleIndeterminate(module.permissions)"
-                                        @change="(checked) => setModulePermissions(module.permissions, checked)"
-                                    >
-                                        全选
-                                    </el-checkbox>
-                                </div>
-                                <div class="permission-api__items">
-                                    <el-checkbox
-                                        v-for="permission in module.permissions"
-                                        :key="permission.permissionCode"
-                                        :model-value="hasPermission(permission.permissionCode)"
-                                        @change="(checked) => setPermission(permission.permissionCode, checked)"
-                                    >
-                                        <span class="permission-api__method">{{ permission.method }}</span>
-                                        <span>{{ permission.path }}</span>
-                                    </el-checkbox>
-                                </div>
-                            </div>
-                        </div>
-                    </el-tab-pane>
-
                     <el-tab-pane label="数据权限" name="data">
                         <PermissionMatrix
                             :modules="catalog.dataPermissions"
@@ -185,6 +152,8 @@
         class="role-editor-dialog"
         :title="roleForm.id ? '编辑角色' : '新增角色'"
         width="520px"
+        :close-on-click-modal="false"
+        destroy-on-close
     >
         <el-form class="role-editor-form" label-position="top">
             <el-form-item label="角色名称">
@@ -341,7 +310,6 @@ const roleEditorVisible = ref(false)
 const roleSaving = ref(false)
 const permissionSaving = ref(false)
 const permissionCodes = ref<string[]>([])
-const interfaceKeyword = ref('')
 const memberKeyword = ref('')
 const memberLoading = ref(false)
 const members = ref<MemberItem[]>([])
@@ -360,24 +328,8 @@ const roleForm = reactive({
 const catalog = reactive({
     menuPermissions: [] as PermissionModule[],
     buttonPermissions: [] as PermissionModule[],
-    interfacePermissions: [] as PermissionModule[],
     dataPermissions: [] as PermissionModule[],
     permissionCodes: [] as string[]
-})
-
-const filteredInterfacePermissions = computed(() => {
-    const searchKey = interfaceKeyword.value.trim().toLowerCase()
-    if (!searchKey) {
-        return catalog.interfacePermissions
-    }
-    return catalog.interfacePermissions
-        .map((module) => ({
-            ...module,
-            permissions: module.permissions.filter((permission) =>
-                `${permission.method || ''} ${permission.path || ''}`.toLowerCase().includes(searchKey)
-            )
-        }))
-        .filter((module) => module.permissions.length)
 })
 
 function loadRoles(selectRoleCode?: string) {
@@ -410,7 +362,6 @@ function loadCatalog() {
     GetPermissionCatalog().then((res: any) => {
         catalog.menuPermissions = res.data.menuPermissions || []
         catalog.buttonPermissions = res.data.buttonPermissions || []
-        catalog.interfacePermissions = res.data.interfacePermissions || []
         catalog.dataPermissions = res.data.dataPermissions || []
         catalog.permissionCodes = res.data.permissionCodes || []
     })
@@ -484,19 +435,6 @@ function setPermission(code: string | undefined, checked: unknown) {
         nextCodes.delete(code)
     }
     permissionCodes.value = Array.from(nextCodes)
-}
-
-function isModuleChecked(permissions: PermissionItem[]) {
-    return permissions.length > 0 && permissions.every((permission) => hasPermission(permission.permissionCode))
-}
-
-function isModuleIndeterminate(permissions: PermissionItem[]) {
-    const checkedCount = permissions.filter((permission) => hasPermission(permission.permissionCode)).length
-    return checkedCount > 0 && checkedCount < permissions.length
-}
-
-function setModulePermissions(permissions: PermissionItem[], checked: unknown) {
-    permissions.forEach((permission) => setPermission(permission.permissionCode, checked))
 }
 
 function savePermissions() {
@@ -617,7 +555,6 @@ onMounted(() => {
     flex-shrink: 0;
 }
 
-.role-detail__header,
 .role-tab-toolbar,
 .role-tab-footer {
     display: flex;
@@ -629,51 +566,97 @@ onMounted(() => {
 .role-list {
     min-height: 0;
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
     overflow: auto;
 }
 
 .role-list__item {
     width: 100%;
-    min-height: 56px;
+    min-height: 44px;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 4px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     padding: 10px 12px;
-    border: 0;
+    border: 1px solid transparent;
     border-radius: 6px;
+    box-sizing: border-box;
     color: var(--el-text-color-primary);
+    font-size: var(--el-menu-item-font-size);
+    font-family: inherit;
     background: transparent;
     cursor: pointer;
     text-align: left;
+    outline: none;
 
-    &:hover,
-    &.is-active {
-        background-color: var(--el-fill-color-light);
+    &:hover {
+        background-color: var(--el-color-primary-light-9);
+    }
+
+    &:focus-visible {
+        border-color: var(--el-color-primary-light-5);
     }
 
     &.is-active {
+        border-color: transparent;
         color: var(--el-color-primary);
+        background-color: var(--el-color-primary-light-9);
+    }
+
+    &:hover,
+    &.is-active,
+    &:focus-within {
+        .role-list__actions {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+        }
     }
 }
 
 .role-list__name {
+    min-width: 0;
     max-width: 100%;
-    font-weight: 600;
+    flex: 1;
+    font-weight: 400;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.role-list__code,
-.role-detail__remark {
-    max-width: 100%;
+.role-list__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: 44px;
+    justify-content: flex-end;
+    flex: none;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.role-list__action {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-left: 0 !important;
     color: var(--el-text-color-secondary);
-    font-size: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+
+    &:hover {
+        color: var(--el-color-primary);
+    }
+
+    &.role-list__action--danger:hover {
+        color: var(--el-color-danger);
+    }
+}
+
+:deep(.role-list__action .el-icon) {
+    font-size: 14px;
 }
 
 .role-page__detail {
@@ -682,26 +665,8 @@ onMounted(() => {
     overflow: hidden;
 }
 
-.role-detail__header {
-    margin-bottom: 12px;
-}
-
-.role-detail__title {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.role-detail__title strong {
-    max-width: 260px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .role-tabs {
-    height: calc(100% - 44px);
+    height: 100%;
 }
 
 .role-tab-toolbar {
@@ -769,46 +734,10 @@ onMounted(() => {
     padding: 10px 12px;
 }
 
-.permission-api-list {
-    max-height: 560px;
-    overflow: auto;
-    border: 1px solid var(--el-border-color-lighter);
-    border-radius: 6px;
-}
+</style>
 
-.permission-api {
-    border-bottom: 1px solid var(--el-border-color-lighter);
-
-    &:last-child {
-        border-bottom: 0;
-    }
-}
-
-.permission-api__module {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 12px;
-    background-color: var(--el-fill-color-lighter);
-}
-
-.permission-api__items {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 8px 16px;
-    padding: 12px;
-}
-
-.permission-api__method {
-    display: inline-flex;
-    min-width: 44px;
-    margin-right: 8px;
-    color: var(--el-color-primary);
-    font-weight: 600;
-}
-
-:deep(.role-editor-dialog) {
+<style lang="scss">
+.role-editor-dialog {
     --role-editor-x-padding: 20px;
     --role-editor-border-color: #ebeef5;
 
