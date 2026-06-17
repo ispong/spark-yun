@@ -124,8 +124,13 @@
         </div>
 
         <TenantSwitchDialog ref="tenantSwitchDialogRef" @tenant-name-change="activeTenantName = $event" />
-        <el-dialog v-model="applyTenantDialogVisible" title="加入租户" width="420px">
-            <el-form label-position="top">
+        <el-dialog
+            v-model="applyTenantDialogVisible"
+            class="zqy-layout__apply-tenant-dialog"
+            title="加入租户"
+            width="420px"
+        >
+            <el-form class="zqy-layout__apply-tenant-form" label-position="top">
                 <el-form-item label="邀请码">
                     <el-input
                         v-model="applyTenantForm.inviteCode"
@@ -137,8 +142,10 @@
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button @click="applyTenantDialogVisible = false">取消</el-button>
-                <el-button type="primary" :loading="applyTenantLoading" @click="submitApplyTenant">提交</el-button>
+                <div class="zqy-layout__apply-tenant-footer">
+                    <el-button @click="applyTenantDialogVisible = false">取消</el-button>
+                    <el-button type="primary" :loading="applyTenantLoading" @click="submitApplyTenant">提交</el-button>
+                </div>
             </template>
         </el-dialog>
     </div>
@@ -746,6 +753,102 @@ watch(
 
     .zqy-layout__user-menu-text {
         max-width: 120px;
+    }
+}
+
+.zqy-layout__apply-tenant-dialog {
+    --apply-tenant-dialog-x-padding: 20px;
+    --apply-tenant-dialog-border-color: #ebeef5;
+
+    border-radius: 2px;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--apply-tenant-dialog-x-padding) 8px !important;
+        margin-right: 0;
+        box-sizing: border-box;
+        border-bottom: none;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--apply-tenant-dialog-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        font-size: 16px;
+        line-height: 28px;
+        color: getCssVar('text-color', 'primary');
+    }
+
+    .el-dialog__headerbtn {
+        top: 0;
+        width: 42px;
+        height: 46px;
+    }
+
+    .el-dialog__body {
+        padding: 18px var(--apply-tenant-dialog-x-padding) 4px !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--apply-tenant-dialog-x-padding);
+        box-sizing: border-box;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--apply-tenant-dialog-border-color);
+        }
+    }
+
+    .zqy-layout__apply-tenant-form {
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input {
+            width: 100%;
+        }
+
+        .el-input__wrapper {
+            border-radius: 0;
+        }
+    }
+
+    .zqy-layout__apply-tenant-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        width: 100%;
+
+        .el-button + .el-button {
+            margin-left: 0;
+        }
     }
 }
 

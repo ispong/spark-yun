@@ -131,8 +131,13 @@
             </div>
         </LoadingPage>
         <AddModal ref="addModalRef" />
-        <el-dialog v-model="inviteDialogVisible" title="租户邀请码" width="520px">
-            <el-form label-position="top">
+        <el-dialog
+            v-model="inviteDialogVisible"
+            class="tenant-user-invite-dialog"
+            title="租户邀请码"
+            width="520px"
+        >
+            <el-form class="tenant-user-invite-form" label-position="top">
                 <el-form-item label="邀请码">
                     <el-input v-model="inviteForm.inviteCode" readonly>
                         <template #append>
@@ -160,9 +165,13 @@
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button @click="inviteDialogVisible = false">取消</el-button>
-                <el-button :loading="inviteSaving" @click="saveInviteCode(true)">重新生成</el-button>
-                <el-button type="primary" :loading="inviteSaving" @click="saveInviteCode(false)">保存设置</el-button>
+                <div class="tenant-user-invite-footer">
+                    <el-button @click="inviteDialogVisible = false">取消</el-button>
+                    <el-button :loading="inviteSaving" @click="saveInviteCode(true)">重新生成</el-button>
+                    <el-button type="primary" :loading="inviteSaving" @click="saveInviteCode(false)">
+                        保存设置
+                    </el-button>
+                </div>
             </template>
         </el-dialog>
     </div>
@@ -777,6 +786,104 @@ function loadAvailableRoles() {
         line-height: 26px;
         font-family: Avenir, Helvetica, Arial, sans-serif;
         font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+
+.tenant-user-invite-dialog {
+    --tenant-user-invite-x-padding: 20px;
+    --tenant-user-invite-border-color: #ebeef5;
+
+    border-radius: 2px;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--tenant-user-invite-x-padding) 8px !important;
+        margin-right: 0;
+        box-sizing: border-box;
+        border-bottom: none;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--tenant-user-invite-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        font-size: 16px;
+        line-height: 28px;
+        color: getCssVar('text-color', 'primary');
+    }
+
+    .el-dialog__headerbtn {
+        top: 0;
+        width: 42px;
+        height: 46px;
+    }
+
+    .el-dialog__body {
+        padding: 18px var(--tenant-user-invite-x-padding) 4px !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--tenant-user-invite-x-padding);
+        box-sizing: border-box;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--tenant-user-invite-border-color);
+        }
+    }
+
+    .tenant-user-invite-form {
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-input-group__append {
+            border-radius: 0;
+        }
+    }
+
+    .tenant-user-invite-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        width: 100%;
+
+        .el-button + .el-button {
+            margin-left: 0;
+        }
     }
 }
 </style>

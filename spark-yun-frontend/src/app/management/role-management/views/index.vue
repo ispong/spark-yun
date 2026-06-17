@@ -2,18 +2,17 @@
     <Breadcrumb :bread-crumb-list="[{ name: '角色管理', code: 'role-management' }]" />
     <div class="role-page">
         <aside class="role-page__sidebar">
-            <div class="role-page__sidebar-head">
-                <strong>角色列表</strong>
-                <el-button type="primary" :icon="Plus" @click="openRoleEditor()">新增</el-button>
+            <div class="role-page__search">
+                <el-input
+                    v-model="keyword"
+                    clearable
+                    :prefix-icon="Search"
+                    placeholder="搜索角色名称或编码"
+                    @keyup.enter="loadRoles()"
+                    @clear="loadRoles()"
+                />
+                <el-button type="primary" :icon="Plus" class="role-page__add-button" @click="openRoleEditor()" />
             </div>
-            <el-input
-                v-model="keyword"
-                clearable
-                :prefix-icon="Search"
-                placeholder="搜索角色名称或编码"
-                @keyup.enter="loadRoles()"
-                @clear="loadRoles()"
-            />
             <div v-loading="loading" class="role-list">
                 <button
                     v-for="role in roles"
@@ -181,8 +180,13 @@
         </section>
     </div>
 
-    <el-dialog v-model="roleEditorVisible" :title="roleForm.id ? '编辑角色' : '新增角色'" width="520px">
-        <el-form label-position="top">
+    <el-dialog
+        v-model="roleEditorVisible"
+        class="role-editor-dialog"
+        :title="roleForm.id ? '编辑角色' : '新增角色'"
+        width="520px"
+    >
+        <el-form class="role-editor-form" label-position="top">
             <el-form-item label="角色名称">
                 <el-input v-model="roleForm.name" maxlength="80" />
             </el-form-item>
@@ -194,8 +198,10 @@
             </el-form-item>
         </el-form>
         <template #footer>
-            <el-button @click="roleEditorVisible = false">取消</el-button>
-            <el-button type="primary" :loading="roleSaving" @click="saveRoleBase">保存</el-button>
+            <div class="role-editor-footer">
+                <el-button @click="roleEditorVisible = false">取消</el-button>
+                <el-button type="primary" :loading="roleSaving" @click="saveRoleBase">保存</el-button>
+            </div>
         </template>
     </el-dialog>
 </template>
@@ -593,7 +599,24 @@ onMounted(() => {
     border-right: 1px solid var(--el-border-color-lighter);
 }
 
-.role-page__sidebar-head,
+.role-page__search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .el-input {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+.role-page__add-button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    flex-shrink: 0;
+}
+
 .role-detail__header,
 .role-tab-toolbar,
 .role-tab-footer {
@@ -783,5 +806,109 @@ onMounted(() => {
     margin-right: 8px;
     color: var(--el-color-primary);
     font-weight: 600;
+}
+
+:deep(.role-editor-dialog) {
+    --role-editor-x-padding: 20px;
+    --role-editor-border-color: #ebeef5;
+
+    border-radius: 2px;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--role-editor-x-padding) 8px !important;
+        margin-right: 0;
+        box-sizing: border-box;
+        border-bottom: none;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--role-editor-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        font-size: 16px;
+        line-height: 28px;
+        color: getCssVar('text-color', 'primary');
+    }
+
+    .el-dialog__headerbtn {
+        top: 0;
+        width: 42px;
+        height: 46px;
+    }
+
+    .el-dialog__body {
+        padding: 20px var(--role-editor-x-padding) 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--role-editor-x-padding);
+        box-sizing: border-box;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--role-editor-border-color);
+        }
+    }
+
+    .role-editor-form {
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 0;
+        }
+
+        .el-textarea__inner {
+            min-height: 96px !important;
+            line-height: 20px;
+            resize: none;
+        }
+    }
+
+    .role-editor-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        width: 100%;
+
+        .el-button + .el-button {
+            margin-left: 0;
+        }
+    }
 }
 </style>
