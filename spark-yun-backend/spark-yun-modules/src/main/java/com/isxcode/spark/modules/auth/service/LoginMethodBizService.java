@@ -22,6 +22,7 @@ import com.isxcode.spark.api.auth.req.PageLoginCodeRecordReq;
 import com.isxcode.spark.api.auth.req.SendLoginCodeReq;
 import com.isxcode.spark.api.auth.req.VerifyLoginCodeReq;
 import com.isxcode.spark.api.auth.res.PageLoginCodeRecordRes;
+import com.isxcode.spark.api.tenant.req.AddTenantReq;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.constants.UserStatus;
 import com.isxcode.spark.api.user.res.LoginRes;
@@ -29,6 +30,8 @@ import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.common.security.ContextHolder;
 import com.isxcode.spark.modules.auth.entity.LoginCodeRecordEntity;
 import com.isxcode.spark.modules.auth.repository.LoginCodeRecordRepository;
+import com.isxcode.spark.modules.platform.service.PlatformSettingService;
+import com.isxcode.spark.modules.tenant.service.biz.TenantBizService;
 import com.isxcode.spark.modules.user.service.UserBizService;
 import com.isxcode.spark.security.user.UserEntity;
 import com.isxcode.spark.security.user.UserRepository;
@@ -75,6 +78,10 @@ public class LoginMethodBizService {
 
     private final LoginLogService loginLogService;
 
+    private final PlatformSettingService platformSettingService;
+
+    private final TenantBizService tenantBizService;
+
     public void sendCode(SendLoginCodeReq sendLoginCodeReq) {
 
         withSystemUser(() -> {
@@ -120,6 +127,7 @@ public class LoginMethodBizService {
             String receiver = valueOrEmpty(verifyLoginCodeReq.getReceiver()).trim();
             String userId = null;
             boolean registered = false;
+            boolean autoTenantCreated = false;
             try {
                 String channel = normalizeChannel(verifyLoginCodeReq.getChannel());
                 loginMethod = resolveCodeLoginLogMethod(channel);
@@ -159,13 +167,14 @@ public class LoginMethodBizService {
                     validateRegisterEnabled(channel, config);
                     user = createAutoRegisterUser(channel, receiver);
                     registered = true;
+                    autoTenantCreated = createDefaultTenantIfEnabled(user);
                 }
                 userId = user.getId();
 
                 record.setVerifyStatus(LoginCodeVerifyStatus.VERIFIED);
                 record.setVerifyDateTime(LocalDateTime.now());
                 record.setRegistered(registered);
-                record.setAutoTenantCreated(false);
+                record.setAutoTenantCreated(autoTenantCreated);
                 loginCodeRecordRepository.save(record);
 
                 LoginRes loginRes = userBizService.loginAuthenticatedUser(user);
@@ -183,7 +192,11 @@ public class LoginMethodBizService {
         String channel = normalizeChannel(sendLoginCodeReq.getChannel());
         String receiver = normalizeReceiver(channel, sendLoginCodeReq.getReceiver());
         LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
-        sendCodeMessage(channel, receiver, generateCode(), config);
+        try {
+            sendCodeMessage(channel, receiver, generateCode(), config);
+        } catch (Exception exception) {
+            throw new IsxAppException("验证码发送失败：" + exception.getMessage());
+        }
     }
 
     public Page<PageLoginCodeRecordRes> pageRecord(PageLoginCodeRecordReq pageLoginCodeRecordReq) {
@@ -224,8 +237,7 @@ public class LoginMethodBizService {
             Boolean.TRUE.equals(emailConfig.getStartTls()));
         mailSender.getJavaMailProperties().put("mail.smtp.ssl.enable", Boolean.TRUE.equals(emailConfig.getSsl()));
 
-        String fromAddress =
-            Strings.isEmpty(emailConfig.getFromAddress()) ? emailConfig.getUsername() : emailConfig.getFromAddress();
+        String fromAddress = resolveEmailFromAddress(emailConfig);
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromAddress);
         message.setTo(receiver);
@@ -233,6 +245,14 @@ public class LoginMethodBizService {
         message.setText("您的登录验证码为：" + code + "，" + CODE_EXPIRE_MINUTES + "分钟内有效。");
         mailSender.send(message);
         return "邮件发送成功";
+    }
+
+    private String resolveEmailFromAddress(EmailLoginConfig emailConfig) {
+
+        if ("QQ".equalsIgnoreCase(emailConfig.getProvider())) {
+            return emailConfig.getUsername();
+        }
+        return Strings.isEmpty(emailConfig.getFromAddress()) ? emailConfig.getUsername() : emailConfig.getFromAddress();
     }
 
     private String sendPhoneCode(String receiver, String code, PhoneLoginConfig phoneConfig) {
@@ -350,6 +370,25 @@ public class LoginMethodBizService {
             user.setPhone(receiver);
         }
         return userRepository.save(user);
+    }
+
+    private boolean createDefaultTenantIfEnabled(UserEntity user) {
+
+        if (!Boolean.TRUE.equals(platformSettingService.getSetting().getAutoCreateTenant())) {
+            return false;
+        }
+
+        AddTenantReq addTenantReq = new AddTenantReq();
+        addTenantReq.setName(buildDefaultTenantName(user));
+        addTenantReq.setAdminUserId(user.getId());
+        tenantBizService.addTenant(addTenantReq);
+        return true;
+    }
+
+    private String buildDefaultTenantName(UserEntity user) {
+
+        String username = Strings.isEmpty(user.getUsername()) ? user.getAccount() : user.getUsername();
+        return username + "的团队";
     }
 
     private String generateUniqueAccount() {

@@ -16,7 +16,7 @@ export function UpdateUserInfo(params: UpdateUserInfoParams): Promise<any> {
 }
 
 export interface UpdateMyPasswordParams {
-    oldPassword: string
+    oldPassword?: string
     newPassword: string
     confirmPassword: string
 }

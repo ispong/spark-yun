@@ -7,7 +7,11 @@
                     <div class="zqy-platform-setting__section">
                         <div class="zqy-platform-setting__switch-row">
                             <span class="zqy-platform-setting__label">注册后自动创建租户</span>
-                            <el-switch v-model="form.autoCreateTenant" />
+                            <el-switch
+                                v-model="form.autoCreateTenant"
+                                :loading="autoCreateTenantSaving"
+                                @change="saveAutoCreateTenant"
+                            />
                         </div>
                         <el-form-item label="平台描述">
                             <el-input
@@ -40,6 +44,7 @@ import { BreadCrumbList } from './platform-setting.config'
 const breadCrumbList = reactive(BreadCrumbList)
 const loading = ref(false)
 const saving = ref(false)
+const autoCreateTenantSaving = ref(false)
 const networkError = ref(false)
 
 const form = reactive<PlatformSetting>({
@@ -73,6 +78,23 @@ function saveSetting() {
         })
         .finally(() => {
             saving.value = false
+        })
+}
+
+function saveAutoCreateTenant() {
+    autoCreateTenantSaving.value = true
+    UpdatePlatformSetting({
+        description: form.description,
+        autoCreateTenant: form.autoCreateTenant
+    })
+        .then((res: any) => {
+            ElMessage.success(res.msg)
+        })
+        .catch(() => {
+            initData()
+        })
+        .finally(() => {
+            autoCreateTenantSaving.value = false
         })
 }
 

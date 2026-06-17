@@ -122,7 +122,7 @@
                             :class="{ 'is-disabled': !form.emailEnabled }"
                             type="button"
                             :disabled="!form.emailEnabled || saving"
-                            @click="emailConfigVisible = true"
+                            @click="openEmailConfig"
                         >
                             <span>邮箱配置</span>
                             <el-icon><Setting /></el-icon>
@@ -243,14 +243,25 @@
             </el-form>
             <template #footer>
                 <div class="login-method-config-dialog__footer">
-                    <el-button
-                        class="login-method-config-dialog__test-button"
-                        type="primary"
-                        :loading="testingChannel === 'EMAIL'"
-                        @click="testConfig('EMAIL')"
-                    >
-                        测试发送
-                    </el-button>
+                    <div class="login-method-config-dialog__test-actions">
+                        <el-button
+                            class="login-method-config-dialog__test-button"
+                            type="primary"
+                            :loading="testingChannel === 'EMAIL'"
+                            @click="testConfig('EMAIL')"
+                        >
+                            测试发送
+                        </el-button>
+                        <el-button
+                            v-if="emailTestErrorMessage"
+                            class="login-method-config-dialog__test-error"
+                            link
+                            type="danger"
+                            @click="showEmailTestError"
+                        >
+                            连接失败
+                        </el-button>
+                    </div>
                     <div class="login-method-config-dialog__footer-actions">
                         <el-button @click="emailConfigVisible = false">关闭</el-button>
                         <el-button type="primary" :loading="saving" @click="saveConfigWithMessage">保存配置</el-button>
@@ -288,6 +299,7 @@ const phoneTestReceiver = ref('')
 const emailTestReceiver = ref('')
 const testingChannel = ref<LoginChannel | ''>('')
 const phoneTestErrorMessage = ref('')
+const emailTestErrorMessage = ref('')
 const phonePattern = /^1[3-9]\d{9}$/
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -354,7 +366,10 @@ function cloneForm(): LoginMethodConfig {
     form.accountPasswordEnabled = true
     form.defaultLoginMethod = resolveDefaultLoginMethod(form.defaultLoginMethod, form)
     const data = JSON.parse(JSON.stringify(form))
-    data.config.emailConfig.fromAddress = data.config.emailConfig.fromAddress || data.config.emailConfig.username || ''
+    data.config.emailConfig.fromAddress =
+        data.config.emailConfig.provider === 'QQ'
+            ? data.config.emailConfig.username || ''
+            : data.config.emailConfig.fromAddress || data.config.emailConfig.username || ''
     data.config.emailConfig.fromName = data.config.emailConfig.fromName || '至轻云'
     data.config.emailConfig.subject = data.config.emailConfig.subject || '至轻云登录验证码'
     return data
@@ -438,11 +453,17 @@ function applyEmailProvider() {
     form.config.emailConfig.port = 465
     form.config.emailConfig.ssl = true
     form.config.emailConfig.startTls = false
+    form.config.emailConfig.fromAddress = form.config.emailConfig.username || ''
 }
 
 function openPhoneConfig() {
     phoneTestErrorMessage.value = ''
     phoneConfigVisible.value = true
+}
+
+function openEmailConfig() {
+    emailTestErrorMessage.value = ''
+    emailConfigVisible.value = true
 }
 
 async function testConfig(channel: LoginChannel) {
@@ -463,6 +484,9 @@ async function testConfig(channel: LoginChannel) {
     if (channel === 'PHONE') {
         phoneTestErrorMessage.value = ''
     }
+    if (channel === 'EMAIL') {
+        emailTestErrorMessage.value = ''
+    }
     try {
         await saveConfig(true)
         await TestLoginConfig({
@@ -473,6 +497,9 @@ async function testConfig(channel: LoginChannel) {
     } catch (error) {
         if (channel === 'PHONE') {
             phoneTestErrorMessage.value = getErrorMessage(error)
+        }
+        if (channel === 'EMAIL') {
+            emailTestErrorMessage.value = getErrorMessage(error)
         }
         // The shared HTTP handler has already shown the specific error message.
     } finally {
@@ -496,6 +523,13 @@ function getErrorMessage(error: unknown) {
 
 function showPhoneTestError() {
     ElMessageBox.alert(phoneTestErrorMessage.value, '连接失败', {
+        confirmButtonText: '确定',
+        customClass: 'login-method-test-error-dialog'
+    })
+}
+
+function showEmailTestError() {
+    ElMessageBox.alert(emailTestErrorMessage.value, '连接失败', {
         confirmButtonText: '确定',
         customClass: 'login-method-test-error-dialog'
     })

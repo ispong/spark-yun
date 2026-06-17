@@ -427,15 +427,19 @@ public class UserBizService {
             throw new IsxAppException("两次输入的新密码不一致");
         }
 
-        if (updateMyPasswordReq.getOldPassword().equals(updateMyPasswordReq.getNewPassword())) {
-            throw new IsxAppException("新密码不能与原密码相同");
-        }
-
         UserEntity userEntity = userEntityOptional.get();
+        boolean hasPassword = hasPassword(userEntity);
 
-        // 校验原密码
-        if (!SecureUtil.md5(updateMyPasswordReq.getOldPassword()).equals(userEntity.getPasswd())) {
-            throw new IsxAppException("原密码不正确");
+        if (hasPassword) {
+            if (Strings.isEmpty(updateMyPasswordReq.getOldPassword())) {
+                throw new IsxAppException("原密码不能为空");
+            }
+            if (updateMyPasswordReq.getOldPassword().equals(updateMyPasswordReq.getNewPassword())) {
+                throw new IsxAppException("新密码不能与原密码相同");
+            }
+            if (!SecureUtil.md5(updateMyPasswordReq.getOldPassword()).equals(userEntity.getPasswd())) {
+                throw new IsxAppException("原密码不正确");
+            }
         }
 
         userEntity.setPasswd(SecureUtil.md5(updateMyPasswordReq.getNewPassword()));
@@ -515,7 +519,7 @@ public class UserBizService {
         AccessSnapshot access = productAccessService.resolve(userEntity.getId(), tenantId);
         return LoginRes.builder().username(userEntity.getUsername()).account(userEntity.getAccount())
             .phone(userEntity.getPhone()).email(userEntity.getEmail()).remark(userEntity.getRemark())
-            .token(generateUserToken(userEntity.getId(), tenantId))
+            .hasPassword(hasPassword(userEntity)).token(generateUserToken(userEntity.getId(), tenantId))
             .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId)
             .role(resolveCompatibilityRole(access, role)).platformSuperAdmin(access.systemAdmin())
             .platformAdmin(access.platformAdmin()).platformMember(isPlatformMember(access, role))
@@ -530,7 +534,7 @@ public class UserBizService {
         AccessSnapshot access = productAccessService.resolve(userEntity.getId(), tenantId);
         return GetUserRes.builder().username(userEntity.getUsername()).account(userEntity.getAccount())
             .phone(userEntity.getPhone()).email(userEntity.getEmail()).remark(userEntity.getRemark())
-            .token(generateUserToken(userEntity.getId(), tenantId))
+            .hasPassword(hasPassword(userEntity)).token(generateUserToken(userEntity.getId(), tenantId))
             .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId)
             .role(resolveCompatibilityRole(access, role)).systemAdmin(access.systemAdmin())
             .platformSuperAdmin(access.systemAdmin()).platformAdmin(access.platformAdmin())
@@ -538,6 +542,11 @@ public class UserBizService {
             .tenantAdmin(access.normalAdmin()).tenantMember(access.hasTenantAccess()).normalAdmin(access.normalAdmin())
             .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
             .defaultArea(access.systemAdmin() || isPlatformMember(access, role) ? "platform" : "workspace").build();
+    }
+
+    private boolean hasPassword(UserEntity userEntity) {
+
+        return !Strings.isEmpty(userEntity.getPasswd());
     }
 
     private String resolveCompatibilityRole(AccessSnapshot access, String fallbackRole) {

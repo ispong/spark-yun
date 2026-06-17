@@ -9,8 +9,7 @@ import lombok.Data;
 public class UpdateMyPasswordReq {
 
     @Schema(title = "原密码", example = "oldPass123")
-    @NotEmpty(message = "原密码不能为空")
-    @Size(min = 1, max = 100, message = "原密码长度1～100")
+    @Size(max = 100, message = "原密码长度不能超过100")
     private String oldPassword;
 
     @Schema(title = "新密码", example = "newPass123")

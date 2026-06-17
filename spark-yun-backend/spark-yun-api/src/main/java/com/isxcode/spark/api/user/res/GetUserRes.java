@@ -22,6 +22,8 @@ public class GetUserRes {
 
     private String remark;
 
+    private Boolean hasPassword;
+
     private String token;
 
     private String refreshToken;

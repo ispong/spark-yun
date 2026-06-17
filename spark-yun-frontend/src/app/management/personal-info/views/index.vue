@@ -65,7 +65,7 @@
                         label-position="top"
                         :rules="passwordRule"
                     >
-                        <el-form-item label="原密码" prop="oldPassword">
+                        <el-form-item v-if="shouldInputOldPassword" label="原密码" prop="oldPassword">
                             <el-input
                                 v-model="passwordModel.oldPassword"
                                 type="password"
@@ -92,7 +92,7 @@
                     </el-form>
 
                     <div class="personal-info__actions">
-                        <el-button type="primary" @click="handleChangePassword">确认修改</el-button>
+                        <el-button type="primary" @click="handleChangePassword">{{ passwordSubmitText }}</el-button>
                     </div>
                 </div>
             </template>
@@ -182,6 +182,19 @@ const passwordModel = reactive<PasswordModel>({
     confirmPassword: ''
 })
 
+const shouldInputOldPassword = computed(() => authStore.userInfo.hasPassword !== false)
+
+const passwordSubmitText = computed(() => (shouldInputOldPassword.value ? '确认修改' : '确认设置'))
+
+const validateOldPassword = (_: any, value: string, callback: (error?: Error) => void) => {
+    if (shouldInputOldPassword.value && !value) {
+        callback(new Error('请输入原密码'))
+        return
+    }
+
+    callback()
+}
+
 const validateConfirmPassword = (_: any, value: string, callback: (error?: Error) => void) => {
     if (!value) {
         callback(new Error('请再次输入新密码'))
@@ -199,8 +212,7 @@ const validateConfirmPassword = (_: any, value: string, callback: (error?: Error
 const passwordRule: FormRules = {
     oldPassword: [
         {
-            required: true,
-            message: '请输入原密码',
+            validator: validateOldPassword,
             trigger: ['blur', 'change']
         }
     ],
@@ -219,14 +231,17 @@ const passwordRule: FormRules = {
     ]
 }
 
-const menuTitleMap: Record<PersonalInfoMenu, string> = {
-    'basic-info': '基础信息',
-    'change-password': '修改密码'
-}
+const pageTitle = computed(() => {
+    if (activeMenu.value === 'basic-info') {
+        return '基础信息'
+    }
+
+    return shouldInputOldPassword.value ? '修改密码' : '设置密码'
+})
 
 const breadCrumbList = computed(() => [
     {
-        name: menuTitleMap[activeMenu.value],
+        name: pageTitle.value,
         code: 'personal-info'
     }
 ])
@@ -260,8 +275,17 @@ const handleSave = function () {
 const handleChangePassword = function () {
     passwordFormRef.value?.validate((valid) => {
         if (valid) {
-            UpdateMyPassword(passwordModel).then((res: any) => {
+            const updateParams = {
+                oldPassword: shouldInputOldPassword.value ? passwordModel.oldPassword : undefined,
+                newPassword: passwordModel.newPassword,
+                confirmPassword: passwordModel.confirmPassword
+            }
+            UpdateMyPassword(updateParams).then((res: any) => {
                 ElMessage.success(res.msg)
+                authStore.setUserInfo({
+                    ...authStore.userInfo,
+                    hasPassword: true
+                })
                 passwordFormRef.value?.resetFields()
             })
         }

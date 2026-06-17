@@ -12,6 +12,6 @@ export function UpdateTenantForTenantAdmin(params: { id: string; name: string; i
     return http.request({
         method: 'post',
         url: '/tenant/updateTenantForTenantAdmin',
-        params
+        data: params
     })
 }
