@@ -11,7 +11,9 @@
                     @keyup.enter="loadRoles()"
                     @clear="loadRoles()"
                 />
-                <el-button type="primary" :icon="Plus" class="role-page__add-button" @click="openRoleEditor()" />
+                <el-icon class="role-page__add-button" @click="openRoleEditor()">
+                    <Plus />
+                </el-icon>
             </div>
             <div v-loading="loading" class="role-list">
                 <div
@@ -67,69 +69,62 @@
                                         @clear="searchMembers"
                                     />
                                 </div>
+                                <Transition name="role-member-batch-slide">
+                                    <div v-if="selectedMembers.length" class="role-member-batch-mask">
+                                        <div class="role-member-batch-actions">
+                                            <el-button
+                                                class="role-member-batch-action"
+                                                :loading="memberRemoving"
+                                                @click="removeSelectedMembers"
+                                            >
+                                                删除
+                                            </el-button>
+                                            <el-button
+                                                class="role-member-batch-cancel"
+                                                :disabled="memberRemoving"
+                                                @click="cancelMemberSelection"
+                                            >
+                                                取消选择
+                                            </el-button>
+                                        </div>
+                                    </div>
+                                </Transition>
                             </div>
                             <div class="zqy-table role-member-table">
                                 <BlockTable
                                     :table-config="memberTableConfig"
                                     @size-change="handleMemberSizeChange"
                                     @current-change="handleMemberCurrentChange"
+                                    @checkbox-change="handleMemberSelectionChange"
                                 >
-                                    <template #status="scopeSlot">
-                                        <el-tag :type="scopeSlot.row.status === 'ENABLE' ? 'success' : 'danger'">
-                                            {{ scopeSlot.row.status === 'ENABLE' ? '启用' : '禁用' }}
-                                        </el-tag>
+                                    <template #options="scopeSlot">
+                                        <div class="btn-group role-member-action-group">
+                                            <span class="role-member-action-button" @click="removeMember(scopeSlot.row)">
+                                                删除
+                                            </span>
+                                        </div>
                                     </template>
                                 </BlockTable>
                             </div>
                         </div>
                     </el-tab-pane>
 
-                    <el-tab-pane label="菜单权限" name="menus">
-                        <div class="role-tab-toolbar">
-                            <span>控制工作台菜单是否展示</span>
-                            <el-button type="primary" :loading="permissionSaving" @click="savePermissions">
-                                保存权限
-                            </el-button>
-                        </div>
-                        <div class="permission-list is-menu">
-                            <el-checkbox
-                                v-for="module in catalog.menuPermissions"
-                                :key="module.code"
-                                :model-value="hasPermission(module.permissions[0]?.permissionCode)"
-                                @change="(checked) => setPermission(module.permissions[0]?.permissionCode, checked)"
-                            >
-                                {{ module.name }}
-                            </el-checkbox>
-                        </div>
-                    </el-tab-pane>
-
-                    <el-tab-pane label="按钮权限" name="buttons">
+                    <el-tab-pane label="功能权限" name="buttons">
                         <PermissionMatrix
                             :modules="catalog.buttonPermissions"
                             :permission-codes="permissionCodes"
                             :labels="buttonLabels"
+                            :disabled="buttonAllChecked"
                             @change="setPermission"
                         />
-                        <div class="role-tab-footer">
+                        <div class="role-permission-footer">
+                            <el-checkbox :model-value="buttonAllChecked" @change="setButtonAllChecked">全选</el-checkbox>
                             <el-button type="primary" :loading="permissionSaving" @click="savePermissions">
-                                保存权限
+                                保存
                             </el-button>
                         </div>
                     </el-tab-pane>
 
-                    <el-tab-pane label="数据权限" name="data">
-                        <PermissionMatrix
-                            :modules="catalog.dataPermissions"
-                            :permission-codes="permissionCodes"
-                            :labels="dataLabels"
-                            @change="setPermission"
-                        />
-                        <div class="role-tab-footer">
-                            <el-button type="primary" :loading="permissionSaving" @click="savePermissions">
-                                保存权限
-                            </el-button>
-                        </div>
-                    </el-tab-pane>
                 </el-tabs>
             </template>
         </section>
@@ -203,6 +198,7 @@ import { Delete, Edit, Plus, Search } from '@element-plus/icons-vue'
 import { ElCheckbox, ElMessage, ElMessageBox } from 'element-plus'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
+import { useAuthStore } from '@/app/store/useAuth'
 import { DeleteRole, GetPermissionCatalog, PageRole, SaveRole } from '@/app/management/admin/api'
 import { GetUserList, SetMemberRoles } from '@/app/management/tenant-user/api'
 
@@ -248,13 +244,6 @@ const buttonLabels: Record<string, string> = {
     execute: '执行'
 }
 
-const dataLabels: Record<string, string> = {
-    read: '查看',
-    create: '新增',
-    update: '修改',
-    delete: '删除'
-}
-
 const PermissionMatrix = defineComponent({
     name: 'PermissionMatrix',
     props: {
@@ -269,6 +258,10 @@ const PermissionMatrix = defineComponent({
         labels: {
             type: Object as PropType<Record<string, string>>,
             required: true
+        },
+        disabled: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['change'],
@@ -297,6 +290,7 @@ const PermissionMatrix = defineComponent({
                                 {
                                     modelValue: isModuleChecked(module.permissions),
                                     indeterminate: isModuleIndeterminate(module.permissions),
+                                    disabled: props.disabled,
                                     onChange: (checked: unknown) => setModulePermissions(module.permissions, checked)
                                 },
                                 () => module.name
@@ -311,6 +305,7 @@ const PermissionMatrix = defineComponent({
                                     {
                                         key: permission.permissionCode,
                                         modelValue: hasPermission(permission.permissionCode),
+                                        disabled: props.disabled,
                                         onChange: (checked: unknown) =>
                                             setPermission(permission.permissionCode, checked)
                                     },
@@ -328,20 +323,24 @@ const keyword = ref('')
 const loading = ref(false)
 const roles = ref<RoleItem[]>([])
 const selectedRole = ref<RoleItem | null>(null)
+const authStore = useAuthStore()
 const activeTab = ref('members')
 const roleEditorVisible = ref(false)
 const roleSaving = ref(false)
 const permissionSaving = ref(false)
 const permissionCodes = ref<string[]>([])
+const buttonAllChecked = ref(true)
 const memberKeyword = ref('')
 const memberLoading = ref(false)
 const members = ref<MemberItem[]>([])
+const selectedMembers = ref<MemberItem[]>([])
 const memberPage = ref(1)
 const memberPageSize = ref(10)
 const memberTotal = ref(0)
 const memberAdderVisible = ref(false)
 const memberAdderLoading = ref(false)
 const memberAdding = ref(false)
+const memberRemoving = ref(false)
 const memberAdderOptions = ref<MemberItem[]>([])
 const memberAdderUserIds = ref<string[]>([])
 
@@ -353,9 +352,7 @@ const roleForm = reactive({
 })
 
 const catalog = reactive({
-    menuPermissions: [] as PermissionModule[],
     buttonPermissions: [] as PermissionModule[],
-    dataPermissions: [] as PermissionModule[],
     permissionCodes: [] as string[]
 })
 
@@ -387,10 +384,10 @@ const memberTableConfig = computed(() => ({
             showOverflowTooltip: true
         },
         {
-            prop: 'status',
-            title: '状态',
-            minWidth: 90,
-            customSlot: 'status'
+            title: '操作',
+            width: 90,
+            align: 'center',
+            customSlot: 'options'
         }
     ],
     pagination: {
@@ -399,6 +396,7 @@ const memberTableConfig = computed(() => ({
         total: memberTotal.value
     },
     seqType: 'seq',
+    checkbox: true,
     loading: memberLoading.value
 }))
 
@@ -430,16 +428,17 @@ function loadRoles(selectRoleCode?: string) {
 
 function loadCatalog() {
     GetPermissionCatalog().then((res: any) => {
-        catalog.menuPermissions = res.data.menuPermissions || []
         catalog.buttonPermissions = res.data.buttonPermissions || []
-        catalog.dataPermissions = res.data.dataPermissions || []
         catalog.permissionCodes = res.data.permissionCodes || []
+        applyCheckedPermissionGroups()
     })
 }
 
 function selectRole(role: RoleItem) {
     selectedRole.value = role
     permissionCodes.value = [...(role.permissionCodes || [])]
+    buttonAllChecked.value = true
+    applyCheckedPermissionGroups()
     if (activeTab.value === 'members') {
         loadMembers()
     }
@@ -507,10 +506,36 @@ function setPermission(code: string | undefined, checked: unknown) {
     permissionCodes.value = Array.from(nextCodes)
 }
 
+function getPermissionCodes(modules: PermissionModule[]) {
+    return modules
+        .flatMap((module) => module.permissions.map((permission) => permission.permissionCode))
+        .filter((code): code is string => !!code)
+}
+
+function applyAllPermissions(modules: PermissionModule[]) {
+    const nextCodes = new Set(permissionCodes.value)
+    getPermissionCodes(modules).forEach((code) => nextCodes.add(code))
+    permissionCodes.value = Array.from(nextCodes)
+}
+
+function applyCheckedPermissionGroups() {
+    if (buttonAllChecked.value) {
+        applyAllPermissions(catalog.buttonPermissions)
+    }
+}
+
+function setButtonAllChecked(checked: unknown) {
+    buttonAllChecked.value = !!checked
+    if (buttonAllChecked.value) {
+        applyAllPermissions(catalog.buttonPermissions)
+    }
+}
+
 function savePermissions() {
     if (!selectedRole.value) {
         return
     }
+    applyCheckedPermissionGroups()
     permissionSaving.value = true
     SaveRole({
         id: selectedRole.value.id,
@@ -540,15 +565,22 @@ function loadMembers() {
     if (!selectedRole.value) {
         return
     }
+    if (!authStore.tenantId) {
+        members.value = []
+        memberTotal.value = 0
+        return
+    }
     memberLoading.value = true
     GetUserList({
         page: memberPage.value - 1,
         pageSize: memberPageSize.value,
-        searchKeyWord: memberKeyword.value
+        searchKeyWord: memberKeyword.value,
+        tenantId: authStore.tenantId
     })
         .then((res: any) => {
             members.value = res.data.content || []
             memberTotal.value = res.data.totalElements || 0
+            selectedMembers.value = []
         })
         .finally(() => {
             memberLoading.value = false
@@ -571,6 +603,15 @@ function handleMemberCurrentChange(currentPage: number) {
     loadMembers()
 }
 
+function handleMemberSelectionChange(rows: MemberItem[]) {
+    selectedMembers.value = rows
+}
+
+function cancelMemberSelection() {
+    selectedMembers.value = []
+    members.value = [...members.value]
+}
+
 function hasMemberRole(member: MemberItem) {
     return !!selectedRole.value && !!member.roleIds?.includes(selectedRole.value.id)
 }
@@ -579,13 +620,18 @@ function openMemberAdder() {
     if (!selectedRole.value) {
         return
     }
+    if (!authStore.tenantId) {
+        ElMessage.warning('请先选择租户')
+        return
+    }
     memberAdderVisible.value = true
     memberAdderUserIds.value = []
     memberAdderLoading.value = true
     GetUserList({
         page: 0,
         pageSize: 500,
-        searchKeyWord: ''
+        searchKeyWord: '',
+        tenantId: authStore.tenantId
     })
         .then((res: any) => {
             memberAdderOptions.value = (res.data.content || []).filter((member: MemberItem) => !hasMemberRole(member))
@@ -608,7 +654,8 @@ function addSelectedMembers() {
             roleIds.add(selectedRole.value!.id)
             return SetMemberRoles({
                 userId: member.userId,
-                roleIds: Array.from(roleIds)
+                roleIds: Array.from(roleIds),
+                tenantId: authStore.tenantId
             })
         })
     )
@@ -620,6 +667,46 @@ function addSelectedMembers() {
         .finally(() => {
             memberAdding.value = false
         })
+}
+
+function removeMember(member: MemberItem) {
+    removeMembers([member])
+}
+
+function removeSelectedMembers() {
+    if (!selectedMembers.value.length) {
+        ElMessage.warning('请选择成员')
+        return
+    }
+    removeMembers(selectedMembers.value)
+}
+
+function removeMembers(targetMembers: MemberItem[]) {
+    if (!selectedRole.value || !authStore.tenantId || !targetMembers.length) {
+        return
+    }
+    ElMessageBox.confirm(`确定从当前角色中删除选中的 ${targetMembers.length} 个成员吗？`, '提示', {
+        type: 'warning'
+    }).then(() => {
+        memberRemoving.value = true
+        Promise.all(
+            targetMembers.map((member) =>
+                SetMemberRoles({
+                    userId: member.userId,
+                    roleIds: (member.roleIds || []).filter((roleId) => roleId !== selectedRole.value!.id),
+                    tenantId: authStore.tenantId
+                })
+            )
+        )
+            .then(() => {
+                ElMessage.success('删除成功')
+                selectedMembers.value = []
+                loadMembers()
+            })
+            .finally(() => {
+                memberRemoving.value = false
+            })
+    }).catch(() => undefined)
 }
 
 onMounted(() => {
@@ -658,10 +745,13 @@ onMounted(() => {
 }
 
 .role-page__add-button {
-    width: 32px;
-    height: 32px;
-    padding: 0;
+    width: 28px;
+    margin-left: 4px;
+    margin-right: 4px;
     flex-shrink: 0;
+    font-size: 18px;
+    color: var(--el-color-primary);
+    cursor: pointer;
 }
 
 .role-tab-toolbar,
@@ -673,20 +763,21 @@ onMounted(() => {
 }
 
 .role-member-panel {
-    height: 100%;
+    height: auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
 }
 
 .role-member-toolbar {
-    height: 52px;
+    position: relative;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     flex-shrink: 0;
-    padding: 0 0 12px;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -696,6 +787,65 @@ onMounted(() => {
     flex-shrink: 0;
 }
 
+.role-member-batch-mask {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #fff;
+}
+
+.role-member-batch-slide-enter-active,
+.role-member-batch-slide-leave-active {
+    transition:
+        transform 0.18s ease,
+        opacity 0.18s ease;
+    will-change: transform, opacity;
+}
+
+.role-member-batch-slide-enter-from,
+.role-member-batch-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-100%);
+}
+
+.role-member-batch-slide-enter-to,
+.role-member-batch-slide-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.role-member-batch-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.role-member-batch-action {
+    min-width: 66px;
+    height: 32px;
+    line-height: 30px;
+    border-color: var(--el-color-primary);
+    color: var(--el-color-primary);
+    background-color: #fff;
+
+    &:hover,
+    &:focus {
+        border-color: var(--el-color-primary);
+        color: #fff;
+        background-color: var(--el-color-primary);
+    }
+}
+
+.role-member-batch-cancel {
+    height: 32px;
+    line-height: 30px;
+}
+
 .role-member-search {
     width: 320px;
     max-width: 48%;
@@ -703,7 +853,51 @@ onMounted(() => {
 
 .role-member-table {
     min-height: 0;
-    flex: 1;
+    height: auto;
+    flex: none;
+}
+
+.role-member-table :deep(.block-table) {
+    max-height: none;
+}
+
+.role-member-table :deep(.block-table.block-table__empty .vxe-table--render-wrapper) {
+    min-height: 220px;
+}
+
+.role-member-table :deep(.vxe-table--empty-content) {
+    position: relative;
+    width: 100%;
+    height: 176px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.role-member-table :deep(.empty-page) {
+    position: static !important;
+    right: auto;
+    width: 120px;
+    height: auto;
+}
+
+.role-member-action-group {
+    width: 100%;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+
+    .role-member-action-button {
+        display: inline-flex;
+        align-items: center;
+        height: 40px;
+        line-height: 1;
+        font-size: var(--el-font-size-extra-small);
+        color: var(--el-color-primary);
+        cursor: pointer;
+        white-space: nowrap;
+    }
 }
 
 .role-list {
@@ -833,18 +1027,13 @@ onMounted(() => {
     justify-content: flex-end;
 }
 
-.permission-list {
-    max-height: 560px;
-    overflow: auto;
-    border: 1px solid var(--el-border-color-lighter);
-    border-radius: 6px;
-}
-
-.permission-list.is-menu {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 0;
-    padding: 12px;
+.role-permission-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    margin-top: 12px;
+    padding-left: 12px;
 }
 
 :deep(.permission-matrix) {
