@@ -13,7 +13,12 @@
 
             <section class="zqy-login__panel" aria-label="用户登录">
                 <div class="zqy-login__card">
-                    <img class="zqy-login__card-logo" :src="logo" alt="至轻云" />
+                    <span
+                        class="zqy-login__card-logo"
+                        role="img"
+                        aria-label="至轻云"
+                        v-html="loginLogoSvg"
+                    />
                     <h1 class="zqy-login__title">{{ loginTitle }}</h1>
                     <el-form
                         v-if="activeLoginMethod === 'ACCOUNT'"
@@ -78,6 +83,7 @@
                                         inputmode="numeric"
                                         autocomplete="one-time-code"
                                         maxlength="1"
+                                        :aria-label="`验证码第${index + 1}位`"
                                         @input="handleCodeDigitInput($event, index)"
                                         @keydown="handleCodeDigitKeydown($event, index)"
                                         @paste="handleCodeDigitPaste($event, index)"
@@ -86,7 +92,7 @@
                                 </div>
                                 <el-button
                                     class="zqy-login__send-code"
-                                    :disabled="!!sendCodeCountdown"
+                                    :disabled="sendCodeLoading || !!sendCodeCountdown"
                                     :loading="sendCodeLoading"
                                     @click="handleSendCode"
                                 >
@@ -172,7 +178,7 @@ import { useRouter } from 'vue-router'
 import { OauthUrlList } from '@/app/api'
 import logoIcon from '@/app/assets/imgs/logo-a.png'
 import logoURL from '@/app/assets/imgs/logo-view.png'
-import logo from '@/app/assets/imgs/logo1.svg'
+import loginLogoSvg from '@/app/assets/imgs/logo1.svg?raw'
 import {
     GetOpenLoginMethodConfig,
     SendLoginCode,
@@ -708,7 +714,17 @@ onBeforeUnmount(() => {
 
     .zqy-login__card-logo {
         width: 90px;
-        height: auto;
+        height: 90px;
+        color: getCssVar('color', 'primary');
+        --login-logo-color: #{getCssVar('color', 'primary')};
+        --login-logo-color-light: #{getCssVar('color', 'primary', 'light-3')};
+        display: block;
+
+        svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
     }
 
     .zqy-login__actions {
@@ -822,6 +838,10 @@ onBeforeUnmount(() => {
             margin-bottom: 36px;
 
             &.is-error {
+                .zqy-login__code-digit {
+                    border-color: getCssVar('color', 'danger');
+                }
+
                 .zqy-login__input {
                     .el-input__wrapper {
                         border-color: getCssVar('color', 'danger');
@@ -886,18 +906,27 @@ onBeforeUnmount(() => {
 
     .zqy-login__button {
         width: 100%;
-        background: linear-gradient(90deg, #ff8a3d, #ff4d12);
-        border: none;
+        background: getCssVar('color', 'primary');
+        border-color: getCssVar('color', 'primary');
         font-size: 14px;
         border-radius: 6px;
         height: 44px;
         font-weight: 500;
         transition: all 0.3s ease;
 
-        &:hover {
-            background: linear-gradient(90deg, #ff7a28, #f04000);
+        &:hover,
+        &:focus {
+            background: getCssVar('color', 'primary', 'light-3');
+            border-color: getCssVar('color', 'primary', 'light-3');
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 91, 32, 0.28);
+            box-shadow: 0 4px 12px rgba(var(--el-color-primary-rgb), 0.28);
+        }
+
+        &.is-disabled,
+        &.is-disabled:hover,
+        &.is-disabled:focus {
+            transform: none;
+            box-shadow: none;
         }
     }
 
