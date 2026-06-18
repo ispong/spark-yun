@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table computer-group-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addGroup">新建集群</el-button>
             <div class="zqy-seach">
@@ -13,6 +13,21 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="cluster-batch-slide">
+                <div v-if="selectedRows.length" class="cluster-batch-mask">
+                    <div class="cluster-batch-actions">
+                        <el-button class="cluster-batch-action" :loading="batchLoading" @click="batchCheckData">
+                            检测
+                        </el-button>
+                        <el-button class="cluster-batch-action" :loading="batchLoading" @click="batchDeleteData">
+                            删除
+                        </el-button>
+                        <el-button class="cluster-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -20,9 +35,13 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #nameSlot="scopeSlot">
                         <span class="name-click" @click="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                    </template>
+                    <template #clusterTypeSlot="scopeSlot">
+                        <el-tag class="cluster-type-tag">{{ getClusterTypeName(scopeSlot.row.clusterType) }}</el-tag>
                     </template>
                     <template #memorySlot="scopeSlot">
                         <div class="resource-progress">
@@ -50,22 +69,25 @@
                         <ZStatusTag :status="scopeSlot.row.status" />
                     </template>
                     <template #defaultTag="scopeSlot">
-                        <div class="btn-group">
-                            <el-tag v-if="scopeSlot.row.defaultCluster" class="ml-2" type="success">是</el-tag>
-                            <el-tag v-if="!scopeSlot.row.defaultCluster" class="ml-2" type="danger">否</el-tag>
-                        </div>
+                        <el-tag v-if="scopeSlot.row.defaultCluster" type="warning">默认集群</el-tag>
+                        <el-tag v-else class="normal-cluster-tag">普通集群</el-tag>
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <span v-if="!scopeSlot.row.checkLoading" @click="checkData(scopeSlot.row)">检测</span>
-                            <el-icon v-else class="is-loading">
-                                <Loading />
-                            </el-icon>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                        <div class="btn-group cluster-action-group">
+                            <span class="cluster-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <el-dropdown trigger="click" popper-class="cluster-action-dropdown">
+                                <span class="click-show-more cluster-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item
+                                            :disabled="scopeSlot.row.checkLoading"
+                                            @click="!scopeSlot.row.checkLoading && checkData(scopeSlot.row)"
+                                        >
+                                            <span v-if="!scopeSlot.row.checkLoading">检测</span>
+                                            <el-icon v-else class="is-loading">
+                                                <Loading />
+                                            </el-icon>
+                                        </el-dropdown-item>
                                         <el-dropdown-item @click="setDefaultNode(scopeSlot.row)">默认</el-dropdown-item>
                                         <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
                                     </el-dropdown-menu>
@@ -106,6 +128,8 @@ const tableConfig: any = reactive(TableConfig)
 const keyword = ref('')
 const loading = ref(false)
 const networkError = ref(false)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 const addModalRef = ref(null)
 
 function normalizePercent(value: number): number {
@@ -144,6 +168,15 @@ function getDisplayValue(valueText: string): string {
     return String(valueText)
 }
 
+function getClusterTypeName(clusterType: string): string {
+    const clusterTypeMap: Record<string, string> = {
+        standalone: 'Standalone',
+        yarn: 'Yarn',
+        kubernetes: 'Kubernetes'
+    }
+    return clusterTypeMap[clusterType] || clusterType || '--'
+}
+
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
     networkError.value = networkError.value || false
@@ -155,6 +188,7 @@ function initData(tableLoading?: boolean) {
         .then((res: any) => {
             tableConfig.tableData = res.data.content
             tableConfig.pagination.total = res.data.totalElements
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = false
@@ -162,6 +196,7 @@ function initData(tableLoading?: boolean) {
         .catch(() => {
             tableConfig.tableData = []
             tableConfig.pagination.total = 0
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = true
@@ -214,6 +249,67 @@ function checkData(data: any) {
         .catch(() => {
             data.checkLoading = false
         })
+}
+
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchCheckData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(
+        selectedRows.value.map((row: any) =>
+            CheckComputerGroupData({
+                engineId: row.id
+            })
+        )
+    )
+        .then(() => {
+            ElMessage.success('批量检测成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchDeleteData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个集群吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(
+            selectedRows.value.map((row: any) =>
+                DeleteComputerGroupData({
+                    engineId: row.id
+                })
+            )
+        )
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
+    })
 }
 
 // 查看节点
@@ -274,7 +370,8 @@ function inputEvent(e: string) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
-    initData(true)
+    tableConfig.pagination.currentPage = 1
+    initData()
 }
 
 function handleCurrentChange(e: number) {
@@ -290,7 +387,103 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
-.zqy-seach-table {
+.zqy-seach-table.computer-group-page {
+    .zqy-table-top {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cluster-batch-mask {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 20px;
+        box-sizing: border-box;
+        background-color: #fff;
+    }
+
+    .cluster-batch-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .cluster-batch-action {
+            min-width: 66px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('color', 'primary');
+            color: getCssVar('color', 'primary');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('color', 'primary');
+                color: #fff;
+                background-color: getCssVar('color', 'primary');
+            }
+        }
+
+        .cluster-batch-cancel {
+            min-width: 74px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('border-color');
+            color: getCssVar('text-color', 'regular');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+            }
+        }
+    }
+
+    .cluster-batch-slide-enter-active,
+    .cluster-batch-slide-leave-active {
+        transition:
+            transform 0.18s ease,
+            opacity 0.18s ease;
+        will-change: transform, opacity;
+    }
+
+    .cluster-batch-slide-enter-from,
+    .cluster-batch-slide-leave-to {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+
+    .cluster-batch-slide-enter-to,
+    .cluster-batch-slide-leave-from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .cluster-type-tag,
+    .normal-cluster-tag {
+        max-width: 100%;
+        color: getCssVar('text-color', 'regular');
+        border-color: getCssVar('border-color', 'light');
+        background-color: getCssVar('fill-color', 'lighter');
+        white-space: nowrap;
+    }
+
+    .cluster-action-group {
+        justify-content: center;
+        gap: 16px;
+
+        .cluster-action-button {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+            font-size: getCssVar('font-size', 'extra-small');
+        }
+    }
+
     .resource-progress {
         min-width: 120px;
         padding-right: 6px;
@@ -306,6 +499,19 @@ onMounted(() => {
     .resource-progress__value {
         color: getCssVar('text-color', 'secondary');
         white-space: nowrap;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+
+.cluster-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
         font-size: getCssVar('font-size', 'extra-small');
     }
 }

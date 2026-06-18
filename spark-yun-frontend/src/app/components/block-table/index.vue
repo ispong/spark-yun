@@ -2,7 +2,10 @@
     <vxe-table
         ref="vxeTableRef"
         class="block-table"
-        :class="{ 'block-table__empty': !tableConfig.tableData?.length }"
+        :class="{
+            'block-table__empty': !tableConfig.tableData?.length,
+            'block-table__no-column-resize': !columnResizable
+        }"
         :row-config="{ isHover: true, drag: true }"
         :data="tableConfig.tableData"
         :seq-config="{ seqMethod }"
@@ -51,7 +54,7 @@
                 :width="colConfig.width"
                 :field="colConfig.prop"
                 :fixed="colConfig.fixed"
-                :resizable="colIndex < normalizedColConfigs.length - 1"
+                :resizable="columnResizable && colIndex < normalizedColConfigs.length - 1"
                 :header-class-name="colConfig.headerClassName"
                 :show-header-overflow="colConfig.showHeaderOverflow ?? true"
                 :show-overflow="colConfig.showOverflowTooltip || true"
@@ -77,7 +80,7 @@
                 :show-header-overflow="colConfig.showHeaderOverflow ?? true"
                 :width="colConfig.width"
                 :field="colConfig.prop"
-                :resizable="colIndex < normalizedColConfigs.length - 1"
+                :resizable="columnResizable && colIndex < normalizedColConfigs.length - 1"
                 :header-class-name="colConfig.headerClassName"
                 :show-overflow="colConfig.showOverflowTooltip || true"
                 :drag-sort="colConfig.dragSort"
@@ -144,6 +147,7 @@ interface TableConfig {
     checkboxDisabled?: boolean
     rowKey?: string
     selectedRowKeys?: string[]
+    columnResizable?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -156,6 +160,7 @@ const emit = defineEmits(['size-change', 'current-change', 'rowDragendEvent', 'c
 
 const vxeTableRef = ref<any>(null)
 const selectedRows = ref<any[]>([])
+const columnResizable = computed(() => props.tableConfig.columnResizable !== false)
 
 const normalizedColConfigs = computed(() => {
     const columns = props.tableConfig.colConfigs || []
@@ -367,6 +372,22 @@ function toggleAllRows(checked: boolean) {
             width: 1px;
             pointer-events: none;
             background-color: var(--vxe-ui-table-resizable-line-color);
+        }
+    }
+    &.block-table__no-column-resize {
+        .vxe-table--header tr.vxe-header--row > th.vxe-header--column {
+            position: relative;
+
+            &:not(:first-child):not(:last-child):not(.block-table__fixed-left-end)::after {
+                content: '';
+                position: absolute;
+                top: 25%;
+                right: 0;
+                bottom: 25%;
+                width: 1px;
+                pointer-events: none;
+                background-color: var(--vxe-ui-table-resizable-line-color);
+            }
         }
     }
     .vxe-table--body-wrapper {

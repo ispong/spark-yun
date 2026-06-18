@@ -18,6 +18,7 @@ export interface colConfig {
 export interface Pagination {
     currentPage: number
     pageSize: number
+    pageSizes?: number[]
     total: number
 }
 
@@ -25,6 +26,8 @@ export interface TableConfig {
     tableData: Array<any>
     colConfigs: Array<colConfig>
     seqType: string
+    checkbox?: boolean
+    columnResizable?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -51,14 +54,15 @@ export const colConfigs: colConfig[] = [
     {
         prop: 'name',
         title: '名称',
-        minWidth: 120,
+        minWidth: 100,
         customSlot: 'nameSlot',
         showOverflowTooltip: true
     },
     {
         prop: 'clusterType',
         title: '类型',
-        minWidth: 100,
+        minWidth: 130,
+        customSlot: 'clusterTypeSlot',
         showOverflowTooltip: true
     },
     {
@@ -88,25 +92,26 @@ export const colConfigs: colConfig[] = [
     {
         prop: 'defaultCluster',
         title: '默认集群',
-        minWidth: 80,
+        minWidth: 110,
         customSlot: 'defaultTag'
     },
     {
         prop: 'checkDateTime',
         title: '检测时间',
-        minWidth: 140
+        minWidth: 140,
+        showOverflowTooltip: true
     },
     {
         prop: 'remark',
         title: '备注',
-        minWidth: 100,
+        minWidth: 120,
         showOverflowTooltip: true
     },
     {
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 80,
+        width: 120,
         fixed: 'right'
     }
 ]
@@ -117,9 +122,12 @@ export const TableConfig: TableConfig = {
     pagination: {
         currentPage: 1,
         pageSize: 10,
+        pageSizes: [10, 20, 50, 100],
         total: 0
     },
     seqType: 'seq',
+    checkbox: true,
+    columnResizable: false,
     loading: false
 }
 
