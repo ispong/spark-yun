@@ -25,7 +25,7 @@ public class PlatformSettingService {
 
     private static final String SYSTEM_USER = "system";
 
-    private static final long MAX_BRAND_IMAGE_SIZE = 2 * 1024 * 1024;
+    private static final long MAX_BRAND_IMAGE_SIZE = 5 * 1024 * 1024;
 
     private final PlatformSettingRepository platformSettingRepository;
 
@@ -60,7 +60,7 @@ public class PlatformSettingService {
             throw new IsxAppException("请上传图片文件");
         }
         if (file.getSize() > MAX_BRAND_IMAGE_SIZE) {
-            throw new IsxAppException("图片大小不能超过2MB");
+            throw new IsxAppException("图片大小不能超过5MB");
         }
 
         String contentType = file.getContentType();

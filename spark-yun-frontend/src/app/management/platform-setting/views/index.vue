@@ -118,7 +118,7 @@ interface BrandImageItem {
 
 const IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,image/svg+xml'
 const ICON_ACCEPT = `${IMAGE_ACCEPT},image/x-icon,.ico`
-const MAX_BRAND_FILE_SIZE = 2 * 1024 * 1024
+const MAX_BRAND_FILE_SIZE = 5 * 1024 * 1024
 
 const breadCrumbList = reactive(BreadCrumbList)
 const loading = ref(false)
@@ -269,7 +269,7 @@ function handleBrandFile(file: UploadRawFile | undefined, key: BrandImageKey) {
         return
     }
     if (file.size > MAX_BRAND_FILE_SIZE) {
-        ElMessage.warning('图片大小不能超过2MB')
+        ElMessage.warning('图片大小不能超过5MB')
         return
     }
 
@@ -292,7 +292,22 @@ function handleBrandFile(file: UploadRawFile | undefined, key: BrandImageKey) {
 }
 
 function getUploadImageUrl(res: any): string {
-    return res?.data?.data?.url || res?.data?.url || res?.data?.data || res?.url || ''
+    if (!res) {
+        return ''
+    }
+    if (typeof res === 'string') {
+        return res
+    }
+    if (typeof res !== 'object') {
+        return ''
+    }
+    if (typeof res.url === 'string') {
+        return res.url
+    }
+    if (typeof res.data === 'string') {
+        return res.data
+    }
+    return getUploadImageUrl(res.data)
 }
 
 function saveBrandImageSetting() {
