@@ -19,6 +19,7 @@ export interface colConfig {
 export interface Pagination {
     currentPage: number
     pageSize: number
+    pageSizes?: number[]
     total: number
 }
 
@@ -26,6 +27,8 @@ export interface TableConfig {
     tableData: Array<any>
     colConfigs: Array<colConfig>
     seqType: string
+    checkbox?: boolean
+    columnResizable?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -41,8 +44,15 @@ export const colConfigs: colConfig[] = [
     {
         prop: 'fileName',
         title: '名称',
-        minWidth: 125,
+        minWidth: 180,
+        customSlot: 'fileNameSlot',
         showOverflowTooltip: true
+    },
+    {
+        prop: 'fileType',
+        title: '类型',
+        minWidth: 110,
+        customSlot: 'fileTypeSlot'
     },
     {
         prop: 'fileSize',
@@ -50,40 +60,28 @@ export const colConfigs: colConfig[] = [
         minWidth: 110
     },
     {
-        prop: 'fileType',
-        title: '类型',
-        minWidth: 110,
-        formatter: (data: any) => {
-            const obj = {
-                JOB: '作业',
-                FUNC: '函数',
-                LIB: '依赖',
-                EXCEL: 'Excel'
-            }
-            return obj[data.cellValue]
-        }
-    },
-    {
         prop: 'createUsername',
         title: '创建人',
-        minWidth: 120
+        minWidth: 120,
+        showOverflowTooltip: true
     },
     {
         prop: 'createDateTime',
         title: '创建时间',
-        minWidth: 140
+        minWidth: 150,
+        showOverflowTooltip: true
     },
     {
         prop: 'remark',
         title: '备注',
-        minWidth: 100,
+        minWidth: 140,
         showOverflowTooltip: true
     },
     {
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 80,
+        width: 120,
         fixed: 'right'
     }
 ]
@@ -94,8 +92,11 @@ export const TableConfig: TableConfig = {
     pagination: {
         currentPage: 1,
         pageSize: 10,
+        pageSizes: [10, 20, 50, 100],
         total: 0
     },
     seqType: 'seq',
+    checkbox: true,
+    columnResizable: false,
     loading: false
 }

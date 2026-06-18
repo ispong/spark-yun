@@ -1,6 +1,6 @@
 <template>
     <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-driver-modal" label-position="top" :model="formData" :rules="rules">
+        <el-form ref="form" class="add-driver-form" label-position="top" :model="formData" :rules="rules">
             <el-form-item label="名称" prop="name">
                 <el-input
                     v-model="formData.name"
@@ -26,7 +26,7 @@
             <el-form-item v-if="renderSence === 'new'" label="驱动" prop="driver">
                 <el-upload
                     ref="uploadRef"
-                    class="license-upload"
+                    class="driver-upload"
                     action=""
                     :limit="1"
                     :multiple="false"
@@ -61,6 +61,7 @@ const modelConfig = reactive({
     title: '新建驱动',
     visible: false,
     width: '520px',
+    customClass: 'driver-add-modal',
     okConfig: {
         title: '确定',
         ok: okEvent,
@@ -213,6 +214,8 @@ function showModal(cb: () => void, data: any): void {
     callback.value = cb
     modelConfig.visible = true
     renderSence.value = 'new'
+    formData.driver = null
+    uploadRef.value?.clearFiles()
     if (data) {
         formData.name = data.name
         formData.dbType = data.dbType
@@ -259,17 +262,21 @@ function okEvent() {
 }
 
 function handleChange(e: any) {
-    // fileData.value = e.raw
     formData.driver = e.raw
+    form.value?.validateField('driver')
 }
 
-function removeChange(e: any) {
+function removeChange() {
     formData.driver = null
     uploadRef.value.clearFiles()
+    form.value?.validateField('driver')
 }
 
 function closeEvent() {
     modelConfig.visible = false
+    modelConfig.okConfig.loading = false
+    formData.driver = null
+    uploadRef.value?.clearFiles()
 }
 
 defineExpose({
@@ -278,20 +285,112 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.add-driver-modal {
-    padding: 12px 20px 0 20px;
-    box-sizing: border-box;
-    .license-upload {
-        margin: 0px;
-        width: 100%;
+.driver-add-modal.zqy-block-modal {
+    --driver-modal-x-padding: 20px;
+    --driver-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--driver-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--driver-modal-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--driver-modal-x-padding);
+        align-items: center;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--driver-modal-border-color);
+        }
+    }
+
+    .add-driver-form {
+        padding: 14px var(--driver-modal-x-padding) 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea,
+        .driver-upload {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+    }
+
+    .driver-upload {
+        margin: 0;
+
         .el-upload {
-            .el-upload-dragger {
-                padding: 12px 0;
-                border-radius: getCssVar('border-radius', 'small');
-                .el-upload__text {
-                    font-size: getCssVar('font-size', 'extra-small');
-                }
-            }
+            width: 100%;
+        }
+
+        .el-upload-dragger {
+            width: 100%;
+            padding: 18px 0;
+            border-radius: 2px;
+        }
+
+        .el-icon--upload {
+            margin-bottom: 8px;
+            font-size: 40px;
+            line-height: 1;
+        }
+
+        .el-upload__text {
+            font-size: getCssVar('font-size', 'extra-small');
         }
     }
 }

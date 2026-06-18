@@ -1,12 +1,20 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table file-center-page">
         <div class="zqy-table-top">
-            <el-button type="primary" @click="addData">上传资源</el-button>
-            <div class="zqy-tenant__select">
-                <el-select v-model="type" clearable placeholder="请选择类型进行搜索" @change="initData(false)">
-                    <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
-                </el-select>
+            <div class="file-center-toolbar-left">
+                <el-button class="file-center-toolbar-button" type="primary" @click="addData">上传资源</el-button>
+                <div class="zqy-tenant__select">
+                    <el-select
+                        v-model="type"
+                        clearable
+                        placeholder="请选择类型进行搜索"
+                        popper-class="file-type-select-dropdown"
+                        @change="handleTypeChange"
+                    >
+                        <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                </div>
             </div>
             <div class="zqy-seach">
                 <el-input
@@ -18,6 +26,18 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="file-batch-slide">
+                <div v-if="selectedRows.length" class="file-batch-mask">
+                    <div class="file-batch-actions">
+                        <el-button class="file-batch-action" :loading="batchLoading" @click="batchDeleteData">
+                            删除
+                        </el-button>
+                        <el-button class="file-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -25,17 +45,30 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
+                    <template #fileNameSlot="scopeSlot">
+                        <span class="name-click" @click="editData(scopeSlot.row)">
+                            {{ scopeSlot.row.fileName }}
+                        </span>
+                    </template>
+                    <template #fileTypeSlot="scopeSlot">
+                        <el-tag class="file-type-tag">{{ getFileTypeName(scopeSlot.row.fileType) }}</el-tag>
+                    </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <span v-if="!scopeSlot.row.downloadLoading" @click="downloadFile(scopeSlot.row, true)">
+                        <div class="btn-group file-action-group">
+                            <span
+                                v-if="!scopeSlot.row.downloadLoading"
+                                class="file-action-button"
+                                @click="downloadFile(scopeSlot.row)"
+                            >
                                 下载
                             </span>
                             <el-icon v-else class="is-loading">
                                 <Loading />
                             </el-icon>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                            <el-dropdown trigger="click" popper-class="file-action-dropdown">
+                                <span class="click-show-more file-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item @click="editData(scopeSlot.row)">备注</el-dropdown-item>
@@ -77,6 +110,8 @@ const keyword = ref('')
 const type = ref('')
 const loading = ref(false)
 const networkError = ref(false)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 const addModalRef = ref<any>(null)
 const showExcelType = ref(true)
 const allTypeList = [
@@ -113,6 +148,7 @@ function initData(tableLoading?: boolean) {
         .then((res: any) => {
             tableConfig.tableData = res.data.content
             tableConfig.pagination.total = res.data.totalElements
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = false
@@ -120,10 +156,15 @@ function initData(tableLoading?: boolean) {
         .catch(() => {
             tableConfig.tableData = []
             tableConfig.pagination.total = 0
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = true
         })
+}
+
+function getFileTypeName(fileType: string): string {
+    return allTypeList.find((item) => item.value === fileType)?.label || fileType || '--'
 }
 
 function addData() {
@@ -165,6 +206,44 @@ function editData(data: any) {
                 })
         })
     }, data)
+}
+
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchDeleteData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个资源吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(
+            selectedRows.value.map((row: any) =>
+                DeleteFileData({
+                    fileId: row.id
+                })
+            )
+        )
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
+    })
 }
 
 // 下载
@@ -216,8 +295,14 @@ function inputEvent(e: string) {
     }
 }
 
+function handleTypeChange() {
+    tableConfig.pagination.currentPage = 1
+    initData(false)
+}
+
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData()
 }
 
@@ -239,3 +324,165 @@ onMounted(() => {
     initData()
 })
 </script>
+
+<style lang="scss">
+.zqy-seach-table.file-center-page {
+    .zqy-table-top {
+        position: relative;
+        overflow: hidden;
+        gap: 16px;
+        justify-content: flex-start;
+    }
+
+    .file-center-toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+
+        .el-button + .el-button {
+            margin-left: 0;
+        }
+    }
+
+    .file-center-toolbar-button {
+        width: 92px;
+        height: 32px;
+        padding: 8px 15px;
+        box-sizing: border-box;
+        line-height: 1;
+    }
+
+    .zqy-tenant__select {
+        .el-select {
+            width: 192px;
+        }
+    }
+
+    .zqy-seach {
+        margin-left: auto;
+    }
+
+    .name-click {
+        cursor: pointer;
+        color: getCssVar('color', 'primary', 'light-5');
+
+        &:hover {
+            color: getCssVar('color', 'primary');
+        }
+    }
+
+    .file-batch-mask {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 20px;
+        box-sizing: border-box;
+        background-color: #fff;
+    }
+
+    .file-batch-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .file-batch-action {
+            min-width: 66px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('color', 'primary');
+            color: getCssVar('color', 'primary');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('color', 'primary');
+                color: #fff;
+                background-color: getCssVar('color', 'primary');
+            }
+        }
+
+        .file-batch-cancel {
+            min-width: 74px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('border-color');
+            color: getCssVar('text-color', 'regular');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+            }
+        }
+    }
+
+    .file-batch-slide-enter-active,
+    .file-batch-slide-leave-active {
+        transition:
+            transform 0.18s ease,
+            opacity 0.18s ease;
+        will-change: transform, opacity;
+    }
+
+    .file-batch-slide-enter-from,
+    .file-batch-slide-leave-to {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+
+    .file-batch-slide-enter-to,
+    .file-batch-slide-leave-from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .file-type-tag {
+        max-width: 100%;
+        color: getCssVar('text-color', 'regular');
+        border-color: getCssVar('border-color', 'light');
+        background-color: getCssVar('fill-color', 'lighter');
+        white-space: nowrap;
+    }
+
+    .file-action-group {
+        justify-content: center;
+        gap: 16px;
+
+        .file-action-button {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+            font-size: getCssVar('font-size', 'extra-small');
+        }
+    }
+}
+
+.file-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+
+.file-type-select-dropdown {
+    .el-select-dropdown__item {
+        height: 30px;
+        padding: 0 12px;
+        line-height: 30px;
+        text-align: left;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+</style>

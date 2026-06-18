@@ -1,8 +1,8 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table message-notification">
+    <div class="zqy-seach-table data-model-page">
         <div class="zqy-table-top">
-            <el-button type="primary" @click="addData">新建模型</el-button>
+            <el-button class="data-model-toolbar-button" type="primary" @click="addData">新建模型</el-button>
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
@@ -13,6 +13,18 @@
                     @keyup.enter="handleCurrentChange(1)"
                 />
             </div>
+            <Transition name="data-model-batch-slide">
+                <div v-if="selectedRows.length" class="data-model-batch-mask">
+                    <div class="data-model-batch-actions">
+                        <el-button class="data-model-batch-action" :loading="batchLoading" @click="batchDeleteData">
+                            删除
+                        </el-button>
+                        <el-button class="data-model-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -20,6 +32,7 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #statusTag="scopeSlot">
                         <ZStatusTag :status="scopeSlot.row.status" />
@@ -31,18 +44,23 @@
                         <span>{{ scopeSlot.row.layerName }}</span>
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group btn-group-msg">
+                        <div class="btn-group data-model-action-group">
                             <span
                                 v-if="['INIT', 'FAIL', 'ERROR'].includes(scopeSlot.row.status)"
+                                class="data-model-action-button"
                                 @click="buildData(scopeSlot.row)"
                             >
                                 构建
                             </span>
-                            <span v-if="scopeSlot.row.status === 'SUCCESS'" @click="showMetadataDetail(scopeSlot.row)">
+                            <span
+                                v-if="scopeSlot.row.status === 'SUCCESS'"
+                                class="data-model-action-button"
+                                @click="showMetadataDetail(scopeSlot.row)"
+                            >
                                 详情
                             </span>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                            <el-dropdown trigger="click" popper-class="data-model-action-dropdown">
+                                <span class="click-show-more data-model-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
@@ -103,6 +121,8 @@ const networkError = ref(false)
 const addModalRef = ref<any>(null)
 const copyModalRef = ref<any>(null)
 const showLogRef = ref<any>(null)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -117,6 +137,7 @@ function initData(tableLoading?: boolean) {
             .then((res: any) => {
                 tableConfig.tableData = res.data.content
                 tableConfig.pagination.total = res.data.totalElements
+                selectedRows.value = []
                 loading.value = false
                 tableConfig.loading = false
                 networkError.value = false
@@ -124,6 +145,7 @@ function initData(tableLoading?: boolean) {
             .catch(() => {
                 tableConfig.tableData = []
                 tableConfig.pagination.total = 0
+                selectedRows.value = []
                 loading.value = false
                 tableConfig.loading = false
                 networkError.value = true
@@ -137,6 +159,7 @@ function initData(tableLoading?: boolean) {
             .then((res: any) => {
                 tableConfig.tableData = res.data.content
                 tableConfig.pagination.total = res.data.totalElements
+                selectedRows.value = []
                 loading.value = false
                 tableConfig.loading = false
                 networkError.value = false
@@ -144,6 +167,7 @@ function initData(tableLoading?: boolean) {
             .catch(() => {
                 tableConfig.tableData = []
                 tableConfig.pagination.total = 0
+                selectedRows.value = []
                 loading.value = false
                 tableConfig.loading = false
                 networkError.value = true
@@ -205,7 +229,7 @@ function copyData(data: any) {
 
 // 删除
 function deleteData(data: any) {
-    ElMessageBox.confirm('确定删除该分层吗？', '警告', {
+    ElMessageBox.confirm('确定删除该模型吗？', '警告', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -218,6 +242,44 @@ function deleteData(data: any) {
                 initData()
             })
             .catch(() => {})
+    })
+}
+
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchDeleteData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个模型吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(
+            selectedRows.value.map((row: any) =>
+                DeleteDataModelData({
+                    id: row.id
+                })
+            )
+        )
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
     })
 }
 
@@ -289,6 +351,7 @@ function showLog(e: any) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData()
 }
 
@@ -309,13 +372,105 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
-.message-notification {
+.data-model-page {
     &.zqy-seach-table {
-        .zqy-table {
-            .btn-group-msg {
-                justify-content: space-around;
+        .zqy-table-top {
+            position: relative;
+            overflow: hidden;
+        }
+        .data-model-toolbar-button {
+            width: 92px;
+            height: 32px;
+            padding: 8px 15px;
+            box-sizing: border-box;
+            line-height: 1;
+        }
+        .data-model-batch-mask {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        .data-model-batch-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            .data-model-batch-action {
+                min-width: 66px;
+                height: 32px;
+                line-height: 30px;
+                border-color: getCssVar('color', 'primary');
+                color: getCssVar('color', 'primary');
+                background-color: #fff;
+                &:hover,
+                &:focus {
+                    border-color: getCssVar('color', 'primary');
+                    color: #fff;
+                    background-color: getCssVar('color', 'primary');
+                }
+            }
+            .data-model-batch-cancel {
+                min-width: 74px;
+                height: 32px;
+                line-height: 30px;
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+                &:hover,
+                &:focus {
+                    border-color: getCssVar('border-color');
+                    color: getCssVar('text-color', 'regular');
+                    background-color: #fff;
+                }
             }
         }
+        .data-model-batch-slide-enter-active,
+        .data-model-batch-slide-leave-active {
+            transition:
+                transform 0.18s ease,
+                opacity 0.18s ease;
+            will-change: transform, opacity;
+        }
+        .data-model-batch-slide-enter-from,
+        .data-model-batch-slide-leave-to {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+        .data-model-batch-slide-enter-to,
+        .data-model-batch-slide-leave-from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .zqy-table {
+            .data-model-action-group {
+                justify-content: center;
+                gap: 16px;
+                .data-model-action-button {
+                    display: inline-flex;
+                    align-items: center;
+                    line-height: 1;
+                    font-size: getCssVar('font-size', 'extra-small');
+                }
+            }
+        }
+    }
+}
+
+.data-model-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
     }
 }
 </style>

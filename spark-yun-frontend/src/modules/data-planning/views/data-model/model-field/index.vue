@@ -3,8 +3,10 @@
     <div class="zqy-seach-table model-field">
         <div class="zqy-table-top">
             <div class="btn-container">
-                <el-button type="primary" @click="addData">添加字段</el-button>
-                <el-button @click="backDataModel">返回数据模型</el-button>
+                <el-button class="model-field-toolbar-button" type="primary" @click="addData">添加字段</el-button>
+                <el-button class="model-field-toolbar-button model-field-toolbar-button__wide" @click="backDataModel">
+                    返回数据模型
+                </el-button>
             </div>
             <div class="zqy-seach model-field-search">
                 <div class="search-actions">
@@ -37,10 +39,19 @@
                             />
                         </template>
                         <template #options="scopeSlot">
-                            <div class="btn-group btn-group-msg">
+                            <div class="btn-group model-field-action-group">
                                 <template v-if="route.query && route.query.modelType === 'ORIGIN_MODEL'">
-                                    <span @click="editData(scopeSlot.row)">编辑</span>
-                                    <span @click="deleteData(scopeSlot.row)">删除</span>
+                                    <span class="model-field-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                                    <el-dropdown trigger="click" popper-class="model-field-action-dropdown">
+                                        <span class="click-show-more model-field-action-button">更多</span>
+                                        <template #dropdown>
+                                            <el-dropdown-menu>
+                                                <el-dropdown-item @click="deleteData(scopeSlot.row)">
+                                                    删除
+                                                </el-dropdown-item>
+                                            </el-dropdown-menu>
+                                        </template>
+                                    </el-dropdown>
                                 </template>
                                 <template v-else>
                                     <span>-</span>
@@ -312,6 +323,17 @@ onMounted(() => {
         align-items: center;
         gap: var(--top-action-gap);
     }
+    .model-field-toolbar-button {
+        width: 92px;
+        height: 32px;
+        padding: 8px 15px;
+        box-sizing: border-box;
+        line-height: 1;
+
+        &.model-field-toolbar-button__wide {
+            width: 104px;
+        }
+    }
     .model-field-search {
         display: flex;
         align-items: center;
@@ -342,8 +364,15 @@ onMounted(() => {
                 }
             }
 
-            .btn-group-msg {
-                justify-content: space-around;
+            .model-field-action-group {
+                justify-content: center;
+                gap: 16px;
+                .model-field-action-button {
+                    display: inline-flex;
+                    align-items: center;
+                    line-height: 1;
+                    font-size: getCssVar('font-size', 'extra-small');
+                }
             }
             .el-checkbox {
                 &.is-disabled {
@@ -363,6 +392,19 @@ onMounted(() => {
                 }
             }
         }
+    }
+}
+
+.model-field-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
     }
 }
 

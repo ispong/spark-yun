@@ -2,7 +2,7 @@
     <BlockModal :model-config="modelConfig">
         <el-form
             ref="form"
-            class="add-computer-group acquisition-task-add"
+            class="data-model-add-form"
             label-position="top"
             :model="formData"
             :rules="rules"
@@ -268,6 +268,7 @@ const modelConfig = reactive({
     title: '新建模型',
     visible: false,
     width: '520px',
+    customClass: 'data-model-add-modal',
     okConfig: {
         title: '确定',
         ok: okEvent,
@@ -502,6 +503,7 @@ function getParentLayerIList() {
 
 function closeEvent() {
     modelConfig.visible = false
+    modelConfig.okConfig.loading = false
 }
 
 function dbTypeChangeEvent() {
@@ -713,36 +715,101 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.acquisition-task-add {
-    .el-form-item {
-        .el-form-item__content {
-            position: relative;
-            flex-wrap: nowrap;
-            justify-content: space-between;
+.data-model-add-modal.zqy-block-modal {
+    --data-planning-modal-x-padding: 20px;
+    --data-planning-modal-border-color: #ebeef5;
 
-            .time-num-input {
-                height: 36px;
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--data-planning-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
 
-                .el-input-number__decrease {
-                    top: 16px;
-                }
-            }
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--data-planning-modal-border-color);
         }
     }
 
-    .cron-config {
-        border: 1px solid getCssVar('border-color');
-        padding: 8px 12px;
-        margin-bottom: 12px;
-        border-radius: 5px;
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--data-planning-modal-x-padding);
+        align-items: center;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--data-planning-modal-border-color);
+        }
+    }
+
+    .data-model-add-form {
+        padding: 14px var(--data-planning-modal-x-padding) 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-form-item__content {
+            position: relative;
+            flex-wrap: nowrap;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
     }
 
     .table-rule-tip {
         width: 100%;
+        margin-top: 6px;
+        color: getCssVar('text-color', 'secondary');
         font-size: 12px;
         line-height: 1.4;
-        color: getCssVar('text-color', 'secondary');
-        margin-top: 6px;
     }
 }
 </style>

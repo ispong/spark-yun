@@ -6,9 +6,15 @@
             </el-form-item>
             <el-form-item label="类型" prop="dbType">
                 <template #label>
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%">
+                    <div class="datasource-form-label-row">
                         <span>类型</span>
-                        <el-popover placement="top" :width="240" trigger="click" :visible="driverPopoverVisible">
+                        <el-popover
+                            placement="top"
+                            :width="240"
+                            trigger="click"
+                            :visible="driverPopoverVisible"
+                            :teleported="false"
+                        >
                             <template #reference>
                                 <el-button type="primary" link size="small" @click="openDriverPopover">
                                     更换驱动
@@ -37,18 +43,11 @@
 
             <el-form-item label="连接信息" prop="jdbcUrl">
                 <template #label>
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%">
-                        <div style="display: flex; align-items: center">
+                    <div class="datasource-form-label-row">
+                        <div class="datasource-form-label-with-icon">
                             <span>连接信息</span>
                             <el-tooltip :content="jdbcTip" placement="top">
-                                <el-icon
-                                    style="
-                                        margin-left: 4px;
-                                        color: var(--el-color-info);
-                                        font-size: 16px;
-                                        cursor: pointer;
-                                    "
-                                >
+                                <el-icon class="datasource-form-tip-icon">
                                     <QuestionFilled />
                                 </el-icon>
                             </el-tooltip>
@@ -163,7 +162,7 @@
 import { reactive, defineExpose, ref, nextTick, computed } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { Delete, Plus } from '@element-plus/icons-vue'
+import { Delete } from '@element-plus/icons-vue'
 import { GetDefaultDriverData, GetDriverListData } from '@/modules/driver-management/api'
 import { TestDatasourceData } from '@/modules/datasource/api'
 import { getVipLicenseEnabled } from '@/app/utils/vip-license'
@@ -716,29 +715,134 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.add-computer-group {
-    padding: 12px 20px 0 20px;
-    box-sizing: border-box;
-    .tooltip-msg {
-        position: absolute;
-        top: -28px;
-        color: getCssVar('color', 'info');
-        font-size: 16px;
+.datasource-add-modal.zqy-block-modal {
+    --datasource-modal-x-padding: 20px;
+    --datasource-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--datasource-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--datasource-modal-border-color);
+        }
+
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
     }
-}
-.datasource-add-modal {
-    .test-button {
-        position: absolute;
-        left: 20px;
-        bottom: 12px;
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--datasource-modal-x-padding);
+        align-items: center;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--datasource-modal-border-color);
+        }
+    }
+
+    .add-computer-group {
+        padding: 14px var(--datasource-modal-x-padding) 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+
+        .tooltip-msg {
+            position: absolute;
+            top: -28px;
+            color: getCssVar('color', 'info');
+            font-size: 16px;
+        }
+    }
+
+    .datasource-form-label-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        width: 100%;
     }
+
+    .datasource-form-label-with-icon {
+        display: flex;
+        align-items: center;
+    }
+
+    .datasource-form-tip-icon {
+        margin-left: 4px;
+        color: var(--el-color-info);
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .test-button {
+        position: absolute;
+        left: var(--datasource-modal-x-padding);
+        bottom: 12px;
+        display: flex;
+        align-items: center;
+
+        .el-button {
+            height: 32px;
+            min-width: 72px;
+        }
+    }
+
     .hover-tooltip {
         margin-left: 8px;
         font-size: 16px;
         color: getCssVar('color', 'danger');
+
         &.success {
             color: getCssVar('color', 'success');
         }
@@ -760,6 +864,19 @@ defineExpose({
     > div {
         display: flex;
         align-items: center;
+    }
+}
+
+@media (max-width: 560px) {
+    .datasource-add-modal.zqy-block-modal {
+        .el-dialog__footer {
+            padding-top: 56px;
+        }
+
+        .test-button {
+            top: 12px;
+            bottom: unset;
+        }
     }
 }
 </style>

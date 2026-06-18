@@ -19,6 +19,7 @@ export interface colConfig {
 export interface Pagination {
     currentPage: number
     pageSize: number
+    pageSizes?: number[]
     total: number
 }
 
@@ -26,6 +27,8 @@ export interface TableConfig {
     tableData: Array<any>
     colConfigs: Array<colConfig>
     seqType: string
+    checkbox?: boolean
+    columnResizable?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -41,14 +44,14 @@ export const colConfigs: colConfig[] = [
     {
         prop: 'name',
         title: '名称',
-        minWidth: 125,
+        minWidth: 150,
         customSlot: 'nameSlot',
         showOverflowTooltip: true
     },
     {
         prop: 'modelType',
         title: '模型类型',
-        minWidth: 125,
+        minWidth: 120,
         formatter: (data: any) => {
             const obj: any = {
                 ORIGIN_MODEL: '原始模型',
@@ -62,17 +65,20 @@ export const colConfigs: colConfig[] = [
         prop: 'layerName',
         title: '分层路径',
         customSlot: 'layerNameSlot',
-        minWidth: 140
+        minWidth: 180,
+        showOverflowTooltip: true
     },
     {
         prop: 'datasourceName',
         title: '数据源',
-        minWidth: 140
+        minWidth: 140,
+        showOverflowTooltip: true
     },
     {
         prop: 'tableName',
         title: '表名',
-        minWidth: 140
+        minWidth: 160,
+        showOverflowTooltip: true
     },
     {
         prop: 'status',
@@ -84,23 +90,26 @@ export const colConfigs: colConfig[] = [
     {
         prop: 'remark',
         title: '备注',
-        minWidth: 120
+        minWidth: 140,
+        showOverflowTooltip: true
     },
     {
         prop: 'createUsername',
         title: '创建人',
-        minWidth: 120
+        minWidth: 120,
+        showOverflowTooltip: true
     },
     {
         prop: 'createDateTime',
         title: '创建时间',
-        minWidth: 140
+        minWidth: 150,
+        showOverflowTooltip: true
     },
     {
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 90,
+        width: 120,
         fixed: 'right'
     }
 ]
@@ -111,8 +120,11 @@ export const TableConfig: TableConfig = {
     pagination: {
         currentPage: 1,
         pageSize: 10,
+        pageSizes: [10, 20, 50, 100],
         total: 0
     },
     seqType: 'seq',
+    checkbox: true,
+    columnResizable: false,
     loading: false
 }

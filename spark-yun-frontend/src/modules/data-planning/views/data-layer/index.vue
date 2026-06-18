@@ -19,6 +19,18 @@
                     @keyup.enter="handleCurrentChange(1)"
                 />
             </div>
+            <Transition name="data-layer-batch-slide">
+                <div v-if="selectedRows.length" class="data-layer-batch-mask">
+                    <div class="data-layer-batch-actions">
+                        <el-button class="data-layer-batch-action" :loading="batchLoading" @click="batchDeleteData">
+                            删除
+                        </el-button>
+                        <el-button class="data-layer-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -26,6 +38,7 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #nameSlot="scopeSlot">
                         <span v-if="tableType === 'layer'" class="name-click" @click="showDetail(scopeSlot.row)">
@@ -39,11 +52,19 @@
                         <span>{{ scopeSlot.row.parentNameList ?? '-' }}</span>
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group btn-group-msg">
-                            <span v-if="tableType === 'layer'" @click="dataModelPage(scopeSlot.row)">模型</span>
-                            <span v-else @click="layerAreaView(scopeSlot.row)">领域</span>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                        <div class="btn-group data-layer-action-group">
+                            <span
+                                v-if="tableType === 'layer'"
+                                class="data-layer-action-button"
+                                @click="dataModelPage(scopeSlot.row)"
+                            >
+                                模型
+                            </span>
+                            <span v-else class="data-layer-action-button" @click="layerAreaView(scopeSlot.row)">
+                                领域
+                            </span>
+                            <el-dropdown trigger="click" popper-class="data-layer-action-dropdown">
+                                <span class="click-show-more data-layer-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
@@ -101,6 +122,8 @@ const addModalRef = ref<any>(null)
 const tableType = ref<string>('all')
 const parentLayerId = ref<string>('')
 const dataModelDetailRef = ref<any>(null)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -115,6 +138,7 @@ function initData(tableLoading?: boolean) {
             .then((res: any) => {
                 tableConfig.tableData = res.data.content
                 tableConfig.pagination.total = res.data.totalElements
+                selectedRows.value = []
                 loading.value = false
                 tableConfig.loading = false
                 networkError.value = false
@@ -128,6 +152,7 @@ function initData(tableLoading?: boolean) {
             .catch(() => {
                 tableConfig.tableData = []
                 tableConfig.pagination.total = 0
+                selectedRows.value = []
                 loading.value = false
                 tableConfig.loading = false
                 networkError.value = true
@@ -141,6 +166,7 @@ function initData(tableLoading?: boolean) {
             .then((res: any) => {
                 tableConfig.tableData = res.data.content
                 tableConfig.pagination.total = res.data.totalElements
+                selectedRows.value = []
                 loading.value = false
                 tableConfig.loading = false
                 networkError.value = false
@@ -153,6 +179,7 @@ function initData(tableLoading?: boolean) {
             .catch(() => {
                 tableConfig.tableData = []
                 tableConfig.pagination.total = 0
+                selectedRows.value = []
                 loading.value = false
                 tableConfig.loading = false
                 networkError.value = true
@@ -231,6 +258,44 @@ function deleteData(data: any) {
     })
 }
 
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchDeleteData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个分层吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(
+            selectedRows.value.map((row: any) =>
+                DeleteDataLayerData({
+                    id: row.id
+                })
+            )
+        )
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
+    })
+}
+
 // 跳转分层数据模型
 function dataModelPage(data: any) {
     dataModelDetailRef.value.showModal(data)
@@ -296,6 +361,7 @@ function backHomeLayer() {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData()
 }
 
@@ -320,6 +386,9 @@ onMounted(() => {
 .data-layer {
     &.zqy-seach-table {
         .zqy-table-top {
+            position: relative;
+            overflow: hidden;
+
             .btn-container {
                 height: 100%;
                 display: flex;
@@ -336,10 +405,78 @@ onMounted(() => {
                 }
             }
         }
+        .data-layer-batch-mask {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        .data-layer-batch-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            .data-layer-batch-action {
+                min-width: 66px;
+                height: 32px;
+                line-height: 30px;
+                border-color: getCssVar('color', 'primary');
+                color: getCssVar('color', 'primary');
+                background-color: #fff;
+                &:hover,
+                &:focus {
+                    border-color: getCssVar('color', 'primary');
+                    color: #fff;
+                    background-color: getCssVar('color', 'primary');
+                }
+            }
+            .data-layer-batch-cancel {
+                min-width: 74px;
+                height: 32px;
+                line-height: 30px;
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+                &:hover,
+                &:focus {
+                    border-color: getCssVar('border-color');
+                    color: getCssVar('text-color', 'regular');
+                    background-color: #fff;
+                }
+            }
+        }
+        .data-layer-batch-slide-enter-active,
+        .data-layer-batch-slide-leave-active {
+            transition:
+                transform 0.18s ease,
+                opacity 0.18s ease;
+            will-change: transform, opacity;
+        }
+        .data-layer-batch-slide-enter-from,
+        .data-layer-batch-slide-leave-to {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+        .data-layer-batch-slide-enter-to,
+        .data-layer-batch-slide-leave-from {
+            opacity: 1;
+            transform: translateY(0);
+        }
         .zqy-table {
             position: relative;
-            .btn-group-msg {
-                justify-content: space-around;
+            .data-layer-action-group {
+                justify-content: center;
+                gap: 16px;
+                .data-layer-action-button {
+                    display: inline-flex;
+                    align-items: center;
+                    line-height: 1;
+                    font-size: getCssVar('font-size', 'extra-small');
+                }
             }
             .back-btn-group {
                 position: absolute;
@@ -352,6 +489,19 @@ onMounted(() => {
                 margin-left: 10px;
             }
         }
+    }
+}
+
+.data-layer-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
     }
 }
 </style>

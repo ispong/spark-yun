@@ -2,7 +2,7 @@
     <BlockModal :model-config="modelConfig">
         <el-form
             ref="form"
-            class="add-computer-group acquisition-task-add"
+            class="field-format-add-form"
             label-position="top"
             :model="formData"
             :rules="rules"
@@ -142,6 +142,7 @@ const modelConfig = reactive({
     title: '新建标准',
     visible: false,
     width: '520px',
+    customClass: 'field-format-add-modal',
     okConfig: {
         title: '确定',
         ok: okEvent,
@@ -305,6 +306,7 @@ function okEvent() {
 
 function closeEvent() {
     modelConfig.visible = false
+    modelConfig.okConfig && (modelConfig.okConfig.loading = false)
 }
 
 function escapeRegexChar(value: string) {
@@ -389,39 +391,102 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.acquisition-task-add {
-    .el-form-item {
+.field-format-add-modal.zqy-block-modal {
+    --data-planning-modal-x-padding: 20px;
+    --data-planning-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--data-planning-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--data-planning-modal-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--data-planning-modal-x-padding);
+        align-items: center;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--data-planning-modal-border-color);
+        }
+    }
+
+    .field-format-add-form {
+        padding: 14px var(--data-planning-modal-x-padding) 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
         .el-form-item__content {
             position: relative;
             flex-wrap: nowrap;
-            justify-content: space-between;
-
-            .time-num-input {
-                height: 36px;
-
-                .el-input-number__decrease {
-                    top: 16px;
-                }
-            }
         }
 
-        &.inline-show {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            .el-form-item__label {
-                margin: 0;
-            }
-            .el-form-item__content {
-                justify-content: flex-start !important;
-                flex: 0 0 auto;
-                margin-left: 8px;
-                padding-right: 0;
-                box-sizing: border-box;
-            }
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
         }
 
-        &.field-attr-row {
+        .tooltip-msg {
+            position: absolute;
+            top: -28px;
+            color: getCssVar('color', 'info');
+            font-size: 16px;
+        }
+
+        .field-attr-row {
             .el-form-item__content {
                 justify-content: flex-start;
                 gap: 18px;
@@ -434,11 +499,11 @@ defineExpose({
                 margin-right: 0;
             }
             .el-checkbox__label {
+                padding-right: 6px;
+                padding-left: 0;
+                color: getCssVar('text-color', 'regular');
                 font-size: 12px;
                 font-weight: 400;
-                color: getCssVar('text-color', 'regular');
-                padding-left: 0;
-                padding-right: 6px;
             }
             .el-checkbox.is-checked .el-checkbox__label {
                 color: getCssVar('color', 'primary');
@@ -446,18 +511,11 @@ defineExpose({
         }
     }
 
-    .cron-config {
-        border: 1px solid getCssVar('border-color');
-        padding: 8px 12px;
-        margin-bottom: 12px;
-        border-radius: 5px;
-    }
-
     .table-rule-config {
-        width: 100%;
         display: grid;
-        grid-template-columns: 1fr 3fr;
+        grid-template-columns: 132px minmax(0, 1fr);
         gap: 8px;
+        width: 100%;
     }
 }
 </style>

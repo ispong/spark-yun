@@ -21,6 +21,7 @@ export interface colConfig {
 export interface Pagination {
     currentPage: number
     pageSize: number
+    pageSizes?: number[]
     total: number
 }
 
@@ -28,6 +29,8 @@ export interface TableConfig {
     tableData: Array<any>
     colConfigs: Array<colConfig>
     seqType: string
+    checkbox?: boolean
+    columnResizable?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -60,7 +63,7 @@ export const colConfigs: colConfig[] = [
     {
         prop: 'columnFormatName',
         title: '字段标准',
-        minWidth: 100,
+        minWidth: 120,
         showOverflowTooltip: true
     },
     {
@@ -104,18 +107,20 @@ export const colConfigs: colConfig[] = [
     {
         prop: 'defaultValue',
         title: '默认值',
-        minWidth: 120
+        minWidth: 120,
+        showOverflowTooltip: true
     },
     {
         prop: 'remark',
         title: '备注',
-        minWidth: 170
+        minWidth: 170,
+        showOverflowTooltip: true
     },
     {
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 90,
+        width: 120,
         fixed: 'right'
     }
 ]
@@ -129,5 +134,6 @@ export const TableConfig: TableConfig = {
     //     total: 0
     // },
     seqType: 'seq',
+    columnResizable: false,
     loading: false
 }

@@ -1,6 +1,6 @@
 <template>
     <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+        <el-form ref="form" class="file-center-form" label-position="top" :model="formData" :rules="rules">
             <el-form-item label="类型" prop="type">
                 <el-select v-model="formData.type" placeholder="请选择" :disabled="renderSence === 'edit'">
                     <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
@@ -18,7 +18,7 @@
         </el-form>
         <el-upload
             v-if="renderSence === 'new'"
-            class="license-upload"
+            class="file-center-upload"
             action=""
             :limit="100"
             :multiple="true"
@@ -80,6 +80,7 @@ const modelConfig = reactive({
     title: '上传资源',
     visible: false,
     width: '520px',
+    customClass: 'file-center-add-modal',
     okConfig: {
         title: '确定',
         ok: okEvent,
@@ -173,6 +174,7 @@ function okEvent() {
 
 function closeEvent() {
     modelConfig.visible = false
+    modelConfig.okConfig.loading = false
     fileList.value = []
     formData.fileData = []
 }
@@ -191,14 +193,112 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.license-upload {
-    margin: 20px;
-    .el-upload {
+.file-center-add-modal.zqy-block-modal {
+    --file-modal-x-padding: 20px;
+    --file-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--file-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--file-modal-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--file-modal-x-padding);
+        align-items: center;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--file-modal-border-color);
+        }
+    }
+
+    .file-center-form {
+        padding: 14px var(--file-modal-x-padding) 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+    }
+
+    .file-center-upload {
+        width: calc(100% - var(--file-modal-x-padding) * 2);
+        margin: 0 var(--file-modal-x-padding) 20px;
+
+        .el-upload {
+            width: 100%;
+        }
+
         .el-upload-dragger {
-            border-radius: getCssVar('border-radius', 'small');
-            .el-upload__text {
-                font-size: getCssVar('font-size', 'extra-small');
-            }
+            width: 100%;
+            padding: 18px 0;
+            border-radius: 2px;
+        }
+
+        .el-icon--upload {
+            margin-bottom: 8px;
+            font-size: 40px;
+            line-height: 1;
+        }
+
+        .el-upload__text {
+            font-size: getCssVar('font-size', 'extra-small');
         }
     }
 }
