@@ -34,9 +34,9 @@ public class PlatformSettingService {
         PlatformSettingEntity setting = getOrCreateSetting();
         return GetPlatformSettingRes.builder().description(setting.getDescription())
             .autoCreateTenant(valueOrDefault(setting.getAutoCreateTenant(), true))
-            .browserTitle(setting.getBrowserTitle()).themeColor(setting.getThemeColor()).faviconUrl(setting.getFaviconUrl())
-            .topLogoUrl(setting.getTopLogoUrl()).topLogoSmallUrl(setting.getTopLogoSmallUrl())
-            .loginMainImageUrl(setting.getLoginMainImageUrl()).build();
+            .browserTitle(setting.getBrowserTitle()).themeColor(setting.getThemeColor())
+            .faviconUrl(setting.getFaviconUrl()).topLogoUrl(setting.getTopLogoUrl())
+            .topLogoSmallUrl(setting.getTopLogoSmallUrl()).loginMainImageUrl(setting.getLoginMainImageUrl()).build();
     }
 
     public void updateSetting(UpdatePlatformSettingReq updatePlatformSettingReq) {
@@ -72,8 +72,7 @@ public class PlatformSettingService {
 
         try {
             String mimeType = contentType == null || contentType.isBlank() ? "image/x-icon" : contentType;
-            String dataUrl =
-                "data:" + mimeType + ";base64," + Base64.getEncoder().encodeToString(file.getBytes());
+            String dataUrl = "data:" + mimeType + ";base64," + Base64.getEncoder().encodeToString(file.getBytes());
             return UploadBrandImageRes.builder().url(dataUrl).build();
         } catch (IOException e) {
             throw new IsxAppException("图片上传失败");
