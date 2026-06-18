@@ -38,6 +38,7 @@ allprojects {
 
     configurations.configureEach {
         exclude group: "org.apache.logging.log4j", module: "log4j-slf4j-impl"
+        exclude group: "org.apache.logging.log4j", module: "log4j-slf4j2-impl"
         exclude group: "org.slf4j", module: "slf4j-reload4j"
         exclude group: "com.sun.xml.bind", module: "jaxb-core"
         resolutionStrategy.dependencySubstitution {
