@@ -155,19 +155,19 @@ const brandImageItems: BrandImageItem[] = [
     {
         key: 'topLogoUrl',
         label: '品牌 Logo',
-        description: '用于系统内页菜单展开态和登录页左上角 Logo。',
+        description: '用于系统内页菜单展开态和登录页左上角 Logo，建议尺寸 498x126。',
         accept: IMAGE_ACCEPT
     },
     {
         key: 'topLogoSmallUrl',
         label: '顶部小 Logo',
-        description: '用于系统内页菜单收起态的顶部品牌 Logo。',
+        description: '用于系统内页菜单收起态的顶部品牌 Logo，建议尺寸 475x346。',
         accept: IMAGE_ACCEPT
     },
     {
         key: 'loginMainImageUrl',
         label: '登录页主视觉图',
-        description: '用于登录页左侧的大幅视觉图。',
+        description: '用于登录页左侧的大幅视觉图，建议尺寸 1707x1470。',
         accept: IMAGE_ACCEPT
     }
 ]
