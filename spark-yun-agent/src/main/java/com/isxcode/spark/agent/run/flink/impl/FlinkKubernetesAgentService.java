@@ -41,6 +41,30 @@ import java.util.regex.Pattern;
 @Service
 public class FlinkKubernetesAgentService implements FlinkAgentService {
 
+    private static final int MAX_LOG_CHARS = 30000;
+
+    private static final List<String> JAVA_17_MODULE_OPTIONS = Arrays.asList(
+        "--add-exports=java.base/sun.net.util=ALL-UNNAMED",
+        "--add-exports=java.rmi/sun.rmi.registry=ALL-UNNAMED",
+        "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+        "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+        "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+        "--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+        "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+        "--add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.net=ALL-UNNAMED",
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.nio=ALL-UNNAMED",
+        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens=java.base/java.text=ALL-UNNAMED",
+        "--add-opens=java.base/java.time=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+        "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+        "--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED");
+
     @Override
     public String getAgentType() {
         return AgentType.K8S;
@@ -97,7 +121,7 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
     @Override
     public SubmitWorkRes submitWork(SubmitWorkReq submitWorkReq) throws Exception {
 
-        Configuration flinkConfig = GlobalConfiguration.loadConfiguration();
+        Configuration flinkConfig = GlobalConfiguration.loadConfiguration(submitWorkReq.getFlinkHome() + "/conf");
 
         // flink的args配置
         if (WorkType.FLINK_JAR.equals(submitWorkReq.getWorkType())) {
@@ -144,6 +168,7 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
                 throw new IllegalArgumentException("Unsupported type for key: " + k + ", value: " + v);
             }
         });
+        appendJava17ModuleOptions(flinkConfig);
 
         // 映射文件路径
         List<String> volumeMounts = new ArrayList<>();
@@ -243,12 +268,42 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
         }
     }
 
+    private void appendJava17ModuleOptions(Configuration flinkConfig) {
+
+        appendJava17ModuleOptions(flinkConfig, "env.java.opts.all");
+        appendJava17ModuleOptions(flinkConfig, "env.java.opts.jobmanager");
+        appendJava17ModuleOptions(flinkConfig, "env.java.opts.taskmanager");
+    }
+
+    private void appendJava17ModuleOptions(Configuration flinkConfig, String key) {
+
+        String mergedOptions = flinkConfig.getString(key, "");
+        if (Strings.isEmpty(mergedOptions)) {
+            mergedOptions = "";
+        } else {
+            mergedOptions = mergedOptions.trim();
+        }
+        for (String option : JAVA_17_MODULE_OPTIONS) {
+            if (!mergedOptions.contains(option)) {
+                mergedOptions = Strings.isEmpty(mergedOptions) ? option : mergedOptions + " " + option;
+            }
+        }
+        flinkConfig.setString(key, mergedOptions);
+    }
+
     @Override
     public GetWorkInfoRes getWorkInfo(GetWorkInfoReq getWorkInfoReq) throws Exception {
+
+        String logFinalState = getApplicationFinalState(resolveAgentHome(getWorkInfoReq.getAgentHome()),
+            getWorkInfoReq.getAppId());
+        if (Strings.isNotEmpty(logFinalState)) {
+            return GetWorkInfoRes.builder().finalState(logFinalState).appId(getWorkInfoReq.getAppId()).build();
+        }
 
         String getStatusJobManagerFormat = "kubectl get pods -l app=%s -n zhiqingyun-space";
         String line;
         StringBuilder errLog = new StringBuilder();
+        List<String> podStatus = new ArrayList<>();
 
         String command = String.format(getStatusJobManagerFormat, getWorkInfoReq.getAppId());
         Process process = Runtime.getRuntime().exec(command);
@@ -263,9 +318,13 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
                 Pattern regex = Pattern.compile(pattern);
                 Matcher matcher = regex.matcher(line);
                 if (matcher.find()) {
-                    return GetWorkInfoRes.builder().finalState(matcher.group(1)).appId(getWorkInfoReq.getAppId())
-                        .build();
+                    podStatus.add(matcher.group(1));
                 }
+            }
+
+            if (!podStatus.isEmpty()) {
+                return GetWorkInfoRes.builder().finalState(resolvePodFinalState(podStatus))
+                    .appId(getWorkInfoReq.getAppId()).build();
             }
 
             if (errLog.toString().isEmpty()) {
@@ -288,25 +347,32 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
     @Override
     public GetWorkLogRes getWorkLog(GetWorkLogReq getWorkLogReq) throws Exception {
 
-        File[] logFiles = new File(getWorkLogReq.getAgentHomePath() + File.separator + "k8s-logs" + File.separator
-            + getWorkLogReq.getWorkInstanceId()).listFiles();
-
         StringBuilder logBuilder = new StringBuilder();
+        appendLocalKubernetesLogs(logBuilder,
+            new File(getWorkLogReq.getAgentHomePath() + File.separator + "k8s-logs" + File.separator
+                + getWorkLogReq.getWorkInstanceId()));
+        if (Strings.isEmpty(logBuilder.toString())) {
+            appendKubectlLogs(logBuilder, getWorkLogReq.getAppId());
+        }
+
+        return GetWorkLogRes.builder().log(tail(logBuilder.toString())).build();
+    }
+
+    private void appendLocalKubernetesLogs(StringBuilder logBuilder, File logDir) throws IOException {
+
+        File[] logFiles = logDir.listFiles(File::isFile);
         if (logFiles != null) {
+            Arrays.sort(logFiles, Comparator.comparing(File::getName));
             for (File logFile : logFiles) {
-                if (logFile.getName().contains("application") || logFile.getName().contains("taskmanager")) {
-                    try (BufferedReader bufferedReader =
-                        Files.newBufferedReader(logFile.toPath(), StandardCharsets.UTF_8)) {
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            logBuilder.append(line).append("\n");
-                        }
+                logBuilder.append("===== ").append(logFile.getName()).append(" =====\n");
+                try (BufferedReader bufferedReader = Files.newBufferedReader(logFile.toPath(), StandardCharsets.UTF_8)) {
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        logBuilder.append(line).append("\n");
                     }
                 }
             }
         }
-
-        return GetWorkLogRes.builder().log(logBuilder.toString()).build();
     }
 
     @Override
@@ -323,5 +389,122 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
             clusterDescriptor.killCluster(stopWorkReq.getAppId());
             return StopWorkRes.builder().build();
         }
+    }
+
+    private String resolveAgentHome(String agentHome) {
+
+        if (Strings.isEmpty(agentHome)) {
+            return "";
+        }
+        File agentHomeFile = new File(agentHome);
+        if (new File(agentHomeFile, "k8s-logs").exists()) {
+            return agentHome;
+        }
+        File zhiqingyunAgentHome = new File(agentHomeFile, "zhiqingyun-agent");
+        if (new File(zhiqingyunAgentHome, "k8s-logs").exists()) {
+            return zhiqingyunAgentHome.getAbsolutePath();
+        }
+        return agentHome;
+    }
+
+    private String getApplicationFinalState(String agentHome, String appId) throws IOException {
+
+        String log = findApplicationLog(agentHome, appId);
+        if (Strings.isEmpty(log)) {
+            return null;
+        }
+        if (log.contains("Application completed SUCCESSFULLY") || log.contains("application status SUCCEEDED")
+            || log.contains("switched from state RUNNING to FINISHED")) {
+            return "SUCCEEDED";
+        }
+        if (log.contains("Application failed unexpectedly") || log.contains("application status FAILED")
+            || log.contains("Could not execute application")) {
+            return "FAILED";
+        }
+        return null;
+    }
+
+    private String findApplicationLog(String agentHome, String appId) throws IOException {
+
+        File logRoot = new File(agentHome + File.separator + "k8s-logs");
+        File[] workLogDirs = logRoot.listFiles(File::isDirectory);
+        if (workLogDirs == null) {
+            return "";
+        }
+        StringBuilder logBuilder = new StringBuilder();
+        for (File workLogDir : workLogDirs) {
+            File[] logFiles = workLogDir.listFiles(File::isFile);
+            if (logFiles == null) {
+                continue;
+            }
+            for (File logFile : logFiles) {
+                if (!logFile.getName().contains("application")) {
+                    continue;
+                }
+                String logContent = Files.readString(logFile.toPath(), StandardCharsets.UTF_8);
+                if (logContent.contains(appId)) {
+                    logBuilder.append(logContent).append("\n");
+                }
+            }
+        }
+        return tail(logBuilder.toString());
+    }
+
+    private String resolvePodFinalState(List<String> podStatus) {
+
+        for (String status : podStatus) {
+            if (isRunningPodStatus(status)) {
+                return status;
+            }
+        }
+        for (String status : podStatus) {
+            if ("COMPLETED".equalsIgnoreCase(status) || "SUCCEEDED".equalsIgnoreCase(status)) {
+                return "SUCCEEDED";
+            }
+        }
+        for (String status : podStatus) {
+            if ("ERROR".equalsIgnoreCase(status) || "FAILED".equalsIgnoreCase(status)
+                || "CRASHLOOPBACKOFF".equalsIgnoreCase(status)) {
+                return "FAILED";
+            }
+        }
+        return podStatus.get(0);
+    }
+
+    private boolean isRunningPodStatus(String status) {
+
+        return "RUNNING".equalsIgnoreCase(status) || "PENDING".equalsIgnoreCase(status)
+            || "CONTAINERCREATING".equalsIgnoreCase(status) || "TERMINATING".equalsIgnoreCase(status)
+            || "INITIALIZING".equalsIgnoreCase(status);
+    }
+
+    private void appendKubectlLogs(StringBuilder logBuilder, String appId) throws IOException, InterruptedException {
+
+        Process process = Runtime.getRuntime().exec(new String[] {"kubectl", "logs", "-n", "zhiqingyun-space", "-l",
+            "app=" + appId, "--all-containers=true", "--tail=2000"});
+        try (
+            BufferedReader reader =
+                new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
+            BufferedReader errReader =
+                new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                logBuilder.append(line).append("\n");
+            }
+            while ((line = errReader.readLine()) != null) {
+                logBuilder.append(line).append("\n");
+            }
+        } finally {
+            process.destroy();
+        }
+        process.waitFor();
+    }
+
+    private String tail(String log) {
+
+        if (log.length() <= MAX_LOG_CHARS) {
+            return log;
+        }
+        return log.substring(log.length() - MAX_LOG_CHARS);
     }
 }
