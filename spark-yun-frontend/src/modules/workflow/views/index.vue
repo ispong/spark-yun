@@ -22,7 +22,7 @@
                     @current-change="handleCurrentChange"
                 >
                     <template #nameSlot="scopeSlot">
-                        <span class="name-click" @click="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
+                        <span class="name-click" @click.stop="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
                     </template>
                     <template #statusTag="scopeSlot">
                         <ZStatusTag :status="scopeSlot.row.status === 'STOP' ? 'UN_PUBLISHED' : scopeSlot.row.status" />
@@ -209,6 +209,10 @@ function deleteData(data: any) {
 }
 
 function showDetail(data: any) {
+    if (!data?.id) {
+        ElMessage.warning('作业流信息不完整')
+        return
+    }
     router.push({
         name: 'workflow-page',
         query: {

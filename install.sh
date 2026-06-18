@@ -25,6 +25,18 @@ readonly TMP_SPARK_MIN_JARS="${TMP_DIR}/spark-min/jars"
 readonly TMP_FLINK_MIN_LIB="${TMP_DIR}/flink-min/lib"
 readonly TMP_JDBC_DIR="${TMP_DIR}/jdbc/system"
 readonly TMP_LIBS_DIR="${TMP_DIR}/libs"
+readonly SPARK_JAVA_17_MODULE_OPTS="--add-exports=java.base/sun.nio.ch=ALL-UNNAMED \
+--add-exports=java.base/sun.security.action=ALL-UNNAMED \
+--add-opens=java.base/java.lang=ALL-UNNAMED \
+--add-opens=java.base/java.lang.invoke=ALL-UNNAMED \
+--add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
+--add-opens=java.base/java.io=ALL-UNNAMED \
+--add-opens=java.base/java.net=ALL-UNNAMED \
+--add-opens=java.base/java.nio=ALL-UNNAMED \
+--add-opens=java.base/java.util=ALL-UNNAMED \
+--add-opens=java.base/java.util.concurrent=ALL-UNNAMED \
+--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED \
+--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
 
 # spark依赖列表
 readonly SPARK_JARS=(
@@ -255,10 +267,13 @@ install_spark() {
         echo "export SPARK_WORKER_WEBUI_PORT=8082" >> "${SPARK_MIN_DIR}/conf/spark-env.sh"
         echo "export SPARK_WORKER_CORES=32" >> "${SPARK_MIN_DIR}/conf/spark-env.sh"
         echo "export SPARK_WORKER_MEMORY=64g " >> "${SPARK_MIN_DIR}/conf/spark-env.sh"
+        echo "export SPARK_WORKER_OPTS=\"-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.appDataTtl=1800 -Dspark.worker.cleanup.interval=60\"" >> "${SPARK_MIN_DIR}/conf/spark-env.sh"
+        echo "export SPARK_DAEMON_JAVA_OPTS=\"\${SPARK_DAEMON_JAVA_OPTS} ${SPARK_JAVA_17_MODULE_OPTS}\"" >> "${SPARK_MIN_DIR}/conf/spark-env.sh"
         cp "${SPARK_MIN_DIR}/conf/spark-defaults.conf.template" "${SPARK_MIN_DIR}/conf/spark-defaults.conf"
-        echo "export SPARK_WORKER_OPTS=\"-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.appDataTtl=1800 -Dspark.worker.cleanup.interval=60\"" >> "${SPARK_MIN_DIR}/conf/spark-defaults.conf"
         echo "spark.master          spark://0.0.0.0:7077" >> "${SPARK_MIN_DIR}/conf/spark-defaults.conf"
         echo "spark.master.web.url  http://0.0.0.0:8081" >> "${SPARK_MIN_DIR}/conf/spark-defaults.conf"
+        echo "spark.driver.extraJavaOptions   -Dfile.encoding=utf-8 ${SPARK_JAVA_17_MODULE_OPTS}" >> "${SPARK_MIN_DIR}/conf/spark-defaults.conf"
+        echo "spark.executor.extraJavaOptions -Dfile.encoding=utf-8 ${SPARK_JAVA_17_MODULE_OPTS}" >> "${SPARK_MIN_DIR}/conf/spark-defaults.conf"
     fi
 }
 

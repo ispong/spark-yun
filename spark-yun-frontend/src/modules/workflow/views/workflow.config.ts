@@ -38,6 +38,7 @@ export interface SerchParams {
 export interface FormData {
     name: string
     remark: string
+    id?: string
 }
 
 export const BreadCrumbList: Array<BreadCrumb> = [

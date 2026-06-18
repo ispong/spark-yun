@@ -22,6 +22,10 @@ export default defineConfig({
         host: '0.0.0.0'
     },
 
+    optimizeDeps: {
+        exclude: ['g6-extension-vue', '@antv/x6-vue-shape']
+    },
+
     // 插件管理
     plugins: [
         vue(), // 解析vue文件
@@ -54,7 +58,8 @@ export default defineConfig({
     // 解析说明
     resolve: {
         alias: { // 起别名，方便引入
-            '@': fileURLToPath(new URL('./src', import.meta.url))
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+            'vue-demi': fileURLToPath(new URL('./src/app/utils/vue-demi.ts', import.meta.url))
         },
         dedupe: ['vue', 'vue-router', 'pinia'] // 防止重复加载
     },

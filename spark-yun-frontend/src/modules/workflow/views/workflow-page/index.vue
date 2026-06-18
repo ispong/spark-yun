@@ -322,8 +322,8 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { reactive, ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import LoadingPage from '@/app/components/loading/index.vue'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import { ZqyFlow } from '@/modules/workflow/components'
@@ -369,6 +369,7 @@ import {
 import { TypeList } from '../workflow.config'
 
 const route = useRoute()
+const router = useRouter()
 
 const searchParam = ref('')
 const workflowSearchParam = ref('')
@@ -948,28 +949,55 @@ function refreshFlowCanvas() {
 }
 
 function changeWorkFlow(workFlow: any) {
+    if (workFlow.id === workFlowData.value.id) {
+        workflowDropdownRef.value?.handleClose?.()
+        return
+    }
     containerType.value = 'flow'
     workConfig.value = null
-    workFlowData.value = {
-        name: workFlow.name,
-        id: workFlow.id
-    }
-    initData().then(() => {
-        initFlowData()
+    router.replace({
+        name: 'workflow-page',
+        query: {
+            id: workFlow.id,
+            name: workFlow.name
+        }
     })
     workflowDropdownRef.value?.handleClose?.()
 }
 
-onMounted(() => {
-    workFlowData.value = {
-        name: route.query.name,
-        id: route.query.id
+function getQueryValue(value: unknown): string {
+    if (Array.isArray(value)) {
+        return value[0] ? String(value[0]) : ''
     }
+    return value ? String(value) : ''
+}
+
+function loadWorkflowPage() {
+    const workflowId = getQueryValue(route.query.id)
+    const workflowName = getQueryValue(route.query.name)
+
+    if (!workflowId) {
+        ElMessage.warning('作业流信息不完整')
+        router.replace({
+            name: 'workflow'
+        })
+        return
+    }
+
+    workFlowData.value = {
+        name: workflowName,
+        id: workflowId
+    }
+    containerType.value = 'flow'
+    workConfig.value = null
     initData().then(() => {
         initFlowData()
         getWorkFlows()
     })
+}
 
+onMounted(() => {
+    loadWorkflowPage()
     eventBus.on('nodeMenuEvent', (e: any) => {
         if (e.type === 'node_log') {
             // 日志
@@ -998,6 +1026,15 @@ onMounted(() => {
         }
     })
 })
+
+watch(
+    () => [route.query.id, route.query.name],
+    () => {
+        if (route.name === 'workflow-page') {
+            loadWorkflowPage()
+        }
+    }
+)
 
 function updateDagNodeList(nodeList: any[]) {
     if (nodeList && nodeList.length) {

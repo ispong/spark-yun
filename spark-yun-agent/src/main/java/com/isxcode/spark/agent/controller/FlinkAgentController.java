@@ -14,7 +14,6 @@ import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.immutables.value.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,7 +28,7 @@ public class FlinkAgentController {
     @Operation(summary = "提交作业")
     @PostMapping(FlinkAgentUrl.SUBMIT_WORK_URL)
     @SuccessResponse("提交成功")
-    public SubmitWorkRes submitWork(@Value @RequestBody SubmitWorkReq submitWorkReq) {
+    public SubmitWorkRes submitWork(@RequestBody SubmitWorkReq submitWorkReq) {
 
         return flinkAgentBizService.submitWork(submitWorkReq);
     }
@@ -37,7 +36,7 @@ public class FlinkAgentController {
     @Operation(summary = "获取作业信息")
     @PostMapping(FlinkAgentUrl.GET_WORK_INFO_URL)
     @SuccessResponse("获取成功")
-    public GetWorkInfoRes getWorkInfo(@Value @RequestBody GetWorkInfoReq getWorkInfoReq) {
+    public GetWorkInfoRes getWorkInfo(@RequestBody GetWorkInfoReq getWorkInfoReq) {
 
         return flinkAgentBizService.getWorkInfo(getWorkInfoReq);
     }
@@ -45,7 +44,7 @@ public class FlinkAgentController {
     @Operation(summary = "获取日志")
     @PostMapping(FlinkAgentUrl.GET_WORK_LOG_URL)
     @SuccessResponse("获取成功")
-    public GetWorkLogRes getWorkLog(@Value @RequestBody GetWorkLogReq getWorkLogReq) {
+    public GetWorkLogRes getWorkLog(@RequestBody GetWorkLogReq getWorkLogReq) {
 
         return flinkAgentBizService.getWorkLog(getWorkLogReq);
     }
@@ -53,7 +52,7 @@ public class FlinkAgentController {
     @Operation(summary = "中止作业")
     @PostMapping(FlinkAgentUrl.STOP_WORK_URL)
     @SuccessResponse("中止成功")
-    public StopWorkRes stopWork(@Value @RequestBody StopWorkReq stopWorkReq) {
+    public StopWorkRes stopWork(@RequestBody StopWorkReq stopWorkReq) {
 
         return flinkAgentBizService.stopWork(stopWorkReq);
     }

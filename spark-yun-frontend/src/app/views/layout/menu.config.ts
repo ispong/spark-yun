@@ -86,7 +86,7 @@ export const menuListData: Array<Menu> = [
                 name: '作业流',
                 icon: 'SetUp',
                 authType: ['ROLE_TENANT_MEMBER', 'ROLE_TENANT_ADMIN'],
-                childPage: ['workflow-page']
+                childPage: ['workflow-page', 'workflow-detail', 'work-item']
             },
             {
                 code: 'realtime-computing',

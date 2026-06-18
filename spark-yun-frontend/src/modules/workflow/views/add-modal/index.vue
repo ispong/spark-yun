@@ -1,22 +1,9 @@
 <template>
     <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+        <el-form ref="form" class="workflow-add-form" label-position="top" :model="formData" :rules="rules">
             <el-form-item label="名称" prop="name">
-                <el-input v-model="formData.name" maxlength="20" placeholder="请输入" show-word-limit />
+                <el-input v-model="formData.name" maxlength="100" placeholder="请输入" show-word-limit />
             </el-form-item>
-            <!-- <el-form-item label="默认计算集群">
-        <el-select
-          v-model="formData.defaultClusterId"
-          placeholder="请选择"
-        >
-          <el-option
-            v-for="item in clusterList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item> -->
             <el-form-item label="备注">
                 <el-input
                     v-model="formData.remark"
@@ -35,11 +22,9 @@
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetComputerGroupList } from '@/app/shared/api/resources'
 
 const form = ref<FormInstance>()
 const callback = ref<any>()
-const clusterList = ref([]) // 计算集群
 const modelConfig = reactive({
     title: '新建作业流',
     visible: false,
@@ -57,11 +42,11 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
+    customClass: 'workflow-add-modal',
     closeOnClickModal: false
 })
 const formData = reactive({
     name: '',
-    // defaultClusterId: '',
     remark: '',
     id: ''
 })
@@ -90,7 +75,6 @@ function showModal(cb: () => void, data: any): void {
         modelConfig.title = '新建作业流'
     }
 
-    getClusterList()
     nextTick(() => {
         form.value?.resetFields()
     })
@@ -113,32 +97,13 @@ function okEvent() {
                         modelConfig.visible = true
                     }
                 })
-                .catch((err: any) => {
+                .catch(() => {
                     modelConfig.okConfig.loading = false
                 })
         } else {
             ElMessage.warning('请将表单输入完整')
         }
     })
-}
-
-function getClusterList() {
-    GetComputerGroupList({
-        page: 0,
-        pageSize: 10000,
-        searchKeyWord: ''
-    })
-        .then((res: any) => {
-            clusterList.value = res.data.content.map((item: any) => {
-                return {
-                    label: item.name,
-                    value: item.id
-                }
-            })
-        })
-        .catch(() => {
-            clusterList.value = []
-        })
 }
 
 function closeEvent() {
@@ -151,8 +116,87 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.add-computer-group {
-    padding: 12px 20px 0 20px;
-    box-sizing: border-box;
+.workflow-add-modal.zqy-block-modal {
+    --workflow-modal-x-padding: 20px;
+    --workflow-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--workflow-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--workflow-modal-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--workflow-modal-x-padding);
+        border-top: none;
+        align-items: center;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--workflow-modal-border-color);
+        }
+    }
+
+    .workflow-add-form {
+        padding: 14px var(--workflow-modal-x-padding) 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+    }
 }
 </style>

@@ -33,7 +33,9 @@ dependencies {
 
     implementation libs.flink.streaming.java
 
-    implementation libs.flink.table.planner
+    implementation libs.flink.table.planner.loader
+
+    implementation libs.flink.table.runtime
 
     implementation libs.flink.table.api.java.bridge
 

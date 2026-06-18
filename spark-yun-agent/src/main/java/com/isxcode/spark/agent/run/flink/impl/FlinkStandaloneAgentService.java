@@ -19,32 +19,36 @@ import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
 import org.apache.flink.client.program.PackagedProgramUtils;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.configuration.RestOptions;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.messages.Acknowledge;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Service
 public class FlinkStandaloneAgentService implements FlinkAgentService {
 
     private static final String SAVEPOINT_PATH_KEY = "execution.savepoint.path";
+
+    private static final String FLINK_CONFIG_FILE_NAME = "config.yaml";
+
+    private static final String LEGACY_FLINK_CONFIG_FILE_NAME = "flink-conf.yaml";
+
+    private static final int MAX_LOG_CHARS = 30000;
+
+    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
     @Override
     public String getAgentType() {
@@ -53,34 +57,29 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
 
     public Configuration genConfiguration(String flinkHome) {
 
-        // 获取本地flink的配置，并从中获取rest.port、rest.address，如果获取不到默认8081、localhost
-        flinkHome = !Strings.isEmpty(flinkHome) ? flinkHome : System.getenv("FLINK_HOME");
-        String flinkConfigPath = flinkHome + File.separator + "conf" + File.separator + "config.yaml";
+        String resolvedFlinkHome = resolveFlinkHome(flinkHome);
+        String flinkConfDir = resolvedFlinkHome + File.separator + "conf";
+        File flinkConfigFile = new File(flinkConfDir, FLINK_CONFIG_FILE_NAME);
+        File legacyFlinkConfigFile = new File(flinkConfDir, LEGACY_FLINK_CONFIG_FILE_NAME);
 
-        try (InputStream inputStream = Files.newInputStream(new File(flinkConfigPath).toPath())) {
-            Yaml yaml = new Yaml();
-            Map<String, Object> flinkYaml = yaml.load(inputStream);
-            Map<String, Object> restConfig =
-                Optional.ofNullable(flinkYaml.get("rest")).filter(Map.class::isInstance).map(Map.class::cast)
-                    .orElse(Collections.emptyMap());
-            String restAddress = String.valueOf(restConfig.getOrDefault("address", "localhost"));
-            String restPort = String.valueOf(restConfig.getOrDefault("port", "8081"));
-
-            // 添加配置
-            Configuration configuration = new Configuration();
-            configuration.set(RestOptions.ADDRESS, restAddress);
-            configuration.set(RestOptions.PORT, Integer.parseInt(restPort));
-            return configuration;
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            throw new RuntimeException("获取flink配置文件异常", e);
+        if (!flinkConfigFile.exists() && !legacyFlinkConfigFile.exists()) {
+            throw new IsxAppException("Flink配置文件不存在: " + flinkConfigFile.getAbsolutePath());
         }
+
+        Configuration configuration = GlobalConfiguration.loadConfiguration(flinkConfDir);
+        String restAddress = configuration.get(RestOptions.ADDRESS);
+        if (isBlank(restAddress) || "0.0.0.0".equals(restAddress) || "::".equals(restAddress)) {
+            configuration.set(RestOptions.ADDRESS, "localhost");
+        }
+
+        return configuration;
     }
 
     @Override
     public SubmitWorkRes submitWork(SubmitWorkReq submitWorkReq) throws Exception {
 
         Configuration configuration = genConfiguration(submitWorkReq.getFlinkHome());
+        checkRestAvailable(configuration);
 
         // 设置作业名称
         configuration.set(PipelineOptions.NAME, submitWorkReq.getFlinkSubmit().getAppName() + "-"
@@ -91,32 +90,36 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
         // 添加自定义依赖
         if (submitWorkReq.getLibConfig() != null) {
             for (int i = 0; i < submitWorkReq.getLibConfig().size(); i++) {
-                userClassPaths.add(new File(submitWorkReq.getAgentHomePath() + File.separator + "file" + File.separator
-                    + submitWorkReq.getLibConfig().get(i) + ".jar").toURI().toURL());
+                userClassPaths.add(requireFile(submitWorkReq.getAgentHomePath() + File.separator + "file"
+                    + File.separator + submitWorkReq.getLibConfig().get(i) + ".jar", "Flink依赖包").toURI().toURL());
             }
         }
 
         // 添加自定义函数
         if (submitWorkReq.getFuncConfig() != null) {
             for (int i = 0; i < submitWorkReq.getFuncConfig().size(); i++) {
-                userClassPaths.add(new File(submitWorkReq.getAgentHomePath() + File.separator + "file" + File.separator
-                    + submitWorkReq.getFuncConfig().get(i).getFileId() + ".jar").toURI().toURL());
+                userClassPaths.add(requireFile(submitWorkReq.getAgentHomePath() + File.separator + "file"
+                    + File.separator + submitWorkReq.getFuncConfig().get(i).getFileId() + ".jar",
+                    "Flink自定义函数包").toURI().toURL());
             }
         }
 
-        submitWorkReq.getFlinkSubmit().getConf().forEach((k, v) -> {
-            if (v != null) {
-                configuration.setString(k, String.valueOf(v));
-            } else {
-                throw new IllegalArgumentException("Unsupported type for key: " + k + ", value: " + v);
-            }
-        });
+        if (submitWorkReq.getFlinkSubmit().getConf() != null) {
+            submitWorkReq.getFlinkSubmit().getConf().forEach((k, v) -> {
+                if (v != null) {
+                    configuration.setString(k, String.valueOf(v));
+                } else {
+                    throw new IllegalArgumentException("Unsupported type for key: " + k + ", value: " + v);
+                }
+            });
+        }
 
         PackagedProgram program;
         if (WorkType.FLINK_JAR.equals(submitWorkReq.getWorkType())) {
+            File jarFile = requireFile(submitWorkReq.getAgentHomePath() + File.separator + "file" + File.separator
+                + submitWorkReq.getFlinkSubmit().getAppResource(), "Flink作业Jar");
             PackagedProgram.Builder builder = PackagedProgram.newBuilder()
-                .setJarFile(new File((submitWorkReq.getAgentHomePath() + File.separator + "file" + File.separator
-                    + submitWorkReq.getFlinkSubmit().getAppResource())))
+                .setJarFile(jarFile)
                 .setEntryPointClassName(submitWorkReq.getFlinkSubmit().getEntryClass()).setConfiguration(configuration)
                 .setArguments(submitWorkReq.getPluginReq().getArgs()).setUserClassPaths(userClassPaths);
             if (configuration.getString(SAVEPOINT_PATH_KEY, null) != null) {
@@ -129,9 +132,10 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
                 program = builder.build();
             }
         } else {
+            File pluginFile = requireFile(submitWorkReq.getAgentHomePath() + File.separator + "plugins"
+                + File.separator + submitWorkReq.getFlinkSubmit().getAppResource(), "Flink插件Jar");
             PackagedProgram.Builder builder = PackagedProgram.newBuilder()
-                .setJarFile(new File((submitWorkReq.getAgentHomePath() + File.separator + "plugins" + File.separator
-                    + submitWorkReq.getFlinkSubmit().getAppResource())))
+                .setJarFile(pluginFile)
                 .setEntryPointClassName(submitWorkReq.getFlinkSubmit().getEntryClass()).setConfiguration(configuration)
                 .setArguments(Base64.getEncoder()
                     .encodeToString(JSON.toJSONString(submitWorkReq.getPluginReq()).getBytes(StandardCharsets.UTF_8)))
@@ -156,11 +160,7 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
             return SubmitWorkRes.builder().appId(jobID.toHexString()).build();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            if (e.getCause() != null && e.getCause().getCause() != null
-                && e.getCause().getCause().getMessage() != null) {
-                throw new Exception(e.getCause().getCause().getMessage());
-            }
-            throw new Exception(e.getMessage());
+            throw new Exception("提交Flink Local作业失败: " + getRootMessage(e), e);
         }
     }
 
@@ -184,7 +184,8 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
     public GetWorkLogRes getWorkLog(GetWorkLogReq getWorkLogReq) throws Exception {
 
         Configuration configuration = genConfiguration(getWorkLogReq.getFlinkHome());
-        String restUrl = configuration.get(RestOptions.ADDRESS) + ":" + configuration.get(RestOptions.PORT);
+        String restUrl = getRestUrl(configuration);
+        StringBuilder logBuilder = new StringBuilder();
 
         // 判断作业是否成功
         String status;
@@ -197,44 +198,17 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
             status = jobStatus.get().name();
         }
 
-        if ("FAILED".equals(status)) {
-            String getExceptionUrl = "http://" + restUrl + "/jobs/" + getWorkLogReq.getAppId() + "/exceptions";
-            ResponseEntity<FlinkRestExceptionRes> exceptionResult =
-                new RestTemplate().getForEntity(getExceptionUrl, FlinkRestExceptionRes.class);
-            if (!HttpStatus.OK.equals(exceptionResult.getStatusCode())) {
-                throw new IsxAppException("提交作业失败");
-            }
-            if (exceptionResult.getBody() == null) {
-                throw new IsxAppException("提交作业失败");
-            }
-            return GetWorkLogRes.builder().log(exceptionResult.getBody().getRootException()).build();
-        } else {
+        appendJobExceptionLog(restUrl, getWorkLogReq.getAppId(), logBuilder);
+        appendRestLogSection(restUrl + "/jobmanager/log", "JobManager Log", logBuilder);
+        appendRestLogSection(restUrl + "/jobmanager/stdout", "JobManager Stdout", logBuilder);
+        appendTaskManagerLogs(restUrl, logBuilder);
 
-            String taskManagersUrl = "http://" + restUrl + "/taskmanagers";
-            ResponseEntity<FlinkGetTaskManagerRes> forEntity =
-                new RestTemplate().getForEntity(taskManagersUrl, FlinkGetTaskManagerRes.class);
-
-            // 查询taskmanager的日志
-            String taskmanagerId = forEntity.getBody().getTaskManagers().get(0).getId();
-            String getLogUrl = "http://" + restUrl + "/taskmanagers/" + taskmanagerId + "/log";
-            ResponseEntity<String> log = new RestTemplate().getForEntity(getLogUrl, String.class);
-
-            String logRegex = "job " + getWorkLogReq.getAppId()
-                + " from resource manager with leader id.*?Close JobManager connection for job "
-                + getWorkLogReq.getAppId();
-            Pattern pattern = Pattern.compile(logRegex, Pattern.DOTALL);
-
-            // 由于log4j配置可能有问题body可能为空
-            if (log.getBody() == null) {
-                return GetWorkLogRes.builder().log("Log日志为空，请检查Flink配置").build();
-            }
-            Matcher matcher = pattern.matcher(Objects.requireNonNull(log.getBody()));
-            if (matcher.find()) {
-                String matchedLog = matcher.group();
-                return GetWorkLogRes.builder().log(matchedLog).build();
-            }
-            return GetWorkLogRes.builder().log("").build();
+        if (logBuilder.length() == 0) {
+            return GetWorkLogRes.builder()
+                .log("未获取到Flink日志，当前作业状态: " + status + "，请检查Flink Web日志接口是否可访问").build();
         }
+
+        return GetWorkLogRes.builder().log(tailLog(logBuilder.toString())).build();
     }
 
     @Override
@@ -249,5 +223,137 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
             CompletableFuture<Acknowledge> cancel = clusterClient.cancel(JobID.fromHexString(stopWorkReq.getAppId()));
             return StopWorkRes.builder().requestId(cancel.toString()).build();
         }
+    }
+
+    private String resolveFlinkHome(String flinkHome) {
+
+        String resolvedFlinkHome = !Strings.isEmpty(flinkHome) ? flinkHome : System.getenv("FLINK_HOME");
+        if (isBlank(resolvedFlinkHome)) {
+            throw new IsxAppException("Flink Home未配置，请在计算集群节点中配置Flink安装目录或设置FLINK_HOME");
+        }
+
+        File flinkHomeFile = new File(resolvedFlinkHome);
+        if (!flinkHomeFile.exists() || !flinkHomeFile.isDirectory()) {
+            throw new IsxAppException("Flink Home不存在: " + resolvedFlinkHome);
+        }
+
+        return flinkHomeFile.getAbsolutePath();
+    }
+
+    private File requireFile(String filePath, String fileName) {
+
+        File file = new File(filePath);
+        if (!file.exists() || !file.isFile()) {
+            throw new IsxAppException(fileName + "不存在: " + file.getAbsolutePath());
+        }
+
+        return file;
+    }
+
+    private void checkRestAvailable(Configuration configuration) {
+
+        String restUrl = getRestUrl(configuration);
+        try {
+            ResponseEntity<String> responseEntity = REST_TEMPLATE.getForEntity(restUrl + "/overview", String.class);
+            if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+                throw new IsxAppException("Flink Local REST服务不可用: " + restUrl);
+            }
+        } catch (Exception e) {
+            throw new IsxAppException(
+                "Flink Local REST服务不可用: " + restUrl + "，请确认Flink集群已启动，原因: " + getRootMessage(e));
+        }
+    }
+
+    private String getRestUrl(Configuration configuration) {
+
+        return "http://" + configuration.get(RestOptions.ADDRESS) + ":" + configuration.get(RestOptions.PORT);
+    }
+
+    private void appendJobExceptionLog(String restUrl, String appId, StringBuilder logBuilder) {
+
+        try {
+            ResponseEntity<FlinkRestExceptionRes> exceptionResult =
+                REST_TEMPLATE.getForEntity(restUrl + "/jobs/" + appId + "/exceptions", FlinkRestExceptionRes.class);
+            if (exceptionResult.getStatusCode().is2xxSuccessful() && exceptionResult.getBody() != null
+                && !isBlank(exceptionResult.getBody().getRootException())) {
+                appendSection(logBuilder, "Job Exception", exceptionResult.getBody().getRootException());
+            }
+        } catch (Exception e) {
+            log.warn("获取Flink异常日志失败: {}", getRootMessage(e));
+        }
+    }
+
+    private void appendTaskManagerLogs(String restUrl, StringBuilder logBuilder) {
+
+        try {
+            ResponseEntity<FlinkGetTaskManagerRes> responseEntity =
+                REST_TEMPLATE.getForEntity(restUrl + "/taskmanagers", FlinkGetTaskManagerRes.class);
+            if (!responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null
+                || responseEntity.getBody().getTaskManagers() == null
+                || responseEntity.getBody().getTaskManagers().isEmpty()) {
+                appendSection(logBuilder, "TaskManager", "未获取到TaskManager列表");
+                return;
+            }
+
+            for (FlinkTaskManagerRes taskManager : responseEntity.getBody().getTaskManagers()) {
+                if (taskManager == null || isBlank(taskManager.getId())) {
+                    continue;
+                }
+                appendRestLogSection(restUrl + "/taskmanagers/" + taskManager.getId() + "/log",
+                    "TaskManager " + taskManager.getId() + " Log", logBuilder);
+                appendRestLogSection(restUrl + "/taskmanagers/" + taskManager.getId() + "/stdout",
+                    "TaskManager " + taskManager.getId() + " Stdout", logBuilder);
+            }
+        } catch (Exception e) {
+            appendSection(logBuilder, "TaskManager", "获取TaskManager日志失败: " + getRootMessage(e));
+        }
+    }
+
+    private void appendRestLogSection(String url, String title, StringBuilder logBuilder) {
+
+        try {
+            ResponseEntity<String> responseEntity = REST_TEMPLATE.getForEntity(url, String.class);
+            if (responseEntity.getStatusCode().is2xxSuccessful() && !isBlank(responseEntity.getBody())) {
+                appendSection(logBuilder, title, responseEntity.getBody());
+            }
+        } catch (Exception e) {
+            log.warn("获取Flink日志失败: {}, {}", title, getRootMessage(e));
+        }
+    }
+
+    private void appendSection(StringBuilder logBuilder, String title, String content) {
+
+        if (isBlank(content)) {
+            return;
+        }
+
+        logBuilder.append("\n================ ").append(title).append(" ================\n")
+            .append(tailLog(content.trim())).append('\n');
+    }
+
+    private String tailLog(String logContent) {
+
+        if (logContent == null || logContent.length() <= MAX_LOG_CHARS) {
+            return logContent;
+        }
+
+        return "日志过长，仅展示最后" + MAX_LOG_CHARS + "个字符\n"
+            + logContent.substring(logContent.length() - MAX_LOG_CHARS);
+    }
+
+    private String getRootMessage(Throwable throwable) {
+
+        Throwable root = throwable;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+
+        String message = root.getMessage();
+        return isBlank(message) ? root.getClass().getName() : message;
+    }
+
+    private boolean isBlank(String value) {
+
+        return value == null || value.trim().isEmpty();
     }
 }

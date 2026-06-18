@@ -77,6 +77,8 @@ flink-kubernetes = { module = "org.apache.flink:flink-kubernetes", version.ref =
 flink-streaming-java = { module = "org.apache.flink:flink-streaming-java", version.ref = "flink" }
 flink-table-api-java-bridge = { module = "org.apache.flink:flink-table-api-java-bridge", version.ref = "flink" }
 flink-table-planner = { module = "org.apache.flink:flink-table-planner_2.12", version.ref = "flink" }
+flink-table-planner-loader = { module = "org.apache.flink:flink-table-planner-loader", version.ref = "flink" }
+flink-table-runtime = { module = "org.apache.flink:flink-table-runtime", version.ref = "flink" }
 flink-yarn = { module = "org.apache.flink:flink-yarn", version.ref = "flink" }
 flyway-core = { module = "org.flywaydb:flyway-core" }
 flyway-mysql = { module = "org.flywaydb:flyway-mysql" }

@@ -28,8 +28,10 @@ import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,6 +39,20 @@ import java.util.regex.Pattern;
 @Slf4j
 @Service
 public class SparkStandaloneAgentService implements SparkAgentService {
+
+    private static final List<String> JAVA_17_MODULE_OPTIONS = Arrays.asList(
+        "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED",
+        "--add-exports=java.base/sun.security.action=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.net=ALL-UNNAMED",
+        "--add-opens=java.base/java.nio=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+        "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED");
 
     @Override
     public String getAgentType() {
@@ -162,8 +178,31 @@ public class SparkStandaloneAgentService implements SparkAgentService {
 
         // 将提交的spark配置加入到sparkLauncher
         submitWorkReq.getSparkSubmit().getConf().forEach(sparkLauncher::setConf);
+        appendJava17ModuleOptions(sparkLauncher, submitWorkReq.getSparkSubmit().getConf());
 
         return sparkLauncher;
+    }
+
+    private void appendJava17ModuleOptions(SparkLauncher sparkLauncher, Map<String, String> sparkConfig) {
+
+        appendJava17ModuleOptions(sparkLauncher, sparkConfig, "spark.driver.extraJavaOptions");
+        appendJava17ModuleOptions(sparkLauncher, sparkConfig, "spark.executor.extraJavaOptions");
+    }
+
+    private void appendJava17ModuleOptions(SparkLauncher sparkLauncher, Map<String, String> sparkConfig, String key) {
+
+        String mergedOptions = sparkConfig.get(key);
+        if (Strings.isEmpty(mergedOptions)) {
+            mergedOptions = "";
+        } else {
+            mergedOptions = mergedOptions.trim();
+        }
+        for (String option : JAVA_17_MODULE_OPTIONS) {
+            if (!mergedOptions.contains(option)) {
+                mergedOptions = Strings.isEmpty(mergedOptions) ? option : mergedOptions + " " + option;
+            }
+        }
+        sparkLauncher.setConf(key, mergedOptions);
     }
 
     @Override

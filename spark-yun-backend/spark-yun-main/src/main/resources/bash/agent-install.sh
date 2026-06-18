@@ -74,9 +74,9 @@ fi
 
 # 运行代理程序
 if ! command -v java &>/dev/null; then
-  nohup "$JAVA_HOME"/bin/java -jar -Xmx2048m "${agent_path}"/lib/zhiqingyun-agent.jar --server.port="${agent_port}" --spring.config.additional-location="${agent_path}"/conf/ > /dev/null 2>&1 &
+  nohup "$JAVA_HOME"/bin/java -Xmx2048m -jar "${agent_path}"/lib/zhiqingyun-agent.jar --server.port="${agent_port}" --spring.config.additional-location="${agent_path}"/conf/ > /dev/null 2>&1 &
 else
-  nohup java -jar -Xmx2048m "${agent_path}"/lib/zhiqingyun-agent.jar --server.port="${agent_port}" --spring.config.additional-location="${agent_path}"/conf/ > /dev/null 2>&1 &
+  nohup java -Xmx2048m -jar "${agent_path}"/lib/zhiqingyun-agent.jar --server.port="${agent_port}" --spring.config.additional-location="${agent_path}"/conf/ > /dev/null 2>&1 &
 fi
 echo $! >"${agent_path}"/zhiqingyun-agent.pid
 

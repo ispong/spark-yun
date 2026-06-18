@@ -1,6 +1,7 @@
 package com.isxcode.spark.modules.work.run;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.isxcode.spark.api.main.properties.SparkYunProperties;
 import com.isxcode.spark.api.work.res.AgentLinkResponse;
 import com.isxcode.spark.backend.api.base.exceptions.WorkRunException;
@@ -39,19 +40,24 @@ public class AgentLinkUtils {
 
         for (int attempt = 1; attempt <= retryCount; attempt++) {
             try {
-                BaseResponse<?> baseResponse =
+                String responseBody =
                     HttpUtils.doPost(httpUrlUtils.genHttpUrl(agentNode.getHost(), agentNode.getAgentPort(), url), body,
-                        BaseResponse.class);
+                        String.class);
 
                 // 打印调试日志
-                if (baseResponse != null) {
-                    log.debug("请求代理成功 : {}", JSON.toJSONString(baseResponse));
+                if (responseBody != null) {
+                    log.debug("请求代理成功 : {}", responseBody);
                 } else {
                     throw new WorkRunException("代理请求中断");
                 }
 
-                if (!String.valueOf(HttpStatus.OK.value()).equals(baseResponse.getCode())
-                    || baseResponse.getData() == null) {
+                JSONObject responseJson = JSON.parseObject(responseBody);
+                if (!responseJson.containsKey("code")) {
+                    return JSON.parseObject(responseBody, responseClass);
+                }
+
+                BaseResponse<?> baseResponse = responseJson.toJavaObject(BaseResponse.class);
+                if (!String.valueOf(HttpStatus.OK.value()).equals(baseResponse.getCode())) {
                     String errorMsg = baseResponse.getMsg();
 
                     // 检查是否需要重试
@@ -63,6 +69,10 @@ public class AgentLinkUtils {
                     }
 
                     throw new WorkRunException("请求代理异常 : " + errorMsg);
+                }
+
+                if (baseResponse.getData() == null) {
+                    return JSON.parseObject(responseBody, responseClass);
                 }
 
                 return JSON.parseObject(JSON.toJSONString(baseResponse.getData()), responseClass);
