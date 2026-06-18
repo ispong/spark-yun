@@ -13,6 +13,8 @@ public class GetWorkInfoReq {
 
     private String appId;
 
+    private String workInstanceId;
+
     private String agentHome;
 
     private String clusterType;

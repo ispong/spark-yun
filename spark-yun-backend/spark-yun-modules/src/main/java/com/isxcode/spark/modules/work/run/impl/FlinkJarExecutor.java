@@ -309,7 +309,8 @@ public class FlinkJarExecutor extends WorkExecutor {
 
             // 获取作业状态并保存
             GetWorkInfoReq jobInfoReq = GetWorkInfoReq.builder().agentHome(agentNode.getAgentHomePath())
-                .flinkHome(agentNode.getFlinkHomePath()).appId(appId).clusterType(clusterType).build();
+                .workInstanceId(workInstance.getId()).flinkHome(agentNode.getFlinkHomePath()).appId(appId)
+                .clusterType(clusterType).build();
 
             // 请求代理
             AgentLinkResponse agentLinkResponse =

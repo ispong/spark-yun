@@ -2,7 +2,9 @@ package com.isxcode.spark.agent.run.spark.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.isxcode.spark.agent.run.spark.SparkAgentService;
+import com.isxcode.spark.agent.run.utils.AgentJavaOptions;
 import com.isxcode.spark.api.agent.constants.AgentType;
+import com.isxcode.spark.api.agent.req.spark.PluginReq;
 import com.isxcode.spark.api.agent.req.spark.SubmitWorkReq;
 import com.isxcode.spark.api.agent.res.spark.GetWorkInfoRes;
 import com.isxcode.spark.api.instance.constants.InstanceStatus;
@@ -28,10 +30,8 @@ import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,14 +40,7 @@ import java.util.regex.Pattern;
 @Service
 public class SparkStandaloneAgentService implements SparkAgentService {
 
-    private static final List<String> JAVA_17_MODULE_OPTIONS = Arrays.asList(
-        "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED", "--add-exports=java.base/sun.security.action=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED", "--add-opens=java.base/java.io=ALL-UNNAMED",
-        "--add-opens=java.base/java.net=ALL-UNNAMED", "--add-opens=java.base/java.nio=ALL-UNNAMED",
-        "--add-opens=java.base/java.util=ALL-UNNAMED", "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
-        "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
-        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED");
+    private static final int MASTER_UI_TIMEOUT_MS = 10000;
 
     @Override
     public String getAgentType() {
@@ -132,8 +125,9 @@ public class SparkStandaloneAgentService implements SparkAgentService {
         }
 
         // 添加Excel/csv文件
-        if (submitWorkReq.getPluginReq().getCsvFilePath() != null) {
-            sparkLauncher.addFile(submitWorkReq.getPluginReq().getCsvFilePath());
+        PluginReq pluginReq = submitWorkReq.getPluginReq();
+        if (pluginReq != null && pluginReq.getCsvFilePath() != null) {
+            sparkLauncher.addFile(pluginReq.getCsvFilePath());
         }
 
         // 添加自定义函数
@@ -168,12 +162,18 @@ public class SparkStandaloneAgentService implements SparkAgentService {
                     : JSON.toJSONString(submitWorkReq.getPluginReq()).getBytes(StandardCharsets.UTF_8)));
         }
 
+        Map<String, String> sparkConfig = submitWorkReq.getSparkSubmit().getConf();
+        if (sparkConfig == null) {
+            sparkConfig = new HashMap<>();
+            submitWorkReq.getSparkSubmit().setConf(sparkConfig);
+        }
+
         // 删除自定义属性
-        submitWorkReq.getSparkSubmit().getConf().remove("qing.hive.username");
+        sparkConfig.remove("qing.hive.username");
 
         // 将提交的spark配置加入到sparkLauncher
-        submitWorkReq.getSparkSubmit().getConf().forEach(sparkLauncher::setConf);
-        appendJava17ModuleOptions(sparkLauncher, submitWorkReq.getSparkSubmit().getConf());
+        sparkConfig.forEach(sparkLauncher::setConf);
+        appendJava17ModuleOptions(sparkLauncher, sparkConfig);
 
         return sparkLauncher;
     }
@@ -186,18 +186,8 @@ public class SparkStandaloneAgentService implements SparkAgentService {
 
     private void appendJava17ModuleOptions(SparkLauncher sparkLauncher, Map<String, String> sparkConfig, String key) {
 
-        String mergedOptions = sparkConfig.get(key);
-        if (Strings.isEmpty(mergedOptions)) {
-            mergedOptions = "";
-        } else {
-            mergedOptions = mergedOptions.trim();
-        }
-        for (String option : JAVA_17_MODULE_OPTIONS) {
-            if (!mergedOptions.contains(option)) {
-                mergedOptions = Strings.isEmpty(mergedOptions) ? option : mergedOptions + " " + option;
-            }
-        }
-        sparkLauncher.setConf(key, mergedOptions);
+        sparkLauncher.setConf(key,
+            AgentJavaOptions.mergeOptions(sparkConfig.get(key), AgentJavaOptions.SPARK_JAVA_17_MODULE_OPTIONS));
     }
 
     @Override
@@ -245,25 +235,28 @@ public class SparkStandaloneAgentService implements SparkAgentService {
     @Override
     public GetWorkInfoRes getWorkInfo(String submissionId, String sparkHomePath) throws Exception {
 
-        Document doc = Jsoup.connect(getMasterWebUrl(sparkHomePath)).get();
+        Document doc = loadMasterDocument(sparkHomePath);
 
-        Element completedDriversTable = doc.selectFirst(".aggregated-completedDrivers table");
-        if (completedDriversTable == null) {
+        Elements completedDriversRows = selectRows(doc, ".aggregated-completedDrivers table tbody tr");
+        Elements runningDriversRows = selectRows(doc, ".aggregated-activeDrivers table tbody tr");
+        if (completedDriversRows.isEmpty() && runningDriversRows.isEmpty()) {
             throw new Exception("检测不到应用信息");
         }
-        Elements completedDriversRows = completedDriversTable.select("tbody tr");
-
-        Element runningDriversTable = doc.selectFirst(".aggregated-activeDrivers table");
-        Elements runningDriversRows = runningDriversTable.select("tbody tr");
 
         Map<String, String> apps = new HashMap<>();
 
         for (Element row : completedDriversRows) {
-            apps.put(row.selectFirst("td:nth-child(1)").text(), row.selectFirst("td:nth-child(4)").text());
+            String driverId = getText(row, "td:nth-child(1)");
+            if (Strings.isNotEmpty(driverId)) {
+                apps.put(driverId, getText(row, "td:nth-child(4)"));
+            }
         }
 
         for (Element row : runningDriversRows) {
-            apps.put(row.selectFirst("td:nth-child(1)").text().replace(" (kill)", ""), row.select("td").get(3).text());
+            String driverId = getText(row, "td:nth-child(1)").replace(" (kill)", "");
+            if (Strings.isNotEmpty(driverId) && row.select("td").size() > 3) {
+                apps.put(driverId, row.select("td").get(3).text());
+            }
         }
 
         return GetWorkInfoRes.builder().appId(submissionId).finalState(apps.get(submissionId)).build();
@@ -272,10 +265,9 @@ public class SparkStandaloneAgentService implements SparkAgentService {
     @Override
     public String getStderrLog(String submissionId, String sparkHomePath) throws Exception {
 
-        Document doc = Jsoup.connect(getMasterWebUrl(sparkHomePath)).get();
+        Document doc = loadMasterDocument(sparkHomePath);
 
-        Element completedDriversTable = doc.selectFirst(".aggregated-completedDrivers table");
-        Elements completedDriversRows = completedDriversTable.select("tbody tr");
+        Elements completedDriversRows = selectRows(doc, ".aggregated-completedDrivers table tbody tr");
 
         Map<String, String> apps = new HashMap<>();
 
@@ -287,7 +279,7 @@ public class SparkStandaloneAgentService implements SparkAgentService {
         }
         String workUrl = apps.get(submissionId);
 
-        doc = Jsoup.connect(workUrl).get();
+        doc = loadDocument(requireWorkUrl(workUrl, submissionId));
         Elements rows = doc.select(".aggregated-finishedDrivers table tbody tr");
         Map<String, String> driversMap = new HashMap<>();
         for (Element row : rows) {
@@ -297,19 +289,18 @@ public class SparkStandaloneAgentService implements SparkAgentService {
         }
 
         String errlogUrl = driversMap.get(submissionId);
-        doc = Jsoup.connect(errlogUrl).get();
+        doc = loadDocument(requireWorkUrl(errlogUrl, submissionId));
         Element preElement = doc.selectFirst("pre");
 
-        return preElement.text();
+        return preElement == null ? "" : preElement.text();
     }
 
     @Override
     public String getStdoutLog(String submissionId, String sparkHomePath) throws Exception {
 
-        Document doc = Jsoup.connect(getMasterWebUrl(sparkHomePath)).get();
+        Document doc = loadMasterDocument(sparkHomePath);
 
-        Element completedDriversTable = doc.selectFirst(".aggregated-activeDrivers table");
-        Elements completedDriversRows = completedDriversTable.select("tbody tr");
+        Elements completedDriversRows = selectRows(doc, ".aggregated-activeDrivers table tbody tr");
 
         Map<String, String> apps = new HashMap<>();
 
@@ -321,7 +312,7 @@ public class SparkStandaloneAgentService implements SparkAgentService {
         }
         String workUrl = apps.get(submissionId);
 
-        doc = Jsoup.connect(workUrl).get();
+        doc = loadDocument(requireWorkUrl(workUrl, submissionId));
         Elements rows = doc.select(".aggregated-runningDrivers table tbody tr");
         Map<String, String> driversMap = new HashMap<>();
         for (Element row : rows) {
@@ -331,19 +322,18 @@ public class SparkStandaloneAgentService implements SparkAgentService {
         }
 
         String errlogUrl = driversMap.get(submissionId);
-        doc = Jsoup.connect(errlogUrl).get();
+        doc = loadDocument(requireWorkUrl(errlogUrl, submissionId));
         Element preElement = doc.selectFirst("pre");
 
-        return preElement.text();
+        return preElement == null ? "" : preElement.text();
     }
 
     @Override
     public String getCustomJarStdoutLog(String appId, String sparkHomePath) throws Exception {
 
-        Document doc = Jsoup.connect(getMasterWebUrl(sparkHomePath)).get();
+        Document doc = loadMasterDocument(sparkHomePath);
 
-        Element completedDriversTable = doc.selectFirst(".aggregated-completedDrivers table");
-        Elements completedDriversRows = completedDriversTable.select("tbody tr");
+        Elements completedDriversRows = selectRows(doc, ".aggregated-completedDrivers table tbody tr");
 
         Map<String, String> apps = new HashMap<>();
 
@@ -355,7 +345,7 @@ public class SparkStandaloneAgentService implements SparkAgentService {
         }
         String workUrl = apps.get(appId);
 
-        doc = Jsoup.connect(workUrl).get();
+        doc = loadDocument(requireWorkUrl(workUrl, appId));
         Elements rows = doc.select(".aggregated-finishedDrivers table tbody tr");
         Map<String, String> driversMap = new HashMap<>();
         for (Element row : rows) {
@@ -365,19 +355,18 @@ public class SparkStandaloneAgentService implements SparkAgentService {
         }
 
         String errlogUrl = driversMap.get(appId);
-        doc = Jsoup.connect(errlogUrl).get();
+        doc = loadDocument(requireWorkUrl(errlogUrl, appId));
         Element preElement = doc.selectFirst("pre");
 
-        return preElement.text();
+        return preElement == null ? "" : preElement.text();
     }
 
     @Override
     public String getWorkDataStr(String submissionId, String sparkHomePath) throws Exception {
 
-        Document doc = Jsoup.connect(getMasterWebUrl(sparkHomePath)).get();
+        Document doc = loadMasterDocument(sparkHomePath);
 
-        Element completedDriversTable = doc.selectFirst(".aggregated-completedDrivers table");
-        Elements completedDriversRows = completedDriversTable.select("tbody tr");
+        Elements completedDriversRows = selectRows(doc, ".aggregated-completedDrivers table tbody tr");
 
         Map<String, String> apps = new HashMap<>();
 
@@ -390,7 +379,7 @@ public class SparkStandaloneAgentService implements SparkAgentService {
 
         String workUrl = apps.get(submissionId);
 
-        doc = Jsoup.connect(workUrl).get();
+        doc = loadDocument(requireWorkUrl(workUrl, submissionId));
         Elements rows = doc.select(".aggregated-finishedDrivers table tbody tr");
         Map<String, String> driversMap = new HashMap<>();
         for (Element row : rows) {
@@ -400,10 +389,39 @@ public class SparkStandaloneAgentService implements SparkAgentService {
         }
 
         String errlogUrl = driversMap.get(submissionId);
-        doc = Jsoup.connect(errlogUrl).get();
+        doc = loadDocument(requireWorkUrl(errlogUrl, submissionId));
         Element preElement = doc.selectFirst("pre");
 
-        return preElement.text().replace("LogType:spark-yun", "").replace("End of ", "");
+        return preElement == null ? "" : preElement.text().replace("LogType:spark-yun", "").replace("End of ", "");
+    }
+
+    private Document loadMasterDocument(String sparkHomePath) throws Exception {
+
+        return loadDocument(getMasterWebUrl(sparkHomePath));
+    }
+
+    private Document loadDocument(String url) throws IOException {
+
+        return Jsoup.connect(url).timeout(MASTER_UI_TIMEOUT_MS).get();
+    }
+
+    private Elements selectRows(Document doc, String selector) {
+
+        return doc.select(selector);
+    }
+
+    private String getText(Element row, String selector) {
+
+        Element element = row.selectFirst(selector);
+        return element == null ? "" : element.text();
+    }
+
+    private String requireWorkUrl(String workUrl, String submissionId) throws Exception {
+
+        if (Strings.isEmpty(workUrl)) {
+            throw new Exception("无法找到应用日志地址: " + submissionId);
+        }
+        return workUrl;
     }
 
     @Override

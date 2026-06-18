@@ -3,8 +3,12 @@ package com.isxcode.spark.agent.run.spark.impl;
 import cn.hutool.core.io.FileUtil;
 import com.alibaba.fastjson2.JSON;
 import com.isxcode.spark.agent.run.spark.SparkAgentService;
+import com.isxcode.spark.agent.run.utils.AgentJavaOptions;
+import com.isxcode.spark.agent.run.utils.CommandRunner;
+import com.isxcode.spark.agent.run.utils.CommandRunner.CommandResult;
 import com.isxcode.spark.api.agent.constants.AgentKubernetes;
 import com.isxcode.spark.api.agent.constants.AgentType;
+import com.isxcode.spark.api.agent.req.spark.PluginReq;
 import com.isxcode.spark.api.agent.req.spark.SubmitWorkReq;
 import com.isxcode.spark.api.agent.res.spark.GetWorkInfoRes;
 import com.isxcode.spark.api.work.constants.WorkType;
@@ -15,14 +19,18 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
 @Service
 public class SparkKubernetesAgentService implements SparkAgentService {
+
+    private static final Duration KUBECTL_TIMEOUT = Duration.ofSeconds(30);
+
+    private static final String KUBERNETES_NODE_NAME_KEY = "qing.kubernetes.node.name";
 
     @Override
     public String getAgentType() {
@@ -32,20 +40,13 @@ public class SparkKubernetesAgentService implements SparkAgentService {
     @Override
     public String getMaster(String sparkHomePath) throws Exception {
 
-        String clusterInfoCmd = "kubectl cluster-info";
-        Process clusterInfoProcess = Runtime.getRuntime().exec(clusterInfoCmd);
-        StringBuilder clusterInfoOutput = new StringBuilder();
-        try (BufferedReader clusterInfoReader =
-            new BufferedReader(new InputStreamReader(clusterInfoProcess.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = clusterInfoReader.readLine()) != null) {
-                clusterInfoOutput.append(line).append("\n");
-            }
-        } finally {
-            clusterInfoProcess.destroy();
+        CommandResult clusterInfoResult =
+            CommandRunner.run(Arrays.asList("kubectl", "cluster-info"), KUBECTL_TIMEOUT);
+        if (!clusterInfoResult.isSuccess()) {
+            throw new Exception(clusterInfoResult.getOutput());
         }
 
-        String[] clusterInfoLines = clusterInfoOutput.toString().split("\n");
+        String[] clusterInfoLines = clusterInfoResult.getStdout().split("\n");
         String result = null;
         for (String infoLine : clusterInfoLines) {
             if (infoLine.contains("https://")) {
@@ -174,8 +175,9 @@ public class SparkKubernetesAgentService implements SparkAgentService {
         }
 
         // 引入excel文件
-        String csvFilePath = submitWorkReq.getPluginReq().getCsvFilePath();
-        if (submitWorkReq.getPluginReq().getCsvFilePath() != null) {
+        PluginReq pluginReq = submitWorkReq.getPluginReq();
+        String csvFilePath = pluginReq == null ? null : pluginReq.getCsvFilePath();
+        if (csvFilePath != null) {
             sparkLauncher.setConf("spark.kubernetes.driver.volumes.hostPath.excel.mount.path", csvFilePath);
             sparkLauncher.setConf("spark.kubernetes.driver.volumes.hostPath.excel.options.path", csvFilePath);
             sparkLauncher.setConf("spark.kubernetes.executor.volumes.hostPath.excel.mount.path", csvFilePath);
@@ -200,7 +202,9 @@ public class SparkKubernetesAgentService implements SparkAgentService {
         }
 
         // 获取sparkConfig配置
-        Map<String, String> pluginSparkConfig = submitWorkReq.getPluginReq().getSparkConfig();
+        Map<String, String> pluginSparkConfig = pluginReq == null || pluginReq.getSparkConfig() == null
+            ? new HashMap<>()
+            : new HashMap<>(pluginReq.getSparkConfig());
 
         // 从sparkConfig中解析出域名映射
         Map<String, String> hostMapping = new HashMap<>();
@@ -217,22 +221,13 @@ public class SparkKubernetesAgentService implements SparkAgentService {
             hostMapping.put(pluginSparkConfig.get("qing.host3.name"), pluginSparkConfig.get("qing.host3.value"));
         }
 
-        // 拼接podTemplate文件
-        AtomicReference<String> podTemplate = new AtomicReference<>("apiVersion: v1 \n" + "kind: Pod \n"
-            + "metadata: \n" + "  name: pod-template \n" + "spec:\n" + "  ttlSecondsAfterFinished: 600\n"
-            + "  terminationGracePeriodSeconds: 600\n" + "  activeDeadlineSeconds: 600\n");
-
-        // 拼接host映射
-        if (!hostMapping.isEmpty()) {
-            podTemplate.set(podTemplate + "  hostAliases:\n");
-            hostMapping.forEach((k, v) -> podTemplate
-                .set(podTemplate + "    - ip: \"" + v + "\"\n      hostnames:\n" + "        - \"" + k + "\"\n"));
-        }
+        String nodeName = resolveKubernetesNodeName(pluginSparkConfig);
+        String podTemplate = buildPodTemplate(hostMapping, nodeName);
 
         // 将文本写到pod-init.yaml中
         String podFileName = submitWorkReq.getWorkInstanceId() + ".yml";
         String podPath = submitWorkReq.getAgentHomePath() + File.separator + "pods" + File.separator + podFileName;
-        FileUtil.writeUtf8String(podTemplate.get(), podPath);
+        FileUtil.writeUtf8String(podTemplate, podPath);
 
         // 配置pod-init.yaml
         sparkLauncher.setConf("spark.kubernetes.driver.podTemplateFile", podPath);
@@ -260,7 +255,10 @@ public class SparkKubernetesAgentService implements SparkAgentService {
         pluginSparkConfig.remove("qing.host3.name");
         pluginSparkConfig.remove("qing.host3.value");
         pluginSparkConfig.remove("qing.hive.username");
-        submitWorkReq.getPluginReq().setSparkConfig(pluginSparkConfig);
+        pluginSparkConfig.remove(KUBERNETES_NODE_NAME_KEY);
+        if (pluginReq != null) {
+            pluginReq.setSparkConfig(pluginSparkConfig);
+        }
 
         // 把删除后的sparkConfig，再使用base64压缩一下
         if (WorkType.SPARK_JAR.equals(submitWorkReq.getWorkType())) {
@@ -272,13 +270,71 @@ public class SparkKubernetesAgentService implements SparkAgentService {
         }
 
         // 把提交的spark配置，塞到sparkLauncher中，必须以spark. 为前缀
-        submitWorkReq.getSparkSubmit().getConf().forEach((k, v) -> {
+        Map<String, String> sparkConfig = submitWorkReq.getSparkSubmit().getConf();
+        if (sparkConfig == null) {
+            sparkConfig = new HashMap<>();
+            submitWorkReq.getSparkSubmit().setConf(sparkConfig);
+        }
+        sparkConfig.forEach((k, v) -> {
             if (k.startsWith("spark.")) {
                 sparkLauncher.setConf(k, v);
             }
         });
+        appendJava17ModuleOptions(sparkLauncher, sparkConfig);
 
         return sparkLauncher;
+    }
+
+    private String buildPodTemplate(Map<String, String> hostMapping, String nodeName) {
+
+        StringBuilder podTemplate = new StringBuilder();
+        podTemplate.append("apiVersion: v1\n");
+        podTemplate.append("kind: Pod\n");
+        podTemplate.append("metadata:\n");
+        podTemplate.append("  name: pod-template\n");
+        podTemplate.append("spec:\n");
+        podTemplate.append("  ttlSecondsAfterFinished: 600\n");
+        podTemplate.append("  terminationGracePeriodSeconds: 600\n");
+        podTemplate.append("  activeDeadlineSeconds: 600\n");
+        if (Strings.isNotEmpty(nodeName)) {
+            podTemplate.append("  nodeSelector:\n");
+            podTemplate.append("    kubernetes.io/hostname: ").append(yamlQuote(nodeName)).append("\n");
+        }
+        if (!hostMapping.isEmpty()) {
+            podTemplate.append("  hostAliases:\n");
+            hostMapping.forEach((hostName, ip) -> {
+                podTemplate.append("    - ip: ").append(yamlQuote(ip)).append("\n");
+                podTemplate.append("      hostnames:\n");
+                podTemplate.append("        - ").append(yamlQuote(hostName)).append("\n");
+            });
+        }
+        return podTemplate.toString();
+    }
+
+    private String resolveKubernetesNodeName(Map<String, String> pluginSparkConfig) {
+
+        String nodeName = pluginSparkConfig.get(KUBERNETES_NODE_NAME_KEY);
+        if (Strings.isEmpty(nodeName)) {
+            nodeName = System.getenv("KUBERNETES_NODE_NAME");
+        }
+        return nodeName;
+    }
+
+    private String yamlQuote(String value) {
+
+        return "\"" + String.valueOf(value).replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+    }
+
+    private void appendJava17ModuleOptions(SparkLauncher sparkLauncher, Map<String, String> sparkConfig) {
+
+        appendJava17ModuleOptions(sparkLauncher, sparkConfig, "spark.driver.extraJavaOptions");
+        appendJava17ModuleOptions(sparkLauncher, sparkConfig, "spark.executor.extraJavaOptions");
+    }
+
+    private void appendJava17ModuleOptions(SparkLauncher sparkLauncher, Map<String, String> sparkConfig, String key) {
+
+        sparkLauncher.setConf(key,
+            AgentJavaOptions.mergeOptions(sparkConfig.get(key), AgentJavaOptions.SPARK_JAVA_17_MODULE_OPTIONS));
     }
 
     @Override
@@ -316,43 +372,21 @@ public class SparkKubernetesAgentService implements SparkAgentService {
     @Override
     public GetWorkInfoRes getWorkInfo(String podName, String sparkHomePath) throws Exception {
 
-        String getStatusCmdFormat = "kubectl get pod %s -n zhiqingyun-space";
-
-        Process process = Runtime.getRuntime().exec(String.format(getStatusCmdFormat, podName));
-        StringBuilder errLog = new StringBuilder();
-        try (
-            BufferedReader reader =
-                new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-            BufferedReader errReader =
-                new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                errLog.append(line).append("\n");
-                Matcher matcher = Pattern.compile("\\s+\\d/\\d\\s+(\\w+)").matcher(line);
-                if (matcher.find()) {
-                    return GetWorkInfoRes.builder().appId(podName).finalState(matcher.group(1)).build();
-                }
+        CommandResult result =
+            CommandRunner.run(Arrays.asList("kubectl", "get", "pod", podName, "-n", AgentKubernetes.NAMESPACE),
+                KUBECTL_TIMEOUT);
+        String output = result.getOutput();
+        if (!result.isSuccess()) {
+            if (output.contains("not found")) {
+                return GetWorkInfoRes.builder().appId(podName).finalState("KILLED").build();
             }
-            if (errLog.toString().isEmpty()) {
-                while ((line = errReader.readLine()) != null) {
-                    errLog.append(line).append("\n");
-                    if (errLog.toString().contains("not found")) {
-                        return GetWorkInfoRes.builder().appId(podName).finalState("KILLED").build();
-                    }
-                }
-            }
-        } finally {
-            process.destroy();
+            throw new Exception(output);
         }
-
-        try {
-            int exitCode = process.waitFor();
-            if (exitCode == 1) {
-                throw new Exception(errLog.toString());
+        for (String line : result.getStdout().split("\n")) {
+            Matcher matcher = Pattern.compile("\\s+\\d/\\d\\s+(\\w+)").matcher(line);
+            if (matcher.find()) {
+                return GetWorkInfoRes.builder().appId(podName).finalState(matcher.group(1)).build();
             }
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-            throw new Exception(e.getMessage());
         }
 
         throw new Exception("获取状态异常");
@@ -361,78 +395,36 @@ public class SparkKubernetesAgentService implements SparkAgentService {
     @Override
     public String getStderrLog(String appId, String sparkHomePath) throws Exception {
 
-        String getLogCmdFormat = "kubectl logs %s -n zhiqingyun-space";
-
-        Process process = Runtime.getRuntime().exec(String.format(getLogCmdFormat, appId));
-        StringBuilder errLog = new StringBuilder();
-        try (
-            BufferedReader reader =
-                new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-            BufferedReader errReader =
-                new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                errLog.append(line).append("\n");
-            }
-            if (Strings.isEmpty(errLog)) {
-                while ((line = errReader.readLine()) != null) {
-                    errLog.append(line).append("\n");
-                }
-            }
-        } finally {
-            process.destroy();
+        CommandResult result = readPodLog(appId);
+        String logText = result.getOutput();
+        if (!result.isSuccess()) {
+            throw new Exception(logText);
         }
-        try {
-            int exitCode = process.waitFor();
-            if (exitCode == 1) {
-                throw new Exception(errLog.toString());
-            } else {
-                if (errLog.toString().contains("Error")) {
-                    return errLog.toString();
-                }
-                Pattern regex = Pattern.compile("LogType:spark-yun\\s*([\\s\\S]*?)\\s*End of LogType:spark-yun");
-                Matcher matcher = regex.matcher(errLog);
-                String logStr = errLog.toString();
-                if (matcher.find()) {
-                    logStr = logStr.replace(matcher.group(), "");
-                }
-                return logStr;
-            }
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-            throw new Exception(e.getMessage());
+        if (logText.contains("Error")) {
+            return logText;
         }
+        Pattern regex = Pattern.compile("LogType:spark-yun\\s*([\\s\\S]*?)\\s*End of LogType:spark-yun");
+        Matcher matcher = regex.matcher(logText);
+        if (matcher.find()) {
+            return logText.replace(matcher.group(), "");
+        }
+        return logText;
     }
 
     @Override
     public String getStdoutLog(String appId, String sparkHomePath) throws Exception {
 
-        String getLogCmdFormat = "kubectl logs %s -n zhiqingyun-space";
-
-        Process process = Runtime.getRuntime().exec(String.format(getLogCmdFormat, appId));
+        CommandResult result = readPodLog(appId);
         StringBuilder errLog = new StringBuilder();
-        try (BufferedReader reader =
-            new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.contains("累计处理条数")) {
-                    errLog.append(line).append("\n");
-                }
-            }
-        } finally {
-            process.destroy();
+        if (!result.isSuccess()) {
+            throw new Exception(result.getOutput());
         }
-        try {
-            int exitCode = process.waitFor();
-            if (exitCode == 1) {
-                throw new Exception(errLog.toString());
-            } else {
-                return errLog.toString();
+        for (String line : result.getStdout().split("\n")) {
+            if (line.contains("累计处理条数")) {
+                errLog.append(line).append("\n");
             }
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-            throw new Exception(e.getMessage());
         }
+        return errLog.toString();
     }
 
     @Override
@@ -443,63 +435,35 @@ public class SparkKubernetesAgentService implements SparkAgentService {
     @Override
     public String getWorkDataStr(String appId, String sparkHomePath) throws Exception {
 
-        String getLogCmdFormat = "kubectl logs -f %s -n zhiqingyun-space";
-
-        Process process = Runtime.getRuntime().exec(String.format(getLogCmdFormat, appId));
-        StringBuilder errLog = new StringBuilder();
-        try (BufferedReader reader =
-            new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                errLog.append(line).append("\n");
-            }
-        } finally {
-            process.destroy();
+        CommandResult result = readPodLog(appId);
+        String logText = result.getStdout();
+        if (!result.isSuccess()) {
+            throw new Exception(result.getOutput());
         }
-        try {
-            int exitCode = process.waitFor();
-            if (exitCode == 1) {
-                throw new Exception(errLog.toString());
-            } else {
-                Pattern regex = Pattern.compile("LogType:spark-yun\\s*([\\s\\S]*?)\\s*End of LogType:spark-yun");
-                Matcher matcher = regex.matcher(errLog);
-                String logStr = "";
-                while (matcher.find() && Strings.isEmpty(logStr)) {
-                    logStr =
-                        matcher.group().replace("LogType:spark-yun\n", "").replace("\nEnd of LogType:spark-yun", "");
-                }
-                return logStr;
-            }
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-            throw new Exception(e.getMessage());
+        Pattern regex = Pattern.compile("LogType:spark-yun\\s*([\\s\\S]*?)\\s*End of LogType:spark-yun");
+        Matcher matcher = regex.matcher(logText);
+        String logStr = "";
+        while (matcher.find() && Strings.isEmpty(logStr)) {
+            logStr = matcher.group().replace("LogType:spark-yun\n", "").replace("\nEnd of LogType:spark-yun", "");
         }
+        return logStr;
     }
 
     @Override
     public void stopWork(String appId, String sparkHomePath, String agentHomePath) throws Exception {
 
-        String killAppCmdFormat = "kubectl delete pod %s -n zhiqingyun-space";
-        Process process = Runtime.getRuntime().exec(String.format(killAppCmdFormat, appId));
-        StringBuilder errLog = new StringBuilder();
-        try (BufferedReader reader =
-            new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                errLog.append(line).append("\n");
-            }
-        } finally {
-            process.destroy();
+        CommandResult result =
+            CommandRunner.run(Arrays.asList("kubectl", "delete", "pod", appId, "-n", AgentKubernetes.NAMESPACE),
+                KUBECTL_TIMEOUT);
+        if (!result.isSuccess() && !result.getOutput().contains("not found")) {
+            throw new Exception(result.getOutput());
         }
-        try {
-            int exitCode = process.waitFor();
-            if (exitCode == 1) {
-                throw new Exception(errLog.toString());
-            }
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-            throw new Exception(e.getMessage());
-        }
+    }
+
+    private CommandResult readPodLog(String appId) throws IOException, InterruptedException {
+
+        return CommandRunner.run(
+            Arrays.asList("kubectl", "logs", appId, "-n", AgentKubernetes.NAMESPACE, "--tail=2000"), KUBECTL_TIMEOUT);
     }
 
     @Override
