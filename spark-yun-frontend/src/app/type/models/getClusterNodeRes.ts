@@ -19,6 +19,7 @@ export interface GetClusterNodeRes {
   checkDateTime?: string;
   agentHomePath?: string;
   agentPort?: string;
+  connectType?: string;
   hadoopHomePath?: string;
   port?: string;
   agentLog?: string;

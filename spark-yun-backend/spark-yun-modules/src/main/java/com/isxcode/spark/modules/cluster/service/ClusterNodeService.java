@@ -1,6 +1,7 @@
 package com.isxcode.spark.modules.cluster.service;
 
 import com.isxcode.spark.api.cluster.dto.ScpFileEngineNodeDto;
+import com.isxcode.spark.api.cluster.constants.ClusterNodeConnectType;
 import com.isxcode.spark.api.main.properties.SparkYunProperties;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.common.utils.aes.AesUtils;
@@ -72,6 +73,40 @@ public class ClusterNodeService {
             return sparkYunProperties.getDefaultAgentPort();
         } else {
             return agentPort;
+        }
+    }
+
+    public String getDefaultConnectType(String connectType) {
+
+        if (Strings.isEmpty(connectType)) {
+            return ClusterNodeConnectType.SSH;
+        } else {
+            return connectType;
+        }
+    }
+
+    public boolean isAgentPortConnectType(String connectType) {
+
+        return ClusterNodeConnectType.AGENT_PORT.equals(getDefaultConnectType(connectType));
+    }
+
+    public void validateSshConnectConfig(String port, String username, String passwd) {
+
+        if (Strings.isEmpty(port)) {
+            throw new IsxAppException("请输入SSH端口号");
+        }
+        if (Strings.isEmpty(username)) {
+            throw new IsxAppException("请输入用户名");
+        }
+        if (Strings.isEmpty(passwd)) {
+            throw new IsxAppException("请输入密码或者令牌");
+        }
+    }
+
+    public void validateAgentPortConnectConfig(String agentPort) {
+
+        if (Strings.isEmpty(agentPort)) {
+            throw new IsxAppException("请输入服务端口号");
         }
     }
 

@@ -4,6 +4,7 @@ import com.isxcode.spark.agent.service.SparkAgentBizService;
 import com.isxcode.spark.api.agent.constants.SparkAgentUrl;
 import com.isxcode.spark.api.agent.req.spark.*;
 import com.isxcode.spark.api.agent.res.spark.*;
+import com.isxcode.spark.api.monitor.dto.NodeMonitorInfo;
 import com.isxcode.spark.api.work.res.AgentLinkResponse;
 import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -101,6 +102,14 @@ public class SparkAgentController {
     public AgentLinkResponse heartCheck() {
 
         return AgentLinkResponse.builder().msg("心跳正常").build();
+    }
+
+    @Operation(summary = "获取节点监控")
+    @PostMapping(SparkAgentUrl.GET_NODE_MONITOR_URL)
+    @SuccessResponse("获取成功")
+    public NodeMonitorInfo getNodeMonitor() {
+
+        return sparkYunAgentBizService.getNodeMonitor();
     }
 
     @Operation(summary = "计算容器心跳检测")

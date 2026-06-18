@@ -7,14 +7,12 @@ import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.unit.DataSize;
 import cn.hutool.core.io.unit.DataUnit;
-import com.alibaba.fastjson.JSON;
+import com.isxcode.spark.api.agent.constants.SparkAgentUrl;
 import com.isxcode.spark.api.api.constants.ApiStatus;
 import com.isxcode.spark.api.cluster.constants.ClusterNodeStatus;
 import com.isxcode.spark.api.cluster.constants.ClusterStatus;
-import com.isxcode.spark.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.spark.api.datasource.constants.DatasourceStatus;
 import com.isxcode.spark.api.instance.constants.InstanceStatus;
-import com.isxcode.spark.api.main.properties.SparkYunProperties;
 import com.isxcode.spark.api.monitor.constants.MonitorStatus;
 import com.isxcode.spark.api.monitor.ao.MonitorLineAo;
 import com.isxcode.spark.api.monitor.ao.WorkflowMonitorAo;
@@ -31,10 +29,8 @@ import com.isxcode.spark.api.monitor.res.GetSystemMonitorRes;
 import com.isxcode.spark.api.monitor.res.PageInstancesRes;
 import com.isxcode.spark.api.workflow.constants.WorkflowStatus;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
-import com.isxcode.spark.common.utils.aes.AesUtils;
 import com.isxcode.spark.modules.api.repository.ApiRepository;
 import com.isxcode.spark.modules.cluster.entity.ClusterNodeEntity;
-import com.isxcode.spark.modules.cluster.mapper.ClusterNodeMapper;
 import com.isxcode.spark.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.spark.modules.cluster.repository.ClusterRepository;
 import com.isxcode.spark.modules.datasource.repository.DatasourceRepository;
@@ -46,8 +42,7 @@ import com.isxcode.spark.modules.workflow.entity.WorkflowInstanceEntity;
 import com.isxcode.spark.modules.workflow.mapper.WorkflowMapper;
 import com.isxcode.spark.modules.workflow.repository.WorkflowInstanceRepository;
 import com.isxcode.spark.modules.workflow.repository.WorkflowRepository;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
+import com.isxcode.spark.modules.work.run.AgentLinkUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.ap.internal.util.Strings;
@@ -58,16 +53,12 @@ import com.isxcode.spark.api.monitor.constants.TimeType;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import com.isxcode.spark.common.security.ContextHolder;
-import static com.isxcode.spark.common.utils.ssh.SshUtils.executeCommand;
-import static com.isxcode.spark.common.utils.ssh.SshUtils.scpFile;
 
 @Service
 @Slf4j
@@ -77,13 +68,7 @@ public class MonitorBizService {
 
     private final ClusterNodeRepository clusterNodeRepository;
 
-    private final SparkYunProperties sparkYunProperties;
-
-    private final ClusterNodeMapper clusterNodeMapper;
-
     private final MonitorMapper monitorMapper;
-
-    private final AesUtils aesUtils;
 
     private final MonitorRepository monitorRepository;
 
@@ -98,6 +83,8 @@ public class MonitorBizService {
     private final ApiRepository apiRepository;
 
     private final WorkflowMapper workflowMapper;
+
+    private final AgentLinkUtils agentLinkUtils;
 
     private final WorkInstanceRepository workInstanceRepository;
 
@@ -306,13 +293,9 @@ public class MonitorBizService {
         allNode.forEach(e -> {
             CompletableFuture.supplyAsync(() -> {
 
-                // 封装ScpFileEngineNodeDto对象
-                ScpFileEngineNodeDto scpFileEngineNodeDto = clusterNodeMapper.engineNodeEntityToScpFileEngineNodeDto(e);
-                scpFileEngineNodeDto.setPasswd(aesUtils.decrypt(scpFileEngineNodeDto.getPasswd()));
-
                 // 每个节点都抽取一次
                 try {
-                    NodeMonitorInfo nodeMonitor = getNodeMonitor(scpFileEngineNodeDto);
+                    NodeMonitorInfo nodeMonitor = getNodeMonitor(e);
                     nodeMonitor.setClusterNodeId(e.getId());
                     nodeMonitor.setClusterId(e.getClusterId());
                     nodeMonitor.setTenantId(e.getTenantId());
@@ -335,23 +318,10 @@ public class MonitorBizService {
         });
     }
 
-    public NodeMonitorInfo getNodeMonitor(ScpFileEngineNodeDto scpFileEngineNodeDto)
-        throws JSchException, IOException, InterruptedException, SftpException {
+    public NodeMonitorInfo getNodeMonitor(ClusterNodeEntity clusterNode) {
 
-        // 拷贝检测脚本
-        scpFile(scpFileEngineNodeDto, "classpath:bash/agent-monitor.sh",
-            sparkYunProperties.getTmpDir() + File.separator + "agent-monitor.sh");
-
-        // 运行安装脚本
-        String getMonitorCommand = "bash " + sparkYunProperties.getTmpDir() + File.separator + "agent-monitor.sh";
-
-        // 获取返回结果
-        String executeLog = executeCommand(scpFileEngineNodeDto, getMonitorCommand, false);
-
-        // 获取节点信息
-        NodeMonitorInfo nodeMonitorInfo = JSON.parseObject(executeLog, NodeMonitorInfo.class);
-
-        // 报错直接返回
+        NodeMonitorInfo nodeMonitorInfo =
+            agentLinkUtils.getAgentResponse(clusterNode, SparkAgentUrl.GET_NODE_MONITOR_URL, null, NodeMonitorInfo.class);
         if (!MonitorStatus.SUCCESS.equals(nodeMonitorInfo.getStatus())) {
             nodeMonitorInfo.setStatus(MonitorStatus.FAIL);
             return nodeMonitorInfo;

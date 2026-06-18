@@ -5,6 +5,8 @@ import static com.isxcode.spark.common.utils.ssh.SshUtils.executeCommand;
 import static com.isxcode.spark.common.utils.ssh.SshUtils.scpFile;
 
 import com.alibaba.fastjson.JSON;
+import com.isxcode.spark.api.agent.constants.SparkAgentUrl;
+import com.isxcode.spark.api.cluster.constants.ClusterNodeConnectType;
 import com.isxcode.spark.api.cluster.constants.ClusterNodeStatus;
 import com.isxcode.spark.api.cluster.constants.ClusterStatus;
 import com.isxcode.spark.api.cluster.dto.AgentInfo;
@@ -15,6 +17,7 @@ import com.isxcode.spark.common.utils.os.OsUtils;
 import com.isxcode.spark.modules.cluster.entity.ClusterNodeEntity;
 import com.isxcode.spark.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.spark.modules.cluster.repository.ClusterRepository;
+import com.isxcode.spark.modules.work.run.AgentLinkUtils;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
 
@@ -40,6 +43,8 @@ public class RunAgentCheckService {
     private final ClusterNodeRepository clusterNodeRepository;
 
     private final ClusterRepository clusterRepository;
+
+    private final AgentLinkUtils agentLinkUtils;
 
     @Async("sparkYunWorkThreadPool")
     public void run(String clusterNodeId, ScpFileEngineNodeDto scpFileEngineNodeDto, String tenantId, String userId) {
@@ -67,6 +72,11 @@ public class RunAgentCheckService {
 
     public void checkAgent(ScpFileEngineNodeDto scpFileEngineNodeDto, ClusterNodeEntity engineNode)
         throws JSchException, IOException, InterruptedException, SftpException {
+
+        if (ClusterNodeConnectType.AGENT_PORT.equals(engineNode.getConnectType())) {
+            checkAgentPort(engineNode);
+            return;
+        }
 
         String bashFilePath = sparkYunProperties.getTmpDir() + "/agent-check.sh";
 
@@ -113,6 +123,32 @@ public class RunAgentCheckService {
                 clusterEntity.setStatus(ClusterStatus.ACTIVE);
                 clusterRepository.saveAndFlush(clusterEntity);
             });
+        }
+    }
+
+    private void checkAgentPort(ClusterNodeEntity engineNode) {
+
+        try {
+            agentLinkUtils.getAgentLinkResponse(engineNode, SparkAgentUrl.HEART_CHECK_URL, null);
+            engineNode.setAllMemory(0.0);
+            engineNode.setUsedMemory(0.0);
+            engineNode.setAllStorage(0.0);
+            engineNode.setUsedStorage(0.0);
+            engineNode.setCpuPercent(0.0);
+            engineNode.setStatus(ClusterNodeStatus.RUNNING);
+            engineNode.setAgentLog("检测完成");
+            engineNode.setCheckDateTime(LocalDateTime.now());
+            clusterNodeRepository.saveAndFlush(engineNode);
+
+            clusterRepository.findById(engineNode.getClusterId()).ifPresent(clusterEntity -> {
+                clusterEntity.setStatus(ClusterStatus.ACTIVE);
+                clusterRepository.saveAndFlush(clusterEntity);
+            });
+        } catch (Exception e) {
+            engineNode.setCheckDateTime(LocalDateTime.now());
+            engineNode.setAgentLog(e.getMessage());
+            engineNode.setStatus(ClusterNodeStatus.CHECK_ERROR);
+            clusterNodeRepository.saveAndFlush(engineNode);
         }
     }
 }

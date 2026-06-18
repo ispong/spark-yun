@@ -31,6 +31,8 @@ public class GetClusterNodeRes {
 
     private String agentPort;
 
+    private String connectType;
+
     private String hadoopHomePath;
 
     private String port;

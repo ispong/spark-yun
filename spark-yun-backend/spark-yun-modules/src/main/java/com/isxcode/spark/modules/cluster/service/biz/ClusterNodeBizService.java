@@ -3,7 +3,9 @@ package com.isxcode.spark.modules.cluster.service.biz;
 import com.isxcode.spark.common.security.ContextHolder;
 
 import com.isxcode.spark.api.agent.constants.AgentType;
+import com.isxcode.spark.api.agent.constants.SparkAgentUrl;
 import com.isxcode.spark.api.api.constants.PathConstants;
+import com.isxcode.spark.api.cluster.constants.ClusterNodeConnectType;
 import com.isxcode.spark.api.cluster.constants.ClusterNodeStatus;
 import com.isxcode.spark.api.cluster.constants.ClusterStatus;
 import com.isxcode.spark.api.cluster.dto.ScpFileEngineNodeDto;
@@ -22,12 +24,14 @@ import com.isxcode.spark.modules.cluster.repository.ClusterRepository;
 import com.isxcode.spark.modules.cluster.run.*;
 import com.isxcode.spark.modules.cluster.service.ClusterNodeService;
 import com.isxcode.spark.modules.cluster.service.ClusterService;
+import com.isxcode.spark.modules.work.run.AgentLinkUtils;
 
 import java.io.IOException;
 
 import com.jcraft.jsch.JSchException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -63,23 +67,48 @@ public class ClusterNodeBizService {
 
     private final ClusterNodeService clusterNodeService;
 
+    private final AgentLinkUtils agentLinkUtils;
+
     public void addClusterNode(AddClusterNodeReq addClusterNodeReq) {
 
         ClusterEntity cluster = clusterService.getCluster(addClusterNodeReq.getClusterId());
 
         ClusterNodeEntity clusterNode = engineNodeMapper.addClusterNodeReqToClusterNodeEntity(addClusterNodeReq);
 
-        // 是否安装spark-local组件
-        clusterNode.setInstallSparkLocal(addClusterNodeReq.getInstallSparkLocal());
+        String connectType = clusterNodeService.getDefaultConnectType(addClusterNodeReq.getConnectType());
+        clusterNode.setConnectType(connectType);
 
-        // 密码对成加密
-        clusterNode.setPasswd(aesUtils.encrypt(addClusterNodeReq.getPasswd().trim()));
+        // 是否安装spark-local组件
+        clusterNode.setInstallSparkLocal(Boolean.TRUE.equals(addClusterNodeReq.getInstallSparkLocal()));
+        clusterNode.setInstallFlinkLocal(Boolean.TRUE.equals(addClusterNodeReq.getInstallFlinkLocal()));
+
+        if (ClusterNodeConnectType.AGENT_PORT.equals(connectType)) {
+            clusterNodeService.validateAgentPortConnectConfig(addClusterNodeReq.getAgentPort());
+            clusterNode.setAgentPort(addClusterNodeReq.getAgentPort());
+            clusterNode.setPort(null);
+            clusterNode.setUsername(null);
+            clusterNode.setPasswd(null);
+            clusterNode.setAgentHomePath(null);
+            clusterNode.setHadoopHomePath(null);
+            clusterNode.setSparkHomePath(addClusterNodeReq.getSparkHomePath());
+            clusterNode.setFlinkHomePath(addClusterNodeReq.getFlinkHomePath());
+            clusterNode.setInstallSparkLocal(false);
+            clusterNode.setInstallFlinkLocal(false);
+            clusterNode.setStatus(ClusterNodeStatus.UN_INSTALL);
+            clusterNodeRepository.save(clusterNode);
+            return;
+        }
+
+        clusterNodeService.validateSshConnectConfig(addClusterNodeReq.getPort(), addClusterNodeReq.getUsername(),
+            addClusterNodeReq.getPasswd());
+
+        clusterNode.setAgentPort(clusterNodeService.getDefaultAgentPort(addClusterNodeReq.getAgentPort()));
 
         // 设置服务器默认端口号
         clusterNode.setPort(addClusterNodeReq.getPort());
 
-        // 设置默认代理端口号
-        clusterNode.setAgentPort(clusterNodeService.getDefaultAgentPort(addClusterNodeReq.getAgentPort().trim()));
+        // 密码对成加密
+        clusterNode.setPasswd(aesUtils.encrypt(addClusterNodeReq.getPasswd().trim()));
 
         // 初始化节点状态，未检测
         clusterNode.setStatus(ClusterNodeStatus.UN_INSTALL);
@@ -89,7 +118,8 @@ public class ClusterNodeBizService {
             clusterNodeService.getDefaultAgentHomePath(addClusterNodeReq.getUsername().trim(), clusterNode));
 
         // 如果是默认安装spark,设置默认路径
-        if (addClusterNodeReq.getInstallSparkLocal() || !AgentType.StandAlone.equals(cluster.getClusterType())) {
+        if (Boolean.TRUE.equals(addClusterNodeReq.getInstallSparkLocal())
+            || !AgentType.StandAlone.equals(cluster.getClusterType())) {
             clusterNode.setSparkHomePath(clusterNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME + "/"
                 + PathConstants.SPARK_MIN_HOME);
         } else {
@@ -97,7 +127,8 @@ public class ClusterNodeBizService {
         }
 
         // 如果是默认安装flink,设置默认路径
-        if (addClusterNodeReq.getInstallFlinkLocal() || !AgentType.StandAlone.equals(cluster.getClusterType())) {
+        if (Boolean.TRUE.equals(addClusterNodeReq.getInstallFlinkLocal())
+            || !AgentType.StandAlone.equals(cluster.getClusterType())) {
             clusterNode.setFlinkHomePath(clusterNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME + "/"
                 + PathConstants.FLINK_MIN_HOME);
         } else {
@@ -126,8 +157,38 @@ public class ClusterNodeBizService {
         // 转换对象
         clusterNode = engineNodeMapper.updateNodeReqToNodeEntity(updateClusterNodeReq, clusterNode);
 
+        String connectType = clusterNodeService.getDefaultConnectType(updateClusterNodeReq.getConnectType());
+        clusterNode.setConnectType(connectType);
+
         // 是否安装spark-local组件
-        clusterNode.setInstallSparkLocal(updateClusterNodeReq.getInstallSparkLocal());
+        clusterNode.setInstallSparkLocal(Boolean.TRUE.equals(updateClusterNodeReq.getInstallSparkLocal()));
+        clusterNode.setInstallFlinkLocal(Boolean.TRUE.equals(updateClusterNodeReq.getInstallFlinkLocal()));
+
+        if (ClusterNodeConnectType.AGENT_PORT.equals(connectType)) {
+            clusterNodeService.validateAgentPortConnectConfig(updateClusterNodeReq.getAgentPort());
+            clusterNode.setAgentPort(updateClusterNodeReq.getAgentPort());
+            clusterNode.setPort(null);
+            clusterNode.setUsername(null);
+            clusterNode.setPasswd(null);
+            clusterNode.setAgentHomePath(null);
+            clusterNode.setHadoopHomePath(null);
+            clusterNode.setSparkHomePath(updateClusterNodeReq.getSparkHomePath());
+            clusterNode.setFlinkHomePath(updateClusterNodeReq.getFlinkHomePath());
+            clusterNode.setInstallSparkLocal(false);
+            clusterNode.setInstallFlinkLocal(false);
+            clusterNode.setStatus(ClusterNodeStatus.UN_CHECK);
+            clusterNodeRepository.save(clusterNode);
+
+            cluster.setStatus(ClusterStatus.UN_CHECK);
+            clusterRepository.save(cluster);
+            return;
+        }
+
+        clusterNodeService.validateSshConnectConfig(updateClusterNodeReq.getPort(), updateClusterNodeReq.getUsername(),
+            updateClusterNodeReq.getPasswd());
+
+        // 设置代理端口号
+        clusterNode.setAgentPort(clusterNodeService.getDefaultAgentPort(updateClusterNodeReq.getAgentPort()));
 
         // 密码对成加密
         clusterNode.setPasswd(aesUtils.encrypt(updateClusterNodeReq.getPasswd().trim()));
@@ -140,7 +201,8 @@ public class ClusterNodeBizService {
             clusterNodeService.getDefaultAgentHomePath(updateClusterNodeReq.getUsername(), clusterNode));
 
         // 如果是默认安装spark,设置默认路径
-        if (updateClusterNodeReq.getInstallSparkLocal() || !AgentType.StandAlone.equals(cluster.getClusterType())) {
+        if (Boolean.TRUE.equals(updateClusterNodeReq.getInstallSparkLocal())
+            || !AgentType.StandAlone.equals(cluster.getClusterType())) {
             clusterNode.setSparkHomePath(clusterNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME + "/"
                 + PathConstants.SPARK_MIN_HOME);
         } else {
@@ -148,15 +210,13 @@ public class ClusterNodeBizService {
         }
 
         // 如果是默认安装flink,设置默认路径
-        if (updateClusterNodeReq.getInstallFlinkLocal() || !AgentType.StandAlone.equals(cluster.getClusterType())) {
+        if (Boolean.TRUE.equals(updateClusterNodeReq.getInstallFlinkLocal())
+            || !AgentType.StandAlone.equals(cluster.getClusterType())) {
             clusterNode.setFlinkHomePath(clusterNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME + "/"
                 + PathConstants.FLINK_MIN_HOME);
         } else {
             clusterNode.setFlinkHomePath(updateClusterNodeReq.getFlinkHomePath());
         }
-
-        // 设置代理端口号
-        clusterNode.setAgentPort(clusterNodeService.getDefaultAgentPort(updateClusterNodeReq.getAgentPort()));
 
         // 初始化节点状态，未检测
         clusterNode.setStatus(ClusterNodeStatus.UN_CHECK);
@@ -180,13 +240,15 @@ public class ClusterNodeBizService {
         ClusterNodeEntity clusterNode = clusterNodeRepository.findById(deleteClusterNodeReq.getEngineNodeId())
             .orElseThrow(() -> new IsxAppException("节点已删除"));
 
+        boolean agentPortConnectType = clusterNodeService.isAgentPortConnectType(clusterNode.getConnectType());
+
         // 如果是安装中等状态，需要等待运行结束
         if (ClusterNodeStatus.CHECKING.equals(clusterNode.getStatus())
             || ClusterNodeStatus.INSTALLING.equals(clusterNode.getStatus())
             || ClusterNodeStatus.REMOVING.equals(clusterNode.getStatus())
             || ClusterNodeStatus.STARTING.equals(clusterNode.getStatus())
             || ClusterNodeStatus.STOPPING.equals(clusterNode.getStatus())
-            || ClusterNodeStatus.RUNNING.equals(clusterNode.getStatus())) {
+            || (ClusterNodeStatus.RUNNING.equals(clusterNode.getStatus()) && !agentPortConnectType)) {
             throw new IsxAppException("请卸载节点后删除");
         }
 
@@ -207,9 +269,12 @@ public class ClusterNodeBizService {
             throw new IsxAppException("当前状态无法操作，请稍后再试");
         }
 
-        // 转换请求节点检测对象
-        ScpFileEngineNodeDto scpFileEngineNodeDto = engineNodeMapper.engineNodeEntityToScpFileEngineNodeDto(engineNode);
-        scpFileEngineNodeDto.setPasswd(aesUtils.decrypt(scpFileEngineNodeDto.getPasswd()));
+        ScpFileEngineNodeDto scpFileEngineNodeDto = null;
+        if (!clusterNodeService.isAgentPortConnectType(engineNode.getConnectType())) {
+            // 转换请求节点检测对象
+            scpFileEngineNodeDto = engineNodeMapper.engineNodeEntityToScpFileEngineNodeDto(engineNode);
+            scpFileEngineNodeDto.setPasswd(aesUtils.decrypt(scpFileEngineNodeDto.getPasswd()));
+        }
 
         // 修改状态
         engineNode.setStatus(ClusterNodeStatus.CHECKING);
@@ -225,6 +290,24 @@ public class ClusterNodeBizService {
 
     public TestAgentRes testAgent(TestAgentReq testAgentReq) {
 
+        if (clusterNodeService.isAgentPortConnectType(testAgentReq.getConnectType())) {
+            if (Strings.isEmpty(testAgentReq.getAgentPort())) {
+                return TestAgentRes.builder().status("FAIL").log("请输入服务端口号").build();
+            }
+            ClusterNodeEntity agentNode = ClusterNodeEntity.builder().host(testAgentReq.getHost())
+                .agentPort(testAgentReq.getAgentPort()).build();
+            try {
+                agentLinkUtils.getAgentLinkResponse(agentNode, SparkAgentUrl.HEART_CHECK_URL, null);
+                return TestAgentRes.builder().status("SUCCESS").log("连接成功").build();
+            } catch (Exception e) {
+                return TestAgentRes.builder().status("FAIL").log(e.getMessage()).build();
+            }
+        }
+
+        if (Strings.isEmpty(testAgentReq.getPort()) || Strings.isEmpty(testAgentReq.getUsername())
+            || Strings.isEmpty(testAgentReq.getPasswd())) {
+            return TestAgentRes.builder().status("FAIL").log("请将SSH参数填写完整").build();
+        }
         ScpFileEngineNodeDto scpFileEngineNodeDto = ScpFileEngineNodeDto.builder().host(testAgentReq.getHost())
             .port(testAgentReq.getPort()).passwd(testAgentReq.getPasswd()).username(testAgentReq.getUsername()).build();
         String testAgent = "echo 'hello'";
@@ -248,6 +331,10 @@ public class ClusterNodeBizService {
         ClusterNodeEntity clusterNode = clusterNodeService.getClusterNode(installAgentReq.getEngineNodeId());
 
         ClusterEntity cluster = clusterService.getCluster(clusterNode.getClusterId());
+
+        if (clusterNodeService.isAgentPortConnectType(clusterNode.getConnectType())) {
+            throw new IsxAppException("端口连接方式不支持安装节点");
+        }
 
         // 如果是安装中等状态，需要等待运行结束
         if (ClusterNodeStatus.CHECKING.equals(clusterNode.getStatus())
@@ -281,6 +368,10 @@ public class ClusterNodeBizService {
         // 获取节点信息
         ClusterNodeEntity engineNode = clusterNodeService.getClusterNode(removeAgentReq.getEngineNodeId());
 
+        if (clusterNodeService.isAgentPortConnectType(engineNode.getConnectType())) {
+            throw new IsxAppException("端口连接方式不支持卸载节点");
+        }
+
         // 如果是安装中等状态，需要等待运行结束
         if (ClusterNodeStatus.CHECKING.equals(engineNode.getStatus())
             || ClusterNodeStatus.INSTALLING.equals(engineNode.getStatus())
@@ -309,6 +400,10 @@ public class ClusterNodeBizService {
         // 获取节点信息
         ClusterNodeEntity engineNode = clusterNodeService.getClusterNode(cleanAgentReq.getEngineNodeId());
 
+        if (clusterNodeService.isAgentPortConnectType(engineNode.getConnectType())) {
+            throw new IsxAppException("端口连接方式不支持清理节点");
+        }
+
         // 如果是安装中等状态，需要等待运行结束
         if (ClusterNodeStatus.CHECKING.equals(engineNode.getStatus())
             || ClusterNodeStatus.INSTALLING.equals(engineNode.getStatus())
@@ -334,6 +429,10 @@ public class ClusterNodeBizService {
 
         // 获取节点信息
         ClusterNodeEntity engineNode = clusterNodeService.getClusterNode(stopAgentReq.getEngineNodeId());
+
+        if (clusterNodeService.isAgentPortConnectType(engineNode.getConnectType())) {
+            throw new IsxAppException("端口连接方式不支持停止节点");
+        }
 
         // 如果是安装中等状态，需要等待运行结束
         if (ClusterNodeStatus.CHECKING.equals(engineNode.getStatus())
@@ -367,6 +466,10 @@ public class ClusterNodeBizService {
 
         // 获取节点信息
         ClusterNodeEntity engineNode = clusterNodeService.getClusterNode(startAgentReq.getEngineNodeId());
+
+        if (clusterNodeService.isAgentPortConnectType(engineNode.getConnectType())) {
+            throw new IsxAppException("端口连接方式不支持激活节点");
+        }
 
         // 如果是安装中等状态，需要等待运行结束
         if (ClusterNodeStatus.CHECKING.equals(engineNode.getStatus())

@@ -16,15 +16,12 @@ public class AddClusterNodeReq {
     private String host;
 
     @Schema(title = "节点服务器ssh端口号", example = "22")
-    @NotEmpty(message = "port不能为空")
     private String port;
 
     @Schema(title = "节点服务器用户名", example = "ispong")
-    @NotEmpty(message = "用户名不能为空")
     private String username;
 
     @Schema(title = "节点服务器密码", example = "ispong123")
-    @NotEmpty(message = "密码或者令牌不能为空")
     private String passwd;
 
     @Schema(title = "备注", example = "本地测试节点")
@@ -39,6 +36,9 @@ public class AddClusterNodeReq {
 
     @Schema(title = "代理服务端口号", example = "30177")
     private String agentPort;
+
+    @Schema(title = "连接方式", example = "SSH")
+    private String connectType;
 
     @Schema(title = "hadoop的home目录", example = "/opt/homebrew/Cellar/hadoop/3.3.4/libexec")
     private String hadoopHomePath;

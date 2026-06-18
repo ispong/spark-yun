@@ -78,6 +78,8 @@ public class ClusterNodeEntity {
 
     private String agentPort;
 
+    private String connectType;
+
     private String hadoopHomePath;
 
     private String sparkHomePath;

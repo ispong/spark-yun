@@ -100,28 +100,33 @@
                                         </el-dropdown-item>
                                         <el-dropdown-item @click="showLog(scopeSlot.row)">日志</el-dropdown-item>
                                         <el-dropdown-item
-                                            v-if="scopeSlot.row.status === 'RUNNING'"
+                                            v-if="isSshNode(scopeSlot.row) && scopeSlot.row.status === 'RUNNING'"
                                             @click="stopAgent(scopeSlot.row)"
                                         >
                                             停止
                                         </el-dropdown-item>
                                         <el-dropdown-item
-                                            v-if="scopeSlot.row.status === 'STOP'"
+                                            v-if="isSshNode(scopeSlot.row) && scopeSlot.row.status === 'STOP'"
                                             @click="startAgent(scopeSlot.row)"
                                         >
                                             激活
                                         </el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="
-                                                scopeSlot.row.status === 'UN_INSTALL' ||
-                                                scopeSlot.row.status === 'INSTALL_ERROR'
+                                                isSshNode(scopeSlot.row) &&
+                                                (scopeSlot.row.status === 'UN_INSTALL' ||
+                                                    scopeSlot.row.status === 'INSTALL_ERROR')
                                             "
                                             @click="installData(scopeSlot.row)"
                                         >
                                             安装
                                         </el-dropdown-item>
-                                        <el-dropdown-item @click="uninstallData(scopeSlot.row)">卸载</el-dropdown-item>
-                                        <el-dropdown-item @click="cleanData(scopeSlot.row)">清理</el-dropdown-item>
+                                        <el-dropdown-item v-if="isSshNode(scopeSlot.row)" @click="uninstallData(scopeSlot.row)">
+                                            卸载
+                                        </el-dropdown-item>
+                                        <el-dropdown-item v-if="isSshNode(scopeSlot.row)" @click="cleanData(scopeSlot.row)">
+                                            清理
+                                        </el-dropdown-item>
                                         <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
@@ -236,6 +241,10 @@ function getCpuDisplay(cpuValue: string): string {
         return '--'
     }
     return text.includes('%') ? text : `${text}%`
+}
+
+function isSshNode(row: any): boolean {
+    return (row.connectType || 'SSH') === 'SSH'
 }
 
 function initData(tableLoading?: boolean, type?: string) {

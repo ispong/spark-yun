@@ -26,6 +26,12 @@ public class AgentLinkUtils {
     public AgentLinkResponse getAgentLinkResponse(ClusterNodeEntity agentNode, String url, Object body)
         throws WorkRunException {
 
+        return getAgentResponse(agentNode, url, body, AgentLinkResponse.class);
+    }
+
+    public <T> T getAgentResponse(ClusterNodeEntity agentNode, String url, Object body, Class<T> responseClass)
+        throws WorkRunException {
+
         int retryCount = sparkYunProperties.getAgentRetryCount();
         long retryInterval = sparkYunProperties.getAgentRetryInterval();
 
@@ -59,8 +65,7 @@ public class AgentLinkUtils {
                     throw new WorkRunException("请求代理异常 : " + errorMsg);
                 }
 
-                // 翻译成统一返回
-                return JSON.parseObject(JSON.toJSONString(baseResponse.getData()), AgentLinkResponse.class);
+                return JSON.parseObject(JSON.toJSONString(baseResponse.getData()), responseClass);
             } catch (HttpServerErrorException e) {
                 log.error("请求代理异常,第{}次尝试 : {}", attempt, e.getMessage(), e);
 

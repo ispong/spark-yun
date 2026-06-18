@@ -13,17 +13,15 @@ export interface UpdateClusterNodeReq {
   clusterId: string;
   /** @minLength 1 */
   host: string;
-  /** @minLength 1 */
-  port: string;
-  /** @minLength 1 */
-  username: string;
-  /** @minLength 1 */
-  passwd: string;
+  port?: string;
+  username?: string;
+  passwd?: string;
   remark?: string;
   /** @minLength 1 */
   name: string;
   agentHomePath?: string;
   agentPort?: string;
+  connectType?: string;
   hadoopHomePath?: string;
   installSparkLocal?: boolean;
   installFlinkLocal?: boolean;

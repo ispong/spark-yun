@@ -41,6 +41,19 @@ export interface SerchParams {
 export interface FormData {
     name: string
     remark: string
+    id?: string
+    host?: string
+    port?: string
+    username?: string
+    passwd?: string
+    agentHomePath?: string
+    agentPort?: string
+    connectType?: string
+    hadoopHomePath?: string
+    installSparkLocal?: boolean
+    installFlinkLocal?: boolean
+    sparkHomePath?: string
+    flinkHomePath?: string
 }
 
 export const BreadCrumbList: Array<BreadCrumb> = [

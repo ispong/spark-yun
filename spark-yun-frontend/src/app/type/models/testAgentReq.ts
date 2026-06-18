@@ -10,8 +10,8 @@ export interface TestAgentReq {
   /** @minLength 1 */
   host: string;
   port?: string;
-  /** @minLength 1 */
-  username: string;
-  /** @minLength 1 */
-  passwd: string;
+  username?: string;
+  passwd?: string;
+  agentPort?: string;
+  connectType?: string;
 }

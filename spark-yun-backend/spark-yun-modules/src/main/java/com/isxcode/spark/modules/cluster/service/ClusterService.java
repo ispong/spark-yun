@@ -1,5 +1,6 @@
 package com.isxcode.spark.modules.cluster.service;
 
+import com.isxcode.spark.api.cluster.constants.ClusterNodeConnectType;
 import com.isxcode.spark.api.cluster.constants.ClusterNodeStatus;
 import com.isxcode.spark.api.cluster.constants.ClusterStatus;
 import com.isxcode.spark.api.cluster.dto.ScpFileEngineNodeDto;
@@ -11,14 +12,11 @@ import com.isxcode.spark.modules.cluster.mapper.ClusterNodeMapper;
 import com.isxcode.spark.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.spark.modules.cluster.repository.ClusterRepository;
 import com.isxcode.spark.modules.cluster.run.RunAgentCheckService;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,12 +56,15 @@ public class ClusterService {
 
         // 同步检测按钮
         engineNodes.forEach(e -> {
-            ScpFileEngineNodeDto scpFileEngineNodeDto = clusterNodeMapper.engineNodeEntityToScpFileEngineNodeDto(e);
-            scpFileEngineNodeDto.setPasswd(aesUtils.decrypt(scpFileEngineNodeDto.getPasswd()));
+            ScpFileEngineNodeDto scpFileEngineNodeDto = null;
+            if (!ClusterNodeConnectType.AGENT_PORT.equals(e.getConnectType())) {
+                scpFileEngineNodeDto = clusterNodeMapper.engineNodeEntityToScpFileEngineNodeDto(e);
+                scpFileEngineNodeDto.setPasswd(aesUtils.decrypt(scpFileEngineNodeDto.getPasswd()));
+            }
 
             try {
                 runAgentCheckService.checkAgent(scpFileEngineNodeDto, e);
-            } catch (JSchException | IOException | InterruptedException | SftpException ex) {
+            } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
                 e.setCheckDateTime(LocalDateTime.now());
                 e.setAgentLog(ex.getMessage());

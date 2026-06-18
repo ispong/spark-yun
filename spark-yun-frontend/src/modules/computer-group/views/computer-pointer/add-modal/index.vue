@@ -8,33 +8,26 @@
                 <template #label>
                     <div class="host-label">
                         <span>Host</span>
-                        <el-popover :visible="showPortEdit" placement="top" :width="200" :teleported="false">
-                            <div class="port-popover">
-                                <el-input
-                                    v-model="formData.port"
-                                    maxlength="5"
-                                    size="small"
-                                    placeholder="请输入端口号"
-                                />
-                                <div class="port-popover__footer">
-                                    <el-button size="small" @click="showPortEdit = false">取消</el-button>
-                                    <el-button size="small" type="primary" @click="showPortEdit = false">
-                                        确定
-                                    </el-button>
-                                </div>
-                            </div>
-                            <template #reference>
-                                <span class="port-btn" @click="showPortEdit = !showPortEdit">端口号</span>
-                            </template>
-                        </el-popover>
                     </div>
                 </template>
                 <el-input v-model="formData.host" placeholder="请输入" />
             </el-form-item>
-            <el-form-item label="用户名" prop="username">
+            <el-form-item label="连接方式" prop="connectType">
+                <el-radio-group v-model="formData.connectType" class="connect-type-group">
+                    <el-radio-button label="SSH">SSH连接</el-radio-button>
+                    <el-radio-button label="AGENT_PORT">端口号连接</el-radio-button>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item v-if="!isSshConnect" label="服务端口" prop="agentPort">
+                <el-input v-model="formData.agentPort" maxlength="5" placeholder="请输入服务端口号" />
+            </el-form-item>
+            <el-form-item v-if="isSshConnect" label="SSH端口" prop="port">
+                <el-input v-model="formData.port" maxlength="5" placeholder="请输入SSH端口号" />
+            </el-form-item>
+            <el-form-item v-if="isSshConnect" label="用户名" prop="username">
                 <el-input v-model="formData.username" maxlength="100" placeholder="请输入" />
             </el-form-item>
-            <el-form-item>
+            <el-form-item v-if="isSshConnect" prop="passwd">
                 <template #label>
                     <div class="host-label">
                         <span>{{ pwdType === 'pwd' ? '密码' : '令牌' }}</span>
@@ -57,7 +50,7 @@
                     placeholder="请输入"
                 />
             </el-form-item>
-            <el-form-item v-if="clusterType === 'standalone'" label="安装服务">
+            <el-form-item v-if="isSshConnect && clusterType === 'standalone'" label="安装服务">
                 <div class="install-service-row">
                     <div class="install-service-item">
                         <span>Spark</span>
@@ -106,7 +99,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, defineExpose, ref, nextTick } from 'vue'
+import { computed, reactive, defineExpose, ref, nextTick } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Validator } from '@/modules/computer-group/validators'
@@ -119,7 +112,6 @@ const form = ref<FormInstance>()
 const callback = ref<any>()
 const pwdType = ref('pwd')
 const clusterType = ref('')
-const showPortEdit = ref(false)
 const testLoading = ref(false)
 const testResult = ref()
 const modelConfig = reactive({
@@ -150,6 +142,7 @@ const formData = reactive({
     passwd: '',
     agentHomePath: '',
     agentPort: '',
+    connectType: 'SSH',
     hadoopHomePath: '',
     installSparkLocal: false,
     installFlinkLocal: false,
@@ -185,13 +178,38 @@ const rules = reactive<FormRules>({
             validator: Validator.PortValidator('请输入正确的端口号'),
             trigger: ['blur', 'change']
         }
+    ],
+    username: [
+        {
+            required: true,
+            message: '请输入用户名',
+            trigger: ['blur', 'change']
+        }
+    ],
+    passwd: [
+        {
+            required: true,
+            message: '请输入密码或者令牌',
+            trigger: ['blur', 'change']
+        }
+    ],
+    agentPort: [
+        {
+            required: true,
+            message: '请输入服务端口号',
+            trigger: ['blur', 'change']
+        },
+        {
+            validator: Validator.PortValidator('请输入正确的服务端口号'),
+            trigger: ['blur', 'change']
+        }
     ]
 })
+const isSshConnect = computed(() => formData.connectType === 'SSH')
 
 function showModal(cb: () => void, data: any): void {
     callback.value = cb
     pwdType.value = 'pwd'
-    showPortEdit.value = false
     clusterType.value = route.query.type
 
     testResult.value = {
@@ -206,6 +224,7 @@ function showModal(cb: () => void, data: any): void {
         formData.passwd = data.passwd
         formData.agentHomePath = data.agentHomePath
         formData.agentPort = data.agentPort
+        formData.connectType = data.connectType || 'SSH'
         formData.hadoopHomePath = data.hadoopHomePath
         formData.installSparkLocal = data.installSparkLocal
         formData.installFlinkLocal = data.installFlinkLocal
@@ -220,6 +239,7 @@ function showModal(cb: () => void, data: any): void {
         formData.passwd = ''
         formData.agentHomePath = ''
         formData.agentPort = ''
+        formData.connectType = 'SSH'
         formData.hadoopHomePath = ''
         formData.installSparkLocal = true
         formData.installFlinkLocal = true
@@ -235,13 +255,19 @@ function showModal(cb: () => void, data: any): void {
 }
 
 function testFun() {
-    if (formData.host && formData.port && formData.username && formData.passwd) {
+    const hasConnectParams = isSshConnect.value
+        ? formData.host && formData.port && formData.username && formData.passwd
+        : formData.host && formData.agentPort
+
+    if (hasConnectParams) {
         testLoading.value = true
         TestComputerPointHostData({
             host: formData.host,
             port: formData.port || '22',
             username: formData.username,
-            passwd: formData.passwd
+            passwd: formData.passwd,
+            agentPort: formData.agentPort,
+            connectType: formData.connectType
         })
             .then((res: any) => {
                 testLoading.value = false
@@ -274,7 +300,6 @@ function okEvent() {
                 .then((res: any) => {
                     modelConfig.okConfig.loading = false
                     if (res === undefined) {
-                        showPortEdit.value = false
                         modelConfig.visible = false
                     } else {
                         modelConfig.visible = true
@@ -290,7 +315,6 @@ function okEvent() {
 }
 
 function closeEvent() {
-    showPortEdit.value = false
     modelConfig.visible = false
 }
 
@@ -397,6 +421,12 @@ defineExpose({
                 &:hover {
                     opacity: 0.8;
                 }
+            }
+        }
+
+        .connect-type-group {
+            .el-radio-button__inner {
+                font-size: 12px;
             }
         }
 

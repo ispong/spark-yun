@@ -24,6 +24,8 @@ public interface SparkAgentUrl {
 
     String HEART_CHECK_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/heartCheck";
 
+    String GET_NODE_MONITOR_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/getNodeMonitor";
+
     String CONTAINER_CHECK_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/containerCheck";
 
     String EXECUTE_CONTAINER_SQL_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/executeContainerSql";

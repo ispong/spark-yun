@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, defineExpose, ref, onUnmounted, nextTick } from 'vue'
+import { reactive, defineExpose, ref } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { GetComputerPointDetailData } from '@/app/shared/api/resources'
 
@@ -71,3 +71,24 @@ defineExpose({
     showModal
 })
 </script>
+
+<style lang="scss">
+.zqy-log-modal.zqy-block-modal {
+    .modal-content {
+        position: relative;
+    }
+
+    .content-box {
+        min-height: 260px;
+        max-height: 60vh;
+        padding: 12px 20px;
+        box-sizing: border-box;
+        overflow: auto;
+
+        .zqy-download-log {
+            top: 6px;
+            right: 20px;
+        }
+    }
+}
+</style>

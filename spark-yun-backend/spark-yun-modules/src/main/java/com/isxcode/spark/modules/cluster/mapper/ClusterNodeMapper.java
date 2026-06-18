@@ -37,6 +37,7 @@ public interface ClusterNodeMapper {
     @Mapping(target = "installFlinkLocal", source = "enoUpdateNodeReq.installFlinkLocal")
     @Mapping(target = "sparkHomePath", ignore = true)
     @Mapping(target = "flinkHomePath", ignore = true)
+    @Mapping(target = "connectType", ignore = true)
     ClusterNodeEntity updateNodeReqToNodeEntity(UpdateClusterNodeReq enoUpdateNodeReq,
         ClusterNodeEntity clusterNodeEntity);
 
