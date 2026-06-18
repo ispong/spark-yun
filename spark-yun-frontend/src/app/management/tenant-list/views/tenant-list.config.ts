@@ -68,7 +68,7 @@ export const colConfigs: colConfig[] = [
     },
     {
         prop: 'adminUserName',
-        title: '租户管理员',
+        title: '租户超级管理员',
         minWidth: 160,
         showOverflowTooltip: true
     },

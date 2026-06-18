@@ -24,7 +24,7 @@
                     controls-position="right"
                 />
             </el-form-item>
-            <el-form-item v-if="renderSence === 'new'" label="租户超级管理员" prop="adminUserId">
+            <el-form-item label="租户超级管理员" prop="adminUserId">
                 <el-select v-model="formData.adminUserId" placeholder="请选择">
                     <el-option v-for="item in userList" :key="item.id" :label="item.username" :value="item.id" />
                 </el-select>
@@ -66,8 +66,9 @@ import { GetUserInfoList } from '@/app/management/tenant-user/api'
 
 const form = ref<FormInstance>()
 const callback = ref<any>()
-const userList = ref([])
+const userList = ref<any[]>([])
 const renderSence = ref('new')
+const currentAdminOption = ref<any>()
 const modelConfig = reactive({
     title: '新建租户',
     visible: false,
@@ -118,11 +119,18 @@ const rules = reactive<FormRules>({
 function showModal(cb: () => void, data: any): void {
     callback.value = cb
     modelConfig.visible = true
-    getUserOfSystem()
     if (data) {
         formData.name = data.name
         formData.maxMemberNum = data.maxMemberNum
         formData.maxWorkflowNum = data.maxWorkflowNum
+        formData.adminUserId = data.adminUserId || ''
+        currentAdminOption.value =
+            data.adminUserId && data.adminUserName
+                ? {
+                      id: data.adminUserId,
+                      username: data.adminUserName
+                  }
+                : undefined
         formData.remark = data.remark
         if (data.validStartDateTime && data.validEndDateTime) {
             formData.validDateTime = [data.validStartDateTime, data.validEndDateTime]
@@ -137,12 +145,14 @@ function showModal(cb: () => void, data: any): void {
         formData.maxMemberNum = 2
         formData.maxWorkflowNum = 5
         formData.adminUserId = ''
+        currentAdminOption.value = undefined
         formData.remark = ''
         formData.validDateTime = []
         formData.id = ''
         modelConfig.title = '新建租户'
         renderSence.value = 'new'
     }
+    getUserOfSystem()
     nextTick(() => {
         form.value?.resetFields()
     })
@@ -155,7 +165,12 @@ function getUserOfSystem() {
         searchKeyWord: ''
     })
         .then((res: any) => {
-            userList.value = res.data.content
+            const users = res.data.content || []
+            if (currentAdminOption.value && !users.some((item: any) => item.id === currentAdminOption.value.id)) {
+                userList.value = [currentAdminOption.value, ...users]
+            } else {
+                userList.value = users
+            }
         })
         .catch(() => {
             userList.value = []

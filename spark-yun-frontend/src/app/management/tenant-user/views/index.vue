@@ -73,13 +73,9 @@
                         </div>
                     </template>
                     <template #status="scopeSlot">
-                        <div class="btn-group">
-                            <el-tag v-if="scopeSlot.row.status === 'ENABLE'" class="ml-2" type="success">启用</el-tag>
-                            <el-tag v-if="scopeSlot.row.status === 'DISABLE'" class="ml-2" type="danger">禁用</el-tag>
-                            <el-tag v-if="scopeSlot.row.status === 'APPLYING'" class="ml-2" type="warning">
-                                申请中
-                            </el-tag>
-                        </div>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'APPLYING'" type="warning">申请中</el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group tenant-user-action-group">

@@ -77,10 +77,8 @@
                         </div>
                     </template>
                     <template #statusTag="scopeSlot">
-                        <div class="btn-group">
-                            <el-tag v-if="scopeSlot.row.status === 'ENABLE'" class="ml-2" type="success">启用</el-tag>
-                            <el-tag v-if="scopeSlot.row.status === 'DISABLE'" class="ml-2" type="danger">禁用</el-tag>
-                        </div>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group tenant-action-group">
@@ -137,7 +135,8 @@ import {
     CheckTenantData,
     DisableTenantData,
     EnableTenantData,
-    UpdateTenantData
+    UpdateTenantData,
+    ReplaceTenantAdminData
 } from '@/app/management/tenant-list/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
@@ -146,10 +145,12 @@ import { useAuthStore } from '@/app/store/useAuth'
 
 interface FormTenant {
     adminUserId?: string
+    id?: string
     maxMemberNum: string
     maxWorkflowNum: string
     name: string
     remark: string
+    validDateTime?: string[]
 }
 
 const authStore = useAuthStore()
@@ -215,12 +216,39 @@ function addData() {
 
 function editData(data: any) {
     addModalRef.value.showModal((formData: FormTenant) => {
+        const updateTenantFormData = {
+            id: formData.id,
+            maxMemberNum: formData.maxMemberNum,
+            maxWorkflowNum: formData.maxWorkflowNum,
+            name: formData.name,
+            remark: formData.remark,
+            validDateTime: formData.validDateTime
+        }
+        const adminChanged = !!formData.adminUserId && formData.adminUserId !== data.adminUserId
+
         return new Promise((resolve: any, reject: any) => {
-            UpdateTenantData(formData)
+            UpdateTenantData(updateTenantFormData)
                 .then((res: any) => {
-                    ElMessage.success(res.msg)
-                    initData()
-                    resolve()
+                    if (!adminChanged) {
+                        ElMessage.success(res.msg)
+                        initData()
+                        resolve()
+                        return
+                    }
+
+                    ReplaceTenantAdminData({
+                        tenantId: data.id,
+                        newAdminUserId: formData.adminUserId as string,
+                        oldAdminAction: 'KEEP'
+                    })
+                        .then((replaceRes: any) => {
+                            ElMessage.success(replaceRes?.msg || res.msg)
+                            initData()
+                            resolve()
+                        })
+                        .catch((error: any) => {
+                            reject(error)
+                        })
                 })
                 .catch((error: any) => {
                     reject(error)

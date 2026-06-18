@@ -60,10 +60,8 @@
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.account }}</span>
                     </template>
                     <template #statusTag="scopeSlot">
-                        <div class="btn-group">
-                            <el-tag v-if="scopeSlot.row.status === 'ENABLE'" class="ml-2" type="success">启用</el-tag>
-                            <el-tag v-if="scopeSlot.row.status === 'DISABLE'" class="ml-2" type="danger">禁用</el-tag>
-                        </div>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
                     </template>
                     <template #platformAdmin="scopeSlot">
                         <el-tag v-if="scopeSlot.row.platformSuperAdmin" type="danger">平台超级管理员</el-tag>
@@ -534,6 +532,10 @@ onMounted(() => {
         }
     }
     .zqy-table {
+        .name-click:hover {
+            text-decoration: none;
+        }
+
         .platform-user-tag {
             --el-tag-text-color: #2563eb;
             --el-tag-border-color: #93c5fd;
