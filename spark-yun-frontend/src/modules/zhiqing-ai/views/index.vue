@@ -1,5 +1,5 @@
 <template>
-    <div class="zhiqing-ai">
+    <div class="zhiqing-ai" :class="{ 'is-history-visible': historyVisible }">
         <section class="zhiqing-ai__chat">
             <div ref="messagePanelRef" class="zhiqing-ai__messages">
                 <div v-if="!messages.length" class="zhiqing-ai__welcome">
@@ -77,6 +77,17 @@
                                 </template>
                             </el-dropdown>
                         </template>
+                        <template #suffix>
+                            <el-tooltip :content="historyVisible ? '隐藏历史' : '展开历史'" placement="top">
+                                <el-button
+                                    class="zhiqing-ai-history-toggle"
+                                    :icon="Clock"
+                                    circle
+                                    text
+                                    @click.stop="toggleHistoryPanel"
+                                />
+                            </el-tooltip>
+                        </template>
                     </el-input>
                     <input ref="fileInputRef" type="file" multiple hidden @change="handleFileChange" />
                 </div>
@@ -86,7 +97,7 @@
             </div>
         </section>
 
-        <aside class="zhiqing-ai__history">
+        <aside v-if="historyVisible" class="zhiqing-ai__history">
             <div class="zhiqing-ai__history-list">
                 <div
                     v-for="history in chatHistories"
@@ -169,7 +180,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
-import { Close, Delete, Edit, Plus, Search, Share, Upload } from '@element-plus/icons-vue'
+import { Clock, Close, Delete, Edit, Plus, Search, Share, Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
     DeleteAiPrompt,
@@ -226,6 +237,7 @@ const loadingConfigs = ref(false)
 const messages = ref<ChatMessage[]>([])
 const chatHistories = ref<ChatHistory[]>([])
 const currentSessionId = ref('')
+const historyVisible = ref(false)
 const messagePanelRef = ref<HTMLElement>()
 const abortController = ref<AbortController>()
 let saveHistoryTimer: ReturnType<typeof window.setTimeout> | undefined
@@ -512,6 +524,10 @@ function createNewChat() {
     inputText.value = ''
     selectedPrompts.value = []
     selectedFiles.value = []
+}
+
+function toggleHistoryPanel() {
+    historyVisible.value = !historyVisible.value
 }
 
 function switchHistory(id: string) {
@@ -1052,10 +1068,14 @@ onMounted(() => {
 .zhiqing-ai {
     height: calc(100vh - 32px);
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
     padding: 16px 20px;
     background-color: #ffffff;
+
+    &.is-history-visible {
+        grid-template-columns: minmax(0, 1fr) 300px;
+    }
 }
 
 .zhiqing-ai__chat {
@@ -1124,6 +1144,20 @@ onMounted(() => {
     height: 24px;
     padding: 0;
     color: var(--el-text-color-secondary);
+}
+
+:deep(.zhiqing-ai-history-toggle) {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0;
+    color: var(--el-text-color-secondary);
+
+    &:hover,
+    &:focus {
+        color: var(--el-text-color-secondary);
+        background-color: var(--el-fill-color-light);
+    }
 }
 
 .zhiqing-ai__messages {
@@ -1558,8 +1592,13 @@ onMounted(() => {
     .zhiqing-ai {
         height: calc(100vh - 16px);
         grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: minmax(0, 1fr) 220px;
+        grid-template-rows: minmax(0, 1fr);
         padding: 12px;
+
+        &.is-history-visible {
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: minmax(0, 1fr) 220px;
+        }
     }
 
     .zhiqing-ai__composer {
