@@ -13,6 +13,21 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="node-batch-slide">
+                <div v-if="selectedRows.length" class="node-batch-mask">
+                    <div class="node-batch-actions">
+                        <el-button class="node-batch-action" :loading="batchLoading" @click="batchCheckData">
+                            检测
+                        </el-button>
+                        <el-button class="node-batch-action" :loading="batchLoading" @click="batchDeleteData">
+                            删除
+                        </el-button>
+                        <el-button class="node-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -20,6 +35,7 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #nameSlot="scopeSlot">
                         <span class="name-click" @click="editNodeData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
@@ -67,13 +83,21 @@
                         </div>
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <span @click="checkData(scopeSlot.row)">检测</span>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                        <div class="btn-group node-action-group">
+                            <span class="node-action-button" @click="editNodeData(scopeSlot.row)">编辑</span>
+                            <el-dropdown trigger="click" popper-class="node-action-dropdown">
+                                <span class="click-show-more node-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item @click="editNodeData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item
+                                            :disabled="scopeSlot.row.checkLoading"
+                                            @click="!scopeSlot.row.checkLoading && checkData(scopeSlot.row)"
+                                        >
+                                            <span v-if="!scopeSlot.row.checkLoading">检测</span>
+                                            <el-icon v-else class="is-loading">
+                                                <Loading />
+                                            </el-icon>
+                                        </el-dropdown-item>
                                         <el-dropdown-item @click="showLog(scopeSlot.row)">日志</el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="scopeSlot.row.status === 'RUNNING'"
@@ -136,6 +160,7 @@ import {
 } from '../../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute } from 'vue-router'
+import { Loading } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const breadCrumbList = reactive([
@@ -152,6 +177,8 @@ const tableConfig: any = reactive(PointTableConfig)
 const keyword = ref('')
 const loading = ref(false)
 const networkError = ref(false)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 const addModalRef = ref(null)
 const showLogRef = ref(null)
 const timer = ref()
@@ -235,6 +262,7 @@ function initData(tableLoading?: boolean, type?: string) {
             } else {
                 tableConfig.tableData = res.data.content
                 tableConfig.pagination.total = res.data.totalElements
+                selectedRows.value = []
             }
             loading.value = false
             tableConfig.loading = false
@@ -243,6 +271,7 @@ function initData(tableLoading?: boolean, type?: string) {
         .catch(() => {
             tableConfig.tableData = []
             tableConfig.pagination.total = 0
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = true
@@ -390,6 +419,67 @@ function checkData(data: any) {
         })
 }
 
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchCheckData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(
+        selectedRows.value.map((row: any) =>
+            CheckComputerPointData({
+                engineNodeId: row.id
+            })
+        )
+    )
+        .then(() => {
+            ElMessage.success('批量检测成功')
+            initData(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchDeleteData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个节点吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(
+            selectedRows.value.map((row: any) =>
+                DeleteComputerPointData({
+                    engineNodeId: row.id
+                })
+            )
+        )
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
+    })
+}
+
 // 设置默认节点
 function setDefaultNode(data: any) {
     SetDefaultComputerPointNode({
@@ -431,6 +521,7 @@ function inputEvent(e: string) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData()
 }
 
@@ -457,11 +548,94 @@ onUnmounted(() => {
 
 <style lang="scss">
 .zqy-seach-table {
-    .click-show-more {
-        font-size: getCssVar('font-size', 'extra-small');
-    }
-
     &.zqy-computer-node {
+        .zqy-table-top {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .node-batch-mask {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        .node-batch-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            .node-batch-action {
+                min-width: 66px;
+                height: 32px;
+                line-height: 30px;
+                border-color: getCssVar('color', 'primary');
+                color: getCssVar('color', 'primary');
+                background-color: #fff;
+
+                &:hover,
+                &:focus {
+                    border-color: getCssVar('color', 'primary');
+                    color: #fff;
+                    background-color: getCssVar('color', 'primary');
+                }
+            }
+
+            .node-batch-cancel {
+                min-width: 74px;
+                height: 32px;
+                line-height: 30px;
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+
+                &:hover,
+                &:focus {
+                    border-color: getCssVar('border-color');
+                    color: getCssVar('text-color', 'regular');
+                    background-color: #fff;
+                }
+            }
+        }
+
+        .node-batch-slide-enter-active,
+        .node-batch-slide-leave-active {
+            transition:
+                transform 0.18s ease,
+                opacity 0.18s ease;
+            will-change: transform, opacity;
+        }
+
+        .node-batch-slide-enter-from,
+        .node-batch-slide-leave-to {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+
+        .node-batch-slide-enter-to,
+        .node-batch-slide-leave-from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .node-action-group {
+            justify-content: center;
+            gap: 16px;
+
+            .node-action-button {
+                display: inline-flex;
+                align-items: center;
+                line-height: 1;
+                font-size: getCssVar('font-size', 'extra-small');
+            }
+        }
+
         .resource-progress {
             min-width: 120px;
             padding-right: 6px;
@@ -487,6 +661,19 @@ onUnmounted(() => {
                 margin-left: 12px;
             }
         }
+    }
+}
+
+.node-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
     }
 }
 </style>

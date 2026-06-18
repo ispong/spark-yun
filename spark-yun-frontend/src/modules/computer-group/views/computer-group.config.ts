@@ -135,14 +135,14 @@ export const PointColConfigs: colConfig[] = [
     {
         prop: 'name',
         title: '名称',
-        minWidth: 120,
+        minWidth: 100,
         customSlot: 'nameSlot',
         showOverflowTooltip: true
     },
     {
         prop: 'host',
         title: '地址',
-        minWidth: 80,
+        minWidth: 120,
         showOverflowTooltip: true
     },
     {
@@ -178,7 +178,8 @@ export const PointColConfigs: colConfig[] = [
     {
         prop: 'checkDateTime',
         title: '检测时间',
-        minWidth: 140
+        minWidth: 140,
+        showOverflowTooltip: true
     },
     {
         prop: 'remark',
@@ -190,7 +191,7 @@ export const PointColConfigs: colConfig[] = [
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 80,
+        width: 120,
         fixed: 'right'
     }
 ]
@@ -201,8 +202,11 @@ export const PointTableConfig: TableConfig = {
     pagination: {
         currentPage: 1,
         pageSize: 10,
+        pageSizes: [10, 20, 50, 100],
         total: 0
     },
     seqType: 'seq',
+    checkbox: true,
+    columnResizable: false,
     loading: false
 }

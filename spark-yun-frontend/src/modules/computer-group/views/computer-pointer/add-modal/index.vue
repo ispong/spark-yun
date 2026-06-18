@@ -81,7 +81,7 @@
         </el-form>
         <template #customLeft>
             <div class="test-button">
-                <el-button :loading="testLoading" type="primary" @click="testFun">链接测试</el-button>
+                <el-button :loading="testLoading" type="primary" @click="testFun">连接测试</el-button>
                 <el-popover
                     placement="right"
                     title="测试结果"
@@ -300,71 +300,174 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.add-computer-group {
-    padding: 12px 20px 0 20px;
-    box-sizing: border-box;
-    .el-form-item__label {
-        width: 100%;
+.compute-add-modal.zqy-block-modal {
+    --compute-modal-x-padding: 20px;
+    --compute-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--compute-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--compute-modal-border-color);
+        }
+
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
     }
-    .host-label {
-        display: flex;
-        justify-content: space-between;
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--compute-modal-x-padding);
         align-items: center;
-        width: 100%;
-        .port-btn {
-            color: getCssVar('color', 'primary');
-            cursor: pointer;
-            font-size: 12px;
-            &:hover {
-                opacity: 0.8;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--compute-modal-border-color);
+        }
+    }
+
+    .add-computer-group {
+        padding: 14px var(--compute-modal-x-padding) 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+
+        .host-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+
+            .port-btn {
+                color: getCssVar('color', 'primary');
+                cursor: pointer;
+                font-size: 12px;
+
+                &:hover {
+                    opacity: 0.8;
+                }
             }
         }
-    }
-    .port-popover {
-        .port-popover__footer {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 8px;
+
+        .port-popover {
+            .port-popover__footer {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 8px;
+            }
         }
-    }
-    .install-service-row {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-        width: 100%;
-        .install-service-item {
+
+        .install-service-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            span {
-                font-size: 13px;
-                color: var(--el-text-color-regular);
+            gap: 24px;
+            width: 100%;
+
+            .install-service-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                span {
+                    font-size: 13px;
+                    color: var(--el-text-color-regular);
+                }
             }
         }
     }
-}
-.compute-add-modal {
+
     .test-button {
         position: absolute;
-        left: 20px;
+        left: var(--compute-modal-x-padding);
         bottom: 12px;
         display: flex;
-        justify-content: space-between;
         align-items: center;
+
+        .el-button {
+            height: 32px;
+            min-width: 72px;
+        }
     }
+
     .hover-tooltip {
         margin-left: 8px;
         font-size: 16px;
         color: getCssVar('color', 'danger');
+
         &.success {
             color: getCssVar('color', 'success');
         }
     }
 }
+
 .message-error-tooltip {
     .el-popover__title {
         font-size: 14px;
     }
     font-size: 12px;
+}
+
+@media (max-width: 560px) {
+    .compute-add-modal.zqy-block-modal {
+        .el-dialog__footer {
+            padding-top: 56px;
+        }
+
+        .test-button {
+            top: 12px;
+            bottom: unset;
+        }
+    }
 }
 </style>
