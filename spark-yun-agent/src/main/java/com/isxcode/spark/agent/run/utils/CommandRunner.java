@@ -29,8 +29,7 @@ public final class CommandRunner {
             process.destroyForcibly();
             String stdout = getFutureValue(stdoutFuture);
             String stderr = getFutureValue(stderrFuture);
-            throw new IOException(
-                "Command timed out: " + String.join(" ", command) + "\n" + stdout + "\n" + stderr);
+            throw new IOException("Command timed out: " + String.join(" ", command) + "\n" + stdout + "\n" + stderr);
         }
 
         return new CommandResult(process.exitValue(), getFutureValue(stdoutFuture), getFutureValue(stderrFuture));

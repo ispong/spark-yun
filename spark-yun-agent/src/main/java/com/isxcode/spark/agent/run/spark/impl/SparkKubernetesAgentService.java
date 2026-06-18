@@ -40,8 +40,7 @@ public class SparkKubernetesAgentService implements SparkAgentService {
     @Override
     public String getMaster(String sparkHomePath) throws Exception {
 
-        CommandResult clusterInfoResult =
-            CommandRunner.run(Arrays.asList("kubectl", "cluster-info"), KUBECTL_TIMEOUT);
+        CommandResult clusterInfoResult = CommandRunner.run(Arrays.asList("kubectl", "cluster-info"), KUBECTL_TIMEOUT);
         if (!clusterInfoResult.isSuccess()) {
             throw new Exception(clusterInfoResult.getOutput());
         }
@@ -202,9 +201,9 @@ public class SparkKubernetesAgentService implements SparkAgentService {
         }
 
         // 获取sparkConfig配置
-        Map<String, String> pluginSparkConfig = pluginReq == null || pluginReq.getSparkConfig() == null
-            ? new HashMap<>()
-            : new HashMap<>(pluginReq.getSparkConfig());
+        Map<String, String> pluginSparkConfig =
+            pluginReq == null || pluginReq.getSparkConfig() == null ? new HashMap<>()
+                : new HashMap<>(pluginReq.getSparkConfig());
 
         // 从sparkConfig中解析出域名映射
         Map<String, String> hostMapping = new HashMap<>();
@@ -372,9 +371,8 @@ public class SparkKubernetesAgentService implements SparkAgentService {
     @Override
     public GetWorkInfoRes getWorkInfo(String podName, String sparkHomePath) throws Exception {
 
-        CommandResult result =
-            CommandRunner.run(Arrays.asList("kubectl", "get", "pod", podName, "-n", AgentKubernetes.NAMESPACE),
-                KUBECTL_TIMEOUT);
+        CommandResult result = CommandRunner
+            .run(Arrays.asList("kubectl", "get", "pod", podName, "-n", AgentKubernetes.NAMESPACE), KUBECTL_TIMEOUT);
         String output = result.getOutput();
         if (!result.isSuccess()) {
             if (output.contains("not found")) {
@@ -452,9 +450,8 @@ public class SparkKubernetesAgentService implements SparkAgentService {
     @Override
     public void stopWork(String appId, String sparkHomePath, String agentHomePath) throws Exception {
 
-        CommandResult result =
-            CommandRunner.run(Arrays.asList("kubectl", "delete", "pod", appId, "-n", AgentKubernetes.NAMESPACE),
-                KUBECTL_TIMEOUT);
+        CommandResult result = CommandRunner
+            .run(Arrays.asList("kubectl", "delete", "pod", appId, "-n", AgentKubernetes.NAMESPACE), KUBECTL_TIMEOUT);
         if (!result.isSuccess() && !result.getOutput().contains("not found")) {
             throw new Exception(result.getOutput());
         }

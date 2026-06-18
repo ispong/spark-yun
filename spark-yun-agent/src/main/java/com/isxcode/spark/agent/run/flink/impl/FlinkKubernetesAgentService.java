@@ -140,15 +140,15 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
 
         // flink的args配置
         if (WorkType.FLINK_JAR.equals(submitWorkReq.getWorkType())) {
-            String[] args = submitWorkReq.getPluginReq() == null || submitWorkReq.getPluginReq().getArgs() == null
-                ? new String[0]
-                : submitWorkReq.getPluginReq().getArgs();
-            flinkConfig.set(ApplicationConfiguration.APPLICATION_ARGS,
-                Arrays.asList(args));
+            String[] args =
+                submitWorkReq.getPluginReq() == null || submitWorkReq.getPluginReq().getArgs() == null ? new String[0]
+                    : submitWorkReq.getPluginReq().getArgs();
+            flinkConfig.set(ApplicationConfiguration.APPLICATION_ARGS, Arrays.asList(args));
         } else {
-            String pluginConfig = submitWorkReq.getPluginReq() == null ? "{}" : JSON.toJSONString(submitWorkReq.getPluginReq());
-            flinkConfig.set(ApplicationConfiguration.APPLICATION_ARGS, Collections.singletonList(Base64.getEncoder()
-                .encodeToString(pluginConfig.getBytes(StandardCharsets.UTF_8))));
+            String pluginConfig =
+                submitWorkReq.getPluginReq() == null ? "{}" : JSON.toJSONString(submitWorkReq.getPluginReq());
+            flinkConfig.set(ApplicationConfiguration.APPLICATION_ARGS, Collections
+                .singletonList(Base64.getEncoder().encodeToString(pluginConfig.getBytes(StandardCharsets.UTF_8))));
         }
 
         // 配置名称
@@ -180,8 +180,7 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
         flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY, "disable");
         flinkConfig.setString("kubernetes.client.shutdown-timeout", "30000");
 
-        Map<String, Object> pluginFlinkConfig = submitWorkReq.getFlinkSubmit().getConf() == null
-            ? new HashMap<>()
+        Map<String, Object> pluginFlinkConfig = submitWorkReq.getFlinkSubmit().getConf() == null ? new HashMap<>()
             : new HashMap<>(submitWorkReq.getFlinkSubmit().getConf());
         submitWorkReq.getFlinkSubmit().setConf(pluginFlinkConfig);
         pluginFlinkConfig.forEach((k, v) -> {
@@ -266,9 +265,8 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
         // 拼接host映射
         List<String> hostList = new ArrayList<>();
         if (!hostMapping.isEmpty()) {
-            hostMapping.forEach(
-                (k, v) -> hostList.add("    - ip: " + yamlQuote(v) + "\n      hostnames:\n" + "        - "
-                    + yamlQuote(k) + "\n"));
+            hostMapping.forEach((k, v) -> hostList
+                .add("    - ip: " + yamlQuote(v) + "\n      hostnames:\n" + "        - " + yamlQuote(k) + "\n"));
         }
         String nodeName = resolveKubernetesNodeName(pluginFlinkConfig);
         pluginFlinkConfig.remove(KUBERNETES_NODE_NAME_KEY);
@@ -305,17 +303,16 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
 
     private void appendJava17ModuleOptions(Configuration flinkConfig, String key) {
 
-        flinkConfig.setString(key,
-            AgentJavaOptions.mergeOptions(flinkConfig.getString(key, ""), AgentJavaOptions.FLINK_JAVA_17_MODULE_OPTIONS));
+        flinkConfig.setString(key, AgentJavaOptions.mergeOptions(flinkConfig.getString(key, ""),
+            AgentJavaOptions.FLINK_JAVA_17_MODULE_OPTIONS));
     }
 
     @Override
     public GetWorkInfoRes getWorkInfo(GetWorkInfoReq getWorkInfoReq) throws Exception {
 
         String agentHome = resolveAgentHome(getWorkInfoReq.getAgentHome());
-        String logFinalState =
-            getApplicationFinalState(resolveKubernetesLogDir(agentHome, getWorkInfoReq.getWorkInstanceId()),
-                getWorkInfoReq.getAppId());
+        String logFinalState = getApplicationFinalState(
+            resolveKubernetesLogDir(agentHome, getWorkInfoReq.getWorkInstanceId()), getWorkInfoReq.getAppId());
         if (Strings.isEmpty(logFinalState) && Strings.isEmpty(getWorkInfoReq.getWorkInstanceId())) {
             logFinalState = getApplicationFinalState(agentHome, getWorkInfoReq.getAppId());
         }
@@ -324,10 +321,8 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
         }
 
         List<String> podStatus = new ArrayList<>();
-        CommandResult result = CommandRunner.run(
-            Arrays.asList("kubectl", "get", "pods", "-l", "app=" + getWorkInfoReq.getAppId(), "-n",
-                AgentKubernetes.NAMESPACE),
-            KUBECTL_TIMEOUT);
+        CommandResult result = CommandRunner.run(Arrays.asList("kubectl", "get", "pods", "-l",
+            "app=" + getWorkInfoReq.getAppId(), "-n", AgentKubernetes.NAMESPACE), KUBECTL_TIMEOUT);
         for (String line : result.getStdout().split("\n")) {
             Matcher matcher = Pattern.compile("\\s+\\d/\\d\\s+(\\w+)").matcher(line);
             if (matcher.find()) {
@@ -352,8 +347,8 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
     public GetWorkLogRes getWorkLog(GetWorkLogReq getWorkLogReq) throws Exception {
 
         StringBuilder logBuilder = new StringBuilder();
-        appendLocalKubernetesLogs(logBuilder,
-            resolveKubernetesLogDir(resolveAgentHome(getWorkLogReq.getAgentHomePath()), getWorkLogReq.getWorkInstanceId()));
+        appendLocalKubernetesLogs(logBuilder, resolveKubernetesLogDir(
+            resolveAgentHome(getWorkLogReq.getAgentHomePath()), getWorkLogReq.getWorkInstanceId()));
         if (Strings.isEmpty(logBuilder.toString())) {
             appendKubectlLogs(logBuilder, getWorkLogReq.getAppId());
         }
@@ -384,9 +379,8 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
 
         String flinkConfDir =
             Strings.isEmpty(stopWorkReq.getFlinkHome()) ? null : stopWorkReq.getFlinkHome() + File.separator + "conf";
-        Configuration flinkConfig =
-            Strings.isEmpty(flinkConfDir) ? GlobalConfiguration.loadConfiguration()
-                : GlobalConfiguration.loadConfiguration(flinkConfDir);
+        Configuration flinkConfig = Strings.isEmpty(flinkConfDir) ? GlobalConfiguration.loadConfiguration()
+            : GlobalConfiguration.loadConfiguration(flinkConfDir);
         flinkConfig.set(DeploymentOptions.TARGET, KubernetesDeploymentTarget.APPLICATION.getName());
         flinkConfig.set(KubernetesConfigOptions.NAMESPACE, AgentKubernetes.NAMESPACE);
         flinkConfig.set(KubernetesConfigOptions.KUBERNETES_SERVICE_ACCOUNT, AgentKubernetes.SERVICE_ACCOUNT_NAME);
