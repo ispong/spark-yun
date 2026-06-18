@@ -29,6 +29,10 @@ function isLicenseMissingError(msg: string): boolean {
     return typeof msg === 'string' && msg.includes('请上传许可证')
 }
 
+function isLicenseStatusRequest(response: any): boolean {
+    return typeof response?.config?.url === 'string' && response.config.url.includes('/vip/license/open/checkLicense')
+}
+
 async function refreshLicenseAndReload(): Promise<void> {
     if (isRefreshingLicense || typeof window === 'undefined') {
         return
@@ -81,6 +85,10 @@ export const httpOption = {
         },
         checkStatus: (status: number, msg: string, showMsg: any, response: any): void => {
             try {
+                if (isLicenseStatusRequest(response)) {
+                    return
+                }
+
                 if (status == 401) {
                     const tenantUnavailable = ['租户', '成员', '不在租户'].some((keyword) => msg?.includes(keyword))
                     router.push(
