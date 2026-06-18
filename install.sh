@@ -7,9 +7,9 @@
 set -e  # 遇到错误立即退出
 
 # 配置项
-readonly SPARK_VERSION="4.1.2"
+readonly SPARK_VERSION="3.5.8"
 readonly SPARK_MIN_FILE="spark-${SPARK_VERSION}-bin-hadoop3.tgz"
-readonly FLINK_VERSION="2.2.0"
+readonly FLINK_VERSION="1.20.4"
 readonly FLINK_MIN_FILE="flink-${FLINK_VERSION}-bin-scala_2.12.tgz"
 readonly OSS_DOWNLOAD_URL="https://zhiqingyun-demo.isxcode.com/tools/open/file"
 
@@ -267,23 +267,28 @@ install_flink() {
     # 创建必要目录
     create_dir "$FLINK_MIN_DIR"
 
-    # 解压 Flink（如果尚未解压）
-    if [[ ! -f "${FLINK_MIN_DIR}/bin/flink" ]]; then
+    # 解压 Flink（如果尚未解压，或版本变化，或缺少配置）
+    if [[ ! -f "${FLINK_MIN_DIR}/bin/flink" || ! -f "${FLINK_MIN_DIR}/.flink-version" || "$(cat "${FLINK_MIN_DIR}/.flink-version" 2>/dev/null)" != "$FLINK_VERSION" || ! -f "${FLINK_MIN_DIR}/conf/config.yaml" ]]; then
         echo "Installing Flink ${FLINK_VERSION}..."
+        rm -rf "${FLINK_MIN_DIR:?}"/* "${FLINK_MIN_DIR}"/.[!.]* "${FLINK_MIN_DIR}"/..?* 2>/dev/null || true
         local flink_path="${TMP_DIR}/${FLINK_MIN_FILE}"
         tar zxf "$flink_path" --strip-components=1 -C "$FLINK_MIN_DIR"
 
+        local flink_config_file="${FLINK_MIN_DIR}/conf/config.yaml"
+
         # awk 兼容多种系统
         awk '
-          /rest.bind-address: localhost/ { sub(/localhost/, "0.0.0.0") }
-          /taskmanager.numberOfTaskSlots: 1/ { sub(/1/, "10") }
+          /^  bind-host: localhost/ { sub(/localhost/, "0.0.0.0") }
+          /^  address: localhost/ { sub(/localhost/, "0.0.0.0") }
+          /^  numberOfTaskSlots: 1/ { sub(/1/, "10") }
+          /^  # port: 8081/ { print "  port: 8083"; next }
           { print }
-        ' "${FLINK_MIN_DIR}/conf/flink-conf.yaml" > "${FLINK_MIN_DIR}/conf/flink-conf.yaml.tmp"
-        mv "${FLINK_MIN_DIR}/conf/flink-conf.yaml.tmp" "${FLINK_MIN_DIR}/conf/flink-conf.yaml"
-        echo "rest.port: 8083" >> "${FLINK_MIN_DIR}/conf/flink-conf.yaml"
+        ' "$flink_config_file" > "${flink_config_file}.tmp"
+        mv "${flink_config_file}.tmp" "$flink_config_file"
 
         # 删除不需要的文件和目录
         rm -rf "${FLINK_MIN_DIR}"/{NOTICE,LICENSE,licenses,examples}
+        echo "$FLINK_VERSION" > "${FLINK_MIN_DIR}/.flink-version"
     fi
 }
 

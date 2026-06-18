@@ -55,13 +55,16 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
 
         // 获取本地flink的配置，并从中获取rest.port、rest.address，如果获取不到默认8081、localhost
         flinkHome = !Strings.isEmpty(flinkHome) ? flinkHome : System.getenv("FLINK_HOME");
-        String flinkConfigPath = flinkHome + File.separator + "conf" + File.separator + "flink-conf.yaml";
+        String flinkConfigPath = flinkHome + File.separator + "conf" + File.separator + "config.yaml";
 
         try (InputStream inputStream = Files.newInputStream(new File(flinkConfigPath).toPath())) {
             Yaml yaml = new Yaml();
             Map<String, Object> flinkYaml = yaml.load(inputStream);
-            String restAddress = String.valueOf(flinkYaml.getOrDefault("rest.address", "localhost"));
-            String restPort = String.valueOf(flinkYaml.getOrDefault("rest.port", "8081"));
+            Map<String, Object> restConfig =
+                Optional.ofNullable(flinkYaml.get("rest")).filter(Map.class::isInstance).map(Map.class::cast)
+                    .orElse(Collections.emptyMap());
+            String restAddress = String.valueOf(restConfig.getOrDefault("address", "localhost"));
+            String restPort = String.valueOf(restConfig.getOrDefault("port", "8081"));
 
             // 添加配置
             Configuration configuration = new Configuration();
