@@ -5,7 +5,9 @@ package com.isxcode.spark.api.agent.constants;
  */
 public interface AgentKubernetes {
 
-    String SPARK_DOCKER_IMAGE = "spark:4.1.2";
+    String SPARK_DOCKER_IMAGE = "apache/spark:3.5.8-java17-python3";
+
+    String FLINK_DOCKER_IMAGE = "apache/flink:1.20.4-java17";
 
     String NAMESPACE = "zhiqingyun-space";
 

@@ -2,6 +2,7 @@ package com.isxcode.spark.agent.run.flink.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.isxcode.spark.agent.run.flink.FlinkAgentService;
+import com.isxcode.spark.api.agent.constants.AgentKubernetes;
 import com.isxcode.spark.api.agent.constants.AgentType;
 import com.isxcode.spark.api.agent.req.flink.GetWorkInfoReq;
 import com.isxcode.spark.api.agent.req.flink.GetWorkLogReq;
@@ -124,7 +125,7 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
             KubernetesConfigOptions.ImagePullPolicy.IfNotPresent);
         flinkConfig.set(KubernetesConfigOptions.NAMESPACE, "zhiqingyun-space");
         flinkConfig.set(KubernetesConfigOptions.KUBERNETES_SERVICE_ACCOUNT, "zhiqingyun");
-        flinkConfig.set(KubernetesConfigOptions.CONTAINER_IMAGE, "flink:2.2.0-scala_2.12");
+        flinkConfig.set(KubernetesConfigOptions.CONTAINER_IMAGE, AgentKubernetes.FLINK_DOCKER_IMAGE);
         flinkConfig.set(KubernetesConfigOptions.TASK_MANAGER_CPU, 2.0);
         flinkConfig.set(KubernetesConfigOptions.KUBERNETES_POD_TEMPLATE, submitWorkReq.getAgentHomePath()
             + File.separator + "pod" + File.separator + submitWorkReq.getWorkInstanceId() + ".yaml");
