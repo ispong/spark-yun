@@ -41,16 +41,11 @@ import java.util.regex.Pattern;
 public class SparkStandaloneAgentService implements SparkAgentService {
 
     private static final List<String> JAVA_17_MODULE_OPTIONS = Arrays.asList(
-        "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED",
-        "--add-exports=java.base/sun.security.action=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens=java.base/java.io=ALL-UNNAMED",
-        "--add-opens=java.base/java.net=ALL-UNNAMED",
-        "--add-opens=java.base/java.nio=ALL-UNNAMED",
-        "--add-opens=java.base/java.util=ALL-UNNAMED",
-        "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+        "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED", "--add-exports=java.base/sun.security.action=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED", "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.net=ALL-UNNAMED", "--add-opens=java.base/java.nio=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED", "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
         "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
         "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED");
 

@@ -294,8 +294,8 @@ public class ClusterNodeBizService {
             if (Strings.isEmpty(testAgentReq.getAgentPort())) {
                 return TestAgentRes.builder().status("FAIL").log("请输入服务端口号").build();
             }
-            ClusterNodeEntity agentNode = ClusterNodeEntity.builder().host(testAgentReq.getHost())
-                .agentPort(testAgentReq.getAgentPort()).build();
+            ClusterNodeEntity agentNode =
+                ClusterNodeEntity.builder().host(testAgentReq.getHost()).agentPort(testAgentReq.getAgentPort()).build();
             try {
                 agentLinkUtils.getAgentLinkResponse(agentNode, SparkAgentUrl.HEART_CHECK_URL, null);
                 return TestAgentRes.builder().status("SUCCESS").log("连接成功").build();

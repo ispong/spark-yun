@@ -167,16 +167,15 @@ public class SparkAgentBizService {
             DiskSnapshot secondDiskSnapshot = readDiskSnapshot();
 
             return NodeMonitorInfo.builder().status(MonitorStatus.SUCCESS).log("检测完成")
-                .usedMemorySize(getUsedMemorySize()).usedStorageSize(getUsedStorageSize())
-                .cpuPercent(getCpuPercent())
-                .networkIoReadSpeed(round((secondNetworkSnapshot.readBytes() - firstNetworkSnapshot.readBytes())
-                    / 1024.0))
-                .networkIoWriteSpeed(round((secondNetworkSnapshot.writeBytes() - firstNetworkSnapshot.writeBytes())
-                    / 1024.0))
-                .diskIoReadSpeed(round((secondDiskSnapshot.readSectors() - firstDiskSnapshot.readSectors()) * 512
-                    / 1024.0))
-                .diskIoWriteSpeed(round((secondDiskSnapshot.writeSectors() - firstDiskSnapshot.writeSectors()) * 512
-                    / 1024.0))
+                .usedMemorySize(getUsedMemorySize()).usedStorageSize(getUsedStorageSize()).cpuPercent(getCpuPercent())
+                .networkIoReadSpeed(
+                    round((secondNetworkSnapshot.readBytes() - firstNetworkSnapshot.readBytes()) / 1024.0))
+                .networkIoWriteSpeed(
+                    round((secondNetworkSnapshot.writeBytes() - firstNetworkSnapshot.writeBytes()) / 1024.0))
+                .diskIoReadSpeed(
+                    round((secondDiskSnapshot.readSectors() - firstDiskSnapshot.readSectors()) * 512 / 1024.0))
+                .diskIoWriteSpeed(
+                    round((secondDiskSnapshot.writeSectors() - firstDiskSnapshot.writeSectors()) * 512 / 1024.0))
                 .build();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -321,9 +320,7 @@ public class SparkAgentBizService {
         return Math.round(value * 10.0) / 10.0;
     }
 
-    private record NetworkSnapshot(long readBytes, long writeBytes) {
-    }
+    private record NetworkSnapshot(long readBytes, long writeBytes) {}
 
-    private record DiskSnapshot(long readSectors, long writeSectors) {
-    }
+    private record DiskSnapshot(long readSectors, long writeSectors) {}
 }

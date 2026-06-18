@@ -40,9 +40,8 @@ public class AgentLinkUtils {
 
         for (int attempt = 1; attempt <= retryCount; attempt++) {
             try {
-                String responseBody =
-                    HttpUtils.doPost(httpUrlUtils.genHttpUrl(agentNode.getHost(), agentNode.getAgentPort(), url), body,
-                        String.class);
+                String responseBody = HttpUtils.doPost(
+                    httpUrlUtils.genHttpUrl(agentNode.getHost(), agentNode.getAgentPort(), url), body, String.class);
 
                 // 打印调试日志
                 if (responseBody != null) {

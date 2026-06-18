@@ -44,23 +44,17 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
     private static final int MAX_LOG_CHARS = 30000;
 
     private static final List<String> JAVA_17_MODULE_OPTIONS = Arrays.asList(
-        "--add-exports=java.base/sun.net.util=ALL-UNNAMED",
-        "--add-exports=java.rmi/sun.rmi.registry=ALL-UNNAMED",
+        "--add-exports=java.base/sun.net.util=ALL-UNNAMED", "--add-exports=java.rmi/sun.rmi.registry=ALL-UNNAMED",
         "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
         "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
         "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
         "--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
         "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-        "--add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang=ALL-UNNAMED",
-        "--add-opens=java.base/java.net=ALL-UNNAMED",
-        "--add-opens=java.base/java.io=ALL-UNNAMED",
-        "--add-opens=java.base/java.nio=ALL-UNNAMED",
-        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens=java.base/java.text=ALL-UNNAMED",
-        "--add-opens=java.base/java.time=ALL-UNNAMED",
-        "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED", "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.net=ALL-UNNAMED", "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.nio=ALL-UNNAMED", "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED", "--add-opens=java.base/java.text=ALL-UNNAMED",
+        "--add-opens=java.base/java.time=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED",
         "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
         "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
         "--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED");
@@ -294,8 +288,8 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
     @Override
     public GetWorkInfoRes getWorkInfo(GetWorkInfoReq getWorkInfoReq) throws Exception {
 
-        String logFinalState = getApplicationFinalState(resolveAgentHome(getWorkInfoReq.getAgentHome()),
-            getWorkInfoReq.getAppId());
+        String logFinalState =
+            getApplicationFinalState(resolveAgentHome(getWorkInfoReq.getAgentHome()), getWorkInfoReq.getAppId());
         if (Strings.isNotEmpty(logFinalState)) {
             return GetWorkInfoRes.builder().finalState(logFinalState).appId(getWorkInfoReq.getAppId()).build();
         }
@@ -348,9 +342,8 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
     public GetWorkLogRes getWorkLog(GetWorkLogReq getWorkLogReq) throws Exception {
 
         StringBuilder logBuilder = new StringBuilder();
-        appendLocalKubernetesLogs(logBuilder,
-            new File(getWorkLogReq.getAgentHomePath() + File.separator + "k8s-logs" + File.separator
-                + getWorkLogReq.getWorkInstanceId()));
+        appendLocalKubernetesLogs(logBuilder, new File(getWorkLogReq.getAgentHomePath() + File.separator + "k8s-logs"
+            + File.separator + getWorkLogReq.getWorkInstanceId()));
         if (Strings.isEmpty(logBuilder.toString())) {
             appendKubectlLogs(logBuilder, getWorkLogReq.getAppId());
         }
@@ -365,7 +358,8 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
             Arrays.sort(logFiles, Comparator.comparing(File::getName));
             for (File logFile : logFiles) {
                 logBuilder.append("===== ").append(logFile.getName()).append(" =====\n");
-                try (BufferedReader bufferedReader = Files.newBufferedReader(logFile.toPath(), StandardCharsets.UTF_8)) {
+                try (
+                    BufferedReader bufferedReader = Files.newBufferedReader(logFile.toPath(), StandardCharsets.UTF_8)) {
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
                         logBuilder.append(line).append("\n");
@@ -481,7 +475,7 @@ public class FlinkKubernetesAgentService implements FlinkAgentService {
     private void appendKubectlLogs(StringBuilder logBuilder, String appId) throws IOException, InterruptedException {
 
         Process process = Runtime.getRuntime().exec(new String[] {"kubectl", "logs", "-n", "zhiqingyun-space", "-l",
-            "app=" + appId, "--all-containers=true", "--tail=2000"});
+                "app=" + appId, "--all-containers=true", "--tail=2000"});
         try (
             BufferedReader reader =
                 new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));

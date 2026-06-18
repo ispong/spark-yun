@@ -98,9 +98,9 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
         // 添加自定义函数
         if (submitWorkReq.getFuncConfig() != null) {
             for (int i = 0; i < submitWorkReq.getFuncConfig().size(); i++) {
-                userClassPaths.add(requireFile(submitWorkReq.getAgentHomePath() + File.separator + "file"
-                    + File.separator + submitWorkReq.getFuncConfig().get(i).getFileId() + ".jar",
-                    "Flink自定义函数包").toURI().toURL());
+                userClassPaths
+                    .add(requireFile(submitWorkReq.getAgentHomePath() + File.separator + "file" + File.separator
+                        + submitWorkReq.getFuncConfig().get(i).getFileId() + ".jar", "Flink自定义函数包").toURI().toURL());
             }
         }
 
@@ -118,8 +118,7 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
         if (WorkType.FLINK_JAR.equals(submitWorkReq.getWorkType())) {
             File jarFile = requireFile(submitWorkReq.getAgentHomePath() + File.separator + "file" + File.separator
                 + submitWorkReq.getFlinkSubmit().getAppResource(), "Flink作业Jar");
-            PackagedProgram.Builder builder = PackagedProgram.newBuilder()
-                .setJarFile(jarFile)
+            PackagedProgram.Builder builder = PackagedProgram.newBuilder().setJarFile(jarFile)
                 .setEntryPointClassName(submitWorkReq.getFlinkSubmit().getEntryClass()).setConfiguration(configuration)
                 .setArguments(submitWorkReq.getPluginReq().getArgs()).setUserClassPaths(userClassPaths);
             if (configuration.getString(SAVEPOINT_PATH_KEY, null) != null) {
@@ -132,10 +131,9 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
                 program = builder.build();
             }
         } else {
-            File pluginFile = requireFile(submitWorkReq.getAgentHomePath() + File.separator + "plugins"
-                + File.separator + submitWorkReq.getFlinkSubmit().getAppResource(), "Flink插件Jar");
-            PackagedProgram.Builder builder = PackagedProgram.newBuilder()
-                .setJarFile(pluginFile)
+            File pluginFile = requireFile(submitWorkReq.getAgentHomePath() + File.separator + "plugins" + File.separator
+                + submitWorkReq.getFlinkSubmit().getAppResource(), "Flink插件Jar");
+            PackagedProgram.Builder builder = PackagedProgram.newBuilder().setJarFile(pluginFile)
                 .setEntryPointClassName(submitWorkReq.getFlinkSubmit().getEntryClass()).setConfiguration(configuration)
                 .setArguments(Base64.getEncoder()
                     .encodeToString(JSON.toJSONString(submitWorkReq.getPluginReq()).getBytes(StandardCharsets.UTF_8)))
@@ -204,8 +202,7 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
         appendTaskManagerLogs(restUrl, logBuilder);
 
         if (logBuilder.length() == 0) {
-            return GetWorkLogRes.builder()
-                .log("未获取到Flink日志，当前作业状态: " + status + "，请检查Flink Web日志接口是否可访问").build();
+            return GetWorkLogRes.builder().log("未获取到Flink日志，当前作业状态: " + status + "，请检查Flink Web日志接口是否可访问").build();
         }
 
         return GetWorkLogRes.builder().log(tailLog(logBuilder.toString())).build();
@@ -259,8 +256,7 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
                 throw new IsxAppException("Flink Local REST服务不可用: " + restUrl);
             }
         } catch (Exception e) {
-            throw new IsxAppException(
-                "Flink Local REST服务不可用: " + restUrl + "，请确认Flink集群已启动，原因: " + getRootMessage(e));
+            throw new IsxAppException("Flink Local REST服务不可用: " + restUrl + "，请确认Flink集群已启动，原因: " + getRootMessage(e));
         }
     }
 
@@ -337,8 +333,7 @@ public class FlinkStandaloneAgentService implements FlinkAgentService {
             return logContent;
         }
 
-        return "日志过长，仅展示最后" + MAX_LOG_CHARS + "个字符\n"
-            + logContent.substring(logContent.length() - MAX_LOG_CHARS);
+        return "日志过长，仅展示最后" + MAX_LOG_CHARS + "个字符\n" + logContent.substring(logContent.length() - MAX_LOG_CHARS);
     }
 
     private String getRootMessage(Throwable throwable) {

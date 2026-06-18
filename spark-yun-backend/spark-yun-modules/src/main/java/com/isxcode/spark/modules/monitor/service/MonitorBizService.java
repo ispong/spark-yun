@@ -320,8 +320,8 @@ public class MonitorBizService {
 
     public NodeMonitorInfo getNodeMonitor(ClusterNodeEntity clusterNode) {
 
-        NodeMonitorInfo nodeMonitorInfo =
-            agentLinkUtils.getAgentResponse(clusterNode, SparkAgentUrl.GET_NODE_MONITOR_URL, null, NodeMonitorInfo.class);
+        NodeMonitorInfo nodeMonitorInfo = agentLinkUtils.getAgentResponse(clusterNode,
+            SparkAgentUrl.GET_NODE_MONITOR_URL, null, NodeMonitorInfo.class);
         if (!MonitorStatus.SUCCESS.equals(nodeMonitorInfo.getStatus())) {
             nodeMonitorInfo.setStatus(MonitorStatus.FAIL);
             return nodeMonitorInfo;
