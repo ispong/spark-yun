@@ -1,4 +1,4 @@
-ALTER TABLE sy_platform_setting ADD COLUMN auto_create_tenant BOOLEAN DEFAULT TRUE NOT NULL;
+ALTER TABLE sy_platform_setting ADD COLUMN auto_create_tenant BOOLEAN DEFAULT FALSE NOT NULL;
 ALTER TABLE sy_login_method_config ADD COLUMN account_password_enabled BOOLEAN DEFAULT TRUE NOT NULL;
 
 CREATE TABLE IF NOT EXISTS sy_login_log

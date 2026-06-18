@@ -24,7 +24,7 @@
                     controls-position="right"
                 />
             </el-form-item>
-            <el-form-item v-if="renderSence === 'new'" label="租户管理员" prop="adminUserId">
+            <el-form-item v-if="renderSence === 'new'" label="租户超级管理员" prop="adminUserId">
                 <el-select v-model="formData.adminUserId" placeholder="请选择">
                     <el-option v-for="item in userList" :key="item.id" :label="item.username" :value="item.id" />
                 </el-select>
@@ -109,7 +109,7 @@ const rules = reactive<FormRules>({
     adminUserId: [
         {
             required: true,
-            message: '请选择租户管理员',
+            message: '请选择租户超级管理员',
             trigger: ['change', 'blur']
         }
     ]
@@ -166,7 +166,7 @@ function okEvent() {
     form.value?.validate((valid) => {
         if (valid) {
             if (renderSence.value === 'new' && !formData.adminUserId) {
-                ElMessage.warning('请选择租户管理员')
+                ElMessage.warning('请选择租户超级管理员')
                 return
             }
             modelConfig.okConfig.loading = true

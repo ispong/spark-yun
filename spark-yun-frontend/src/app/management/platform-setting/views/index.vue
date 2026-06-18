@@ -134,7 +134,7 @@ const brandUploadLoading = reactive<Record<BrandImageKey, boolean>>({
 
 const form = reactive<PlatformSetting>({
     description: '',
-    autoCreateTenant: true,
+    autoCreateTenant: false,
     browserTitle: '',
     themeColor: defaultBrandSetting.themeColor,
     faviconUrl: '',
@@ -178,7 +178,7 @@ function initData() {
     GetPlatformSetting()
         .then((res: any) => {
             form.description = res.data?.description || ''
-            form.autoCreateTenant = res.data?.autoCreateTenant ?? true
+            form.autoCreateTenant = res.data?.autoCreateTenant ?? false
             form.browserTitle = res.data?.browserTitle || defaultBrandSetting.browserTitle
             form.themeColor = res.data?.themeColor || defaultBrandSetting.themeColor
             form.faviconUrl = res.data?.faviconUrl || ''

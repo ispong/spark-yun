@@ -33,7 +33,7 @@ public class PlatformSettingService {
 
         PlatformSettingEntity setting = getOrCreateSetting();
         return GetPlatformSettingRes.builder().description(setting.getDescription())
-            .autoCreateTenant(valueOrDefault(setting.getAutoCreateTenant(), true))
+            .autoCreateTenant(valueOrDefault(setting.getAutoCreateTenant(), false))
             .browserTitle(setting.getBrowserTitle()).themeColor(setting.getThemeColor())
             .faviconUrl(setting.getFaviconUrl()).topLogoUrl(setting.getTopLogoUrl())
             .topLogoSmallUrl(setting.getTopLogoSmallUrl()).loginMainImageUrl(setting.getLoginMainImageUrl()).build();
@@ -44,7 +44,7 @@ public class PlatformSettingService {
         PlatformSettingEntity setting = getOrCreateSetting();
         setting.setDescription(updatePlatformSettingReq.getDescription());
         setting.setAutoCreateTenant(valueOrDefault(updatePlatformSettingReq.getAutoCreateTenant(),
-            valueOrDefault(setting.getAutoCreateTenant(), true)));
+            valueOrDefault(setting.getAutoCreateTenant(), false)));
         setting.setBrowserTitle(updatePlatformSettingReq.getBrowserTitle());
         setting.setThemeColor(updatePlatformSettingReq.getThemeColor());
         setting.setFaviconUrl(updatePlatformSettingReq.getFaviconUrl());
@@ -90,7 +90,7 @@ public class PlatformSettingService {
         PlatformSettingEntity setting = new PlatformSettingEntity();
         setting.setSettingKey(GLOBAL_SETTING_KEY);
         setting.setDescription("");
-        setting.setAutoCreateTenant(true);
+        setting.setAutoCreateTenant(false);
         setting.setBrowserTitle("");
         setting.setThemeColor("");
         return setting;

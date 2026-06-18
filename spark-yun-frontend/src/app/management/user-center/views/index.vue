@@ -67,7 +67,7 @@
                     </template>
                     <template #platformAdmin="scopeSlot">
                         <el-tag v-if="scopeSlot.row.platformSuperAdmin" type="danger">平台超级管理员</el-tag>
-                        <el-tag v-else-if="scopeSlot.row.platformAdmin" type="warning">管理员</el-tag>
+                        <el-tag v-else-if="scopeSlot.row.platformAdmin" type="warning">平台管理员</el-tag>
                         <el-tag v-else class="platform-user-tag">平台用户</el-tag>
                     </template>
                     <template #options="scopeSlot">
