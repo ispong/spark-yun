@@ -58,7 +58,6 @@
                                     <el-dropdown-menu>
                                         <el-dropdown-item command="upload-file" :icon="Upload">上传文件</el-dropdown-item>
                                         <el-dropdown-item command="select-prompt" :icon="Search">提示词</el-dropdown-item>
-                                        <el-dropdown-item command="save-prompt" :icon="Edit">存为提示词</el-dropdown-item>
                                         <el-dropdown-item command="mcp-share" :icon="Share">Mcp一键分享</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
@@ -192,17 +191,6 @@
             </Transition>
         </Teleport>
 
-        <el-dialog v-model="savePromptDialogVisible" append-to-body title="保存提示词" width="420px">
-            <el-form label-position="top">
-                <el-form-item label="名称">
-                    <el-input v-model="savePromptName" maxlength="50" show-word-limit />
-                </el-form-item>
-            </el-form>
-            <template #footer>
-                <el-button @click="savePromptDialogVisible = false">取消</el-button>
-                <el-button type="primary" @click="saveInputAsPrompt">保存</el-button>
-            </template>
-        </el-dialog>
     </div>
 </template>
 
@@ -286,8 +274,6 @@ const promptForm = ref({
     name: '',
     content: ''
 })
-const savePromptDialogVisible = ref(false)
-const savePromptName = ref('')
 const fileInputRef = ref<HTMLInputElement>()
 const composerEditorRef = ref<HTMLElement>()
 const uploadingFile = ref(false)
@@ -595,15 +581,6 @@ function handleComposerAction(command: string) {
         loadPrompts()
         return
     }
-    if (command === 'save-prompt') {
-        if (!inputText.value.trim()) {
-            ElMessage.warning('请输入要保存的提示词内容')
-            return
-        }
-        savePromptName.value = resolveHistoryTitle(inputText.value.trim())
-        savePromptDialogVisible.value = true
-        return
-    }
     if (command === 'mcp-share') {
         ElMessage.info('Mcp一键分享功能准备中')
     }
@@ -826,21 +803,6 @@ async function submitPromptForm() {
 async function removePrompt(prompt: AiPrompt) {
     await DeleteAiPrompt({ id: prompt.id })
     aiPrompts.value = aiPrompts.value.filter((item) => item.id !== prompt.id)
-}
-
-async function saveInputAsPrompt() {
-    if (!savePromptName.value.trim()) {
-        ElMessage.warning('请输入提示词名称')
-        return
-    }
-    const res = await SaveAiPrompt({
-        name: savePromptName.value.trim(),
-        content: inputText.value.trim()
-    })
-    aiPrompts.value.unshift(res.data)
-    savePromptDialogVisible.value = false
-    savePromptName.value = ''
-    ElMessage.success('提示词已保存')
 }
 
 function buildRequestContent(userContent: string): string {
