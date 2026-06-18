@@ -1537,6 +1537,7 @@ onMounted(() => {
 }
 
 .zhiqing-ai-prompt-dialog {
+    height: 440px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -1549,11 +1550,12 @@ onMounted(() => {
 }
 
 .zhiqing-ai-prompt-list {
-    min-height: 280px;
-    max-height: 460px;
+    min-height: 0;
+    flex: 1;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: 112px;
+    gap: 8px;
     overflow: auto;
     padding-right: 4px;
 }
@@ -1566,9 +1568,9 @@ onMounted(() => {
 
 .zhiqing-ai-prompt-card {
     min-width: 0;
-    min-height: 126px;
+    height: 112px;
     box-sizing: border-box;
-    padding: 12px;
+    padding: 10px 8px 10px 10px;
     border: 1px solid var(--el-border-color-lighter);
     border-radius: 8px;
     cursor: pointer;
@@ -1585,12 +1587,16 @@ onMounted(() => {
     }
 
     p {
-        height: 60px;
-        margin: 8px 0 0;
+        height: 42px;
+        margin: 6px 0 0;
         overflow: hidden;
         color: var(--el-text-color-secondary);
         font-size: 13px;
-        line-height: 20px;
+        line-height: 21px;
+        word-break: break-word;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
     }
 }
 
@@ -1598,11 +1604,11 @@ onMounted(() => {
     min-width: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
 
     strong {
         min-width: 0;
+        flex: 1;
         overflow: hidden;
         color: var(--el-text-color-primary);
         font-size: 14px;
@@ -1615,7 +1621,17 @@ onMounted(() => {
     flex: 0 0 auto;
     display: flex;
     align-items: center;
-    gap: 2px;
+    justify-content: flex-end;
+    gap: 0;
+    margin-left: auto;
+
+    :deep(.el-button) {
+        width: 18px;
+        height: 22px;
+        min-height: 22px;
+        margin-left: 5px;
+        padding: 0;
+    }
 }
 
 .zhiqing-ai-prompt-form {
