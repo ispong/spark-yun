@@ -433,7 +433,7 @@ onMounted(() => {
     .zqy-platform-setting__brand-item {
         display: flex;
         min-width: 0;
-        min-height: 112px;
+        min-height: 128px;
         padding: 14px;
         box-sizing: border-box;
         border: 1px solid getCssVar('border-color', 'lighter');
@@ -443,7 +443,7 @@ onMounted(() => {
 
     .zqy-platform-setting__brand-preview {
         width: 112px;
-        height: 84px;
+        height: 100px;
         flex: 0 0 112px;
         display: flex;
         align-items: center;
@@ -470,7 +470,7 @@ onMounted(() => {
 
     .zqy-platform-setting__brand-info {
         min-width: 0;
-        height: 84px;
+        height: 100px;
         flex: 1;
         display: flex;
         flex-direction: column;
