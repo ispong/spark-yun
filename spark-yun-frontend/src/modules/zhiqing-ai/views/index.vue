@@ -4,7 +4,7 @@
             <div ref="messagePanelRef" class="zhiqing-ai__messages">
                 <div v-if="!messages.length" class="zhiqing-ai__welcome">
                     <strong>你好，我是至轻智能</strong>
-                    <span>让AI更懂数据，从快速开始对话做起。</span>
+                    <span>让AI更懂数据，洞察业务更高效</span>
                 </div>
                 <div
                     v-for="(message, index) in messages"
@@ -121,13 +121,18 @@
             </div>
         </aside>
 
-        <el-dialog v-model="promptDialogVisible" title="选择提示词" width="760px">
+        <el-dialog v-model="promptDialogVisible" append-to-body title="选择提示词" width="760px">
             <div class="zhiqing-ai-prompt-dialog">
                 <div class="zhiqing-ai-prompt-dialog__toolbar">
                     <el-input v-model="promptSearchText" :prefix-icon="Search" clearable placeholder="搜索提示词" />
                     <el-button type="primary" @click="openCreatePrompt">新建</el-button>
                 </div>
                 <div class="zhiqing-ai-prompt-list">
+                    <el-empty
+                        v-if="!filteredPrompts.length"
+                        class="zhiqing-ai-prompt-empty"
+                        description="暂无提示词"
+                    />
                     <div
                         v-for="prompt in filteredPrompts"
                         :key="prompt.id"
@@ -144,27 +149,43 @@
                         </div>
                         <p>{{ prompt.content }}</p>
                     </div>
-                    <el-empty v-if="!filteredPrompts.length" description="暂无提示词" />
                 </div>
             </div>
         </el-dialog>
 
-        <el-dialog v-model="promptEditDialogVisible" :title="promptForm.id ? '编辑提示词' : '新建提示词'" width="560px">
-            <el-form class="zhiqing-ai-prompt-form" label-position="top">
-                <el-form-item label="名称">
-                    <el-input v-model="promptForm.name" maxlength="50" show-word-limit />
-                </el-form-item>
-                <el-form-item label="内容">
-                    <el-input v-model="promptForm.content" type="textarea" :rows="8" maxlength="5000" show-word-limit />
-                </el-form-item>
-            </el-form>
-            <template #footer>
-                <el-button @click="promptEditDialogVisible = false">取消</el-button>
-                <el-button type="primary" @click="submitPromptForm">保存</el-button>
-            </template>
-        </el-dialog>
+        <Teleport to="body">
+            <Transition name="zhiqing-ai-prompt-edit">
+                <div v-if="promptEditDialogVisible" class="zhiqing-ai-prompt-edit-mask">
+                    <div class="zhiqing-ai-prompt-edit-modal" role="dialog" aria-modal="true">
+                        <div class="zhiqing-ai-prompt-edit-header">
+                            <span>{{ promptForm.id ? '编辑提示词' : '新建提示词' }}</span>
+                            <el-button :icon="Close" circle text @click="closePromptEditDialog" />
+                        </div>
+                        <el-form class="zhiqing-ai-prompt-form" label-position="top">
+                            <el-form-item label="名称">
+                                <el-input v-model="promptForm.name" maxlength="50" placeholder="请输入" show-word-limit />
+                            </el-form-item>
+                            <el-form-item label="内容">
+                                <el-input
+                                    v-model="promptForm.content"
+                                    type="textarea"
+                                    :rows="8"
+                                    maxlength="5000"
+                                    placeholder="请输入"
+                                    show-word-limit
+                                />
+                            </el-form-item>
+                        </el-form>
+                        <div class="zhiqing-ai-prompt-edit-footer">
+                            <el-button @click="closePromptEditDialog">取消</el-button>
+                            <el-button type="primary" @click="submitPromptForm">保存</el-button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
 
-        <el-dialog v-model="savePromptDialogVisible" title="保存提示词" width="420px">
+        <el-dialog v-model="savePromptDialogVisible" append-to-body title="保存提示词" width="420px">
             <el-form label-position="top">
                 <el-form-item label="名称">
                     <el-input v-model="savePromptName" maxlength="50" show-word-limit />
@@ -639,7 +660,7 @@ function openCreatePrompt() {
         name: '',
         content: ''
     }
-    promptEditDialogVisible.value = true
+    openPromptEditDialog()
 }
 
 function openEditPrompt(prompt: AiPrompt) {
@@ -648,7 +669,15 @@ function openEditPrompt(prompt: AiPrompt) {
         name: prompt.name,
         content: prompt.content
     }
+    openPromptEditDialog()
+}
+
+function openPromptEditDialog() {
     promptEditDialogVisible.value = true
+}
+
+function closePromptEditDialog() {
+    promptEditDialogVisible.value = false
 }
 
 async function submitPromptForm() {
@@ -669,7 +698,7 @@ async function submitPromptForm() {
         aiPrompts.value.unshift(savedPrompt)
     }
     selectedPrompts.value = selectedPrompts.value.map((prompt) => (prompt.id === savedPrompt.id ? savedPrompt : prompt))
-    promptEditDialogVisible.value = false
+    closePromptEditDialog()
 }
 
 async function removePrompt(prompt: AiPrompt) {
@@ -1520,12 +1549,19 @@ onMounted(() => {
 }
 
 .zhiqing-ai-prompt-list {
+    min-height: 280px;
     max-height: 460px;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     overflow: auto;
     padding-right: 4px;
+}
+
+.zhiqing-ai-prompt-empty {
+    grid-column: 1 / -1;
+    align-self: center;
+    justify-self: center;
 }
 
 .zhiqing-ai-prompt-card {
@@ -1583,8 +1619,101 @@ onMounted(() => {
 }
 
 .zhiqing-ai-prompt-form {
+    box-sizing: border-box;
+    padding: 14px 20px 4px;
+
+    :deep(.el-form-item) {
+        margin-bottom: 20px;
+    }
+
+    :deep(.el-form-item__label) {
+        margin-bottom: 4px;
+        color: var(--el-text-color-primary);
+        line-height: 16px;
+    }
+
+    :deep(.el-input),
+    :deep(.el-select),
+    :deep(.el-textarea) {
+        width: 100%;
+    }
+
+    :deep(.el-input__wrapper),
     :deep(.el-textarea__inner) {
+        border-radius: 2px;
+    }
+
+    :deep(.el-textarea__inner) {
+        min-height: 160px !important;
         line-height: 1.6;
+        resize: none;
+    }
+}
+
+.zhiqing-ai-prompt-edit-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+.zhiqing-ai-prompt-edit-modal {
+    width: min(520px, calc(100vw - 32px));
+    overflow: hidden;
+    border-radius: 4px;
+    background-color: #ffffff;
+    box-shadow: var(--el-box-shadow-dark);
+}
+
+.zhiqing-ai-prompt-edit-header {
+    box-sizing: border-box;
+    height: 46px;
+    padding: 0 12px 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+
+    span {
+        color: var(--el-text-color-primary);
+        font-size: 16px;
+        line-height: 20px;
+    }
+}
+
+.zhiqing-ai-prompt-edit-footer {
+    box-sizing: border-box;
+    height: 56px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid var(--el-border-color-lighter);
+
+    .el-button {
+        margin-left: 0;
+    }
+}
+
+.zhiqing-ai-prompt-edit-enter-active,
+.zhiqing-ai-prompt-edit-leave-active {
+    transition: opacity 0.18s ease;
+
+    .zhiqing-ai-prompt-edit-modal {
+        transition: transform 0.18s ease;
+    }
+}
+
+.zhiqing-ai-prompt-edit-enter-from,
+.zhiqing-ai-prompt-edit-leave-to {
+    opacity: 0;
+
+    .zhiqing-ai-prompt-edit-modal {
+        transform: translateY(-8px);
     }
 }
 
