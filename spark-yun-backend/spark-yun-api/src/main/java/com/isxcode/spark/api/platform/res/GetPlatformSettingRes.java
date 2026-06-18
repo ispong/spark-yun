@@ -10,4 +10,16 @@ public class GetPlatformSettingRes {
     private String description;
 
     private Boolean autoCreateTenant;
+
+    private String browserTitle;
+
+    private String themeColor;
+
+    private String faviconUrl;
+
+    private String topLogoUrl;
+
+    private String topLogoSmallUrl;
+
+    private String loginMainImageUrl;
 }

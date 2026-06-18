@@ -6,6 +6,7 @@ import VueGridLayout from 'vue-grid-layout'
 import App from '@/App.vue'
 import router from '@/app/router'
 import pinia from '@/app/store'
+import { loadBrandSetting } from '@/app/shared/branding'
 
 import 'normalize.css'
 import 'vxe-table/lib/style.css'
@@ -13,6 +14,7 @@ import '@/app/assets/styles/global.scss'
 
 // 打印控制台版本信息
 console.info(`至轻云 ${__APP_VERSION__}`)
+loadBrandSetting()
 
 // 绑定index中app组件
 const app = createApp(App)

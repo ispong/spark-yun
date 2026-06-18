@@ -13,4 +13,28 @@ public class UpdatePlatformSettingReq {
 
     @Schema(title = "注册时是否创建租户", example = "true")
     private Boolean autoCreateTenant;
+
+    @Schema(title = "浏览器标题文字", example = "至轻云")
+    @Size(max = 100, message = "浏览器标题文字不能超过100个字符")
+    private String browserTitle;
+
+    @Schema(title = "主题色", example = "#f34c00")
+    @Size(max = 20, message = "主题色不能超过20个字符")
+    private String themeColor;
+
+    @Schema(title = "浏览器标签图标")
+    @Size(max = 5000000, message = "浏览器标签图标不能超过5MB")
+    private String faviconUrl;
+
+    @Schema(title = "顶部大Logo")
+    @Size(max = 5000000, message = "顶部大Logo不能超过5MB")
+    private String topLogoUrl;
+
+    @Schema(title = "顶部小Logo")
+    @Size(max = 5000000, message = "顶部小Logo不能超过5MB")
+    private String topLogoSmallUrl;
+
+    @Schema(title = "登录页主视觉图")
+    @Size(max = 5000000, message = "登录页主视觉图不能超过5MB")
+    private String loginMainImageUrl;
 }

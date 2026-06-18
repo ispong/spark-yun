@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
@@ -38,6 +39,24 @@ public class PlatformSettingEntity {
     private String description;
 
     private Boolean autoCreateTenant;
+
+    @Column(length = 100)
+    private String browserTitle;
+
+    @Column(length = 20)
+    private String themeColor;
+
+    @Lob
+    private String faviconUrl;
+
+    @Lob
+    private String topLogoUrl;
+
+    @Lob
+    private String topLogoSmallUrl;
+
+    @Lob
+    private String loginMainImageUrl;
 
     @CreatedDate
     private LocalDateTime createDateTime;

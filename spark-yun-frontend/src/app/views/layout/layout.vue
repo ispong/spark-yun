@@ -7,7 +7,7 @@
             @mouseleave="isCollapse = true"
         >
             <div class="zqy-layout__nav">
-                <img class="zqy-layout__logo" :src="isCollapse ? logoURLSmall : logoURL" alt="logo" />
+                <img class="zqy-layout__logo" :key="menuLogoKey" :src="menuLogoSrc" alt="logo" />
             </div>
 
             <div class="zqy-layout__menu-wrap">
@@ -157,8 +157,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { Monitor, OfficeBuilding, ScaleToOriginal, School, SetUp, SwitchButton, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
-import logoURLSmall from '@/app/assets/imgs/logo.png'
-import logoURL from '@/app/assets/imgs/logo-a.png'
 import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import { CheckLicenseStatus } from '@/app/management/license/api'
 import { useAuthStore } from '@/app/store/useAuth'
@@ -177,6 +175,7 @@ import {
 } from './menu.config'
 import TenantSwitchDialog from './tenant-switch-dialog.vue'
 import { ApplyTenantInviteCode } from '@/app/management/tenant-user/api'
+import { brandSetting, loadBrandSetting } from '@/app/shared/branding'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -251,6 +250,10 @@ const menuViewData = computed(() => {
         currentArea.value === 'workspace' ? filterWorkspaceMenus(menuListData.value) : menuListData.value
     return filterVipMenus(areaMenus, vipEnabled.value, licenseApiAvailable.value)
 })
+
+const menuLogoSrc = computed(() => (isCollapse.value ? brandSetting.topLogoSmallUrl : brandSetting.topLogoUrl))
+
+const menuLogoKey = computed(() => `${isCollapse.value ? 'small' : 'large'}-${menuLogoSrc.value}`)
 
 const currentMenu = computed(() => {
     const routeMenuCode = isPersonalInfoRoute.value
@@ -461,6 +464,7 @@ function submitApplyTenant() {
 }
 
 onMounted(async () => {
+    loadBrandSetting()
     await loadVipLicense()
 })
 

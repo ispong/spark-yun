@@ -2,13 +2,13 @@
     <main class="zqy-login">
 
         <header class="zqy-login__header">
-            <img class="zqy-login__brand" :src="logoIcon" alt="至轻云" />
+            <img class="zqy-login__brand" :src="brandSetting.topLogoUrl" alt="至轻云" />
         </header>
 
         <div class="zqy-login__body">
 
             <section class="zqy-login__visual" aria-hidden="true">
-                <img class="zqy-login__preview" :src="logoURL" alt="" />
+                <img class="zqy-login__preview" :src="brandSetting.loginMainImageUrl" alt="" />
             </section>
 
             <section class="zqy-login__panel" aria-label="用户登录">
@@ -176,8 +176,6 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'v
 import { useRouter } from 'vue-router'
 
 import { OauthUrlList } from '@/app/api'
-import logoIcon from '@/app/assets/imgs/logo-a.png'
-import logoURL from '@/app/assets/imgs/logo-view.png'
 import loginLogoSvg from '@/app/assets/imgs/logo1.svg?raw'
 import {
     GetOpenLoginMethodConfig,
@@ -190,6 +188,7 @@ import { useAuthStore } from '@/app/store/useAuth'
 import { getVipLicenseEnabled } from '@/app/utils/vip-license'
 import { getUser } from '@/app/type/user/user'
 import type { LoginReq } from '@/app/type/models'
+import { brandSetting, loadBrandSetting } from '@/app/shared/branding'
 import { resolveLoginRoutePath } from './resolve-login-route'
 
 interface OauthUrl {
@@ -632,6 +631,7 @@ function clearSendCodeCountdown() {
 }
 
 onMounted(() => {
+    loadBrandSetting()
     queryOauthList()
     queryOpenLoginMethodConfig()
 })
