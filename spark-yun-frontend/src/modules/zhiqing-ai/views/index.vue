@@ -46,25 +46,12 @@
                     />
                 </el-select>
                 <div class="zhiqing-ai-composer-input">
-                    <div v-if="selectedPrompts.length || selectedFiles.length" class="zhiqing-ai-composer-tags">
-                        <span v-for="prompt in selectedPrompts" :key="prompt.id" class="zhiqing-ai-chip">
-                            {{ prompt.name }}
-                            <el-icon @click="removeSelectedPrompt(prompt.id)"><Close /></el-icon>
-                        </span>
-                        <span v-for="file in selectedFiles" :key="file.id" class="zhiqing-ai-chip is-file">
-                            {{ file.name }}
-                            <el-icon @click="removeSelectedFile(file.id)"><Close /></el-icon>
-                        </span>
-                    </div>
-                    <el-input
-                        v-model="inputText"
-                        :disabled="sending"
-                        placeholder="输入问题，按 Enter 发送"
-                        @compositionend="handleCompositionEnd"
-                        @compositionstart="isComposing = true"
-                        @keydown.enter="handleInputEnter"
+                    <div
+                        class="zhiqing-ai-rich-input"
+                        :class="{ 'is-disabled': sending }"
+                        @click="focusComposerEditor"
                     >
-                        <template #prefix>
+                        <div class="zhiqing-ai-composer-prefix">
                             <el-dropdown trigger="click" :disabled="sending || uploadingFile" @command="handleComposerAction">
                                 <el-button class="zhiqing-ai-plus" :icon="Plus" circle text />
                                 <template #dropdown>
@@ -76,8 +63,28 @@
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
-                        </template>
-                        <template #suffix>
+                            <div v-if="selectedFiles.length" class="zhiqing-ai-composer-tags">
+                                <span v-for="file in selectedFiles" :key="file.id" class="zhiqing-ai-chip is-file">
+                                    <span class="zhiqing-ai-chip__text">{{ file.name }}</span>
+                                    <el-icon @click="removeSelectedFile(file.id)"><Close /></el-icon>
+                                </span>
+                            </div>
+                        </div>
+                        <div
+                            ref="composerEditorRef"
+                            class="zhiqing-ai-rich-input__editor"
+                            :contenteditable="sending ? 'false' : 'true'"
+                            data-placeholder="输入问题，按 Enter 发送"
+                            @click="handleComposerEditorClick"
+                            @compositionend="handleComposerEditorCompositionEnd"
+                            @compositionstart="isComposing = true"
+                            @input="syncComposerInputText"
+                            @keydown.enter="handleInputEnter"
+                            @keyup="saveComposerSelection"
+                            @mouseup="saveComposerSelection"
+                            @paste="handleComposerPaste"
+                        />
+                        <div class="zhiqing-ai-rich-input__suffix">
                             <el-tooltip :content="historyVisible ? '隐藏历史' : '展开历史'" placement="top">
                                 <el-button
                                     class="zhiqing-ai-history-toggle"
@@ -87,8 +94,8 @@
                                     @click.stop="toggleHistoryPanel"
                                 />
                             </el-tooltip>
-                        </template>
-                    </el-input>
+                        </div>
+                    </div>
                     <input ref="fileInputRef" type="file" multiple hidden @change="handleFileChange" />
                 </div>
                 <el-button v-if="sending" type="danger" @click="stopGenerating">中止</el-button>
@@ -127,18 +134,18 @@
                     <el-input v-model="promptSearchText" :prefix-icon="Search" clearable placeholder="搜索提示词" />
                     <el-button type="primary" @click="openCreatePrompt">新建</el-button>
                 </div>
-                <div class="zhiqing-ai-prompt-list">
+                <div v-if="!filteredPrompts.length" class="zhiqing-ai-prompt-empty-wrap">
                     <el-empty
-                        v-if="!filteredPrompts.length"
                         class="zhiqing-ai-prompt-empty"
                         description="暂无提示词"
                     />
+                </div>
+                <div v-else class="zhiqing-ai-prompt-list">
                     <div
                         v-for="prompt in filteredPrompts"
                         :key="prompt.id"
                         class="zhiqing-ai-prompt-card"
-                        :class="{ 'is-selected': selectedPrompts.some((item) => item.id === prompt.id) }"
-                        @click="togglePrompt(prompt)"
+                        @click="insertPromptToInput(prompt)"
                     >
                         <div class="zhiqing-ai-prompt-card__header">
                             <strong>{{ prompt.name }}</strong>
@@ -270,7 +277,6 @@ const typingPlayback = ref(false)
 const typingStableMarkdownHtml = ref('')
 const typingTailContent = ref('')
 const aiPrompts = ref<AiPrompt[]>([])
-const selectedPrompts = ref<AiPrompt[]>([])
 const selectedFiles = ref<ChatFile[]>([])
 const promptDialogVisible = ref(false)
 const promptSearchText = ref('')
@@ -283,11 +289,13 @@ const promptForm = ref({
 const savePromptDialogVisible = ref(false)
 const savePromptName = ref('')
 const fileInputRef = ref<HTMLInputElement>()
+const composerEditorRef = ref<HTMLElement>()
 const uploadingFile = ref(false)
+let savedComposerRange: Range | null = null
 const canSend = computed(
     () =>
         !!currentConfigId.value &&
-        (inputText.value.trim() || selectedPrompts.value.length || selectedFiles.value.length) &&
+        (inputText.value.trim() || selectedFiles.value.length) &&
         !sending.value &&
         !typingPlayback.value
 )
@@ -542,8 +550,7 @@ function createNewChat() {
     stopGenerating()
     currentSessionId.value = ''
     messages.value = []
-    inputText.value = ''
-    selectedPrompts.value = []
+    clearComposerEditor()
     selectedFiles.value = []
 }
 
@@ -642,16 +649,132 @@ function removeSelectedFile(id: string) {
     selectedFiles.value = selectedFiles.value.filter((file) => file.id !== id)
 }
 
-function togglePrompt(prompt: AiPrompt) {
-    if (selectedPrompts.value.some((item) => item.id === prompt.id)) {
-        selectedPrompts.value = selectedPrompts.value.filter((item) => item.id !== prompt.id)
-        return
+function getComposerTextFromNode(node: Node): string {
+    if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent || ''
     }
-    selectedPrompts.value.push(prompt)
+    if (!(node instanceof HTMLElement)) {
+        return Array.from(node.childNodes).map(getComposerTextFromNode).join('')
+    }
+    if (node.classList.contains('zhiqing-ai-prompt-token')) {
+        return node.dataset.content || ''
+    }
+    if (node.tagName === 'BR') {
+        return '\n'
+    }
+    return Array.from(node.childNodes).map(getComposerTextFromNode).join('')
 }
 
-function removeSelectedPrompt(id: string) {
-    selectedPrompts.value = selectedPrompts.value.filter((prompt) => prompt.id !== id)
+function syncComposerInputText() {
+    inputText.value = composerEditorRef.value ? getComposerTextFromNode(composerEditorRef.value).trim() : ''
+    saveComposerSelection()
+}
+
+function clearComposerEditor() {
+    if (composerEditorRef.value) {
+        composerEditorRef.value.innerHTML = ''
+    }
+    inputText.value = ''
+    savedComposerRange = null
+}
+
+function saveComposerSelection() {
+    const editor = composerEditorRef.value
+    const selection = window.getSelection()
+    if (!editor || !selection?.rangeCount) {
+        return
+    }
+    const range = selection.getRangeAt(0)
+    if (editor.contains(range.commonAncestorContainer)) {
+        savedComposerRange = range.cloneRange()
+    }
+}
+
+function focusComposerEditor() {
+    if (sending.value) {
+        return
+    }
+    composerEditorRef.value?.focus()
+    if (savedComposerRange) {
+        const selection = window.getSelection()
+        selection?.removeAllRanges()
+        selection?.addRange(savedComposerRange)
+    }
+}
+
+function insertNodeAtComposerCursor(node: Node) {
+    const editor = composerEditorRef.value
+    if (!editor) {
+        return
+    }
+    editor.focus()
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    if (savedComposerRange && editor.contains(savedComposerRange.commonAncestorContainer)) {
+        selection?.addRange(savedComposerRange)
+    } else {
+        const range = document.createRange()
+        range.selectNodeContents(editor)
+        range.collapse(false)
+        selection?.addRange(range)
+    }
+
+    const range = selection?.getRangeAt(0)
+    if (!range) {
+        return
+    }
+    range.deleteContents()
+    const fragment = document.createDocumentFragment()
+    fragment.appendChild(document.createTextNode(' '))
+    fragment.appendChild(node)
+    const trailingSpace = document.createTextNode(' ')
+    fragment.appendChild(trailingSpace)
+    range.insertNode(fragment)
+    range.setStartAfter(trailingSpace)
+    range.collapse(true)
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    savedComposerRange = range.cloneRange()
+    syncComposerInputText()
+}
+
+function insertPromptToInput(prompt: AiPrompt) {
+    const insertText = prompt.content.trim()
+    if (!insertText) {
+        return
+    }
+    const token = document.createElement('span')
+    token.className = 'zhiqing-ai-prompt-token'
+    token.contentEditable = 'false'
+    token.dataset.content = insertText
+    token.dataset.id = prompt.id
+    token.innerHTML = `<span class="zhiqing-ai-prompt-token__text">${escapeHtml(prompt.name)}</span><span class="zhiqing-ai-prompt-token__close">×</span>`
+    insertNodeAtComposerCursor(token)
+    promptDialogVisible.value = false
+}
+
+function handleComposerEditorClick(event: MouseEvent) {
+    const close = (event.target as HTMLElement).closest('.zhiqing-ai-prompt-token__close')
+    if (close) {
+        close.closest('.zhiqing-ai-prompt-token')?.remove()
+        syncComposerInputText()
+        return
+    }
+    saveComposerSelection()
+}
+
+function handleComposerEditorCompositionEnd() {
+    handleCompositionEnd()
+    syncComposerInputText()
+}
+
+function handleComposerPaste(event: ClipboardEvent) {
+    event.preventDefault()
+    const text = event.clipboardData?.getData('text/plain') || ''
+    if (!text) {
+        return
+    }
+    insertNodeAtComposerCursor(document.createTextNode(text))
 }
 
 function openCreatePrompt() {
@@ -697,14 +820,12 @@ async function submitPromptForm() {
     } else {
         aiPrompts.value.unshift(savedPrompt)
     }
-    selectedPrompts.value = selectedPrompts.value.map((prompt) => (prompt.id === savedPrompt.id ? savedPrompt : prompt))
     closePromptEditDialog()
 }
 
 async function removePrompt(prompt: AiPrompt) {
     await DeleteAiPrompt({ id: prompt.id })
     aiPrompts.value = aiPrompts.value.filter((item) => item.id !== prompt.id)
-    removeSelectedPrompt(prompt.id)
 }
 
 async function saveInputAsPrompt() {
@@ -724,13 +845,6 @@ async function saveInputAsPrompt() {
 
 function buildRequestContent(userContent: string): string {
     const sections: string[] = []
-    if (selectedPrompts.value.length) {
-        sections.push(
-            `以下是本次对话选择的提示词，请遵循：\n${selectedPrompts.value
-                .map((prompt, index) => `【提示词${index + 1}：${prompt.name}】\n${prompt.content}`)
-                .join('\n\n')}`
-        )
-    }
     if (selectedFiles.value.length) {
         sections.push(
             `以下是用户上传的附件内容，请结合分析：\n${selectedFiles.value
@@ -751,9 +865,6 @@ function buildRequestContent(userContent: string): string {
 
 function buildDisplayContent(userContent: string): string {
     const lines: string[] = []
-    if (selectedPrompts.value.length) {
-        lines.push(`提示词：${selectedPrompts.value.map((prompt) => prompt.name).join('、')}`)
-    }
     if (selectedFiles.value.length) {
         lines.push(`附件：${selectedFiles.value.map((file) => file.name).join('、')}`)
     }
@@ -999,8 +1110,7 @@ async function sendMessage() {
     messages.value.push(userMessage)
     messages.value.push(assistantMessage)
     updateCurrentHistory()
-    inputText.value = ''
-    selectedPrompts.value = []
+    clearComposerEditor()
     selectedFiles.value = []
     sending.value = true
     abortController.value = new AbortController()
@@ -1104,56 +1214,172 @@ onMounted(() => {
 
     &.is-history-visible {
         grid-template-columns: minmax(0, 1fr) 300px;
+
+        .zhiqing-ai__composer {
+            right: 336px;
+        }
     }
 }
 
 .zhiqing-ai__chat {
+    position: relative;
     min-width: 0;
     min-height: 0;
-    display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100%;
+    overflow: hidden;
 }
 
 .zhiqing-ai__composer {
+    position: fixed;
+    right: 20px;
+    bottom: 16px;
+    left: 96px;
+    z-index: 20;
+    box-sizing: border-box;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 12px;
+    padding: 0 44px;
+    pointer-events: none;
+
+    > * {
+        pointer-events: auto;
+    }
 }
 
 .zhiqing-ai__select {
     width: 220px;
     flex: 0 0 220px;
+    align-self: flex-end;
 }
 
 .zhiqing-ai-composer-input {
     min-width: 0;
     flex: 1;
+}
+
+.zhiqing-ai-rich-input {
+    min-width: 0;
+    height: auto;
+    min-height: 32px;
+    max-height: 488px;
+    box-sizing: border-box;
     display: flex;
-    flex-direction: column;
+    align-items: flex-end;
     gap: 6px;
+    padding: 3px 8px;
+    border: 1px solid var(--el-border-color);
+    border-radius: 2px;
+    background-color: #ffffff;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 8%);
+    transition: border-color 0.2s;
+
+    &:focus-within {
+        border-color: var(--el-color-primary);
+    }
+
+    &.is-disabled {
+        cursor: not-allowed;
+        background-color: var(--el-disabled-bg-color);
+    }
+}
+
+.zhiqing-ai-rich-input__editor {
+    min-width: 0;
+    flex: 1;
+    max-height: 480px;
+    overflow: auto;
+    color: var(--el-text-color-primary);
+    font-size: 14px;
+    line-height: 24px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    outline: none;
+
+    &:empty::before {
+        color: var(--el-text-color-placeholder);
+        content: attr(data-placeholder);
+        pointer-events: none;
+    }
+
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.zhiqing-ai-rich-input__suffix {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding-bottom: 1px;
+}
+
+.zhiqing-ai-rich-input__editor :deep(.zhiqing-ai-prompt-token) {
+    max-width: 140px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-sizing: border-box;
+    padding: 1px 6px;
+    border: 1px solid var(--el-color-primary-light-5);
+    border-radius: 999px;
+    color: var(--el-color-primary);
+    font-size: 12px;
+    line-height: 18px;
+    vertical-align: 1px;
+    background-color: var(--el-color-primary-light-9);
+}
+
+.zhiqing-ai-rich-input__editor :deep(.zhiqing-ai-prompt-token__text) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zhiqing-ai-rich-input__editor :deep(.zhiqing-ai-prompt-token__close) {
+    flex: 0 0 auto;
+    cursor: pointer;
+    color: var(--el-color-primary);
+    font-size: 13px;
+    line-height: 1;
 }
 
 .zhiqing-ai-composer-tags {
+    min-width: 0;
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
+    overflow: hidden;
+}
+
+.zhiqing-ai-composer-prefix {
+    min-width: 0;
+    max-width: 240px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
 }
 
 .zhiqing-ai-chip {
-    max-width: 180px;
+    max-width: 96px;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     box-sizing: border-box;
-    padding: 3px 8px;
+    padding: 1px 6px;
     border: 1px solid var(--el-color-primary-light-7);
     border-radius: 999px;
     color: var(--el-color-primary);
     font-size: 12px;
     line-height: 18px;
     background-color: var(--el-color-primary-light-9);
+    white-space: nowrap;
 
     &.is-file {
         border-color: var(--el-color-success-light-7);
@@ -1165,6 +1391,13 @@ onMounted(() => {
         flex: 0 0 auto;
         cursor: pointer;
     }
+}
+
+.zhiqing-ai-chip__text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 :deep(.zhiqing-ai-plus) {
@@ -1190,10 +1423,12 @@ onMounted(() => {
 }
 
 .zhiqing-ai__messages {
+    height: 100%;
     min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 14px;
+    box-sizing: border-box;
     padding: 20px 44px;
     overflow: auto;
 }
@@ -1256,12 +1491,18 @@ onMounted(() => {
 }
 
 .zhiqing-ai__welcome {
-    margin: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    transform: translate(-50%, -50%);
     color: var(--el-text-color-secondary);
+    text-align: center;
+    pointer-events: none;
 
     strong {
         color: var(--el-text-color-primary);
@@ -1512,7 +1753,6 @@ onMounted(() => {
 
 .zhiqing-ai__composer {
     box-sizing: border-box;
-    padding: 12px 44px 0;
 
     .el-textarea {
         flex: 1;
@@ -1525,7 +1765,7 @@ onMounted(() => {
     > :deep(.el-button) {
         height: 32px;
         width: 88px;
-        align-self: center;
+        align-self: flex-end;
         margin-left: 0;
     }
 
@@ -1560,10 +1800,16 @@ onMounted(() => {
     padding-right: 4px;
 }
 
+.zhiqing-ai-prompt-empty-wrap {
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .zhiqing-ai-prompt-empty {
-    grid-column: 1 / -1;
-    align-self: center;
-    justify-self: center;
+    width: 100%;
 }
 
 .zhiqing-ai-prompt-card {
@@ -1743,14 +1989,20 @@ onMounted(() => {
         &.is-history-visible {
             grid-template-columns: minmax(0, 1fr);
             grid-template-rows: minmax(0, 1fr) 220px;
+
+            .zhiqing-ai__composer {
+                right: 12px;
+            }
         }
     }
 
     .zhiqing-ai__composer {
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
         align-items: stretch;
         flex-direction: column;
-        padding-right: 0;
-        padding-left: 0;
+        padding: 0;
     }
 
     .zhiqing-ai__select {
