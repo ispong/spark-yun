@@ -43,11 +43,12 @@
                     <template #name="scopeSlot">
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
                     </template>
+                    <template #ssoType="scopeSlot">
+                        <el-tag>{{ getSsoTypeLabel(scopeSlot.row.ssoType) }}</el-tag>
+                    </template>
                     <template #statusTag="scopeSlot">
-                        <div class="btn-group">
-                            <el-tag v-if="scopeSlot.row.status === 'ENABLE'" class="ml-2" type="success">启用</el-tag>
-                            <el-tag v-if="scopeSlot.row.status === 'DISABLE'" class="ml-2" type="danger">禁用</el-tag>
-                        </div>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group oauth-action-group">
@@ -305,6 +306,14 @@ function inputEvent(e: string) {
     if (e === '') {
         initData()
     }
+}
+
+function getSsoTypeLabel(ssoType: string) {
+    const ssoTypeLabelMap: Record<string, string> = {
+        GITHUB: 'Github',
+        KEYCLOAK: 'Keycloak'
+    }
+    return ssoTypeLabelMap[ssoType] || ssoType
 }
 
 function handleSizeChange(e: number) {

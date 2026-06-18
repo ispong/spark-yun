@@ -57,7 +57,7 @@ public class LoginLogService {
         withAuditUser(userId, () -> {
             LoginLogEntity loginLog = new LoginLogEntity();
             loginLog.setLoginMethod(loginMethod);
-            loginLog.setAccountIdentifier(maskAccountIdentifier(accountIdentifier));
+            loginLog.setAccountIdentifier(truncate(valueOrEmpty(accountIdentifier).trim()));
             loginLog.setUserId(userId);
             loginLog.setLoginStatus(loginStatus);
             loginLog.setRegistered(registered);
@@ -101,32 +101,6 @@ public class LoginLogService {
             .ipAddress(loginLog.getIpAddress()).userAgent(loginLog.getUserAgent())
             .loginStatus(loginLog.getLoginStatus()).registered(loginLog.getRegistered())
             .errorMessage(loginLog.getErrorMessage()).createDateTime(loginLog.getCreateDateTime()).build();
-    }
-
-    private String maskAccountIdentifier(String accountIdentifier) {
-
-        if (Strings.isEmpty(accountIdentifier)) {
-            return "";
-        }
-        String normalizedAccount = accountIdentifier.trim();
-        int atIndex = normalizedAccount.indexOf('@');
-        if (atIndex > -1) {
-            if (atIndex <= 1) {
-                return "***" + normalizedAccount.substring(Math.max(atIndex, 0));
-            }
-            return normalizedAccount.charAt(0) + "***" + normalizedAccount.substring(atIndex);
-        }
-        if (normalizedAccount.matches("^\\d{5,20}$")) {
-            if (normalizedAccount.length() <= 7) {
-                return normalizedAccount.substring(0, 1) + "***";
-            }
-            return normalizedAccount.substring(0, 3) + "****"
-                + normalizedAccount.substring(normalizedAccount.length() - 4);
-        }
-        if (normalizedAccount.length() <= 2) {
-            return normalizedAccount.substring(0, 1) + "***";
-        }
-        return normalizedAccount.substring(0, 2) + "***";
     }
 
     private String truncate(String value) {

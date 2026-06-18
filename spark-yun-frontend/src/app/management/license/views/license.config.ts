@@ -41,7 +41,7 @@ export const colConfigs: colConfig[] = [
     {
         prop: 'code',
         title: '证书编号',
-        minWidth: 125,
+        minWidth: 260,
         showOverflowTooltip: true
     },
     {

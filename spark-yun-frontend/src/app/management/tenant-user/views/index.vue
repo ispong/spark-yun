@@ -66,11 +66,9 @@
                     @checkbox-change="handleSelectionChange"
                 >
                     <template #roleCode="scopeSlot">
-                        <div class="btn-group">
-                            <el-tag v-if="isTenantSuperAdmin(scopeSlot.row)" type="danger">超级管理员</el-tag>
-                            <el-tag v-else-if="isTenantAdmin(scopeSlot.row)" type="warning">管理员</el-tag>
-                            <el-tag v-else class="tenant-member-tag">成员</el-tag>
-                        </div>
+                        <el-tag v-if="isTenantSuperAdmin(scopeSlot.row)" type="danger">超级管理员</el-tag>
+                        <el-tag v-else-if="isTenantAdmin(scopeSlot.row)" type="warning">管理员</el-tag>
+                        <el-tag v-else class="tenant-member-tag">成员</el-tag>
                     </template>
                     <template #status="scopeSlot">
                         <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>

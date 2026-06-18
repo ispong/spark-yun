@@ -18,7 +18,7 @@
                     </template>
                     <div class="zqy-login-method__card-body">
                         <div class="zqy-login-method__option-row">
-                            <span>首页登录方式</span>
+                            <span>默认登录方式</span>
                             <el-switch
                                 :model-value="form.defaultLoginMethod === 'ACCOUNT'"
                                 :disabled="saving"
@@ -59,7 +59,7 @@
                     </template>
                     <div class="zqy-login-method__card-body">
                         <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.phoneEnabled }">
-                            <span>首页登录方式</span>
+                            <span>默认登录方式</span>
                             <el-switch
                                 :model-value="form.defaultLoginMethod === 'PHONE'"
                                 :disabled="!form.phoneEnabled || saving"
@@ -102,7 +102,7 @@
                     </template>
                     <div class="zqy-login-method__card-body">
                         <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.emailEnabled }">
-                            <span>首页登录方式</span>
+                            <span>默认登录方式</span>
                             <el-switch
                                 :model-value="form.defaultLoginMethod === 'EMAIL'"
                                 :disabled="!form.emailEnabled || saving"
@@ -209,7 +209,7 @@
             <el-form class="zqy-login-method__dialog-form zqy-login-method__dialog-form--single" label-position="top">
                 <el-form-item label="类型">
                     <el-select v-model="form.config.emailConfig.provider" @change="applyEmailProvider">
-                        <el-option label="QQ邮箱" value="QQ" />
+                        <el-option label="邮箱" value="QQ" />
                     </el-select>
                 </el-form-item>
                 <el-form-item label="SMTP服务器">
@@ -429,7 +429,7 @@ function validateConfig() {
 
 function changeDefaultLoginMethod(loginMethod: LoginMethodType, enabled: boolean | string | number) {
     if (!enabled) {
-        ElMessage.warning('首页登录方式必须保留一个')
+        ElMessage.warning('默认登录方式必须保留一个')
         return
     }
     form.defaultLoginMethod = loginMethod

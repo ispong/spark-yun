@@ -48,7 +48,8 @@ export const colConfigs: colConfig[] = [
     {
         prop: 'ssoType',
         title: '类型',
-        minWidth: 100
+        minWidth: 100,
+        customSlot: 'ssoType'
     },
     {
         prop: 'clientId',
