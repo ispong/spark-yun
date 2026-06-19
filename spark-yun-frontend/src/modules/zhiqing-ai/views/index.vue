@@ -1,7 +1,7 @@
 <template>
     <div class="zhiqing-ai" :class="{ 'is-history-visible': historyVisible }">
         <section class="zhiqing-ai__chat">
-            <div ref="messagePanelRef" class="zhiqing-ai__messages">
+            <div ref="messagePanelRef" class="zhiqing-ai__messages" @click="handleMessagePanelClick">
                 <div v-if="!messages.length" class="zhiqing-ai__welcome">
                     <strong>你好，我是至轻智能</strong>
                     <span>让AI更懂数据，洞察业务更高效</span>
@@ -25,7 +25,23 @@
                         <div class="zhiqing-ai-markdown" v-html="typingStableMarkdownHtml" />
                         <p v-if="typingTailContent" class="zhiqing-ai-markdown__tail">{{ typingTailContent }}</p>
                     </div>
-                    <div v-else class="zhiqing-ai-message__content" v-html="renderMarkdown(message.content)" />
+                    <div v-else class="zhiqing-ai-message__content">
+                        <div v-html="renderMarkdown(message.content)" />
+                    </div>
+                    <div
+                        v-if="message.role === 'assistant' && message.content && !isAssistantTyping(message, index)"
+                        class="zhiqing-ai-answer-actions"
+                    >
+                        <el-tooltip content="复制回答" placement="top">
+                            <el-button
+                                class="zhiqing-ai-answer-copy"
+                                :icon="CopyDocument"
+                                circle
+                                text
+                                @click="copyAnswerContent(message.content)"
+                            />
+                        </el-tooltip>
+                    </div>
                 </div>
             </div>
 
@@ -97,7 +113,7 @@
                     </div>
                     <input ref="fileInputRef" type="file" multiple hidden @change="handleFileChange" />
                 </div>
-                <el-button v-if="sending" type="danger" @click="stopGenerating">中止</el-button>
+                <el-button v-if="sending" class="zhiqing-ai-stop-button" type="danger" plain @click="stopGenerating">中止</el-button>
                 <el-button v-else type="primary" :disabled="!canSend" @click="sendMessage">发送</el-button>
                 <el-button :disabled="sending" type="primary" plain @click="createNewChat">新对话</el-button>
             </div>
@@ -196,7 +212,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
-import { Clock, Close, Delete, Edit, Plus, Search, Share, Upload } from '@element-plus/icons-vue'
+import { Clock, Close, CopyDocument, Delete, Edit, Plus, Search, Share, Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
     DeleteAiPrompt,
@@ -352,10 +368,13 @@ function renderMarkdown(markdown: string): string {
             if (index < lines.length) {
                 index += 1
             }
+            const language = fenceMatch[1] || '代码'
             html.push(
-                `<pre><code${fenceMatch[1] ? ` class="language-${escapeHtml(fenceMatch[1])}"` : ''}>${escapeHtml(
-                    codeLines.join('\n')
-                )}</code></pre>`
+                `<div class="zhiqing-ai-code-block"><div class="zhiqing-ai-code-block__header"><span>${escapeHtml(
+                    language
+                )}</span><button type="button" class="zhiqing-ai-code-block__copy">复制</button></div><pre><code${
+                    fenceMatch[1] ? ` class="language-${escapeHtml(fenceMatch[1])}"` : ''
+                }>${escapeHtml(codeLines.join('\n'))}</code></pre></div>`
             )
             continue
         }
@@ -459,6 +478,55 @@ function escapeHtml(text: string): string {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;')
+}
+
+async function handleMessagePanelClick(event: MouseEvent) {
+    const copyButton = (event.target as HTMLElement).closest('.zhiqing-ai-code-block__copy')
+    if (!copyButton) {
+        return
+    }
+    const codeBlock = copyButton.closest('.zhiqing-ai-code-block')
+    const code = codeBlock?.querySelector('pre code')?.textContent || ''
+    if (!code) {
+        return
+    }
+    try {
+        await copyText(code)
+        ElMessage.success('复制成功')
+    } catch {
+        ElMessage.error('复制失败')
+    }
+}
+
+async function copyAnswerContent(content: string) {
+    if (!content) {
+        return
+    }
+    try {
+        await copyText(content)
+        ElMessage.success('复制成功')
+    } catch {
+        ElMessage.error('复制失败')
+    }
+}
+
+async function copyText(text: string) {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text)
+        return
+    }
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.setAttribute('readonly', 'readonly')
+    textarea.style.position = 'fixed'
+    textarea.style.left = '-9999px'
+    document.body.appendChild(textarea)
+    textarea.select()
+    const success = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    if (!success) {
+        throw new Error('copy failed')
+    }
 }
 
 function isTableStart(lines: string[], index: number): boolean {
@@ -1001,11 +1069,13 @@ function typeNextCharacter() {
 }
 
 function updateTypingMarkdownPreview(content: string) {
-    const stableBoundary = resolveStableMarkdownBoundary(content)
-    if (stableBoundary > typingStableContent.length) {
-        const stableDelta = content.slice(typingStableContent.length, stableBoundary)
-        typingStableMarkdownHtml.value += renderMarkdown(stableDelta)
-        typingStableContent = content.slice(0, stableBoundary)
+    if (content.endsWith('\n')) {
+        const stableBoundary = resolveStableMarkdownBoundary(content)
+        if (stableBoundary > typingStableContent.length) {
+            const stableDelta = content.slice(typingStableContent.length, stableBoundary)
+            typingStableMarkdownHtml.value += renderMarkdown(stableDelta)
+            typingStableContent = content.slice(0, stableBoundary)
+        }
     }
     typingTailContent.value = content.slice(typingStableContent.length)
 }
@@ -1017,8 +1087,23 @@ function finishTypingMarkdownPreview(content: string) {
 }
 
 function resolveStableMarkdownBoundary(content: string): number {
-    const lastLineBreak = content.lastIndexOf('\n')
-    return lastLineBreak >= 0 ? lastLineBreak + 1 : 0
+    const lines = content.split('\n')
+    let inCodeFence = false
+    let boundary = 0
+    let offset = 0
+
+    for (let index = 0; index < lines.length - 1; index += 1) {
+        const line = lines[index]
+        if (/^```/.test(line.trim())) {
+            inCodeFence = !inCodeFence
+        }
+        offset += line.length + 1
+        if (!inCodeFence) {
+            boundary = offset
+        }
+    }
+
+    return boundary
 }
 
 function waitTypingDone() {
@@ -1176,10 +1261,6 @@ onMounted(() => {
 
     &.is-history-visible {
         grid-template-columns: minmax(0, 1fr) 300px;
-
-        .zhiqing-ai__composer {
-            right: 336px;
-        }
     }
 }
 
@@ -1188,14 +1269,13 @@ onMounted(() => {
     min-width: 0;
     min-height: 0;
     height: 100%;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
 }
 
 .zhiqing-ai__composer {
-    position: fixed;
-    right: 20px;
-    bottom: 16px;
-    left: 96px;
+    flex: 0 0 auto;
     z-index: 20;
     box-sizing: border-box;
     display: flex;
@@ -1385,8 +1465,8 @@ onMounted(() => {
 }
 
 .zhiqing-ai__messages {
-    height: 100%;
     min-height: 0;
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -1474,6 +1554,8 @@ onMounted(() => {
 
 .zhiqing-ai-message {
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     max-width: 860px;
 
     &.is-loading {
@@ -1497,6 +1579,7 @@ onMounted(() => {
 
     &.is-user {
         align-self: flex-end;
+        align-items: flex-end;
 
         .zhiqing-ai-message__content {
             background-color: var(--el-color-primary-light-9);
@@ -1524,6 +1607,38 @@ onMounted(() => {
         width: 18px;
         content: '';
         animation: zhiqing-ai-loading-dots 1.2s steps(4, end) infinite;
+    }
+}
+
+.zhiqing-ai-answer-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 6px;
+    padding-left: 2px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.16s ease;
+}
+
+.zhiqing-ai-message:hover,
+.zhiqing-ai-message:focus-within {
+    .zhiqing-ai-answer-actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+:deep(.zhiqing-ai-answer-copy) {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0;
+    color: var(--el-text-color-secondary);
+
+    &:hover,
+    &:focus {
+        color: var(--el-color-primary);
+        background-color: var(--el-fill-color-light);
     }
 }
 
@@ -1614,15 +1729,6 @@ onMounted(() => {
         background-color: var(--el-color-primary-light-9);
     }
 
-    pre {
-        margin: 12px 0;
-        padding: 14px 16px;
-        overflow: auto;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        background-color: #f8fafc;
-    }
-
     code {
         padding: 2px 6px;
         border-radius: 4px;
@@ -1630,6 +1736,63 @@ onMounted(() => {
         font-size: 13px;
         color: #334155;
         background-color: #eef2f7;
+    }
+
+    .zhiqing-ai-code-block {
+        margin: 12px 0;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background-color: #f8fafc;
+    }
+
+    .zhiqing-ai-code-block__header {
+        height: 32px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 10px 0 14px;
+        border-bottom: 1px solid #e5e7eb;
+        color: var(--el-text-color-secondary);
+        font-size: 12px;
+        line-height: 32px;
+        background-color: #f1f5f9;
+
+        span {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .zhiqing-ai-code-block__copy {
+        flex: 0 0 auto;
+        height: 24px;
+        padding: 0 8px;
+        border: 0;
+        border-radius: 2px;
+        color: var(--el-color-primary);
+        font-size: 12px;
+        line-height: 24px;
+        cursor: pointer;
+        background-color: transparent;
+
+        &:hover,
+        &:focus {
+            color: #ffffff;
+            background-color: var(--el-color-primary);
+            outline: none;
+        }
+    }
+
+    pre {
+        margin: 0;
+        padding: 14px 16px;
+        overflow: auto;
+        background-color: transparent;
     }
 
     pre code {
@@ -1729,6 +1892,19 @@ onMounted(() => {
         width: 88px;
         align-self: flex-end;
         margin-left: 0;
+    }
+
+    :deep(.zhiqing-ai-stop-button) {
+        border-color: var(--el-color-danger-light-5);
+        color: var(--el-color-danger);
+        background-color: var(--el-color-danger-light-9);
+
+        &:hover,
+        &:focus {
+            border-color: var(--el-color-danger-light-3);
+            color: var(--el-color-danger);
+            background-color: var(--el-color-danger-light-8);
+        }
     }
 
     :deep(.el-select__wrapper),
@@ -1951,17 +2127,10 @@ onMounted(() => {
         &.is-history-visible {
             grid-template-columns: minmax(0, 1fr);
             grid-template-rows: minmax(0, 1fr) 220px;
-
-            .zhiqing-ai__composer {
-                right: 12px;
-            }
         }
     }
 
     .zhiqing-ai__composer {
-        right: 12px;
-        bottom: 12px;
-        left: 12px;
         align-items: stretch;
         flex-direction: column;
         padding: 0;
