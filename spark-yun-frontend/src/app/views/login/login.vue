@@ -408,7 +408,7 @@ async function completeLogin(res: any) {
     authStore.applyAuthResponse(res.data)
     const routePath = resolveLoginRoutePath(res.data)
 
-    if (!res.data.tenantId && ['/platform', '/personal-info'].includes(routePath)) {
+    if (!res.data.tenantId && (routePath === '/platform' || routePath.startsWith('/personal-info'))) {
         ElMessage.success(res.msg)
         await nextTick()
         await router.push(routePath)

@@ -1,6 +1,10 @@
 import type { LoginRes } from '@/app/type/models'
 
 export function resolveLoginRoutePath(data: LoginRes): string {
+    if (data.hasPassword === false) {
+        return '/personal-info?tab=change-password'
+    }
+
     const hasPlatformOrTenantAccess =
         !!data.platformSuperAdmin ||
         !!data.platformAdmin ||

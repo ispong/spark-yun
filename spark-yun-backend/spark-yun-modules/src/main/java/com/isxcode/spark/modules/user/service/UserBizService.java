@@ -292,10 +292,12 @@ public class UserBizService {
         if (!userEntityOptional.isPresent()) {
             throw new IsxAppException("用户不存在");
         }
+        UserEntity oldUserEntity = userEntityOptional.get();
         validateUniqueUserFields(usrUpdateUserReq.getUsername(), usrUpdateUserReq.getAccount(),
-            usrUpdateUserReq.getPhone(), usrUpdateUserReq.getEmail(), usrUpdateUserReq.getId());
+            usrUpdateUserReq.getPhone(), oldUserEntity.getEmail(), usrUpdateUserReq.getId());
 
-        UserEntity userEntity = userMapper.updateUserReqToUserEntity(usrUpdateUserReq, userEntityOptional.get());
+        UserEntity userEntity = userMapper.updateUserReqToUserEntity(usrUpdateUserReq, oldUserEntity);
+        userEntity.setEmail(oldUserEntity.getEmail());
 
         // 特殊处理时间
         if (usrUpdateUserReq.getValidDateTime() != null && usrUpdateUserReq.getValidDateTime().size() == 2) {
@@ -405,11 +407,14 @@ public class UserBizService {
             throw new IsxAppException("用户不存在");
         }
 
-        validateUniqueUserFields(userEntityOptional.get().getUsername(), userEntityOptional.get().getAccount(),
-            updateUserInfoReq.getPhone(), updateUserInfoReq.getEmail(), userEntityOptional.get().getId());
+        UserEntity oldUserEntity = userEntityOptional.get();
+        validateUniqueUserFields(updateUserInfoReq.getUsername(), oldUserEntity.getAccount(), oldUserEntity.getPhone(),
+            oldUserEntity.getEmail(), oldUserEntity.getId());
 
         // 更新信息
-        UserEntity userEntity = userMapper.updateUserInfoToUserEntity(updateUserInfoReq, userEntityOptional.get());
+        UserEntity userEntity = userMapper.updateUserInfoToUserEntity(updateUserInfoReq, oldUserEntity);
+        userEntity.setPhone(oldUserEntity.getPhone());
+        userEntity.setEmail(oldUserEntity.getEmail());
 
         userRepository.save(userEntity);
     }

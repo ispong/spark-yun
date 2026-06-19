@@ -397,5 +397,15 @@ export const personalInfoMenuListData: Array<Menu> = [
         code: 'change-password',
         name: '修改密码',
         icon: 'Key'
+    },
+    {
+        code: 'change-phone',
+        name: '修改手机',
+        icon: 'Iphone'
+    },
+    {
+        code: 'change-email',
+        name: '修改邮箱',
+        icon: 'Message'
     }
 ]

@@ -71,7 +71,7 @@
                             <el-icon>
                                 <OfficeBuilding />
                             </el-icon>
-                            <EllipsisTooltip class="zqy-layout__user-menu-text" :label="activeTenantName" />
+                            切换租户
                         </div>
                         <div v-if="showApplyTenant" class="zqy-layout__user-menu-option" @click="openApplyTenantDialog">
                             <el-icon>
@@ -123,7 +123,7 @@
             <router-view v-else :key="authStore.tenantId" />
         </div>
 
-        <TenantSwitchDialog ref="tenantSwitchDialogRef" @tenant-name-change="activeTenantName = $event" />
+        <TenantSwitchDialog ref="tenantSwitchDialogRef" />
         <el-dialog
             v-model="applyTenantDialogVisible"
             class="zqy-layout__apply-tenant-dialog"
@@ -186,7 +186,6 @@ const vipChecked = ref(false)
 const isCollapse = ref(true)
 const menuVisible = ref(false)
 const tenantSwitchDialogRef = ref<InstanceType<typeof TenantSwitchDialog>>()
-const activeTenantName = ref('切换租户')
 const applyTenantDialogVisible = ref(false)
 const applyTenantLoading = ref(false)
 const applyTenantForm = reactive({
@@ -366,8 +365,8 @@ function getAreaMenuCode(path: string): string | undefined {
     }
 }
 
-function resolvePersonalInfoTab(tab: unknown): 'basic-info' | 'change-password' {
-    return tab === 'change-password' ? 'change-password' : 'basic-info'
+function resolvePersonalInfoTab(tab: unknown): 'basic-info' | 'change-password' | 'change-phone' | 'change-email' {
+    return tab === 'change-password' || tab === 'change-phone' || tab === 'change-email' ? tab : 'basic-info'
 }
 
 async function loadVipLicense(forceRefresh = false) {
@@ -632,8 +631,8 @@ watch(
 }
 
 .zqy-layout__user-menu-popper.el-popover.el-popper {
-    min-width: 160px !important;
-    width: 160px !important;
+    min-width: 132px !important;
+    width: 132px !important;
     padding: 4px;
 }
 

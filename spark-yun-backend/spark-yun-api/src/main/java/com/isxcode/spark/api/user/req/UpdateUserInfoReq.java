@@ -3,7 +3,6 @@ package com.isxcode.spark.api.user.req;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
@@ -14,13 +13,6 @@ public class UpdateUserInfoReq {
     @NotEmpty(message = "名称不能为空")
     @Size(min = 1, max = 100, message = "名称长度1～100")
     private String username;
-
-    @Schema(title = "邮箱", example = "ispong@123.com")
-    @Email(message = "邮箱不合法")
-    private String email;
-
-    @Schema(title = "手机号", example = "1234567890")
-    private String phone;
 
     @Schema(title = "备注", example = "这个人不能删除")
     private String remark;

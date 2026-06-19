@@ -12,6 +12,12 @@ public class UpdateMyPasswordReq {
     @Size(max = 100, message = "原密码长度不能超过100")
     private String oldPassword;
 
+    @Schema(title = "验证方式", example = "OLD_PASSWORD")
+    private String verifyType;
+
+    @Schema(title = "验证码", example = "123456")
+    private String code;
+
     @Schema(title = "新密码", example = "newPass123")
     @NotEmpty(message = "新密码不能为空")
     @Size(min = 1, max = 100, message = "新密码长度1～100")

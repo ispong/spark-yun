@@ -17,10 +17,21 @@
                 />
             </el-form-item>
             <el-form-item label="手机号" prop="phone">
-                <el-input v-model="formData.phone" maxlength="11" placeholder="请输入手机号" show-word-limit />
+                <el-input
+                    v-model="formData.phone"
+                    maxlength="11"
+                    placeholder="请输入手机号"
+                    show-word-limit
+                />
             </el-form-item>
             <el-form-item label="邮箱" prop="email">
-                <el-input v-model="formData.email" maxlength="100" placeholder="请输入邮箱" show-word-limit />
+                <el-input
+                    v-model="formData.email"
+                    maxlength="100"
+                    :placeholder="renderSence === 'edit' ? '' : '请输入邮箱'"
+                    show-word-limit
+                    :disabled="renderSence === 'edit'"
+                />
             </el-form-item>
             <el-form-item label="备注">
                 <el-input
@@ -106,6 +117,10 @@ const validatePhone = (rule: any, value: any, callback: any) => {
 
 // 邮箱验证函数
 const validateEmail = (rule: any, value: any, callback: any) => {
+    if (renderSence.value === 'edit') {
+        callback()
+        return
+    }
     if (!value) {
         callback()
         return

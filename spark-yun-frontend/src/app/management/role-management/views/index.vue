@@ -11,9 +11,7 @@
                     @keyup.enter="loadRoles()"
                     @clear="loadRoles()"
                 />
-                <el-icon class="role-page__add-button" @click="openRoleEditor()">
-                    <Plus />
-                </el-icon>
+                <el-button type="primary" class="role-page__add-button" @click="openRoleEditor()">新建</el-button>
             </div>
             <div v-loading="loading" class="role-list">
                 <div
@@ -250,7 +248,7 @@
 
 <script lang="ts" setup>
 import { computed, defineComponent, h, onMounted, reactive, ref, type PropType } from 'vue'
-import { Delete, Edit, Plus, Search } from '@element-plus/icons-vue'
+import { Delete, Edit, Search } from '@element-plus/icons-vue'
 import { ElCheckbox, ElMessage, ElMessageBox } from 'element-plus'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
@@ -1070,13 +1068,7 @@ onMounted(() => {
 }
 
 .role-page__add-button {
-    width: 28px;
-    margin-left: 4px;
-    margin-right: 4px;
     flex-shrink: 0;
-    font-size: 18px;
-    color: var(--el-color-primary);
-    cursor: pointer;
 }
 
 .role-tab-toolbar,

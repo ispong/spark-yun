@@ -7,6 +7,7 @@ import com.isxcode.spark.api.user.req.*;
 import com.isxcode.spark.api.user.res.*;
 import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
 import com.isxcode.spark.common.userlog.UserLog;
+import com.isxcode.spark.modules.auth.service.LoginMethodBizService;
 import com.isxcode.spark.modules.user.service.UserBizService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserBizService userBizService;
+
+    private final LoginMethodBizService loginMethodBizService;
 
     @Operation(summary = "用户登录接口")
     @PostMapping("/open/login")
@@ -102,7 +105,47 @@ public class UserController {
     @SuccessResponse("修改成功")
     public void updateMyPassword(@Valid @RequestBody UpdateMyPasswordReq updateMyPasswordReq) {
 
-        userBizService.updateMyPassword(updateMyPasswordReq);
+        loginMethodBizService.updateMyPassword(updateMyPasswordReq);
+    }
+
+    @Operation(summary = "发送修改密码验证码接口")
+    @PostMapping("/sendUpdatePasswordCode")
+    @SuccessResponse("发送成功")
+    public void sendUpdatePasswordCode(@Valid @RequestBody SendUpdatePasswordCodeReq sendUpdatePasswordCodeReq) {
+
+        loginMethodBizService.sendUpdatePasswordCode(sendUpdatePasswordCodeReq);
+    }
+
+    @Operation(summary = "发送修改手机验证码接口")
+    @PostMapping("/sendUpdatePhoneCode")
+    @SuccessResponse("发送成功")
+    public void sendUpdatePhoneCode(@Valid @RequestBody SendUpdatePhoneCodeReq sendUpdatePhoneCodeReq) {
+
+        loginMethodBizService.sendUpdatePhoneCode(sendUpdatePhoneCodeReq);
+    }
+
+    @Operation(summary = "发送修改邮箱验证码接口")
+    @PostMapping("/sendUpdateEmailCode")
+    @SuccessResponse("发送成功")
+    public void sendUpdateEmailCode(@Valid @RequestBody SendUpdateEmailCodeReq sendUpdateEmailCodeReq) {
+
+        loginMethodBizService.sendUpdateEmailCode(sendUpdateEmailCodeReq);
+    }
+
+    @Operation(summary = "修改个人手机接口")
+    @PostMapping("/updateMyPhone")
+    @SuccessResponse("修改成功")
+    public void updateMyPhone(@Valid @RequestBody UpdateMyPhoneReq updateMyPhoneReq) {
+
+        loginMethodBizService.updateMyPhone(updateMyPhoneReq);
+    }
+
+    @Operation(summary = "修改个人邮箱接口")
+    @PostMapping("/updateMyEmail")
+    @SuccessResponse("修改成功")
+    public void updateMyEmail(@Valid @RequestBody UpdateMyEmailReq updateMyEmailReq) {
+
+        loginMethodBizService.updateMyEmail(updateMyEmailReq);
     }
 
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})

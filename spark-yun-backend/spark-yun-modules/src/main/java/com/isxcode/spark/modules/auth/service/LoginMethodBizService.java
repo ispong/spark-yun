@@ -25,6 +25,12 @@ import com.isxcode.spark.api.auth.res.PageLoginCodeRecordRes;
 import com.isxcode.spark.api.tenant.req.AddTenantReq;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.constants.UserStatus;
+import com.isxcode.spark.api.user.req.SendUpdateEmailCodeReq;
+import com.isxcode.spark.api.user.req.SendUpdatePhoneCodeReq;
+import com.isxcode.spark.api.user.req.SendUpdatePasswordCodeReq;
+import com.isxcode.spark.api.user.req.UpdateMyEmailReq;
+import com.isxcode.spark.api.user.req.UpdateMyPasswordReq;
+import com.isxcode.spark.api.user.req.UpdateMyPhoneReq;
 import com.isxcode.spark.api.user.res.LoginRes;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.common.security.ContextHolder;
@@ -64,6 +70,8 @@ public class LoginMethodBizService {
 
     private static final String SYSTEM_USER = "system";
 
+    private static final String VERIFY_OLD_PASSWORD = "OLD_PASSWORD";
+
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
     private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
@@ -90,34 +98,104 @@ public class LoginMethodBizService {
             LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
             validateChannelEnabled(channel, config);
             validateReceiverCanLoginOrRegister(channel, receiver, config);
-            validateResendInterval(channel, receiver);
-
-            String code = generateCode();
-            LoginCodeRecordEntity record = new LoginCodeRecordEntity();
-            record.setChannel(channel);
-            record.setReceiver(receiver);
-            record.setScene(LoginCodeScene.LOGIN);
-            record.setCodeHash(buildCodeHash(receiver, code));
-            record.setExpireDateTime(LocalDateTime.now().plusMinutes(CODE_EXPIRE_MINUTES));
-            record.setVerifyStatus(LoginCodeVerifyStatus.WAIT);
-            record.setVerifyFailCount(0);
-            record.setRegistered(false);
-            record.setAutoTenantCreated(false);
-
-            try {
-                String providerMessage = sendCodeMessage(channel, receiver, code, config);
-                record.setSendStatus(LoginCodeSendStatus.SUCCESS);
-                record.setProviderMessage(truncate(providerMessage));
-                loginCodeRecordRepository.save(record);
-            } catch (Exception exception) {
-                record.setSendStatus(LoginCodeSendStatus.FAIL);
-                record.setVerifyStatus(LoginCodeVerifyStatus.FAIL);
-                record.setErrorMessage(truncate(exception.getMessage()));
-                loginCodeRecordRepository.save(record);
-                throw new IsxAppException("验证码发送失败：" + exception.getMessage());
-            }
+            sendSceneCode(channel, receiver, LoginCodeScene.LOGIN, config);
             return null;
         });
+    }
+
+    public void sendUpdatePhoneCode(SendUpdatePhoneCodeReq sendUpdatePhoneCodeReq) {
+
+        String phone = normalizeReceiver(LoginMethodType.PHONE, sendUpdatePhoneCodeReq.getPhone());
+        LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
+        validateChannelEnabled(LoginMethodType.PHONE, config);
+        validatePhoneCanUpdate(phone);
+        sendSceneCode(LoginMethodType.PHONE, phone, LoginCodeScene.UPDATE_PHONE, config);
+    }
+
+    public void sendUpdateEmailCode(SendUpdateEmailCodeReq sendUpdateEmailCodeReq) {
+
+        String email = normalizeReceiver(LoginMethodType.EMAIL, sendUpdateEmailCodeReq.getEmail());
+        LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
+        validateChannelEnabled(LoginMethodType.EMAIL, config);
+        validateEmailCanUpdate(email);
+        sendSceneCode(LoginMethodType.EMAIL, email, LoginCodeScene.UPDATE_EMAIL, config);
+    }
+
+    public void sendUpdatePasswordCode(SendUpdatePasswordCodeReq sendUpdatePasswordCodeReq) {
+
+        String channel = normalizeChannel(sendUpdatePasswordCodeReq.getChannel());
+        UserEntity user = userRepository.findById(ContextHolder.getUserId())
+            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        String receiver = resolveCurrentReceiver(channel, user);
+        LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
+        validateChannelEnabled(channel, config);
+        sendSceneCode(channel, receiver, LoginCodeScene.UPDATE_PASSWORD, config);
+    }
+
+    public void updateMyPhone(UpdateMyPhoneReq updateMyPhoneReq) {
+
+        String phone = normalizeReceiver(LoginMethodType.PHONE, updateMyPhoneReq.getPhone());
+        String code = updateMyPhoneReq.getCode().trim();
+        if (!code.matches("^\\d{6}$")) {
+            throw new IsxAppException("验证码格式不正确");
+        }
+        LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
+        validateChannelEnabled(LoginMethodType.PHONE, config);
+        validatePhoneCanUpdate(phone);
+        verifySceneCode(LoginMethodType.PHONE, phone, LoginCodeScene.UPDATE_PHONE, code);
+
+        UserEntity user = userRepository.findById(ContextHolder.getUserId())
+            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        user.setPhone(phone);
+        userRepository.save(user);
+    }
+
+    public void updateMyEmail(UpdateMyEmailReq updateMyEmailReq) {
+
+        String email = normalizeReceiver(LoginMethodType.EMAIL, updateMyEmailReq.getEmail());
+        String code = updateMyEmailReq.getCode().trim();
+        if (!code.matches("^\\d{6}$")) {
+            throw new IsxAppException("验证码格式不正确");
+        }
+        LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
+        validateChannelEnabled(LoginMethodType.EMAIL, config);
+        validateEmailCanUpdate(email);
+        verifySceneCode(LoginMethodType.EMAIL, email, LoginCodeScene.UPDATE_EMAIL, code);
+
+        UserEntity user = userRepository.findById(ContextHolder.getUserId())
+            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        user.setEmail(email);
+        userRepository.save(user);
+    }
+
+    public void updateMyPassword(UpdateMyPasswordReq updateMyPasswordReq) {
+
+        UserEntity user = userRepository.findById(ContextHolder.getUserId())
+            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        if (!updateMyPasswordReq.getNewPassword().equals(updateMyPasswordReq.getConfirmPassword())) {
+            throw new IsxAppException("两次输入的新密码不一致");
+        }
+
+        boolean hasPassword = !Strings.isEmpty(user.getPasswd());
+        if (hasPassword && SecureUtil.md5(updateMyPasswordReq.getNewPassword()).equals(user.getPasswd())) {
+            throw new IsxAppException("新密码不能与原密码相同");
+        }
+
+        String verifyType = normalizePasswordVerifyType(updateMyPasswordReq.getVerifyType());
+        if (VERIFY_OLD_PASSWORD.equals(verifyType)) {
+            validateOldPassword(updateMyPasswordReq, user, hasPassword);
+        } else {
+            String code = updateMyPasswordReq.getCode() == null ? "" : updateMyPasswordReq.getCode().trim();
+            if (!code.matches("^\\d{6}$")) {
+                throw new IsxAppException("验证码格式不正确");
+            }
+            LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
+            validateChannelEnabled(verifyType, config);
+            verifySceneCode(verifyType, resolveCurrentReceiver(verifyType, user), LoginCodeScene.UPDATE_PASSWORD, code);
+        }
+
+        user.setPasswd(SecureUtil.md5(updateMyPasswordReq.getNewPassword()));
+        userRepository.save(user);
     }
 
     public LoginRes verifyLogin(VerifyLoginCodeReq verifyLoginCodeReq) {
@@ -139,28 +217,7 @@ public class LoginMethodBizService {
 
                 LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
                 validateChannelEnabled(channel, config);
-                LoginCodeRecordEntity record = loginCodeRecordRepository
-                    .findFirstByChannelAndReceiverAndSceneAndSendStatusOrderByCreateDateTimeDesc(channel, receiver,
-                        LoginCodeScene.LOGIN, LoginCodeSendStatus.SUCCESS)
-                    .orElseThrow(() -> new IsxAppException("请先获取验证码"));
-
-                if (!LoginCodeVerifyStatus.WAIT.equals(record.getVerifyStatus())) {
-                    throw new IsxAppException("验证码已失效，请重新获取");
-                }
-                if (record.getExpireDateTime() == null || LocalDateTime.now().isAfter(record.getExpireDateTime())) {
-                    record.setVerifyStatus(LoginCodeVerifyStatus.EXPIRED);
-                    loginCodeRecordRepository.save(record);
-                    throw new IsxAppException("验证码已过期，请重新获取");
-                }
-                if (!buildCodeHash(receiver, code).equals(record.getCodeHash())) {
-                    int failCount = record.getVerifyFailCount() == null ? 1 : record.getVerifyFailCount() + 1;
-                    record.setVerifyFailCount(failCount);
-                    if (failCount >= MAX_VERIFY_FAIL_COUNT) {
-                        record.setVerifyStatus(LoginCodeVerifyStatus.FAIL);
-                    }
-                    loginCodeRecordRepository.save(record);
-                    throw new IsxAppException("验证码不正确");
-                }
+                LoginCodeRecordEntity record = verifySceneCode(channel, receiver, LoginCodeScene.LOGIN, code);
 
                 UserEntity user = findUser(channel, receiver).orElse(null);
                 if (user == null) {
@@ -218,6 +275,66 @@ public class LoginMethodBizService {
             return sendPhoneCode(receiver, code, config.getConfig().getPhoneConfig());
         }
         throw new IsxAppException("登录方式不支持");
+    }
+
+    private void sendSceneCode(String channel, String receiver, String scene, LoginMethodRuntimeConfig config) {
+
+        validateResendInterval(channel, receiver, scene);
+
+        String code = generateCode();
+        LoginCodeRecordEntity record = new LoginCodeRecordEntity();
+        record.setChannel(channel);
+        record.setReceiver(receiver);
+        record.setScene(scene);
+        record.setCodeHash(buildCodeHash(receiver, code));
+        record.setExpireDateTime(LocalDateTime.now().plusMinutes(CODE_EXPIRE_MINUTES));
+        record.setVerifyStatus(LoginCodeVerifyStatus.WAIT);
+        record.setVerifyFailCount(0);
+        record.setRegistered(false);
+        record.setAutoTenantCreated(false);
+
+        try {
+            String providerMessage = sendCodeMessage(channel, receiver, code, config);
+            record.setSendStatus(LoginCodeSendStatus.SUCCESS);
+            record.setProviderMessage(truncate(providerMessage));
+            loginCodeRecordRepository.save(record);
+        } catch (Exception exception) {
+            record.setSendStatus(LoginCodeSendStatus.FAIL);
+            record.setVerifyStatus(LoginCodeVerifyStatus.FAIL);
+            record.setErrorMessage(truncate(exception.getMessage()));
+            loginCodeRecordRepository.save(record);
+            throw new IsxAppException("验证码发送失败：" + exception.getMessage());
+        }
+    }
+
+    private LoginCodeRecordEntity verifySceneCode(String channel, String receiver, String scene, String code) {
+
+        LoginCodeRecordEntity record = loginCodeRecordRepository
+            .findFirstByChannelAndReceiverAndSceneAndSendStatusOrderByCreateDateTimeDesc(channel, receiver, scene,
+                LoginCodeSendStatus.SUCCESS)
+            .orElseThrow(() -> new IsxAppException("请先获取验证码"));
+
+        if (!LoginCodeVerifyStatus.WAIT.equals(record.getVerifyStatus())) {
+            throw new IsxAppException("验证码已失效，请重新获取");
+        }
+        if (record.getExpireDateTime() == null || LocalDateTime.now().isAfter(record.getExpireDateTime())) {
+            record.setVerifyStatus(LoginCodeVerifyStatus.EXPIRED);
+            loginCodeRecordRepository.save(record);
+            throw new IsxAppException("验证码已过期，请重新获取");
+        }
+        if (!buildCodeHash(receiver, code).equals(record.getCodeHash())) {
+            int failCount = record.getVerifyFailCount() == null ? 1 : record.getVerifyFailCount() + 1;
+            record.setVerifyFailCount(failCount);
+            if (failCount >= MAX_VERIFY_FAIL_COUNT) {
+                record.setVerifyStatus(LoginCodeVerifyStatus.FAIL);
+            }
+            loginCodeRecordRepository.save(record);
+            throw new IsxAppException("验证码不正确");
+        }
+        record.setVerifyStatus(LoginCodeVerifyStatus.VERIFIED);
+        record.setVerifyDateTime(LocalDateTime.now());
+        loginCodeRecordRepository.save(record);
+        return record;
     }
 
     private String sendEmailCode(String receiver, String code, EmailLoginConfig emailConfig) {
@@ -329,10 +446,10 @@ public class LoginMethodBizService {
         throw new IsxAppException("当前登录方式未开启注册");
     }
 
-    private void validateResendInterval(String channel, String receiver) {
+    private void validateResendInterval(String channel, String receiver, String scene) {
 
         Optional<LoginCodeRecordEntity> latestRecord = loginCodeRecordRepository
-            .findFirstByChannelAndReceiverAndSceneOrderByCreateDateTimeDesc(channel, receiver, LoginCodeScene.LOGIN);
+            .findFirstByChannelAndReceiverAndSceneOrderByCreateDateTimeDesc(channel, receiver, scene);
         if (latestRecord.isEmpty() || latestRecord.get().getCreateDateTime() == null
             || !LoginCodeSendStatus.SUCCESS.equals(latestRecord.get().getSendStatus())) {
             return;
@@ -340,6 +457,74 @@ public class LoginMethodBizService {
         if (latestRecord.get().getCreateDateTime().plusSeconds(RESEND_SECONDS).isAfter(LocalDateTime.now())) {
             throw new IsxAppException("验证码发送过于频繁，请稍后再试");
         }
+    }
+
+    private void validatePhoneCanUpdate(String phone) {
+
+        UserEntity currentUser = userRepository.findById(ContextHolder.getUserId())
+            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        if (phone.equals(currentUser.getPhone())) {
+            throw new IsxAppException("新手机号不能与当前手机号相同");
+        }
+        userRepository.findByPhone(phone).ifPresent(user -> {
+            if (!user.getId().equals(ContextHolder.getUserId())) {
+                throw new IsxAppException("手机号已存在");
+            }
+        });
+    }
+
+    private void validateEmailCanUpdate(String email) {
+
+        UserEntity currentUser = userRepository.findById(ContextHolder.getUserId())
+            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        if (email.equals(currentUser.getEmail())) {
+            throw new IsxAppException("新邮箱不能与当前邮箱相同");
+        }
+        userRepository.findByEmail(email).ifPresent(user -> {
+            if (!user.getId().equals(ContextHolder.getUserId())) {
+                throw new IsxAppException("邮箱已存在");
+            }
+        });
+    }
+
+    private void validateOldPassword(UpdateMyPasswordReq updateMyPasswordReq, UserEntity user, boolean hasPassword) {
+
+        if (!hasPassword) {
+            return;
+        }
+        if (Strings.isEmpty(updateMyPasswordReq.getOldPassword())) {
+            throw new IsxAppException("原密码不能为空");
+        }
+        if (!SecureUtil.md5(updateMyPasswordReq.getOldPassword()).equals(user.getPasswd())) {
+            throw new IsxAppException("原密码不正确");
+        }
+    }
+
+    private String normalizePasswordVerifyType(String verifyType) {
+
+        String normalizedVerifyType = Strings.isEmpty(verifyType) ? VERIFY_OLD_PASSWORD : verifyType.trim().toUpperCase();
+        if (VERIFY_OLD_PASSWORD.equals(normalizedVerifyType) || LoginMethodType.PHONE.equals(normalizedVerifyType)
+            || LoginMethodType.EMAIL.equals(normalizedVerifyType)) {
+            return normalizedVerifyType;
+        }
+        throw new IsxAppException("验证方式不支持");
+    }
+
+    private String resolveCurrentReceiver(String channel, UserEntity user) {
+
+        if (LoginMethodType.PHONE.equals(channel)) {
+            if (Strings.isEmpty(user.getPhone())) {
+                throw new IsxAppException("当前账号未绑定手机号");
+            }
+            return normalizeReceiver(channel, user.getPhone());
+        }
+        if (LoginMethodType.EMAIL.equals(channel)) {
+            if (Strings.isEmpty(user.getEmail())) {
+                throw new IsxAppException("当前账号未绑定邮箱");
+            }
+            return normalizeReceiver(channel, user.getEmail());
+        }
+        throw new IsxAppException("验证方式不支持");
     }
 
     private Optional<UserEntity> findUser(String channel, String receiver) {

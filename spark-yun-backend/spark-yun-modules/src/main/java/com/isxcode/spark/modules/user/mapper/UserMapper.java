@@ -25,15 +25,15 @@ public interface UserMapper {
     @Mapping(target = "account", source = "updateUserReq.account")
     @Mapping(target = "username", source = "updateUserReq.username")
     @Mapping(target = "phone", source = "updateUserReq.phone")
-    @Mapping(target = "email", source = "updateUserReq.email")
+    @Mapping(target = "email", source = "userEntity.email")
     UserEntity updateUserReqToUserEntity(UpdateUserReq updateUserReq, UserEntity userEntity);
 
     @Mapping(target = "passwd", source = "userEntity.passwd")
     @Mapping(target = "id", source = "userEntity.id")
     @Mapping(target = "account", source = "userEntity.account")
     @Mapping(target = "username", source = "updateUserInfoReq.username")
-    @Mapping(target = "phone", source = "updateUserInfoReq.phone")
-    @Mapping(target = "email", source = "updateUserInfoReq.email")
+    @Mapping(target = "phone", source = "userEntity.phone")
+    @Mapping(target = "email", source = "userEntity.email")
     @Mapping(target = "remark", source = "updateUserInfoReq.remark")
     UserEntity updateUserInfoToUserEntity(UpdateUserInfoReq updateUserInfoReq, UserEntity userEntity);
 
