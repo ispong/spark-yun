@@ -143,7 +143,12 @@ function resolveSseBuffer(buffer: string, handlers: StreamChatHandlers): string 
         if (!data) {
             return
         }
-        const payload = JSON.parse(data)
+        let payload: any
+        try {
+            payload = JSON.parse(data)
+        } catch {
+            return
+        }
         if (event === 'error') {
             throw new Error(payload.message || 'AI对话失败')
         }

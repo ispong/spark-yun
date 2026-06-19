@@ -1,10 +1,10 @@
 <template>
     <div class="zhiqing-ai" :class="{ 'is-history-visible': historyVisible }">
         <section class="zhiqing-ai__chat">
-            <div ref="messagePanelRef" class="zhiqing-ai__messages" @click="handleMessagePanelClick">
+            <div ref="messagePanelRef" class="zhiqing-ai__messages" @click="handleMessagePanelClick" @scroll="handleMessagesScroll">
                 <div v-if="!messages.length" class="zhiqing-ai__welcome">
                     <strong>你好，我是至轻智能</strong>
-                    <span>让AI更懂数据，洞察业务更高效</span>
+                    <span>{{ aiConfigs.length ? '让AI更懂数据，洞察业务更高效' : '暂无可用智能体，请先完成模型配置' }}</span>
                 </div>
                 <div
                     v-for="(message, index) in messages"
@@ -28,11 +28,9 @@
                     <div v-else class="zhiqing-ai-message__content">
                         <div v-html="renderMarkdown(message.content)" />
                     </div>
-                    <div
-                        v-if="message.role === 'assistant' && message.content && !isAssistantTyping(message, index)"
-                        class="zhiqing-ai-answer-actions"
-                    >
-                        <el-tooltip content="复制回答" placement="top">
+                    <div v-if="message.content && !isAssistantTyping(message, index)" class="zhiqing-ai-message__meta">
+                        <span>{{ formatMessageTime(message.createdAt) }}</span>
+                        <el-tooltip v-if="message.role === 'assistant'" content="复制回答" placement="top">
                             <el-button
                                 class="zhiqing-ai-answer-copy"
                                 :icon="CopyDocument"
@@ -43,6 +41,17 @@
                         </el-tooltip>
                     </div>
                 </div>
+                <Transition name="zhiqing-ai-scroll-latest">
+                    <el-button
+                        v-if="showScrollToLatest"
+                        class="zhiqing-ai-scroll-latest"
+                        type="primary"
+                        plain
+                        @click="scrollToLatest"
+                    >
+                        回到底部
+                    </el-button>
+                </Transition>
             </div>
 
             <div class="zhiqing-ai__composer">
@@ -50,6 +59,7 @@
                     v-model="currentConfigId"
                     class="zhiqing-ai__select"
                     filterable
+                    :loading="loadingConfigs"
                     :disabled="sending"
                     placeholder="选择智能体"
                     @change="handleConfigChange"
@@ -89,7 +99,7 @@
                             ref="composerEditorRef"
                             class="zhiqing-ai-rich-input__editor"
                             :contenteditable="sending ? 'false' : 'true'"
-                            data-placeholder="输入问题，按 Enter 发送"
+                            data-placeholder="输入问题，Enter 发送，Shift+Enter 换行"
                             @click="handleComposerEditorClick"
                             @compositionend="handleComposerEditorCompositionEnd"
                             @compositionstart="isComposing = true"
@@ -120,9 +130,17 @@
         </section>
 
         <aside v-if="historyVisible" class="zhiqing-ai__history">
+            <el-input
+                v-model="historySearchText"
+                class="zhiqing-ai__history-search"
+                :prefix-icon="Search"
+                clearable
+                maxlength="200"
+                placeholder="搜索聊天历史"
+            />
             <div class="zhiqing-ai__history-list">
                 <div
-                    v-for="history in chatHistories"
+                    v-for="history in filteredChatHistories"
                     :key="history.id"
                     class="zhiqing-ai-history-item"
                     :class="{ 'is-active': history.id === currentSessionId }"
@@ -140,6 +158,11 @@
                         @click.stop="removeHistory(history.id)"
                     />
                 </div>
+                <el-empty
+                    v-if="!filteredChatHistories.length"
+                    class="zhiqing-ai__history-empty"
+                    :description="historySearchText.trim() ? '没有匹配的历史' : '暂无聊天历史'"
+                />
             </div>
         </aside>
 
@@ -213,7 +236,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { Clock, Close, CopyDocument, Delete, Edit, Plus, Search, Share, Upload } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
     DeleteAiPrompt,
     DeleteChatSession,
@@ -225,6 +248,7 @@ import {
     SaveChatSession,
     StreamChatWithAi
 } from '@/modules/zhiqing-ai/api'
+import { escapeHtml, renderMarkdown, renderMarkdownContent } from '@/modules/zhiqing-ai/utils/markdown'
 
 interface AiConfig {
     id: string
@@ -235,6 +259,7 @@ interface AiConfig {
 interface ChatMessage {
     role: 'user' | 'assistant'
     content: string
+    createdAt?: string
 }
 
 interface ChatHistory {
@@ -243,6 +268,7 @@ interface ChatHistory {
     title: string
     updatedAt: string
     messages: ChatMessage[]
+    persisted?: boolean
 }
 
 interface AiPrompt {
@@ -270,7 +296,9 @@ const messages = ref<ChatMessage[]>([])
 const chatHistories = ref<ChatHistory[]>([])
 const currentSessionId = ref('')
 const historyVisible = ref(false)
+const historySearchText = ref('')
 const messagePanelRef = ref<HTMLElement>()
+const showScrollToLatest = ref(false)
 const abortController = ref<AbortController>()
 let saveHistoryTimer: ReturnType<typeof window.setTimeout> | undefined
 let typingTimer: ReturnType<typeof window.setTimeout> | undefined
@@ -310,12 +338,27 @@ const filteredPrompts = computed(() => {
         (prompt) => prompt.name.toLowerCase().includes(keyword) || prompt.content.toLowerCase().includes(keyword)
     )
 })
+const filteredChatHistories = computed(() => {
+    const keyword = historySearchText.value.trim().toLowerCase()
+    if (!keyword) {
+        return chatHistories.value
+    }
+    return chatHistories.value.filter((history) =>
+        `${history.title} ${history.updatedAt} ${history.messages.map((message) => message.content).join(' ')}`
+            .toLowerCase()
+            .includes(keyword)
+    )
+})
 
 const TYPING_INTERVAL = 18
+const TYPING_BATCH_SIZE = 4
+const TYPING_FAST_BATCH_SIZE = 16
+const TYPING_FAST_THRESHOLD = 240
 const FIRST_CONTENT_TIMEOUT = 30000
 const CONTENT_IDLE_TIMEOUT = 60000
 const MAX_CHAT_FILE_COUNT = 5
 const MAX_CHAT_FILE_SIZE = 10 * 1024 * 1024
+const MAX_CHAT_FILE_CONTENT_LENGTH = 30000
 
 function handleCompositionEnd() {
     nextTick(() => {
@@ -325,6 +368,9 @@ function handleCompositionEnd() {
 
 function handleInputEnter(event: KeyboardEvent) {
     if (event.isComposing || isComposing.value || event.keyCode === 229) {
+        return
+    }
+    if (event.shiftKey) {
         return
     }
     event.preventDefault()
@@ -343,141 +389,6 @@ function isAssistantTyping(message: ChatMessage, index: number): boolean {
         index === messages.value.length - 1 &&
         currentTypingMessageIndex.value === index
     )
-}
-
-function renderMarkdown(markdown: string): string {
-    const lines = markdown.replace(/\r\n/g, '\n').split('\n')
-    const html: string[] = []
-    let index = 0
-
-    while (index < lines.length) {
-        const line = lines[index]
-        if (!line.trim()) {
-            index += 1
-            continue
-        }
-
-        const fenceMatch = line.match(/^```(\w+)?\s*$/)
-        if (fenceMatch) {
-            const codeLines: string[] = []
-            index += 1
-            while (index < lines.length && !lines[index].match(/^```\s*$/)) {
-                codeLines.push(lines[index])
-                index += 1
-            }
-            if (index < lines.length) {
-                index += 1
-            }
-            const language = fenceMatch[1] || '代码'
-            html.push(
-                `<div class="zhiqing-ai-code-block"><div class="zhiqing-ai-code-block__header"><span>${escapeHtml(
-                    language
-                )}</span><button type="button" class="zhiqing-ai-code-block__copy">复制</button></div><pre><code${
-                    fenceMatch[1] ? ` class="language-${escapeHtml(fenceMatch[1])}"` : ''
-                }>${escapeHtml(codeLines.join('\n'))}</code></pre></div>`
-            )
-            continue
-        }
-
-        if (isTableStart(lines, index)) {
-            const headers = splitTableLine(lines[index])
-            const rows: string[][] = []
-            index += 2
-            while (index < lines.length && lines[index].trim().startsWith('|')) {
-                rows.push(splitTableLine(lines[index]))
-                index += 1
-            }
-            html.push(renderTable(headers, rows))
-            continue
-        }
-
-        const headingMatch = line.match(/^(#{1,6})\s+(.+)$/)
-        if (headingMatch) {
-            const level = headingMatch[1].length
-            html.push(`<h${level}>${renderInlineMarkdown(headingMatch[2])}</h${level}>`)
-            index += 1
-            continue
-        }
-
-        if (/^>\s?/.test(line)) {
-            const quoteLines: string[] = []
-            while (index < lines.length && /^>\s?/.test(lines[index])) {
-                quoteLines.push(lines[index].replace(/^>\s?/, ''))
-                index += 1
-            }
-            html.push(`<blockquote>${renderMarkdown(quoteLines.join('\n'))}</blockquote>`)
-            continue
-        }
-
-        if (/^\s*[-*+]\s+/.test(line)) {
-            const items: string[] = []
-            while (index < lines.length && /^\s*[-*+]\s+/.test(lines[index])) {
-                items.push(lines[index].replace(/^\s*[-*+]\s+/, ''))
-                index += 1
-            }
-            html.push(`<ul>${items.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join('')}</ul>`)
-            continue
-        }
-
-        if (/^\s*\d+\.\s+/.test(line)) {
-            const items: string[] = []
-            while (index < lines.length && /^\s*\d+\.\s+/.test(lines[index])) {
-                items.push(lines[index].replace(/^\s*\d+\.\s+/, ''))
-                index += 1
-            }
-            html.push(`<ol>${items.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join('')}</ol>`)
-            continue
-        }
-
-        const paragraphLines: string[] = []
-        while (
-            index < lines.length &&
-            lines[index].trim() &&
-            !lines[index].match(/^```(\w+)?\s*$/) &&
-            !lines[index].match(/^(#{1,6})\s+/) &&
-            !/^>\s?/.test(lines[index]) &&
-            !/^\s*[-*+]\s+/.test(lines[index]) &&
-            !/^\s*\d+\.\s+/.test(lines[index]) &&
-            !isTableStart(lines, index)
-        ) {
-            paragraphLines.push(lines[index])
-            index += 1
-        }
-        html.push(`<p>${renderInlineMarkdown(paragraphLines.join('\n'))}</p>`)
-    }
-
-    return `<div class="zhiqing-ai-markdown">${html.join('')}</div>`
-}
-
-function renderInlineMarkdown(text: string): string {
-    const codeValues: string[] = []
-    let html = escapeHtml(text).replace(/`([^`]+)`/g, (_match, code) => {
-        codeValues.push(`<code>${code}</code>`)
-        return `@@CODE_${codeValues.length - 1}@@`
-    })
-
-    html = html
-        .replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, '<img alt="$1" src="$2" />')
-        .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-        .replace(/~~([^~]+)~~/g, '<del>$1</del>')
-        .replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>')
-        .replace(/\n/g, '<br />')
-
-    codeValues.forEach((code, codeIndex) => {
-        html = html.replace(`@@CODE_${codeIndex}@@`, code)
-    })
-
-    return html
-}
-
-function escapeHtml(text: string): string {
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
 }
 
 async function handleMessagePanelClick(event: MouseEvent) {
@@ -529,31 +440,6 @@ async function copyText(text: string) {
     }
 }
 
-function isTableStart(lines: string[], index: number): boolean {
-    return (
-        index + 1 < lines.length &&
-        lines[index].trim().startsWith('|') &&
-        /^\s*\|?[\s:-]+\|[\s|:-]*$/.test(lines[index + 1])
-    )
-}
-
-function splitTableLine(line: string): string[] {
-    return line
-        .trim()
-        .replace(/^\|/, '')
-        .replace(/\|$/, '')
-        .split('|')
-        .map((cell) => cell.trim())
-}
-
-function renderTable(headers: string[], rows: string[][]): string {
-    return `<table><thead><tr>${headers
-        .map((header) => `<th>${renderInlineMarkdown(header)}</th>`)
-        .join('')}</tr></thead><tbody>${rows
-        .map((row) => `<tr>${headers.map((_header, cellIndex) => `<td>${renderInlineMarkdown(row[cellIndex] || '')}</td>`).join('')}</tr>`)
-        .join('')}</tbody></table>`
-}
-
 function loadAiConfigs() {
     loadingConfigs.value = true
     ListWorkspaceAiConfig()
@@ -567,6 +453,9 @@ function loadAiConfigs() {
                 clearMessages()
             }
         })
+        .catch(() => {
+            ElMessage.error('智能体配置加载失败')
+        })
         .finally(() => {
             loadingConfigs.value = false
         })
@@ -579,21 +468,37 @@ function clearMessages() {
 }
 
 function loadChatHistories() {
-    ListChatSessions().then((res: any) => {
-        chatHistories.value = (res.data || []).map((history: any) => ({
-            id: history.id,
-            configId: history.configId || '',
-            title: history.title || '新对话',
-            updatedAt: resolveHistoryDisplayTime(history.updatedAt),
-            messages: (history.messages || []).map((message: ChatMessage) => ({ ...message }))
-        }))
-    })
+    ListChatSessions()
+        .then((res: any) => {
+            chatHistories.value = (res.data || []).map((history: any) => ({
+                id: history.id,
+                configId: history.configId || '',
+                title: history.title || '新对话',
+                updatedAt: resolveHistoryDisplayTime(history.updatedAt),
+                messages: (history.messages || []).map((message: ChatMessage) => normalizeChatMessage(message, history.updatedAt)),
+                persisted: true
+            }))
+        })
+        .catch(() => {
+            ElMessage.error('聊天历史加载失败')
+        })
 }
 
 function loadPrompts() {
-    ListAiPrompts().then((res: any) => {
-        aiPrompts.value = res.data || []
-    })
+    ListAiPrompts()
+        .then((res: any) => {
+            aiPrompts.value = res.data || []
+        })
+        .catch(() => {
+            ElMessage.error('提示词加载失败')
+        })
+}
+
+function normalizeChatMessage(message: ChatMessage, fallbackTime?: string): ChatMessage {
+    return {
+        ...message,
+        createdAt: message.createdAt || fallbackTime || ''
+    }
 }
 
 function handleConfigChange() {
@@ -624,15 +529,33 @@ function switchHistory(id: string) {
     if (history.configId) {
         currentConfigId.value = history.configId
     }
-    messages.value = history.messages.map((message) => ({ ...message }))
+    messages.value = history.messages.map((message) => normalizeChatMessage(message, history.updatedAt))
     scrollToBottom()
 }
 
-function removeHistory(id: string) {
-    chatHistories.value = chatHistories.value.filter((history) => history.id !== id)
-    DeleteChatSession({ id }).catch(() => {
-        loadChatHistories()
-    })
+async function removeHistory(id: string) {
+    const history = chatHistories.value.find((item) => item.id === id)
+    if (!history) {
+        return
+    }
+    try {
+        await ElMessageBox.confirm(`确定删除「${history.title}」吗？`, '删除聊天历史', {
+            confirmButtonText: '删除',
+            cancelButtonText: '取消',
+            type: 'warning'
+        })
+    } catch {
+        return
+    }
+    chatHistories.value = chatHistories.value.filter((item) => item.id !== id)
+    DeleteChatSession({ id })
+        .then(() => {
+            ElMessage.success('删除成功')
+        })
+        .catch(() => {
+            ElMessage.error('删除失败')
+            loadChatHistories()
+        })
     if (currentSessionId.value === id) {
         currentSessionId.value = ''
         messages.value = []
@@ -680,7 +603,7 @@ async function handleFileChange(event: Event) {
                 name: res.data.name,
                 contentType: res.data.contentType,
                 size: res.data.size,
-                content: res.data.content || ''
+                content: normalizeChatFileContent(res.data.content || '')
             })
         }
     } catch (error: any) {
@@ -688,6 +611,14 @@ async function handleFileChange(event: Event) {
     } finally {
         uploadingFile.value = false
     }
+}
+
+function normalizeChatFileContent(content: string): string {
+    if (content.length <= MAX_CHAT_FILE_CONTENT_LENGTH) {
+        return content
+    }
+    ElMessage.warning(`附件内容较长，已截取前${MAX_CHAT_FILE_CONTENT_LENGTH}字参与对话`)
+    return `${content.slice(0, MAX_CHAT_FILE_CONTENT_LENGTH)}\n\n[内容过长，后续已省略]`
 }
 
 function removeSelectedFile(id: string) {
@@ -869,8 +800,18 @@ async function submitPromptForm() {
 }
 
 async function removePrompt(prompt: AiPrompt) {
+    try {
+        await ElMessageBox.confirm(`确定删除「${prompt.name}」吗？`, '删除提示词', {
+            confirmButtonText: '删除',
+            cancelButtonText: '取消',
+            type: 'warning'
+        })
+    } catch {
+        return
+    }
     await DeleteAiPrompt({ id: prompt.id })
     aiPrompts.value = aiPrompts.value.filter((item) => item.id !== prompt.id)
+    ElMessage.success('删除成功')
 }
 
 function buildRequestContent(userContent: string): string {
@@ -925,7 +866,8 @@ function ensureCurrentHistory(firstMessage: string) {
         configId: currentConfigId.value,
         title: resolveHistoryTitle(firstMessage),
         updatedAt: formatHistoryTime(now),
-        messages: []
+        messages: [],
+        persisted: false
     })
 }
 
@@ -944,8 +886,8 @@ function canPersistHistory(history: ChatHistory): boolean {
     return !!history.configId && history.messages.length > 0 && history.messages.every((message) => !!message.content.trim())
 }
 
-function resolvePersistSessionId(id: string): string | undefined {
-    return id.startsWith('sy_') ? id : undefined
+function resolvePersistSessionId(history: ChatHistory): string | undefined {
+    return history.persisted ? history.id : undefined
 }
 
 function resolveHistoryTitle(content: string): string {
@@ -966,6 +908,17 @@ function resolveHistoryDisplayTime(updatedAt?: string): string {
     }
     const match = updatedAt.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/)
     return match ? `${match[2]}-${match[3]} ${match[4]}:${match[5]}` : updatedAt
+}
+
+function formatMessageTime(createdAt?: string): string {
+    if (!createdAt) {
+        return ''
+    }
+    const date = new Date(createdAt)
+    if (Number.isNaN(date.getTime())) {
+        return createdAt
+    }
+    return formatHistoryTime(date)
 }
 
 function scheduleSaveCurrentHistory() {
@@ -989,7 +942,7 @@ async function persistCurrentHistory() {
         return
     }
     const res = await SaveChatSession({
-        id: resolvePersistSessionId(history.id),
+        id: resolvePersistSessionId(history),
         configId: history.configId,
         title: history.title,
         messages: history.messages
@@ -1000,6 +953,9 @@ async function persistCurrentHistory() {
         }
         history.id = res.data.id
     }
+    if (res?.data?.id) {
+        history.persisted = true
+    }
     if (res?.data?.updatedAt) {
         history.updatedAt = resolveHistoryDisplayTime(res.data.updatedAt)
     }
@@ -1009,6 +965,7 @@ function scrollToBottom() {
     nextTick(() => {
         if (messagePanelRef.value) {
             messagePanelRef.value.scrollTop = messagePanelRef.value.scrollHeight
+            showScrollToLatest.value = false
         }
     })
 }
@@ -1019,6 +976,14 @@ function isMessagePanelNearBottom(threshold = 80): boolean {
         return true
     }
     return panel.scrollHeight - panel.scrollTop - panel.clientHeight <= threshold
+}
+
+function handleMessagesScroll() {
+    showScrollToLatest.value = !isMessagePanelNearBottom(120)
+}
+
+function scrollToLatest() {
+    scrollToBottom()
 }
 
 function stopGenerating() {
@@ -1067,10 +1032,9 @@ function typeNextCharacter() {
     }
 
     const shouldFollowOutput = isMessagePanelNearBottom()
-    const firstCodePoint = pendingAssistantContent.codePointAt(0) || 0
-    const nextCharacter = String.fromCodePoint(firstCodePoint)
-    message.content += nextCharacter
-    pendingAssistantContent = pendingAssistantContent.slice(nextCharacter.length)
+    const nextChunk = takeTypingChunk()
+    message.content += nextChunk
+    pendingAssistantContent = pendingAssistantContent.slice(nextChunk.length)
     updateTypingMarkdownPreview(message.content)
     if (shouldFollowOutput) {
         scrollToBottom()
@@ -1087,12 +1051,25 @@ function typeNextCharacter() {
     }
 }
 
+function takeTypingChunk(): string {
+    const chunkSize = pendingAssistantContent.length > TYPING_FAST_THRESHOLD ? TYPING_FAST_BATCH_SIZE : TYPING_BATCH_SIZE
+    let chunk = ''
+    let offset = 0
+    while (offset < pendingAssistantContent.length && [...chunk].length < chunkSize) {
+        const codePoint = pendingAssistantContent.codePointAt(offset) || 0
+        const character = String.fromCodePoint(codePoint)
+        chunk += character
+        offset += character.length
+    }
+    return chunk
+}
+
 function updateTypingMarkdownPreview(content: string) {
     if (content.endsWith('\n')) {
         const stableBoundary = resolveStableMarkdownBoundary(content)
         if (stableBoundary > typingStableContent.length) {
             const stableDelta = content.slice(typingStableContent.length, stableBoundary)
-            typingStableMarkdownHtml.value += renderMarkdown(stableDelta)
+            typingStableMarkdownHtml.value += renderMarkdownContent(stableDelta)
             typingStableContent = content.slice(0, stableBoundary)
         }
     }
@@ -1100,7 +1077,7 @@ function updateTypingMarkdownPreview(content: string) {
 }
 
 function finishTypingMarkdownPreview(content: string) {
-    typingStableMarkdownHtml.value = renderMarkdown(content)
+    typingStableMarkdownHtml.value = renderMarkdownContent(content)
     typingStableContent = content
     typingTailContent.value = ''
 }
@@ -1159,7 +1136,8 @@ async function sendMessage() {
     const displayContent = buildDisplayContent(rawInputText)
     const userMessage: ChatMessage = {
         role: 'user',
-        content: displayContent
+        content: displayContent,
+        createdAt: new Date().toISOString()
     }
     const requestMessages = [
         ...messages.value,
@@ -1170,7 +1148,8 @@ async function sendMessage() {
     ]
     const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: ''
+        content: '',
+        createdAt: new Date().toISOString()
     }
     ensureCurrentHistory(userMessage.content)
     messages.value.push(userMessage)
@@ -1302,11 +1281,6 @@ onMounted(() => {
     justify-content: space-between;
     gap: 12px;
     padding: 0 44px;
-    pointer-events: none;
-
-    > * {
-        pointer-events: auto;
-    }
 }
 
 .zhiqing-ai__select {
@@ -1497,17 +1471,30 @@ onMounted(() => {
 .zhiqing-ai__history {
     min-width: 0;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     border-left: 1px solid var(--el-border-color-lighter);
     padding-left: 16px;
 }
 
+.zhiqing-ai__history-search {
+    flex: 0 0 auto;
+}
+
 .zhiqing-ai__history-list {
-    height: 100%;
+    min-height: 0;
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 8px;
     overflow: auto;
     padding-right: 4px;
+}
+
+.zhiqing-ai__history-empty {
+    flex: 1;
+    min-height: 180px;
 }
 
 .zhiqing-ai-history-item {
@@ -1646,6 +1633,27 @@ onMounted(() => {
     background-color: #ffffff;
 }
 
+.zhiqing-ai-scroll-latest {
+    position: sticky;
+    bottom: 10px;
+    z-index: 5;
+    align-self: center;
+    width: 88px;
+    min-height: 30px;
+    box-shadow: 0 8px 20px rgb(0 0 0 / 10%);
+}
+
+.zhiqing-ai-scroll-latest-enter-active,
+.zhiqing-ai-scroll-latest-leave-active {
+    transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.zhiqing-ai-scroll-latest-enter-from,
+.zhiqing-ai-scroll-latest-leave-to {
+    opacity: 0;
+    transform: translateY(6px);
+}
+
 .zhiqing-ai-message__loading {
     display: inline-flex;
     align-items: center;
@@ -1657,11 +1665,16 @@ onMounted(() => {
     }
 }
 
-.zhiqing-ai-answer-actions {
-    display: flex;
-    justify-content: flex-start;
-    margin-top: 6px;
+.zhiqing-ai-message__meta {
+    min-height: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
     padding-left: 2px;
+    color: var(--el-text-color-placeholder);
+    font-size: 12px;
+    line-height: 24px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.16s ease;
@@ -1669,9 +1682,16 @@ onMounted(() => {
 
 .zhiqing-ai-message:hover,
 .zhiqing-ai-message:focus-within {
-    .zhiqing-ai-answer-actions {
+    .zhiqing-ai-message__meta {
         opacity: 1;
         pointer-events: auto;
+    }
+}
+
+.zhiqing-ai-message.is-user {
+    .zhiqing-ai-message__meta {
+        padding-right: 2px;
+        padding-left: 0;
     }
 }
 
@@ -1850,9 +1870,15 @@ onMounted(() => {
         white-space: pre;
     }
 
-    table {
+    .zhiqing-ai-table-wrap {
         width: 100%;
         margin: 12px 0;
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        min-width: 480px;
         border-collapse: collapse;
         font-size: 14px;
     }
