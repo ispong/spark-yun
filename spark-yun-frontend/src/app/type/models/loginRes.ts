@@ -23,5 +23,6 @@ export interface LoginRes {
   tenantMember?: boolean;
   workspaceAllPermissions?: boolean;
   permissions?: string[];
+  frontendPermissionCodes?: string[];
   defaultArea?: string;
 }

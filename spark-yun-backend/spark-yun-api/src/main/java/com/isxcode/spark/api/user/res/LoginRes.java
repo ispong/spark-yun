@@ -54,5 +54,7 @@ public class LoginRes {
 
     private List<String> permissions;
 
+    private List<String> frontendPermissionCodes;
+
     private String defaultArea;
 }

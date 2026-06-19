@@ -17,5 +17,6 @@ export interface ChooseTenantRes {
   normalAdmin?: boolean;
   workspaceAllPermissions?: boolean;
   permissions?: string[];
+  frontendPermissionCodes?: string[];
   defaultArea?: string;
 }

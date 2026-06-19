@@ -32,12 +32,10 @@
                                 :key="menu.code"
                                 :index="menu.code"
                             >
-                                <template #title>
-                                    <el-icon class="zqy-layout__icon">
-                                        <component :is="resolveIcon(menu.icon)" />
-                                    </el-icon>
-                                    <span class="zqy-layout__text">{{ menu.name }}</span>
-                                </template>
+                                <el-icon class="zqy-layout__icon">
+                                    <component :is="resolveIcon(menu.icon)" />
+                                </el-icon>
+                                <span class="zqy-layout__text">{{ menu.name }}</span>
                             </el-menu-item>
                         </el-sub-menu>
 
@@ -45,9 +43,7 @@
                           <el-icon class="zqy-layout__icon">
                             <component :is="resolveIcon(menuData.icon)" />
                           </el-icon>
-                             <template #title>
-                                <span class="zqy-layout__text">{{ menuData.name }}</span>
-                            </template>
+                          <span class="zqy-layout__text">{{ menuData.name }}</span>
                         </el-menu-item>
                     </template>
                 </el-menu>
@@ -246,8 +242,13 @@ const personalInfoRouteNames: Record<string, string> = {
 
 // 菜单显示哪些
 const menuViewData = computed(() => {
-    const areaMenus =
-        currentArea.value === 'workspace' ? filterWorkspaceMenus(menuListData.value) : menuListData.value
+    if (isPersonalInfoRoute.value) {
+        return menuListData.value
+    }
+    if (currentArea.value !== 'workspace') {
+        return menuListData.value
+    }
+    const areaMenus = filterWorkspaceMenus(menuListData.value)
     return filterVipMenus(areaMenus, vipEnabled.value, licenseApiAvailable.value)
 })
 
@@ -318,7 +319,10 @@ function filterWorkspaceMenus(menuList: Menu[]): Menu[] {
     if (authStore.userInfo?.workspaceAllPermissions) {
         return menuList
     }
-    const permissions = authStore.userInfo?.permissions || []
+    const permissions = [
+        ...(authStore.userInfo?.frontendPermissionCodes || []),
+        ...(authStore.userInfo?.permissions || [])
+    ]
     return menuList
         .map((menu) => {
             if (menu.children?.length) {

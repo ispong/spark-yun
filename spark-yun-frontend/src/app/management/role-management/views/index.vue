@@ -111,14 +111,16 @@
 
                     <el-tab-pane label="功能权限" name="buttons">
                         <PermissionMatrix
-                            :modules="catalog.buttonPermissions"
-                            :permission-codes="visiblePermissionCodes"
+                            :modules="catalog.modules"
+                            :frontend-permission-codes="visibleFrontendPermissionCodes"
+                            :backend-permission-codes="visibleBackendPermissionCodes"
                             :labels="buttonLabels"
-                            :disabled="buttonAllChecked"
-                            @change="setPermission"
+                            :disabled="permissionAllChecked"
+                            @menu-change="setMenuPermission"
+                            @backend-change="setBackendPermission"
                         />
                         <div class="role-permission-footer">
-                            <el-checkbox :model-value="buttonAllChecked" @change="setButtonAllChecked">
+                            <el-checkbox :model-value="permissionAllChecked" @change="setPermissionAllChecked">
                                 全选
                             </el-checkbox>
                             <el-button type="primary" :loading="permissionSaving" @click="savePermissions">
@@ -273,6 +275,8 @@ interface RoleItem {
     remark?: string
     status?: string
     permissionCodes?: string[]
+    frontendPermissionCodes?: string[]
+    backendPermissionCodes?: string[]
     instancePermissions?: RoleInstancePermissionItem[]
 }
 
@@ -288,6 +292,7 @@ interface PermissionItem {
 interface PermissionModule {
     code: string
     name: string
+    menuPermissionCode?: string
     permissions: PermissionItem[]
 }
 
@@ -338,6 +343,8 @@ const buttonLabels: Record<string, string> = {
     delete: '删除',
     execute: '执行'
 }
+const MENU_ALL = 'MENU_ALL'
+const API_ALL = 'API_ALL'
 
 const instanceResourceTypes: Array<{ code: InstanceResourceType; name: string }> = [
     { code: 'CLUSTER', name: '计算集群' },
@@ -367,7 +374,11 @@ const PermissionMatrix = defineComponent({
             type: Array as PropType<PermissionModule[]>,
             required: true
         },
-        permissionCodes: {
+        frontendPermissionCodes: {
+            type: Array as PropType<string[]>,
+            required: true
+        },
+        backendPermissionCodes: {
             type: Array as PropType<string[]>,
             required: true
         },
@@ -380,19 +391,18 @@ const PermissionMatrix = defineComponent({
             default: false
         }
     },
-    emits: ['change'],
+    emits: ['menu-change', 'backend-change'],
     setup(props, { emit }) {
-        const hasPermission = (code?: string) => !!code && props.permissionCodes.includes(code)
-        const isModuleChecked = (permissions: PermissionItem[]) =>
-            permissions.length > 0 && permissions.every((permission) => hasPermission(permission.permissionCode))
+        const hasMenuPermission = (code?: string) => !!code && props.frontendPermissionCodes.includes(code)
+        const hasBackendPermission = (code?: string) => !!code && props.backendPermissionCodes.includes(code)
+        const isModuleChecked = (module: PermissionModule) => hasMenuPermission(module.menuPermissionCode)
         const isModuleIndeterminate = (permissions: PermissionItem[]) => {
-            const checkedCount = permissions.filter((permission) => hasPermission(permission.permissionCode)).length
+            const checkedCount = permissions.filter((permission) => hasBackendPermission(permission.permissionCode)).length
             return checkedCount > 0 && checkedCount < permissions.length
         }
-        const setPermission = (code: string, checked: unknown) => emit('change', code, checked)
-        const setModulePermissions = (permissions: PermissionItem[], checked: unknown) => {
-            permissions.forEach((permission) => emit('change', permission.permissionCode, checked))
-        }
+        const setBackendPermission = (module: PermissionModule, code: string, checked: unknown) =>
+            emit('backend-change', module, code, checked)
+        const setModulePermissions = (module: PermissionModule, checked: unknown) => emit('menu-change', module, checked)
 
         return () =>
             h(
@@ -404,10 +414,10 @@ const PermissionMatrix = defineComponent({
                             h(
                                 ElCheckbox,
                                 {
-                                    modelValue: isModuleChecked(module.permissions),
+                                    modelValue: isModuleChecked(module),
                                     indeterminate: isModuleIndeterminate(module.permissions),
                                     disabled: props.disabled,
-                                    onChange: (checked: unknown) => setModulePermissions(module.permissions, checked)
+                                    onChange: (checked: unknown) => setModulePermissions(module, checked)
                                 },
                                 () => module.name
                             )
@@ -420,10 +430,10 @@ const PermissionMatrix = defineComponent({
                                     ElCheckbox,
                                     {
                                         key: permission.permissionCode,
-                                        modelValue: hasPermission(permission.permissionCode),
+                                        modelValue: hasBackendPermission(permission.permissionCode),
                                         disabled: props.disabled,
                                         onChange: (checked: unknown) =>
-                                            setPermission(permission.permissionCode, checked)
+                                            setBackendPermission(module, permission.permissionCode, checked)
                                     },
                                     () => String((props.labels as Record<string, string>)[permission.code] || permission.name)
                                 )
@@ -444,8 +454,9 @@ const activeTab = ref<'members' | 'buttons' | InstanceResourceType>('members')
 const roleEditorVisible = ref(false)
 const roleSaving = ref(false)
 const permissionSaving = ref(false)
-const permissionCodes = ref<string[]>([])
-const buttonAllChecked = ref(true)
+const frontendPermissionCodes = ref<string[]>([])
+const backendPermissionCodes = ref<string[]>([])
+const permissionAllChecked = ref(true)
 const memberKeyword = ref('')
 const memberLoading = ref(false)
 const members = ref<MemberItem[]>([])
@@ -464,7 +475,10 @@ const instancePermissionState = reactive<Record<InstanceResourceType, InstancePe
     DATASOURCE: createInstancePermissionState(),
     RESOURCE_FILE: createInstancePermissionState()
 })
-const visiblePermissionCodes = computed(() => (buttonAllChecked.value ? [] : permissionCodes.value))
+const visibleFrontendPermissionCodes = computed(() =>
+    permissionAllChecked.value ? [] : frontendPermissionCodes.value
+)
+const visibleBackendPermissionCodes = computed(() => (permissionAllChecked.value ? [] : backendPermissionCodes.value))
 
 const roleForm = reactive({
     id: '',
@@ -474,8 +488,11 @@ const roleForm = reactive({
 })
 
 const catalog = reactive({
+    modules: [] as PermissionModule[],
+    menuPermissions: [] as PermissionModule[],
     buttonPermissions: [] as PermissionModule[],
-    permissionCodes: [] as string[]
+    frontendPermissionCodes: [] as string[],
+    backendPermissionCodes: [] as string[]
 })
 
 const memberTableConfig = computed(() => ({
@@ -578,7 +595,8 @@ function loadRoles(selectRoleCode?: string) {
                 selectRole(nextRole)
             } else {
                 selectedRole.value = null
-                permissionCodes.value = []
+                frontendPermissionCodes.value = []
+                backendPermissionCodes.value = []
                 resetInstancePermissionStates()
             }
         })
@@ -589,17 +607,26 @@ function loadRoles(selectRoleCode?: string) {
 
 function loadCatalog() {
     GetPermissionCatalog().then((res: any) => {
+        catalog.menuPermissions = res.data.menuPermissions || []
         catalog.buttonPermissions = res.data.buttonPermissions || []
-        catalog.permissionCodes = res.data.permissionCodes || []
-        syncButtonAllChecked()
+        catalog.modules = buildPermissionModules(catalog.menuPermissions, catalog.buttonPermissions)
+        catalog.frontendPermissionCodes = res.data.frontendPermissionCodes || []
+        catalog.backendPermissionCodes = res.data.backendPermissionCodes || []
+        syncPermissionAllChecked()
     })
 }
 
 function selectRole(role: RoleItem) {
     selectedRole.value = role
     memberPage.value = 1
-    permissionCodes.value = [...(role.permissionCodes || [])]
-    syncButtonAllChecked()
+    const legacyPermissionCodes = role.permissionCodes || []
+    frontendPermissionCodes.value = [
+        ...(role.frontendPermissionCodes || legacyPermissionCodes.filter((code) => code === MENU_ALL || code.endsWith(':menu')))
+    ]
+    backendPermissionCodes.value = [
+        ...(role.backendPermissionCodes || legacyPermissionCodes.filter((code) => code === API_ALL || !code.endsWith(':menu')))
+    ]
+    syncPermissionAllChecked()
     resetInstancePermissionStates()
     if (activeTab.value === 'members') {
         loadMembers()
@@ -654,46 +681,80 @@ function removeRole(role: RoleItem) {
     })
 }
 
-function hasPermission(code?: string) {
-    return !!code && permissionCodes.value.includes(code)
-}
-
-function setPermission(code: string | undefined, checked: unknown) {
+function setCode(codes: string[], code: string | undefined, checked: unknown) {
     if (!code) {
-        return
+        return codes
     }
-    const nextCodes = new Set(permissionCodes.value)
+    const nextCodes = new Set(codes)
     if (checked) {
         nextCodes.add(code)
     } else {
         nextCodes.delete(code)
     }
-    permissionCodes.value = Array.from(nextCodes)
+    return Array.from(nextCodes)
 }
 
-function getPermissionCodes(modules: PermissionModule[]) {
-    return modules
-        .flatMap((module) => module.permissions.map((permission) => permission.permissionCode))
-        .filter((code): code is string => !!code)
+function buildPermissionModules(menuModules: PermissionModule[], backendModules: PermissionModule[]) {
+    const menuCodeMap = new Map<string, string>()
+    menuModules.forEach((module) => {
+        const menuPermissionCode = module.permissions[0]?.permissionCode
+        if (menuPermissionCode) {
+            menuCodeMap.set(module.code, menuPermissionCode)
+        }
+    })
+    return backendModules.map((module) => ({
+        ...module,
+        menuPermissionCode: menuCodeMap.get(module.code)
+    }))
 }
 
-function syncButtonAllChecked() {
-    const allButtonCodes = getPermissionCodes(catalog.buttonPermissions)
-    if (!selectedRole.value || !allButtonCodes.length) {
-        buttonAllChecked.value = true
+function setMenuPermission(module: PermissionModule, checked: unknown) {
+    frontendPermissionCodes.value = setCode(frontendPermissionCodes.value, module.menuPermissionCode, checked)
+    const backendCodes = new Set(backendPermissionCodes.value)
+    module.permissions.forEach((permission) => {
+        if (!permission.permissionCode) return
+        if (checked) {
+            backendCodes.add(permission.permissionCode)
+        } else {
+            backendCodes.delete(permission.permissionCode)
+        }
+    })
+    backendPermissionCodes.value = Array.from(backendCodes)
+}
+
+function setBackendPermission(module: PermissionModule, code: string | undefined, checked: unknown) {
+    backendPermissionCodes.value = setCode(backendPermissionCodes.value, code, checked)
+    const moduleBackendCodes = module.permissions
+        .map((permission) => permission.permissionCode)
+        .filter((permissionCode): permissionCode is string => !!permissionCode)
+    const hasCheckedBackendPermission = moduleBackendCodes.some((permissionCode) =>
+        backendPermissionCodes.value.includes(permissionCode)
+    )
+    frontendPermissionCodes.value = setCode(
+        frontendPermissionCodes.value,
+        module.menuPermissionCode,
+        checked || hasCheckedBackendPermission
+    )
+}
+
+function syncPermissionAllChecked() {
+    if (!selectedRole.value) {
+        permissionAllChecked.value = true
         return
     }
-    const currentCodes = new Set(permissionCodes.value)
-    buttonAllChecked.value = allButtonCodes.every((code) => currentCodes.has(code))
-    if (buttonAllChecked.value) {
-        permissionCodes.value = []
+    permissionAllChecked.value =
+        frontendPermissionCodes.value.includes(MENU_ALL) || backendPermissionCodes.value.includes(API_ALL)
+    if (permissionAllChecked.value) {
+        frontendPermissionCodes.value = []
+        backendPermissionCodes.value = []
     }
 }
 
-function setButtonAllChecked(checked: unknown) {
-    buttonAllChecked.value = !!checked
-    if (buttonAllChecked.value) {
-        permissionCodes.value = []
+function setPermissionAllChecked(checked: unknown) {
+    permissionAllChecked.value = !!checked
+    if (permissionAllChecked.value) {
+        frontendPermissionCodes.value = []
+        backendPermissionCodes.value = []
     }
 }
 
@@ -701,7 +762,8 @@ function savePermissions() {
     if (!selectedRole.value) {
         return
     }
-    const savePermissionCodes = buttonAllChecked.value ? getPermissionCodes(catalog.buttonPermissions) : permissionCodes.value
+    const saveFrontendPermissionCodes = permissionAllChecked.value ? [MENU_ALL] : frontendPermissionCodes.value
+    const saveBackendPermissionCodes = permissionAllChecked.value ? [API_ALL] : backendPermissionCodes.value
     permissionSaving.value = true
     SaveRole({
         id: selectedRole.value.id,
@@ -709,11 +771,13 @@ function savePermissions() {
         code: selectedRole.value.code,
         remark: selectedRole.value.remark,
         status: selectedRole.value.status || 'ENABLE',
-        permissionCodes: savePermissionCodes
+        frontendPermissionCodes: saveFrontendPermissionCodes,
+        backendPermissionCodes: saveBackendPermissionCodes
     })
         .then((res: any) => {
             ElMessage.success(res.msg)
-            selectedRole.value!.permissionCodes = [...savePermissionCodes]
+            selectedRole.value!.frontendPermissionCodes = [...saveFrontendPermissionCodes]
+            selectedRole.value!.backendPermissionCodes = [...saveBackendPermissionCodes]
             loadRoles(selectedRole.value!.code)
         })
         .finally(() => {

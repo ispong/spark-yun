@@ -19,7 +19,7 @@ public class JpaTenantFilterAspect {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Around("execution(* com.isxcode.spark..repository..*(..))")
+    @Around("execution(* com.isxcode.spark..repository..*(..)) || this(org.springframework.data.repository.Repository)")
     public Object enableTenantFilter(ProceedingJoinPoint joinPoint) throws Throwable {
 
         Session session = entityManager.unwrap(Session.class);

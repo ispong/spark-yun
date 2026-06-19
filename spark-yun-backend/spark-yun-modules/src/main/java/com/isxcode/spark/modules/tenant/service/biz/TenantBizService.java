@@ -455,7 +455,9 @@ public class TenantBizService {
             .role(role).systemAdmin(false).platformSuperAdmin(false).platformAdmin(access.platformAdmin())
             .tenantSuperAdmin(access.tenantAdmin()).tenantAdmin(access.normalAdmin())
             .tenantMember(access.hasTenantAccess()).normalAdmin(access.normalAdmin())
-            .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
+            .workspaceAllPermissions(access.hasAllWorkspacePermissions())
+            .permissions(List.copyOf(access.frontendPermissionCodes()))
+            .frontendPermissionCodes(List.copyOf(access.frontendPermissionCodes()))
             .defaultArea("workspace").build();
     }
 

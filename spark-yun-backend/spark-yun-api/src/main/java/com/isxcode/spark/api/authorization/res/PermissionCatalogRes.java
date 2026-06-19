@@ -14,6 +14,10 @@ public class PermissionCatalogRes {
 
     private List<String> permissionCodes;
 
+    private List<String> frontendPermissionCodes;
+
+    private List<String> backendPermissionCodes;
+
     private List<PermissionModuleRes> menuPermissions;
 
     private List<PermissionModuleRes> buttonPermissions;

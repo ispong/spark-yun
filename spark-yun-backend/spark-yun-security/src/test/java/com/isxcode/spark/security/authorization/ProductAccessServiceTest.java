@@ -77,11 +77,14 @@ class ProductAccessServiceTest {
             .thenReturn(List.of(orgRole("child-role"), orgRole("parent-role")));
 
         List<RoleEntity> roles = List.of(role("direct"), role("child-role"), role("parent-role"));
-        when(roleRepository.findAllById(Set.of("direct", "child-role", "parent-role"))).thenReturn(roles);
-        when(rolePermissionRepository.findAllByTenantIdAndRoleIdIn("tenant",
-            Set.of("direct", "child-role", "parent-role")))
-            .thenReturn(List.of(permission("workspace:datasource:view"), permission("workspace:workflow:menu"),
-                permission("workspace:custom-api:execute")));
+        when(roleRepository.findAllByTenantIdAndIdIn("tenant", Set.of("direct", "child-role", "parent-role")))
+            .thenReturn(roles);
+        when(rolePermissionRepository.findAllByTenantIdAndRoleId("tenant", "direct"))
+            .thenReturn(List.of(permission("workspace:datasource:view")));
+        when(rolePermissionRepository.findAllByTenantIdAndRoleId("tenant", "child-role"))
+            .thenReturn(List.of(permission("workspace:workflow:menu")));
+        when(rolePermissionRepository.findAllByTenantIdAndRoleId("tenant", "parent-role"))
+            .thenReturn(List.of(permission("workspace:custom-api:execute")));
 
         AccessSnapshot result = productAccessService.resolve("user", "tenant");
 
@@ -105,7 +108,7 @@ class ProductAccessServiceTest {
     }
 
     @Test
-    void memberWithoutRoleBindingsHasAllWorkspacePermissions() {
+    void memberWithoutRoleBindingsHasNoWorkspacePermissions() {
 
         when(userRepository.findById("user")).thenReturn(Optional.of(enabledUser()));
         when(tenantRepository.findById("tenant")).thenReturn(Optional.of(enabledTenant()));
@@ -116,7 +119,8 @@ class ProductAccessServiceTest {
 
         AccessSnapshot result = productAccessService.resolve("user", "tenant");
 
-        assertThat(result.hasAllWorkspacePermissions()).isTrue();
+        assertThat(result.hasAllWorkspacePermissions()).isFalse();
+        assertThat(result.hasAllApiPermissions()).isFalse();
         assertThat(result.permissions()).isEmpty();
     }
 

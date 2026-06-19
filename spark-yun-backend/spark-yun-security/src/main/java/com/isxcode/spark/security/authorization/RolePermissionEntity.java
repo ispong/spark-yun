@@ -39,6 +39,8 @@ public class RolePermissionEntity {
 
     private String permissionCode;
 
+    private String permissionType;
+
     @CreatedDate
     private LocalDateTime createDateTime;
 

@@ -52,5 +52,7 @@ public class GetUserRes {
 
     private List<String> permissions;
 
+    private List<String> frontendPermissionCodes;
+
     private String defaultArea;
 }

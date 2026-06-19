@@ -10,6 +10,14 @@ import java.util.Set;
 
 public final class WorkspacePermissionCatalog {
 
+    public static final String MENU_ALL = "MENU_ALL";
+
+    public static final String API_ALL = "API_ALL";
+
+    public static final String FRONTEND_PERMISSION_TYPE = "MENU";
+
+    public static final String BACKEND_PERMISSION_TYPE = "API";
+
     private static final List<String> ACTIONS = List.of("menu", "view", "create", "edit", "delete", "execute");
 
     private static final List<String> BUTTON_ACTIONS = List.of("view", "create", "edit", "delete", "execute");
@@ -60,6 +68,11 @@ public final class WorkspacePermissionCatalog {
     public static String code(String module, String action) {
 
         return "workspace:" + module + ":" + action;
+    }
+
+    public static String menuCode(String module) {
+
+        return code(module, "menu");
     }
 
     public static String dataCode(String module, String action) {
@@ -161,12 +174,32 @@ public final class WorkspacePermissionCatalog {
 
     public static boolean hasApiPermissions(Set<String> permissions) {
 
-        return permissions.stream().anyMatch(permission -> permission.contains(":api:"));
+        return permissions.stream()
+            .anyMatch(permission -> API_ALL.equals(permission) || permission.contains(":api:") || isActionCode(permission));
     }
 
     public static boolean hasDataPermissions(Set<String> permissions) {
 
         return permissions.stream().anyMatch(permission -> permission.contains(":data:"));
+    }
+
+    public static boolean isMenuPermissionCode(String permission) {
+
+        return MENU_ALL.equals(permission) || (permission != null && permission.endsWith(":menu"));
+    }
+
+    public static boolean isBackendPermissionCode(String permission) {
+
+        return API_ALL.equals(permission) || !isMenuPermissionCode(permission);
+    }
+
+    private static boolean isActionCode(String permission) {
+
+        if (permission == null) {
+            return false;
+        }
+        return ACTIONS.stream().filter(action -> !"menu".equals(action))
+            .anyMatch(action -> permission.endsWith(":" + action));
     }
 
     private static String endpointName(String path) {

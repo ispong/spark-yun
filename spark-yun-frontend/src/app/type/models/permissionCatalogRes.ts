@@ -10,4 +10,6 @@ export interface PermissionCatalogRes {
   modules?: string[];
   actions?: string[];
   permissionCodes?: string[];
+  frontendPermissionCodes?: string[];
+  backendPermissionCodes?: string[];
 }

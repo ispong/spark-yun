@@ -12,5 +12,8 @@ public interface RolePermissionRepository extends JpaRepository<RolePermissionEn
 
     List<RolePermissionEntity> findAllByTenantIdAndRoleId(String tenantId, String roleId);
 
+    List<RolePermissionEntity> findAllByTenantIdAndRoleIdAndPermissionType(String tenantId, String roleId,
+        String permissionType);
+
     void deleteAllByTenantIdAndRoleId(String tenantId, String roleId);
 }

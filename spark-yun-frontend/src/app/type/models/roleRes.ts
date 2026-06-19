@@ -10,6 +10,9 @@ export interface RoleRes {
   id?: string;
   name?: string;
   code?: string;
+  remark?: string;
   status?: string;
   permissionCodes?: string[];
+  frontendPermissionCodes?: string[];
+  backendPermissionCodes?: string[];
 }

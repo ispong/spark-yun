@@ -4,6 +4,7 @@ import com.isxcode.spark.api.tenant.constants.TenantStatus;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.constants.UserStatus;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
+import com.isxcode.spark.common.jpa.JpaTenantContext;
 import com.isxcode.spark.security.user.TenantEntity;
 import com.isxcode.spark.security.user.TenantRepository;
 import com.isxcode.spark.security.user.TenantUserEntity;
@@ -53,10 +54,12 @@ public class ProductAccessService {
         boolean platformAdmin =
             RoleType.PLATFORM_ADMIN.equals(user.getRoleCode()) || Boolean.TRUE.equals(user.getPlatformAdmin());
         if (platformSuperAdmin) {
-            return new AccessSnapshot(userId, null, true, true, false, false, false, Set.of());
+            return new AccessSnapshot(userId, null, true, true, false, false, false, false, Set.of(), Set.of(),
+                Set.of());
         }
         if (Strings.isEmpty(tenantId) || "undefined".equals(tenantId)) {
-            return new AccessSnapshot(userId, null, false, platformAdmin, false, false, false, Set.of());
+            return new AccessSnapshot(userId, null, false, platformAdmin, false, false, false, false, Set.of(),
+                Set.of(), Set.of());
         }
 
         TenantEntity tenant = tenantRepository.findById(tenantId).orElseThrow(() -> new IsxAppException("当前租户不可用"));
@@ -72,13 +75,22 @@ public class ProductAccessService {
         boolean normalAdmin =
             Boolean.TRUE.equals(member.getNormalAdmin()) || RoleType.TENANT_ADMIN.equals(member.getRoleCode());
         WorkspacePermissionResult workspacePermission =
-            tenantAdmin || normalAdmin ? new WorkspacePermissionResult(true, Set.of())
+            tenantAdmin || normalAdmin ? new WorkspacePermissionResult(true, true, Set.of(), Set.of())
                 : resolveWorkspacePermissions(tenantId, userId);
+        Set<String> permissions = new HashSet<>();
+        permissions.addAll(workspacePermission.frontendPermissions());
+        permissions.addAll(workspacePermission.backendPermissions());
         return new AccessSnapshot(userId, tenantId, false, platformAdmin, tenantAdmin, normalAdmin,
-            workspacePermission.allPermissions(), workspacePermission.permissions());
+            workspacePermission.menuAllPermissions(), workspacePermission.apiAllPermissions(),
+            Set.copyOf(permissions), workspacePermission.frontendPermissions(), workspacePermission.backendPermissions());
     }
 
     public WorkspacePermissionResult resolveWorkspacePermissions(String tenantId, String userId) {
+
+        return JpaTenantContext.allData(() -> doResolveWorkspacePermissions(tenantId, userId));
+    }
+
+    private WorkspacePermissionResult doResolveWorkspacePermissions(String tenantId, String userId) {
 
         Set<String> roleIds = memberRoleRepository.findAllByTenantIdAndUserId(tenantId, userId).stream()
             .map(MemberRoleEntity::getRoleId).collect(Collectors.toCollection(HashSet::new));
@@ -96,30 +108,42 @@ public class ProductAccessService {
         }
 
         if (roleIds.isEmpty()) {
-            return new WorkspacePermissionResult(true, Set.of());
+            return new WorkspacePermissionResult(false, false, Set.of(), Set.of());
         }
-        Set<String> enabledRoleIds =
-            roleRepository.findAllById(roleIds).stream().filter(role -> TenantStatus.ENABLE.equals(role.getStatus()))
-                .map(RoleEntity::getId).collect(Collectors.toSet());
+        Set<String> enabledRoleIds = roleRepository.findAllByTenantIdAndIdIn(tenantId, roleIds).stream()
+            .filter(role -> TenantStatus.ENABLE.equals(role.getStatus())).map(RoleEntity::getId)
+            .collect(Collectors.toSet());
         if (enabledRoleIds.isEmpty()) {
-            return new WorkspacePermissionResult(false, Set.of());
+            return new WorkspacePermissionResult(false, false, Set.of(), Set.of());
         }
-        Set<String> permissions = rolePermissionRepository.findAllByTenantIdAndRoleIdIn(tenantId, enabledRoleIds)
-            .stream().map(RolePermissionEntity::getPermissionCode).collect(Collectors.toUnmodifiableSet());
-        return new WorkspacePermissionResult(false, permissions);
+        Set<String> frontendPermissions = enabledRoleIds.stream()
+            .flatMap(roleId -> rolePermissionRepository.findAllByTenantIdAndRoleId(tenantId, roleId).stream())
+            .filter(permission -> WorkspacePermissionCatalog.FRONTEND_PERMISSION_TYPE.equals(permission.getPermissionType())
+                || (permission.getPermissionType() == null
+                    && WorkspacePermissionCatalog.isMenuPermissionCode(permission.getPermissionCode())))
+            .map(RolePermissionEntity::getPermissionCode).collect(Collectors.toUnmodifiableSet());
+        Set<String> backendPermissions = enabledRoleIds.stream()
+            .flatMap(roleId -> rolePermissionRepository.findAllByTenantIdAndRoleId(tenantId, roleId).stream())
+            .filter(permission -> WorkspacePermissionCatalog.BACKEND_PERMISSION_TYPE.equals(permission.getPermissionType())
+                || (permission.getPermissionType() == null
+                    && WorkspacePermissionCatalog.isBackendPermissionCode(permission.getPermissionCode())))
+            .map(RolePermissionEntity::getPermissionCode).collect(Collectors.toUnmodifiableSet());
+        return new WorkspacePermissionResult(frontendPermissions.contains(WorkspacePermissionCatalog.MENU_ALL),
+            backendPermissions.contains(WorkspacePermissionCatalog.API_ALL), frontendPermissions, backendPermissions);
     }
 
     public boolean hasWorkspacePermission(AccessSnapshot access, String module, String action) {
 
         return access.hasAllWorkspacePermissions()
-            || access.permissions().contains(WorkspacePermissionCatalog.code(module, action));
+            || access.frontendPermissionCodes().contains(WorkspacePermissionCatalog.menuCode(module));
     }
 
     public boolean hasWorkspaceApiPermission(AccessSnapshot access, String module, String method, String path) {
 
-        return access.hasAllWorkspacePermissions()
-            || !WorkspacePermissionCatalog.hasApiPermissions(access.permissions())
-            || access.permissions().contains(WorkspacePermissionCatalog.apiCode(module, method, path));
+        return access.hasAllApiPermissions()
+            || access.backendPermissionCodes().contains(WorkspacePermissionCatalog.code(module,
+                WorkspacePermissionCatalog.resolveAction(path)))
+            || access.backendPermissionCodes().contains(WorkspacePermissionCatalog.apiCode(module, method, path));
     }
 
     public boolean hasWorkspaceDataPermission(AccessSnapshot access, String module, String action) {
@@ -131,9 +155,9 @@ public class ProductAccessService {
             case "delete" -> "delete";
             default -> null;
         };
-        return dataAction == null || access.hasAllWorkspacePermissions()
-            || !WorkspacePermissionCatalog.hasDataPermissions(access.permissions())
-            || access.permissions().contains(WorkspacePermissionCatalog.dataCode(module, dataAction));
+        return dataAction == null || access.hasAllApiPermissions()
+            || !WorkspacePermissionCatalog.hasDataPermissions(access.backendPermissionCodes())
+            || access.backendPermissionCodes().contains(WorkspacePermissionCatalog.dataCode(module, dataAction));
     }
 
     private void collectParentOrgIds(String orgId, Map<String, OrgEntity> orgMap, Set<String> result) {
@@ -174,5 +198,6 @@ public class ProductAccessService {
         }
     }
 
-    public record WorkspacePermissionResult(boolean allPermissions, Set<String> permissions) {}
+    public record WorkspacePermissionResult(boolean menuAllPermissions, boolean apiAllPermissions,
+        Set<String> frontendPermissions, Set<String> backendPermissions) {}
 }

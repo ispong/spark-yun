@@ -12,6 +12,9 @@ export interface SaveRoleReq {
   name: string;
   /** @minLength 1 */
   code: string;
+  remark?: string;
   status?: string;
   permissionCodes?: string[];
+  frontendPermissionCodes?: string[];
+  backendPermissionCodes?: string[];
 }

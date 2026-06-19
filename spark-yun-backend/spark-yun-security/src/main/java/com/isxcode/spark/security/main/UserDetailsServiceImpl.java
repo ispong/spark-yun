@@ -54,7 +54,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (access.normalAdmin()) {
             authorities.add(RoleType.TENANT_ADMIN);
         }
-        authorities.addAll(access.permissions());
+        authorities.addAll(access.backendPermissionCodes());
 
         return User.withUsername(userId).password(userInfo.getPasswd())
             .authorities(AuthorityUtils.createAuthorityList(authorities.toArray(String[]::new))).build();

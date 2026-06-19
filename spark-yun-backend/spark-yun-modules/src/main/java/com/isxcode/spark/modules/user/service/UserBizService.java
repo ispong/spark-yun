@@ -530,7 +530,8 @@ public class UserBizService {
             .platformAdmin(access.platformAdmin()).platformMember(isPlatformMember(access, role))
             .tenantSuperAdmin(access.tenantAdmin()).tenantAdmin(access.normalAdmin())
             .tenantMember(access.hasTenantAccess()).workspaceAllPermissions(access.hasAllWorkspacePermissions())
-            .permissions(List.copyOf(access.permissions()))
+            .permissions(List.copyOf(access.frontendPermissionCodes()))
+            .frontendPermissionCodes(List.copyOf(access.frontendPermissionCodes()))
             .defaultArea(access.systemAdmin() || isPlatformMember(access, role) ? "platform" : "workspace").build();
     }
 
@@ -545,7 +546,9 @@ public class UserBizService {
             .platformSuperAdmin(access.systemAdmin()).platformAdmin(access.platformAdmin())
             .platformMember(isPlatformMember(access, role)).tenantSuperAdmin(access.tenantAdmin())
             .tenantAdmin(access.normalAdmin()).tenantMember(access.hasTenantAccess()).normalAdmin(access.normalAdmin())
-            .workspaceAllPermissions(access.hasAllWorkspacePermissions()).permissions(List.copyOf(access.permissions()))
+            .workspaceAllPermissions(access.hasAllWorkspacePermissions())
+            .permissions(List.copyOf(access.frontendPermissionCodes()))
+            .frontendPermissionCodes(List.copyOf(access.frontendPermissionCodes()))
             .defaultArea(access.systemAdmin() || isPlatformMember(access, role) ? "platform" : "workspace").build();
     }
 

@@ -22,5 +22,6 @@ export interface GetUserRes {
   normalAdmin?: boolean;
   workspaceAllPermissions?: boolean;
   permissions?: string[];
+  frontendPermissionCodes?: string[];
   defaultArea?: string;
 }

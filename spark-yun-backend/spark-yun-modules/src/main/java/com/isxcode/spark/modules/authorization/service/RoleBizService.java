@@ -102,18 +102,15 @@ public class RoleBizService {
         role.setStatus(Strings.isEmpty(request.getStatus()) ? TenantStatus.ENABLE : request.getStatus());
         RoleEntity savedRole = roleRepository.save(role);
 
-        if (creating || request.getPermissionCodes() != null) {
+        if (creating || request.getPermissionCodes() != null || request.getFrontendPermissionCodes() != null
+            || request.getBackendPermissionCodes() != null) {
             rolePermissionRepository.deleteAllByTenantIdAndRoleId(tenantId, savedRole.getId());
-            Set<String> validCodes = validPermissionCodes();
-            List<String> requestedCodes =
-                request.getPermissionCodes() == null ? List.copyOf(validCodes) : request.getPermissionCodes();
-            requestedCodes.stream().distinct().filter(validCodes::contains).forEach(code -> {
-                RolePermissionEntity permission = new RolePermissionEntity();
-                permission.setTenantId(tenantId);
-                permission.setRoleId(savedRole.getId());
-                permission.setPermissionCode(code);
-                rolePermissionRepository.save(permission);
-            });
+            List<String> frontendPermissionCodes = resolveFrontendPermissionCodes(request, creating);
+            List<String> backendPermissionCodes = resolveBackendPermissionCodes(request, creating);
+            saveRolePermissions(tenantId, savedRole.getId(), WorkspacePermissionCatalog.FRONTEND_PERMISSION_TYPE,
+                frontendPermissionCodes, validFrontendPermissionCodes());
+            saveRolePermissions(tenantId, savedRole.getId(), WorkspacePermissionCatalog.BACKEND_PERMISSION_TYPE,
+                backendPermissionCodes, validBackendPermissionCodes());
         }
 
         if (request.getInstancePermissions() != null) {
@@ -219,6 +216,8 @@ public class RoleBizService {
         List<PermissionModuleRes> interfacePermissions = interfacePermissions();
         return PermissionCatalogRes.builder().modules(WorkspacePermissionCatalog.modules())
             .actions(WorkspacePermissionCatalog.actions()).permissionCodes(List.copyOf(validPermissionCodes()))
+            .frontendPermissionCodes(List.copyOf(validFrontendPermissionCodes()))
+            .backendPermissionCodes(List.copyOf(validBackendPermissionCodes()))
             .menuPermissions(modulePermissions(List.of("menu"), false))
             .buttonPermissions(modulePermissions(WorkspacePermissionCatalog.buttonActions(), false))
             .interfacePermissions(interfacePermissions)
@@ -227,10 +226,24 @@ public class RoleBizService {
 
     private RoleRes toRoleRes(RoleEntity role, String tenantId) {
 
-        List<String> permissionCodes = rolePermissionRepository.findAllByTenantIdAndRoleId(tenantId, role.getId())
-            .stream().map(RolePermissionEntity::getPermissionCode).toList();
+        List<RolePermissionEntity> permissions =
+            rolePermissionRepository.findAllByTenantIdAndRoleId(tenantId, role.getId());
+        List<String> frontendPermissionCodes = permissions.stream()
+            .filter(permission -> WorkspacePermissionCatalog.FRONTEND_PERMISSION_TYPE.equals(permission.getPermissionType())
+                || (permission.getPermissionType() == null
+                    && WorkspacePermissionCatalog.isMenuPermissionCode(permission.getPermissionCode())))
+            .map(RolePermissionEntity::getPermissionCode).distinct().toList();
+        List<String> backendPermissionCodes = permissions.stream()
+            .filter(permission -> WorkspacePermissionCatalog.BACKEND_PERMISSION_TYPE.equals(permission.getPermissionType())
+                || (permission.getPermissionType() == null
+                    && WorkspacePermissionCatalog.isBackendPermissionCode(permission.getPermissionCode())))
+            .map(RolePermissionEntity::getPermissionCode).distinct().toList();
+        List<String> permissionCodes = new ArrayList<>();
+        permissionCodes.addAll(frontendPermissionCodes);
+        permissionCodes.addAll(backendPermissionCodes);
         return RoleRes.builder().id(role.getId()).name(role.getName()).code(role.getCode()).remark(role.getRemark())
-            .status(role.getStatus()).permissionCodes(permissionCodes)
+            .status(role.getStatus()).permissionCodes(permissionCodes).frontendPermissionCodes(frontendPermissionCodes)
+            .backendPermissionCodes(backendPermissionCodes)
             .instancePermissions(
                 roleInstancePermissionRepository.findAllByTenantIdAndRoleId(tenantId, role.getId()).stream()
                     .map(permission -> RoleInstancePermissionRes.builder().roleId(role.getId())
@@ -246,7 +259,67 @@ public class RoleBizService {
         Set<String> result = new LinkedHashSet<>(WorkspacePermissionCatalog.allCodes());
         interfacePermissions().forEach(
             module -> module.getPermissions().forEach(permission -> result.add(permission.getPermissionCode())));
+        result.add(WorkspacePermissionCatalog.MENU_ALL);
+        result.add(WorkspacePermissionCatalog.API_ALL);
         return result;
+    }
+
+    private Set<String> validFrontendPermissionCodes() {
+
+        Set<String> result = new LinkedHashSet<>();
+        result.add(WorkspacePermissionCatalog.MENU_ALL);
+        WorkspacePermissionCatalog.modules().forEach(module -> result.add(WorkspacePermissionCatalog.menuCode(module)));
+        return result;
+    }
+
+    private Set<String> validBackendPermissionCodes() {
+
+        Set<String> result = new LinkedHashSet<>();
+        result.add(WorkspacePermissionCatalog.API_ALL);
+        WorkspacePermissionCatalog.modules().forEach(module -> WorkspacePermissionCatalog.buttonActions()
+            .forEach(action -> result.add(WorkspacePermissionCatalog.code(module, action))));
+        WorkspacePermissionCatalog.modules().forEach(module -> WorkspacePermissionCatalog.dataActions()
+            .forEach(action -> result.add(WorkspacePermissionCatalog.dataCode(module, action))));
+        interfacePermissions().forEach(
+            module -> module.getPermissions().forEach(permission -> result.add(permission.getPermissionCode())));
+        return result;
+    }
+
+    private List<String> resolveFrontendPermissionCodes(SaveRoleReq request, boolean creating) {
+
+        if (request.getFrontendPermissionCodes() != null) {
+            return request.getFrontendPermissionCodes();
+        }
+        if (request.getPermissionCodes() != null) {
+            return request.getPermissionCodes().stream().filter(WorkspacePermissionCatalog::isMenuPermissionCode)
+                .toList();
+        }
+        return creating ? List.of(WorkspacePermissionCatalog.MENU_ALL) : List.of();
+    }
+
+    private List<String> resolveBackendPermissionCodes(SaveRoleReq request, boolean creating) {
+
+        if (request.getBackendPermissionCodes() != null) {
+            return request.getBackendPermissionCodes();
+        }
+        if (request.getPermissionCodes() != null) {
+            return request.getPermissionCodes().stream().filter(WorkspacePermissionCatalog::isBackendPermissionCode)
+                .toList();
+        }
+        return creating ? List.of(WorkspacePermissionCatalog.API_ALL) : List.of();
+    }
+
+    private void saveRolePermissions(String tenantId, String roleId, String permissionType, List<String> requestedCodes,
+        Set<String> validCodes) {
+
+        requestedCodes.stream().distinct().filter(validCodes::contains).forEach(code -> {
+            RolePermissionEntity permission = new RolePermissionEntity();
+            permission.setTenantId(tenantId);
+            permission.setRoleId(roleId);
+            permission.setPermissionType(permissionType);
+            permission.setPermissionCode(code);
+            rolePermissionRepository.save(permission);
+        });
     }
 
     private List<PermissionModuleRes> modulePermissions(List<String> actions, boolean dataPermission) {
