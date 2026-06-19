@@ -91,6 +91,9 @@
                     <template #logType="scopeSlot">
                         <el-tag>{{ scopeSlot.row.logType === 'PLATFORM' ? '平台' : '租户' }}</el-tag>
                     </template>
+                    <template #tenantName="scopeSlot">
+                        {{ scopeSlot.row.logType === 'PLATFORM' ? '平台系统' : scopeSlot.row.tenantName || '-' }}
+                    </template>
                     <template #status="scopeSlot">
                         <ZStatusTag :status="scopeSlot.row.status === 'SUCCESS' ? 'SUCCESS' : 'FAIL'" />
                     </template>

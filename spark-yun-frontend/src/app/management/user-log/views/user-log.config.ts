@@ -40,6 +40,7 @@ export const TableConfig = {
             prop: 'tenantName',
             title: '租户',
             minWidth: 140,
+            customSlot: 'tenantName',
             showOverflowTooltip: true
         },
         {
