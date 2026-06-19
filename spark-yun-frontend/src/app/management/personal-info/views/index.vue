@@ -12,7 +12,21 @@
                         :rules="personalRule"
                     >
                         <el-form-item label="账号">
-                            <el-input v-model="personalModel.account" placeholder="--" disabled />
+                            <div class="personal-info__account-row">
+                                <el-input v-model="personalModel.account" placeholder="--" readonly>
+                                    <template #suffix>
+                                        <el-tooltip content="复制账号" placement="top">
+                                            <el-button
+                                                class="personal-info__copy-button"
+                                                :icon="CopyDocument"
+                                                :disabled="!personalModel.account"
+                                                link
+                                                @click="copyAccount"
+                                            />
+                                        </el-tooltip>
+                                    </template>
+                                </el-input>
+                            </div>
                         </el-form-item>
                         <el-form-item label="用户名" prop="username">
                             <el-input
@@ -297,7 +311,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { EmailModel, PasswordModel, PersonalModel, PhoneModel } from './personal-info'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
@@ -312,6 +326,7 @@ import {
     UpdateUserInfo
 } from '../api'
 import { ElForm, ElMessage, FormRules } from 'element-plus'
+import { CopyDocument } from '@element-plus/icons-vue'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -363,6 +378,19 @@ const personalModel = reactive<PersonalModel>({
     remark: userInfo.remark || ''
 })
 
+async function copyAccount() {
+    if (!personalModel.account) {
+        return
+    }
+
+    try {
+        await navigator.clipboard.writeText(personalModel.account)
+        ElMessage.success('复制成功')
+    } catch {
+        ElMessage.error('复制失败')
+    }
+}
+
 const passwordModel = reactive<PasswordModel>({
     oldPassword: '',
     verifyType: 'OLD_PASSWORD',
@@ -372,6 +400,19 @@ const passwordModel = reactive<PasswordModel>({
     newPassword: '',
     confirmPassword: ''
 })
+
+function resetPasswordForm() {
+    Object.assign(passwordModel, {
+        oldPassword: '',
+        verifyType: 'OLD_PASSWORD',
+        code: '',
+        phoneCode: '',
+        emailCode: '',
+        newPassword: '',
+        confirmPassword: ''
+    })
+    passwordFormRef.value?.clearValidate()
+}
 
 const phoneModel = reactive<PhoneModel>({
     phone: '',
@@ -640,13 +681,15 @@ const handleChangePassword = function (verifyType: 'OLD_PASSWORD' | 'PHONE' | 'E
                 confirmPassword: passwordModel.confirmPassword
             }
             updatePasswordLoading.value = verifyType
-            UpdateMyPassword(updateParams).then((res: any) => {
+            UpdateMyPassword(updateParams).then(async (res: any) => {
                 ElMessage.success(res.msg)
+                resetPasswordForm()
                 authStore.setUserInfo({
                     ...authStore.userInfo,
                     hasPassword: true
                 })
-                passwordFormRef.value?.resetFields()
+                await nextTick()
+                resetPasswordForm()
                 clearSendPasswordCountdown('PHONE')
                 clearSendPasswordCountdown('EMAIL')
             }).finally(() => {

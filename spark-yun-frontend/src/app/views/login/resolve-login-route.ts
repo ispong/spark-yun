@@ -1,10 +1,6 @@
 import type { LoginRes } from '@/app/type/models'
 
 export function resolveLoginRoutePath(data: LoginRes): string {
-    if (data.hasPassword === false) {
-        return '/personal-info?tab=change-password'
-    }
-
     const hasPlatformOrTenantAccess =
         !!data.platformSuperAdmin ||
         !!data.platformAdmin ||
@@ -18,6 +14,14 @@ export function resolveLoginRoutePath(data: LoginRes): string {
 
     if (data.platformSuperAdmin || (data.platformAdmin && !data.tenantId)) {
         return '/platform'
+    }
+
+    if (data.tenantId && (data.tenantSuperAdmin || data.tenantAdmin || data.tenantMember)) {
+        return data.defaultArea && data.defaultArea !== 'platform' ? `/${data.defaultArea}` : '/workspace/ai'
+    }
+
+    if (data.hasPassword === false) {
+        return '/personal-info?tab=change-password'
     }
 
     if (data.defaultArea === 'workspace') {

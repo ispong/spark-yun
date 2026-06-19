@@ -28,9 +28,8 @@
                 <el-input
                     v-model="formData.email"
                     maxlength="100"
-                    :placeholder="renderSence === 'edit' ? '' : '请输入邮箱'"
+                    placeholder="请输入邮箱"
                     show-word-limit
-                    :disabled="renderSence === 'edit'"
                 />
             </el-form-item>
             <el-form-item label="备注">
@@ -117,10 +116,6 @@ const validatePhone = (rule: any, value: any, callback: any) => {
 
 // 邮箱验证函数
 const validateEmail = (rule: any, value: any, callback: any) => {
-    if (renderSence.value === 'edit') {
-        callback()
-        return
-    }
     if (!value) {
         callback()
         return

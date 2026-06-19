@@ -443,7 +443,7 @@ public class LoginMethodBizService {
         if (LoginMethodType.PHONE.equals(channel) && Boolean.TRUE.equals(config.getPhoneRegisterEnabled())) {
             return;
         }
-        throw new IsxAppException("当前登录方式未开启注册");
+        throw new IsxAppException("账号不存在");
     }
 
     private void validateResendInterval(String channel, String receiver, String scene) {

@@ -142,7 +142,7 @@ class ProductAccessServiceTest {
     }
 
     @Test
-    void memberWithoutRoleBindingsHasNoWorkspacePermissions() {
+    void memberWithoutRoleBindingsHasAllWorkspacePermissions() {
 
         when(userRepository.findById("user")).thenReturn(Optional.of(enabledUser()));
         when(tenantRepository.findById("tenant")).thenReturn(Optional.of(enabledTenant()));
@@ -153,8 +153,8 @@ class ProductAccessServiceTest {
 
         AccessSnapshot result = productAccessService.resolve("user", "tenant");
 
-        assertThat(result.hasAllWorkspacePermissions()).isFalse();
-        assertThat(result.hasAllApiPermissions()).isFalse();
+        assertThat(result.hasAllWorkspacePermissions()).isTrue();
+        assertThat(result.hasAllApiPermissions()).isTrue();
         assertThat(result.permissions()).isEmpty();
     }
 

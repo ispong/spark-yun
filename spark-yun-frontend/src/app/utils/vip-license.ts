@@ -4,6 +4,7 @@ import { CheckLicenseStatus } from '@/app/management/license/api'
 const VIP_MENU_CODE_SET = new Set([
     // 免密登录
     'oauth-management',
+    'platform-oauth-management',
     // 数据规划
     'data-planning',
     'data-layer',

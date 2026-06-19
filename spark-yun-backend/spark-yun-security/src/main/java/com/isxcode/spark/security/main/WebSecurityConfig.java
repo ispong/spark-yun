@@ -86,7 +86,7 @@ public class WebSecurityConfig {
     @Bean
     public ProductAccessAuthorizationFilter productAccessAuthorizationFilter(AccessDeniedHandler accessDeniedHandler) {
 
-        return new ProductAccessAuthorizationFilter(productAccessService, accessDeniedHandler);
+        return new ProductAccessAuthorizationFilter(productAccessService, accessDeniedHandler, openUrlPatterns());
     }
 
     @Bean

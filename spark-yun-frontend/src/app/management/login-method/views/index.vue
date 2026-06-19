@@ -138,16 +138,22 @@
             title="短信配置"
             width="520px"
         >
-            <el-form class="zqy-login-method__dialog-form zqy-login-method__dialog-form--single" label-position="top">
-                <el-form-item label="类型">
+            <el-form
+                ref="phoneConfigFormRef"
+                class="zqy-login-method__dialog-form zqy-login-method__dialog-form--single"
+                label-position="top"
+                :model="form.config.phoneConfig"
+                :rules="phoneConfigRules"
+            >
+                <el-form-item label="类型" prop="provider">
                     <el-select v-model="form.config.phoneConfig.provider">
                         <el-option label="阿里云短信" value="ALIYUN" />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="RegionId">
+                <el-form-item label="RegionId" prop="regionId">
                     <el-input v-model="form.config.phoneConfig.regionId" />
                 </el-form-item>
-                <el-form-item label="AccessKeyId">
+                <el-form-item label="AccessKeyId" prop="accessKeyId">
                     <el-input v-model="form.config.phoneConfig.accessKeyId" />
                 </el-form-item>
                 <el-form-item label="AccessKeySecret">
@@ -158,13 +164,13 @@
                         placeholder="留空表示不修改"
                     />
                 </el-form-item>
-                <el-form-item label="短信签名">
+                <el-form-item label="短信签名" prop="signName">
                     <el-input v-model="form.config.phoneConfig.signName" />
                 </el-form-item>
-                <el-form-item label="模板Code">
+                <el-form-item label="模板Code" prop="templateCode">
                     <el-input v-model="form.config.phoneConfig.templateCode" />
                 </el-form-item>
-                <el-form-item label="验证码变量名">
+                <el-form-item label="验证码变量名" prop="templateParamName">
                     <el-input v-model="form.config.phoneConfig.templateParamName" />
                 </el-form-item>
                 <el-form-item label="测试手机号">
@@ -206,19 +212,25 @@
             title="邮箱配置"
             width="520px"
         >
-            <el-form class="zqy-login-method__dialog-form zqy-login-method__dialog-form--single" label-position="top">
-                <el-form-item label="类型">
+            <el-form
+                ref="emailConfigFormRef"
+                class="zqy-login-method__dialog-form zqy-login-method__dialog-form--single"
+                label-position="top"
+                :model="form.config.emailConfig"
+                :rules="emailConfigRules"
+            >
+                <el-form-item label="类型" prop="provider">
                     <el-select v-model="form.config.emailConfig.provider" @change="applyEmailProvider">
                         <el-option label="邮箱" value="QQ" />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="SMTP服务器">
+                <el-form-item label="SMTP服务器" prop="host">
                     <el-input v-model="form.config.emailConfig.host" />
                 </el-form-item>
-                <el-form-item label="SMTP端口">
+                <el-form-item label="SMTP端口" prop="port">
                     <el-input-number v-model="form.config.emailConfig.port" :min="1" :max="65535" :controls="false" />
                 </el-form-item>
-                <el-form-item label="用户名">
+                <el-form-item label="用户名" prop="username">
                     <el-input v-model="form.config.emailConfig.username" />
                 </el-form-item>
                 <el-form-item label="授权码">
@@ -275,6 +287,7 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 import { Iphone, Message, Setting, User } from '@element-plus/icons-vue'
 
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
@@ -295,6 +308,8 @@ const saving = ref(false)
 const networkError = ref(false)
 const phoneConfigVisible = ref(false)
 const emailConfigVisible = ref(false)
+const phoneConfigFormRef = ref<FormInstance>()
+const emailConfigFormRef = ref<FormInstance>()
 const phoneTestReceiver = ref('')
 const emailTestReceiver = ref('')
 const testingChannel = ref<LoginChannel | ''>('')
@@ -302,6 +317,22 @@ const phoneTestErrorMessage = ref('')
 const emailTestErrorMessage = ref('')
 const phonePattern = /^1[3-9]\d{9}$/
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const requiredRule = (message: string) => [{ required: true, message, trigger: ['blur', 'change'] }]
+const phoneConfigRules: FormRules = {
+    provider: requiredRule('请选择类型'),
+    regionId: requiredRule('请输入RegionId'),
+    accessKeyId: requiredRule('请输入AccessKeyId'),
+    signName: requiredRule('请输入短信签名'),
+    templateCode: requiredRule('请输入模板Code'),
+    templateParamName: requiredRule('请输入验证码变量名')
+}
+const emailConfigRules: FormRules = {
+    provider: requiredRule('请选择类型'),
+    host: requiredRule('请输入SMTP服务器'),
+    port: requiredRule('请输入SMTP端口'),
+    username: requiredRule('请输入用户名')
+}
 
 const form = reactive<LoginMethodConfig>(createDefaultForm())
 
@@ -394,8 +425,52 @@ function persistConfig() {
     saveConfig(true).catch(() => undefined)
 }
 
-function saveConfigWithMessage() {
-    saveConfig(false).catch(() => undefined)
+async function validateVisibleConfigForm(): Promise<boolean> {
+    const formRef = phoneConfigVisible.value
+        ? phoneConfigFormRef.value
+        : emailConfigVisible.value
+          ? emailConfigFormRef.value
+          : undefined
+
+    if (!formRef) {
+        return true
+    }
+
+    try {
+        await formRef.validate()
+        return true
+    } catch {
+        ElMessage.warning('请将表单输入完整')
+        return false
+    }
+}
+
+async function validateConfigForm(channel: LoginChannel): Promise<boolean> {
+    const formRef = channel === 'PHONE' ? phoneConfigFormRef.value : emailConfigFormRef.value
+    if (!formRef) {
+        return true
+    }
+
+    try {
+        await formRef.validate()
+        return true
+    } catch {
+        ElMessage.warning('请将表单输入完整')
+        return false
+    }
+}
+
+async function saveConfigWithMessage() {
+    if (!(await validateVisibleConfigForm())) {
+        return
+    }
+
+    saveConfig(false)
+        .then(() => {
+            phoneConfigVisible.value = false
+            emailConfigVisible.value = false
+        })
+        .catch(() => undefined)
 }
 
 function saveConfig(silent: boolean): Promise<void> {
@@ -467,6 +542,18 @@ function openEmailConfig() {
 }
 
 async function testConfig(channel: LoginChannel) {
+    if (!(await validateConfigForm(channel))) {
+        return
+    }
+    if (channel === 'PHONE' && !form.config.phoneConfig.accessKeySecret) {
+        ElMessage.warning('请输入AccessKeySecret')
+        return
+    }
+    if (channel === 'EMAIL' && !form.config.emailConfig.password) {
+        ElMessage.warning('请输入授权码')
+        return
+    }
+
     const receiver = (channel === 'PHONE' ? phoneTestReceiver.value : emailTestReceiver.value).trim()
     if (!receiver) {
         ElMessage.warning(channel === 'PHONE' ? '请输入测试手机号' : '请输入测试邮箱')

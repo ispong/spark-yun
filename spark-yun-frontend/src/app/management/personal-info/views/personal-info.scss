@@ -18,6 +18,35 @@
         width: 100%;
     }
 
+    &__account-row {
+        width: 100%;
+
+        .el-input {
+            width: 100%;
+        }
+
+        .el-input__wrapper {
+            background-color: getCssVar('fill-color', 'light');
+            box-shadow: 0 0 0 1px getCssVar('border-color', 'light') inset;
+        }
+
+        .el-input__inner {
+            color: getCssVar('text-color', 'placeholder');
+            cursor: default;
+        }
+
+        .el-input__suffix {
+            pointer-events: auto;
+        }
+    }
+
+    &__copy-button {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        color: getCssVar('text-color', 'regular');
+    }
+
     .el-form-item {
         margin-bottom: 20px;
 

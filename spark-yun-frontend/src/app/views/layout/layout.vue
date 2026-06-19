@@ -245,11 +245,11 @@ const menuViewData = computed(() => {
     if (isPersonalInfoRoute.value) {
         return menuListData.value
     }
-    if (currentArea.value !== 'workspace') {
-        return menuListData.value
+    if (currentArea.value === 'workspace') {
+        const areaMenus = filterWorkspaceMenus(menuListData.value)
+        return filterVipMenus(areaMenus, vipEnabled.value, licenseApiAvailable.value)
     }
-    const areaMenus = filterWorkspaceMenus(menuListData.value)
-    return filterVipMenus(areaMenus, vipEnabled.value, licenseApiAvailable.value)
+    return filterVipMenus(menuListData.value, vipEnabled.value, licenseApiAvailable.value)
 })
 
 const menuLogoSrc = computed(() => (isCollapse.value ? brandSetting.topLogoSmallUrl : brandSetting.topLogoUrl))
@@ -272,7 +272,7 @@ const isPlatformSuperAdmin = computed(() => !!authStore.userInfo?.platformSuperA
 const isPlatformAdmin = computed(() => !!authStore.userInfo?.platformAdmin)
 const isTenantManager = computed(() => !!authStore.userInfo?.tenantSuperAdmin || !!authStore.userInfo?.tenantAdmin)
 const hasTenant = computed(() => !!authStore.tenantId)
-const canAccessAdmin = computed(() => hasTenant.value && (isPlatformAdmin.value || isTenantManager.value))
+const canAccessAdmin = computed(() => hasTenant.value && isTenantManager.value)
 const hasWorkspaceAccess = computed(() => {
     return (
         hasTenant.value &&

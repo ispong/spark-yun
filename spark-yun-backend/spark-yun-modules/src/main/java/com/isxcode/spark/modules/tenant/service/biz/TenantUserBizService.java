@@ -383,10 +383,16 @@ public class TenantUserBizService {
     private String resolveTenantId(String tenantId) {
 
         if (hasPlatformAccess()) {
-            if (Strings.isEmpty(tenantId)) {
+            if (!Strings.isEmpty(tenantId)) {
+                return tenantId;
+            }
+            if (!hasTenantAdminAccess()) {
+                throw new IsxAppException("无后台管理权限");
+            }
+            if (Strings.isEmpty(ContextHolder.getTenantId())) {
                 throw new IsxAppException("请指定租户id");
             }
-            return tenantId;
+            return ContextHolder.getTenantId();
         }
 
         if (Strings.isEmpty(ContextHolder.getTenantId())) {
@@ -414,6 +420,14 @@ public class TenantUserBizService {
             && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(authority -> RoleType.PLATFORM_SUPER_ADMIN.equals(authority.getAuthority())
                     || RoleType.PLATFORM_ADMIN.equals(authority.getAuthority()));
+    }
+
+    private boolean hasTenantAdminAccess() {
+
+        return SecurityContextHolder.getContext().getAuthentication() != null
+            && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(authority -> RoleType.TENANT_SUPER_ADMIN.equals(authority.getAuthority())
+                    || RoleType.TENANT_ADMIN.equals(authority.getAuthority()));
     }
 
     private void checkTenantAdminTarget(TenantUserEntity member) {

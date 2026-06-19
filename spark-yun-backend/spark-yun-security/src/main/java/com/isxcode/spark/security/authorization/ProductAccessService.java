@@ -113,8 +113,7 @@ public class ProductAccessService {
         }
 
         if (roleIds.isEmpty()) {
-            return new WorkspacePermissionResult(false, false, Set.of(), Set.of(), allResourceScope(),
-                allResourceScope(), allResourceScope());
+            return WorkspacePermissionResult.allPermissions();
         }
         Set<String> enabledRoleIds = roleRepository.findAllByTenantIdAndIdIn(tenantId, roleIds).stream()
             .filter(role -> TenantStatus.ENABLE.equals(role.getStatus())).map(RoleEntity::getId)

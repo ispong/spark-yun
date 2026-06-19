@@ -6,6 +6,7 @@ import com.isxcode.spark.security.authorization.AccessSnapshot;
 import com.isxcode.spark.security.authorization.ProductAccessService;
 import com.isxcode.spark.security.authorization.WorkspacePermissionCatalog;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,6 +16,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
@@ -28,9 +30,15 @@ public class ProductAccessAuthorizationFilter extends OncePerRequestFilter {
 
     private static final Set<String> ADMIN_OLD_PREFIXES = Set.of("/tenant-user/");
 
+    private static final Set<String> ADMIN_OLD_PUBLIC_PATHS = Set.of("/tenant-user/applyInviteCode");
+
     private final ProductAccessService productAccessService;
 
     private final AccessDeniedHandler accessDeniedHandler;
+
+    private final List<String> excludeUrlPaths;
+
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response,
@@ -110,9 +118,10 @@ public class ProductAccessAuthorizationFilter extends OncePerRequestFilter {
             || path.startsWith("/vip/license/") || path.startsWith("/vip/auth/");
     }
 
-    private boolean isAdminPath(String path) {
+    boolean isAdminPath(String path) {
 
-        return path.startsWith("/api/admin/") || ADMIN_OLD_PREFIXES.stream().anyMatch(path::startsWith);
+        return !ADMIN_OLD_PUBLIC_PATHS.contains(path)
+            && (path.startsWith("/api/admin/") || ADMIN_OLD_PREFIXES.stream().anyMatch(path::startsWith));
     }
 
     @Override
@@ -130,7 +139,8 @@ public class ProductAccessAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
 
-        return request.getServletPath().contains("/open/");
+        String path = request.getServletPath();
+        return path.contains("/open/") || excludeUrlPaths.stream().anyMatch(p -> antPathMatcher.match(p, path));
     }
 
     private static class FilterChainException extends RuntimeException {

@@ -70,7 +70,6 @@ export function setupRouterGuard(router: Router): void {
 
                 if (
                     !(
-                        authStore.userInfo?.platformAdmin ||
                         authStore.userInfo?.tenantSuperAdmin ||
                         authStore.userInfo?.tenantAdmin
                     )

@@ -225,7 +225,9 @@ const inviteForm = reactive({
 
 const { currentTenant, tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
 const isPlatformTenantMemberPage = computed(() => route.path.startsWith('/platform'))
-const activeTenantId = computed(() => (isPlatformTenantMemberPage.value ? selectedTenantId.value : currentTenant.value.id))
+const activeTenantId = computed(() =>
+    isPlatformTenantMemberPage.value ? selectedTenantId.value : currentTenant.value.id || authStore.tenantId
+)
 
 function normalizeRoleCode(roleCode?: string) {
     return roleCode?.replace(/^ROLE_/, '')
@@ -241,6 +243,10 @@ function isTenantAdmin(data: any) {
 
 function isApplying(data: any) {
     return data.status === 'APPLYING'
+}
+
+function targetTenantParams() {
+    return isPlatformTenantMemberPage.value ? { tenantId: activeTenantId.value } : {}
 }
 
 function initData(tableLoading?: boolean) {
@@ -259,7 +265,7 @@ function initData(tableLoading?: boolean) {
         page: tableConfig.pagination.currentPage - 1,
         pageSize: tableConfig.pagination.pageSize,
         searchKeyWord: keyword.value,
-        tenantId: activeTenantId.value
+        ...targetTenantParams()
     })
         .then((res: any) => {
             tableConfig.tableData = res.data.content
@@ -350,7 +356,7 @@ function addData() {
         return new Promise((resolve: any, reject: any) => {
             AddTenantUserData({
                 ...formData,
-                tenantId: activeTenantId.value
+                ...targetTenantParams()
             })
                 .then((res: any) => {
                     ElMessage.success(res.msg)
@@ -369,7 +375,7 @@ function editData(data: any) {
         return new Promise((resolve: any, reject: any) => {
             AddTenantUserData({
                 ...formData,
-                tenantId: activeTenantId.value
+                ...targetTenantParams()
             })
                 .then((res: any) => {
                     ElMessage.success(res.msg)
@@ -390,9 +396,7 @@ function openInviteDialog() {
     }
     inviteDialogVisible.value = true
     loadAvailableRoles()
-    GetTenantInviteCode({
-        tenantId: activeTenantId.value
-    }).then((res: any) => {
+    GetTenantInviteCode(targetTenantParams()).then((res: any) => {
         inviteForm.inviteCode = res.data.inviteCode || ''
         inviteForm.validDays = res.data.validDays ?? 7
         inviteForm.roleIds = [...(res.data.roleIds || [])]
@@ -402,7 +406,7 @@ function openInviteDialog() {
 function saveInviteCode(regenerate: boolean) {
     inviteSaving.value = true
     SaveTenantInviteCode({
-        tenantId: activeTenantId.value,
+        ...targetTenantParams(),
         validDays: inviteForm.validDays,
         roleIds: inviteForm.roleIds,
         regenerate
@@ -669,9 +673,7 @@ function loadAvailableRoles() {
         availableRoles.value = []
         return
     }
-    ListRole({
-        tenantId: activeTenantId.value
-    })
+    ListRole(targetTenantParams())
         .then((res: any) => {
             availableRoles.value = res.data || []
         })

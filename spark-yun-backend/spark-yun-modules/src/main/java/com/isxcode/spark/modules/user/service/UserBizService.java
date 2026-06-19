@@ -294,10 +294,9 @@ public class UserBizService {
         }
         UserEntity oldUserEntity = userEntityOptional.get();
         validateUniqueUserFields(usrUpdateUserReq.getUsername(), usrUpdateUserReq.getAccount(),
-            usrUpdateUserReq.getPhone(), oldUserEntity.getEmail(), usrUpdateUserReq.getId());
+            usrUpdateUserReq.getPhone(), usrUpdateUserReq.getEmail(), usrUpdateUserReq.getId());
 
         UserEntity userEntity = userMapper.updateUserReqToUserEntity(usrUpdateUserReq, oldUserEntity);
-        userEntity.setEmail(oldUserEntity.getEmail());
 
         // 特殊处理时间
         if (usrUpdateUserReq.getValidDateTime() != null && usrUpdateUserReq.getValidDateTime().size() == 2) {

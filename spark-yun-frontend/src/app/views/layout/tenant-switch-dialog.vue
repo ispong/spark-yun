@@ -140,6 +140,7 @@ function confirmTenantSwitch() {
                 const applyTenantContext = () => {
                     authStore.applyAuthResponse(res.data)
                     http.setHeader({
+                        authorization: authStore.token,
                         tenant: targetTenantId
                     })
                 }
@@ -153,7 +154,6 @@ function confirmTenantSwitch() {
                     })
                 } else if (
                     route.path.startsWith('/admin') &&
-                    !res.data.platformAdmin &&
                     !res.data.tenantSuperAdmin &&
                     !res.data.tenantAdmin
                 ) {

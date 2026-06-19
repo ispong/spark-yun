@@ -16,6 +16,17 @@ interface AuthResponse {
     [key: string]: any
 }
 
+const USER_PROFILE_FIELDS = ['id', 'username', 'account', 'phone', 'email', 'remark']
+
+function getPreservedUserProfile(userInfo: Record<string, any>, data: AuthResponse): Record<string, any> {
+    return USER_PROFILE_FIELDS.reduce((profile, field) => {
+        if (data[field] === undefined && userInfo[field] !== undefined) {
+            profile[field] = userInfo[field]
+        }
+        return profile
+    }, {} as Record<string, any>)
+}
+
 export const useAuthStore = defineStore('authStore', {
     state: (): AuthState => ({
         userInfo: {},
@@ -45,7 +56,10 @@ export const useAuthStore = defineStore('authStore', {
             this.isCollapse = isCollapse
         },
         applyAuthResponse(this: AuthState, data: AuthResponse): void {
-            this.userInfo = { ...data }
+            this.userInfo = {
+                ...getPreservedUserProfile(this.userInfo, data),
+                ...data
+            }
             this.token = data.token || ''
             this.tenantId = data.tenantId || ''
             this.role = data.role || ''
