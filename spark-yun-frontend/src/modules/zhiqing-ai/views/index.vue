@@ -940,6 +940,14 @@ function updateCurrentHistory() {
     scheduleSaveCurrentHistory()
 }
 
+function canPersistHistory(history: ChatHistory): boolean {
+    return !!history.configId && history.messages.length > 0 && history.messages.every((message) => !!message.content.trim())
+}
+
+function resolvePersistSessionId(id: string): string | undefined {
+    return id.startsWith('sy_') ? id : undefined
+}
+
 function resolveHistoryTitle(content: string): string {
     return content.length > 18 ? `${content.slice(0, 18)}...` : content
 }
@@ -977,11 +985,11 @@ async function persistCurrentHistory() {
         saveHistoryTimer = undefined
     }
     const history = chatHistories.value.find((item) => item.id === currentSessionId.value)
-    if (!history || !history.configId || !history.messages.length) {
+    if (!history || !canPersistHistory(history)) {
         return
     }
     const res = await SaveChatSession({
-        id: history.id,
+        id: resolvePersistSessionId(history.id),
         configId: history.configId,
         title: history.title,
         messages: history.messages
@@ -1003,6 +1011,14 @@ function scrollToBottom() {
             messagePanelRef.value.scrollTop = messagePanelRef.value.scrollHeight
         }
     })
+}
+
+function isMessagePanelNearBottom(threshold = 80): boolean {
+    const panel = messagePanelRef.value
+    if (!panel) {
+        return true
+    }
+    return panel.scrollHeight - panel.scrollTop - panel.clientHeight <= threshold
 }
 
 function stopGenerating() {
@@ -1050,12 +1066,15 @@ function typeNextCharacter() {
         return
     }
 
+    const shouldFollowOutput = isMessagePanelNearBottom()
     const firstCodePoint = pendingAssistantContent.codePointAt(0) || 0
     const nextCharacter = String.fromCodePoint(firstCodePoint)
     message.content += nextCharacter
     pendingAssistantContent = pendingAssistantContent.slice(nextCharacter.length)
     updateTypingMarkdownPreview(message.content)
-    scrollToBottom()
+    if (shouldFollowOutput) {
+        scrollToBottom()
+    }
 
     if (pendingAssistantContent) {
         startTyping()
@@ -1237,7 +1256,7 @@ async function sendMessage() {
         }
         updateCurrentHistory()
         await persistCurrentHistory()
-        if (assistantMessage.content) {
+        if (assistantMessage.content && isMessagePanelNearBottom(120)) {
             scrollToBottom()
         }
     }
@@ -1484,25 +1503,53 @@ onMounted(() => {
 
 .zhiqing-ai__history-list {
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     overflow: auto;
+    padding-right: 4px;
 }
 
 .zhiqing-ai-history-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px;
-    border-radius: 8px;
+    box-sizing: border-box;
+    min-height: 58px;
+    padding: 9px 10px;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 4px;
     cursor: pointer;
+    background-color: #ffffff;
+    transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
 
-    &:hover,
-    &.is-active {
+    &:hover {
+        border-color: var(--el-color-primary-light-7);
         background-color: var(--el-fill-color-light);
     }
 
     &.is-active {
+        border-color: var(--el-color-primary-light-5);
+        background-color: var(--el-color-primary-light-9);
+        box-shadow: inset 2px 0 0 var(--el-color-primary);
+
         .zhiqing-ai-history-item__main span {
             color: var(--el-color-primary);
+        }
+    }
+
+    :deep(.el-button) {
+        width: 24px;
+        min-width: 24px;
+        height: 24px;
+        padding: 0;
+        color: var(--el-text-color-placeholder);
+    }
+
+    &:hover,
+    &.is-active {
+        :deep(.el-button) {
+            color: var(--el-text-color-secondary);
         }
     }
 }
