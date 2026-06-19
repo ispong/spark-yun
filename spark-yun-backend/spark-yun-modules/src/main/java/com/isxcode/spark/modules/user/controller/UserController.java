@@ -63,6 +63,7 @@ public class UserController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "创建用户接口")
     @PostMapping("/addUser")
+    @UserLog(moduleCode = "USER", actionCode = "ADD")
     @SuccessResponse("创建成功")
     public void addUser(@Valid @RequestBody AddUserReq addUserReq) {
 
@@ -72,6 +73,7 @@ public class UserController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "更新用户接口")
     @PostMapping("/updateUser")
+    @UserLog(moduleCode = "USER", actionCode = "UPDATE")
     @SuccessResponse("更新成功")
     public void updateUser(@Valid @RequestBody UpdateUserReq updateUserReq) {
 
@@ -106,7 +108,7 @@ public class UserController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "禁用用户接口")
     @PostMapping("/disableUser")
-    @UserLog
+    @UserLog(moduleCode = "USER", actionCode = "DISABLE")
     @SuccessResponse("禁用成功")
     public void disableUser(@Valid @RequestBody DisableUserReq disableUserReq) {
 
@@ -116,6 +118,7 @@ public class UserController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "启用用户接口")
     @PostMapping("/enableUser")
+    @UserLog(moduleCode = "USER", actionCode = "ENABLE")
     @SuccessResponse("启用成功")
     public void enableUser(@Valid @RequestBody EnableUserReq enableUserReq) {
 
@@ -125,7 +128,7 @@ public class UserController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "删除用户接口")
     @PostMapping("/deleteUser")
-    @UserLog
+    @UserLog(moduleCode = "USER", actionCode = "DELETE")
     @SuccessResponse("删除成功")
     public void deleteUser(@Valid @RequestBody DeleteUserReq deleteUserReq) {
 
@@ -163,7 +166,7 @@ public class UserController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "设置平台管理员接口")
     @PostMapping("/setPlatformAdmin")
-    @UserLog
+    @UserLog(moduleCode = "USER", actionCode = "SET_PLATFORM_ADMIN")
     @SuccessResponse("设置成功")
     public void setPlatformAdmin(@Valid @RequestBody SetPlatformAdminReq setPlatformAdminReq) {
 

@@ -22,4 +22,8 @@ public class GetPlatformSettingRes {
     private String topLogoSmallUrl;
 
     private String loginMainImageUrl;
+
+    private Boolean userLogEnabled;
+
+    private Integer userLogRetentionDays;
 }

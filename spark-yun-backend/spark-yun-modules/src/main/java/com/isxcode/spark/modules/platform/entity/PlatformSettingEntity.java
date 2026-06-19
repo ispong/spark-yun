@@ -58,6 +58,10 @@ public class PlatformSettingEntity {
     @Lob
     private String loginMainImageUrl;
 
+    private Boolean userLogEnabled;
+
+    private Integer userLogRetentionDays;
+
     @CreatedDate
     private LocalDateTime createDateTime;
 

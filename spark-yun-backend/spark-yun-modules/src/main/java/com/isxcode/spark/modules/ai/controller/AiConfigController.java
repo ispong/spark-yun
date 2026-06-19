@@ -32,7 +32,7 @@ public class AiConfigController {
 
     @Operation(summary = "保存智能配置")
     @PostMapping("/save")
-    @UserLog
+    @UserLog(moduleCode = "AI_CONFIG", actionCode = "SAVE")
     @SuccessResponse("保存成功")
     public void saveConfig(@Valid @RequestBody SaveAiConfigReq request) {
 
@@ -57,7 +57,7 @@ public class AiConfigController {
 
     @Operation(summary = "删除智能配置")
     @PostMapping("/delete")
-    @UserLog
+    @UserLog(moduleCode = "AI_CONFIG", actionCode = "DELETE")
     @SuccessResponse("删除成功")
     public void deleteConfig(@Valid @RequestBody DeleteAiConfigReq request) {
 

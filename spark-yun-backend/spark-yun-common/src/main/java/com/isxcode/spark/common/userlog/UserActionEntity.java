@@ -2,9 +2,11 @@ package com.isxcode.spark.common.userlog;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import lombok.Data;
 import com.isxcode.spark.common.jpa.SyId;
@@ -27,15 +29,42 @@ public class UserActionEntity {
 
     private String tenantId;
 
+    private String moduleCode;
+
+    private String moduleName;
+
+    private String logType;
+
+    private String actionCode;
+
+    private String actionName;
+
+    private String apiName;
+
     private String reqPath;
 
     private String reqMethod;
 
+    private String ipAddress;
+
+    @Column(length = 1000)
+    private String userAgent;
+
+    @Lob
     private String reqHeader;
 
+    @Lob
     private String reqBody;
 
+    @Lob
     private String resBody;
+
+    private String status;
+
+    private Long duration;
+
+    @Lob
+    private String exceptionMessage;
 
     private Long startTimestamp;
 

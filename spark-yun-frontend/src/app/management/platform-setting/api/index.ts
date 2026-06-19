@@ -9,6 +9,8 @@ export interface PlatformSetting {
     topLogoUrl?: string
     topLogoSmallUrl?: string
     loginMainImageUrl?: string
+    userLogEnabled?: boolean
+    userLogRetentionDays?: number
 }
 
 export function GetPlatformSetting(): Promise<any> {

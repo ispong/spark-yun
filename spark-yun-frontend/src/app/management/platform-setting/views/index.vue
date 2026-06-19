@@ -4,9 +4,9 @@
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData">
             <div class="zqy-platform-setting__wrap">
                 <el-form class="zqy-platform-setting__form" label-position="top">
-                    <div class="zqy-platform-setting__section">
+                    <div class="zqy-platform-setting__section zqy-platform-setting__section--basic">
                         <div class="zqy-platform-setting__section-title">基础设置</div>
-                        <div class="zqy-platform-setting__switch-row">
+                        <div class="zqy-platform-setting__switch-row zqy-platform-setting__switch-row--plain">
                             <span class="zqy-platform-setting__label">注册后自动创建租户</span>
                             <el-switch
                                 v-model="form.autoCreateTenant"
@@ -14,6 +14,23 @@
                                 @change="saveAutoCreateTenant"
                             />
                         </div>
+                        <div class="zqy-platform-setting__switch-row zqy-platform-setting__switch-row--plain">
+                            <span class="zqy-platform-setting__label">开启行为日志</span>
+                            <el-switch v-model="form.userLogEnabled" :loading="saving" @change="saveSetting" />
+                        </div>
+                        <el-form-item class="zqy-platform-setting__retention-item" label="行为日志保留周期">
+                            <div class="zqy-platform-setting__retention-row">
+                                <el-input-number
+                                    v-model="form.userLogRetentionDays"
+                                    :min="1"
+                                    :max="3650"
+                                    :step="1"
+                                    step-strictly
+                                    controls-position="right"
+                                />
+                                <span>天</span>
+                            </div>
+                        </el-form-item>
                         <el-form-item label="平台描述">
                             <el-input
                                 v-model="form.description"
@@ -37,7 +54,6 @@
                                     :maxlength="100"
                                     placeholder="请输入浏览器标题文字"
                                 />
-                                <el-button type="primary" :loading="saving" @click="saveSetting">保存</el-button>
                                 <el-button @click="form.browserTitle = defaultBrandSetting.browserTitle">
                                     恢复默认
                                 </el-button>
@@ -49,7 +65,6 @@
                                     v-model="form.themeColor"
                                     :clearable="false"
                                     :predefine="themePredefineColors"
-                                    @change="saveThemeColor"
                                 />
                                 <el-button @click="resetThemeColor">恢复默认</el-button>
                             </div>
@@ -85,6 +100,9 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="zqy-platform-setting__brand-save">
+                            <el-button type="primary" :loading="saving" @click="saveSetting">保存</el-button>
                         </div>
                     </div>
                 </el-form>
@@ -140,7 +158,9 @@ const form = reactive<PlatformSetting>({
     faviconUrl: '',
     topLogoUrl: '',
     topLogoSmallUrl: '',
-    loginMainImageUrl: ''
+    loginMainImageUrl: '',
+    userLogEnabled: false,
+    userLogRetentionDays: 180
 })
 
 const themePredefineColors = ['#f34c00', '#409eff', '#1677ff', '#21ba45', '#722ed1', '#db2828']
@@ -185,6 +205,8 @@ function initData() {
             form.topLogoUrl = res.data?.topLogoUrl || ''
             form.topLogoSmallUrl = res.data?.topLogoSmallUrl || ''
             form.loginMainImageUrl = res.data?.loginMainImageUrl || ''
+            form.userLogEnabled = res.data?.userLogEnabled ?? false
+            form.userLogRetentionDays = res.data?.userLogRetentionDays || 180
             loading.value = false
         })
         .catch(() => {
@@ -229,7 +251,9 @@ function createSubmitParams(): PlatformSetting {
         faviconUrl: form.faviconUrl || '',
         topLogoUrl: form.topLogoUrl || '',
         topLogoSmallUrl: form.topLogoSmallUrl || '',
-        loginMainImageUrl: form.loginMainImageUrl || ''
+        loginMainImageUrl: form.loginMainImageUrl || '',
+        userLogEnabled: form.userLogEnabled ?? false,
+        userLogRetentionDays: form.userLogRetentionDays || 180
     }
 }
 
@@ -239,20 +263,10 @@ function previewBrandImage(key: BrandImageKey): string {
 
 function resetBrandImage(key: BrandImageKey) {
     form[key] = ''
-    saveBrandImageSetting()
 }
 
 function resetThemeColor() {
     form.themeColor = defaultBrandSetting.themeColor
-    saveThemeColor()
-}
-
-function saveThemeColor() {
-    if (!/^#[0-9a-fA-F]{6}$/.test(form.themeColor?.trim() || '')) {
-        ElMessage.warning('请输入正确的主题色')
-        return
-    }
-    saveSetting()
 }
 
 function normalizeThemeColor(color: string | undefined): string {
@@ -284,7 +298,6 @@ function handleBrandFile(file: UploadRawFile | undefined, key: BrandImageKey) {
                 return
             }
             form[key] = imageUrl
-            return saveBrandImageSetting()
         })
         .finally(() => {
             brandUploadLoading[key] = false
@@ -308,18 +321,6 @@ function getUploadImageUrl(res: any): string {
         return res.data
     }
     return getUploadImageUrl(res.data)
-}
-
-function saveBrandImageSetting() {
-    saving.value = true
-    return UpdatePlatformSetting(createSubmitParams())
-        .then(() => {
-            applyBrandSetting(createSubmitParams())
-            ElMessage.success('配置已保存')
-        })
-        .finally(() => {
-            saving.value = false
-        })
 }
 
 onMounted(() => {
@@ -366,6 +367,22 @@ onMounted(() => {
         color: getCssVar('text-color', 'primary');
     }
 
+    .zqy-platform-setting__section--basic {
+        .zqy-platform-setting__section-title {
+            margin-bottom: 22px;
+        }
+
+        .zqy-platform-setting__switch-row--plain {
+            min-height: 24px;
+            padding-bottom: 0;
+            margin-bottom: 14px;
+        }
+
+        .zqy-platform-setting__retention-item {
+            margin-bottom: 16px;
+        }
+    }
+
     .zqy-platform-setting__section--brand {
         .el-form-item {
             max-width: 420px;
@@ -374,11 +391,18 @@ onMounted(() => {
     }
 
     .zqy-platform-setting__title-row,
-    .zqy-platform-setting__color-row {
+    .zqy-platform-setting__color-row,
+    .zqy-platform-setting__retention-row {
         display: flex;
         align-items: center;
         gap: 8px;
         width: 100%;
+    }
+
+    .zqy-platform-setting__retention-row {
+        .el-input-number {
+            width: 160px;
+        }
     }
 
     .zqy-platform-setting__title-row {
@@ -400,6 +424,16 @@ onMounted(() => {
         padding-bottom: 18px;
         margin-bottom: 18px;
         border-bottom: 1px solid getCssVar('border-color', 'lighter');
+    }
+
+    .zqy-platform-setting__switch-row--plain {
+        padding-bottom: 8px;
+        margin-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .zqy-platform-setting__retention-item {
+        max-width: 420px;
     }
 
     .zqy-platform-setting__label {
@@ -519,6 +553,12 @@ onMounted(() => {
         .el-button + .el-button {
             margin-left: 0;
         }
+    }
+
+    .zqy-platform-setting__brand-save {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 16px;
     }
 
     .zqy-platform-setting__actions {

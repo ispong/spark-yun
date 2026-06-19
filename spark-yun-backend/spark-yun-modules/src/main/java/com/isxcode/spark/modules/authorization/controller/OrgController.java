@@ -29,7 +29,7 @@ public class OrgController {
 
     @Operation(summary = "保存组织")
     @PostMapping("/save")
-    @UserLog
+    @UserLog(moduleCode = "ORG", actionCode = "SAVE")
     @SuccessResponse("保存成功")
     public void saveOrg(@Valid @RequestBody SaveOrgReq request) {
 
@@ -46,7 +46,7 @@ public class OrgController {
 
     @Operation(summary = "删除组织")
     @PostMapping("/delete")
-    @UserLog
+    @UserLog(moduleCode = "ORG", actionCode = "DELETE")
     @SuccessResponse("删除成功")
     public void deleteOrg(@Valid @RequestBody DeleteOrgReq request) {
 

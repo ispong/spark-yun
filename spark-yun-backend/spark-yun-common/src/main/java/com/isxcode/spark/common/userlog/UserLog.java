@@ -12,4 +12,12 @@ import java.lang.annotation.Target;
 @Inherited
 @Documented
 public @interface UserLog {
+
+    String moduleCode() default "";
+
+    String actionCode() default "";
+
+    boolean recordRequest() default true;
+
+    boolean recordResponse() default true;
 }

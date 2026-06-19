@@ -38,7 +38,7 @@ public class RoleController {
     @Operation(summary = "保存角色")
     @PostMapping("/save")
     @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
-    @UserLog
+    @UserLog(moduleCode = "ROLE", actionCode = "SAVE")
     @SuccessResponse("保存成功")
     public void saveRole(@Valid @RequestBody SaveRoleReq request) {
 
@@ -67,7 +67,7 @@ public class RoleController {
     @Operation(summary = "删除角色")
     @PostMapping("/delete")
     @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
-    @UserLog
+    @UserLog(moduleCode = "ROLE", actionCode = "DELETE")
     @SuccessResponse("删除成功")
     public void deleteRole(@Valid @RequestBody DeleteRoleReq request) {
 
@@ -105,7 +105,7 @@ public class RoleController {
     @Operation(summary = "保存角色实例权限配置")
     @PostMapping("/saveInstancePermission")
     @Secured({RoleType.TENANT_SUPER_ADMIN, RoleType.TENANT_ADMIN})
-    @UserLog
+    @UserLog(moduleCode = "ROLE", actionCode = "SAVE_PERMISSION")
     @SuccessResponse("保存成功")
     public void saveInstancePermission(@Valid @RequestBody SaveRoleInstancePermissionReq request) {
 

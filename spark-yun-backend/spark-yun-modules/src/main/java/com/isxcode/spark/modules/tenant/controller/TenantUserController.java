@@ -33,6 +33,7 @@ public class TenantUserController {
             RoleType.TENANT_ADMIN})
     @Operation(summary = "添加用户接口")
     @PostMapping("/addTenantUser")
+    @UserLog(moduleCode = "TENANT_USER", actionCode = "ADD")
     @SuccessResponse("添加成功")
     public void addTenantUser(@Valid @RequestBody AddTenantUserReq addTenantUserReq) {
 
@@ -63,7 +64,7 @@ public class TenantUserController {
             RoleType.TENANT_ADMIN})
     @Operation(summary = "移除用户接口")
     @PostMapping("/removeTenantUser")
-    @UserLog
+    @UserLog(moduleCode = "TENANT_USER", actionCode = "REMOVE")
     @SuccessResponse("移除成功")
     public void removeTenantUser(@Valid @RequestBody RemoveTenantUserReq removeTenantUserReq) {
 
@@ -74,7 +75,7 @@ public class TenantUserController {
             RoleType.TENANT_ADMIN})
     @Operation(summary = "设置为普通管理员接口")
     @PostMapping("/setTenantAdmin")
-    @UserLog
+    @UserLog(moduleCode = "TENANT_USER", actionCode = "SET_ADMIN")
     @SuccessResponse("设置成功")
     public void setTenantAdmin(@Valid @RequestBody SetTenantAdminReq setTenantAdminReq) {
 
@@ -85,7 +86,7 @@ public class TenantUserController {
             RoleType.TENANT_ADMIN})
     @Operation(summary = "取消普通管理员接口")
     @PostMapping("/removeTenantAdmin")
-    @UserLog
+    @UserLog(moduleCode = "TENANT_USER", actionCode = "REMOVE_ADMIN")
     @SuccessResponse("设置成功")
     public void removeTenantAdmin(@Valid @RequestBody RemoveTenantAdminReq removeTenantAdminReq) {
 
@@ -96,7 +97,7 @@ public class TenantUserController {
             RoleType.TENANT_ADMIN})
     @Operation(summary = "修改成员状态接口")
     @PostMapping("/setStatus")
-    @UserLog
+    @UserLog(moduleCode = "TENANT_USER", actionCode = "SET_STATUS")
     @SuccessResponse("设置成功")
     public void setTenantMemberStatus(@Valid @RequestBody SetTenantMemberStatusReq request) {
 
@@ -107,7 +108,7 @@ public class TenantUserController {
             RoleType.TENANT_ADMIN})
     @Operation(summary = "设置成员角色接口")
     @PostMapping("/setRoles")
-    @UserLog
+    @UserLog(moduleCode = "TENANT_USER", actionCode = "SET_ROLES")
     @SuccessResponse("设置成功")
     public void setMemberRoles(@Valid @RequestBody SetMemberRolesReq request) {
 
@@ -148,7 +149,7 @@ public class TenantUserController {
             RoleType.TENANT_ADMIN})
     @Operation(summary = "通过租户申请接口")
     @PostMapping("/approveApply")
-    @UserLog
+    @UserLog(moduleCode = "TENANT_USER", actionCode = "APPROVE_APPLY")
     @SuccessResponse("通过成功")
     public void approveTenantApply(@Valid @RequestBody ReviewTenantApplyReq request) {
 
@@ -159,7 +160,7 @@ public class TenantUserController {
             RoleType.TENANT_ADMIN})
     @Operation(summary = "拒绝租户申请接口")
     @PostMapping("/rejectApply")
-    @UserLog
+    @UserLog(moduleCode = "TENANT_USER", actionCode = "REJECT_APPLY")
     @SuccessResponse("拒绝成功")
     public void rejectTenantApply(@Valid @RequestBody ReviewTenantApplyReq request) {
 

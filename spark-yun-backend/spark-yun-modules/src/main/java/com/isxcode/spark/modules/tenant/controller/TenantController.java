@@ -35,6 +35,7 @@ public class TenantController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "创建租户接口")
     @PostMapping("/addTenant")
+    @UserLog(moduleCode = "TENANT", actionCode = "ADD")
     @SuccessResponse("创建成功")
     public void addTenant(@Valid @RequestBody AddTenantReq addTenantReq) {
 
@@ -61,6 +62,7 @@ public class TenantController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "系统管理员更新租户接口")
     @PostMapping("/updateTenantForSystemAdmin")
+    @UserLog(moduleCode = "TENANT", actionCode = "UPDATE")
     @SuccessResponse("更新成功")
     public void updateTenantForSystemAdmin(
         @Valid @RequestBody UpdateTenantForSystemAdminReq updateTenantForSystemAdminReq) {
@@ -81,6 +83,7 @@ public class TenantController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "启动租户接口")
     @PostMapping("/enableTenant")
+    @UserLog(moduleCode = "TENANT", actionCode = "ENABLE")
     @SuccessResponse("启用成功")
     public void enableTenant(@Valid @RequestBody EnableTenantReq enableTenantReq) {
 
@@ -90,7 +93,7 @@ public class TenantController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "禁用租户接口")
     @PostMapping("/disableTenant")
-    @UserLog
+    @UserLog(moduleCode = "TENANT", actionCode = "DISABLE")
     @SuccessResponse("禁用成功")
     public void disableTenant(@Valid @RequestBody DisableTenantReq disableTenantReq) {
 
@@ -109,7 +112,7 @@ public class TenantController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "删除租户接口")
     @PostMapping("/deleteTenant")
-    @UserLog
+    @UserLog(moduleCode = "TENANT", actionCode = "DELETE")
     @SuccessResponse("删除成功")
     public void deleteTenant(@Valid @RequestBody DeleteTenantReq deleteTenantReq) {
 
@@ -119,7 +122,7 @@ public class TenantController {
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "替换租户管理员接口")
     @PostMapping("/replaceAdmin")
-    @UserLog
+    @UserLog(moduleCode = "TENANT", actionCode = "REPLACE_ADMIN")
     @SuccessResponse("替换成功")
     public void replaceTenantAdmin(@Valid @RequestBody ReplaceTenantAdminReq request) {
 

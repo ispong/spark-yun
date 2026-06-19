@@ -25,6 +25,8 @@ public class PlatformSettingService {
 
     private static final String SYSTEM_USER = "system";
 
+    public static final int DEFAULT_USER_LOG_RETENTION_DAYS = 180;
+
     private static final long MAX_BRAND_IMAGE_SIZE = 5 * 1024 * 1024;
 
     private final PlatformSettingRepository platformSettingRepository;
@@ -36,7 +38,10 @@ public class PlatformSettingService {
             .autoCreateTenant(valueOrDefault(setting.getAutoCreateTenant(), false))
             .browserTitle(setting.getBrowserTitle()).themeColor(setting.getThemeColor())
             .faviconUrl(setting.getFaviconUrl()).topLogoUrl(setting.getTopLogoUrl())
-            .topLogoSmallUrl(setting.getTopLogoSmallUrl()).loginMainImageUrl(setting.getLoginMainImageUrl()).build();
+            .topLogoSmallUrl(setting.getTopLogoSmallUrl()).loginMainImageUrl(setting.getLoginMainImageUrl())
+            .userLogEnabled(valueOrDefault(setting.getUserLogEnabled(), false))
+            .userLogRetentionDays(valueOrDefault(setting.getUserLogRetentionDays(), DEFAULT_USER_LOG_RETENTION_DAYS))
+            .build();
     }
 
     public void updateSetting(UpdatePlatformSettingReq updatePlatformSettingReq) {
@@ -51,6 +56,10 @@ public class PlatformSettingService {
         setting.setTopLogoUrl(updatePlatformSettingReq.getTopLogoUrl());
         setting.setTopLogoSmallUrl(updatePlatformSettingReq.getTopLogoSmallUrl());
         setting.setLoginMainImageUrl(updatePlatformSettingReq.getLoginMainImageUrl());
+        setting.setUserLogEnabled(valueOrDefault(updatePlatformSettingReq.getUserLogEnabled(),
+            valueOrDefault(setting.getUserLogEnabled(), false)));
+        setting.setUserLogRetentionDays(valueOrDefault(updatePlatformSettingReq.getUserLogRetentionDays(),
+            valueOrDefault(setting.getUserLogRetentionDays(), DEFAULT_USER_LOG_RETENTION_DAYS)));
         platformSettingRepository.save(setting);
     }
 
@@ -93,10 +102,17 @@ public class PlatformSettingService {
         setting.setAutoCreateTenant(false);
         setting.setBrowserTitle("");
         setting.setThemeColor("");
+        setting.setUserLogEnabled(false);
+        setting.setUserLogRetentionDays(DEFAULT_USER_LOG_RETENTION_DAYS);
         return setting;
     }
 
     private boolean valueOrDefault(Boolean value, boolean defaultValue) {
+
+        return value == null ? defaultValue : value;
+    }
+
+    private int valueOrDefault(Integer value, int defaultValue) {
 
         return value == null ? defaultValue : value;
     }

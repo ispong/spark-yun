@@ -5,6 +5,7 @@ import com.isxcode.spark.api.platform.res.GetPlatformSettingRes;
 import com.isxcode.spark.api.platform.res.UploadBrandImageRes;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
+import com.isxcode.spark.common.userlog.UserLog;
 import com.isxcode.spark.modules.platform.service.PlatformSettingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,6 +48,7 @@ public class PlatformSettingController {
     @Operation(summary = "更新平台设置")
     @PostMapping("/updateSetting")
     @SuccessResponse("保存成功")
+    @UserLog(moduleCode = "PLATFORM_SETTING", actionCode = "UPDATE")
     public void updateSetting(@Valid @RequestBody UpdatePlatformSettingReq updatePlatformSettingReq) {
 
         platformSettingService.updateSetting(updatePlatformSettingReq);
@@ -56,6 +58,7 @@ public class PlatformSettingController {
     @Operation(summary = "上传品牌图片")
     @PostMapping("/uploadBrandImage")
     @SuccessResponse("上传成功")
+    @UserLog(moduleCode = "PLATFORM_SETTING", actionCode = "UPLOAD_BRAND_IMAGE")
     public UploadBrandImageRes uploadBrandImage(@RequestParam("file") MultipartFile file) {
 
         return platformSettingService.uploadBrandImage(file);

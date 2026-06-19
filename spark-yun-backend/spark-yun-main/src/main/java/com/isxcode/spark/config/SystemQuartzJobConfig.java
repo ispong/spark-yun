@@ -30,6 +30,7 @@ public class SystemQuartzJobConfig {
 
         scheduleCronJob(NodeMonitorQuartzJob.class, "node-monitor", "0 * * * * ?");
         scheduleCronJob(FormLinkCleanupQuartzJob.class, "form-link-cleanup", "0 0 0 * * ?");
+        scheduleCronJob(UserLogCleanupQuartzJob.class, "user-log-cleanup", "0 0 1 * * ?");
     }
 
     private void scheduleCronJob(Class<? extends Job> jobClass, String name, String cron) throws SchedulerException {
