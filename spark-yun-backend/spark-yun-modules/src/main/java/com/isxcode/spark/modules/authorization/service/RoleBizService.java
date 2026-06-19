@@ -168,8 +168,9 @@ public class RoleBizService {
         permission.setRoleId(role.getId());
         permission.setResourceType(resourceType);
         permission.setAllEnabled(Boolean.TRUE.equals(allEnabled));
-        permission.setResourceIds(joinResourceIds(Boolean.TRUE.equals(allEnabled) ? List.of(RoleInstanceResourceType.ALL)
-            : removeAllResourceId(resourceIds)));
+        permission
+            .setResourceIds(joinResourceIds(Boolean.TRUE.equals(allEnabled) ? List.of(RoleInstanceResourceType.ALL)
+                : removeAllResourceId(resourceIds)));
         roleInstancePermissionRepository.save(permission);
     }
 
@@ -230,14 +231,16 @@ public class RoleBizService {
         List<RolePermissionEntity> permissions =
             rolePermissionRepository.findAllByTenantIdAndRoleId(tenantId, role.getId());
         List<String> frontendPermissionCodes = permissions.stream()
-            .filter(permission -> WorkspacePermissionCatalog.FRONTEND_PERMISSION_TYPE.equals(permission.getPermissionType())
-                || (permission.getPermissionType() == null
-                    && WorkspacePermissionCatalog.isMenuPermissionCode(permission.getPermissionCode())))
+            .filter(
+                permission -> WorkspacePermissionCatalog.FRONTEND_PERMISSION_TYPE.equals(permission.getPermissionType())
+                    || (permission.getPermissionType() == null
+                        && WorkspacePermissionCatalog.isMenuPermissionCode(permission.getPermissionCode())))
             .map(RolePermissionEntity::getPermissionCode).distinct().toList();
         List<String> backendPermissionCodes = permissions.stream()
-            .filter(permission -> WorkspacePermissionCatalog.BACKEND_PERMISSION_TYPE.equals(permission.getPermissionType())
-                || (permission.getPermissionType() == null
-                    && WorkspacePermissionCatalog.isBackendPermissionCode(permission.getPermissionCode())))
+            .filter(
+                permission -> WorkspacePermissionCatalog.BACKEND_PERMISSION_TYPE.equals(permission.getPermissionType())
+                    || (permission.getPermissionType() == null
+                        && WorkspacePermissionCatalog.isBackendPermissionCode(permission.getPermissionCode())))
             .map(RolePermissionEntity::getPermissionCode).distinct().toList();
         List<String> permissionCodes = new ArrayList<>();
         permissionCodes.addAll(frontendPermissionCodes);

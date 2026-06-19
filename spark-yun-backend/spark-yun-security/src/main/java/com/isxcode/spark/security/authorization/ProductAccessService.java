@@ -85,8 +85,8 @@ public class ProductAccessService {
         permissions.addAll(workspacePermission.frontendPermissions());
         permissions.addAll(workspacePermission.backendPermissions());
         return new AccessSnapshot(userId, tenantId, false, platformAdmin, tenantAdmin, normalAdmin,
-            workspacePermission.menuAllPermissions(), workspacePermission.apiAllPermissions(),
-            Set.copyOf(permissions), workspacePermission.frontendPermissions(), workspacePermission.backendPermissions(),
+            workspacePermission.menuAllPermissions(), workspacePermission.apiAllPermissions(), Set.copyOf(permissions),
+            workspacePermission.frontendPermissions(), workspacePermission.backendPermissions(),
             workspacePermission.clusterScope(), workspacePermission.datasourceScope(), workspacePermission.fileScope());
     }
 
@@ -124,20 +124,22 @@ public class ProductAccessService {
         }
         Set<String> frontendPermissions = enabledRoleIds.stream()
             .flatMap(roleId -> rolePermissionRepository.findAllByTenantIdAndRoleId(tenantId, roleId).stream())
-            .filter(permission -> WorkspacePermissionCatalog.FRONTEND_PERMISSION_TYPE.equals(permission.getPermissionType())
-                || (permission.getPermissionType() == null
-                    && WorkspacePermissionCatalog.isMenuPermissionCode(permission.getPermissionCode())))
+            .filter(
+                permission -> WorkspacePermissionCatalog.FRONTEND_PERMISSION_TYPE.equals(permission.getPermissionType())
+                    || (permission.getPermissionType() == null
+                        && WorkspacePermissionCatalog.isMenuPermissionCode(permission.getPermissionCode())))
             .map(RolePermissionEntity::getPermissionCode).collect(Collectors.toUnmodifiableSet());
         Set<String> backendPermissions = enabledRoleIds.stream()
             .flatMap(roleId -> rolePermissionRepository.findAllByTenantIdAndRoleId(tenantId, roleId).stream())
-            .filter(permission -> WorkspacePermissionCatalog.BACKEND_PERMISSION_TYPE.equals(permission.getPermissionType())
-                || (permission.getPermissionType() == null
-                    && WorkspacePermissionCatalog.isBackendPermissionCode(permission.getPermissionCode())))
+            .filter(
+                permission -> WorkspacePermissionCatalog.BACKEND_PERMISSION_TYPE.equals(permission.getPermissionType())
+                    || (permission.getPermissionType() == null
+                        && WorkspacePermissionCatalog.isBackendPermissionCode(permission.getPermissionCode())))
             .map(RolePermissionEntity::getPermissionCode).collect(Collectors.toUnmodifiableSet());
-        Map<String, RoleInstancePermissionEntity> instancePermissions = roleInstancePermissionRepository
-            .findAllByTenantIdAndRoleIdIn(tenantId, enabledRoleIds).stream()
-            .collect(Collectors.toMap(permission -> permission.getRoleId() + ":" + permission.getResourceType(),
-                permission -> permission, (left, right) -> right));
+        Map<String, RoleInstancePermissionEntity> instancePermissions =
+            roleInstancePermissionRepository.findAllByTenantIdAndRoleIdIn(tenantId, enabledRoleIds).stream()
+                .collect(Collectors.toMap(permission -> permission.getRoleId() + ":" + permission.getResourceType(),
+                    permission -> permission, (left, right) -> right));
         return new WorkspacePermissionResult(frontendPermissions.contains(WorkspacePermissionCatalog.MENU_ALL),
             backendPermissions.contains(WorkspacePermissionCatalog.API_ALL), frontendPermissions, backendPermissions,
             resolveResourceScope(enabledRoleIds, instancePermissions, RoleInstanceResourceType.CLUSTER),
@@ -186,8 +188,8 @@ public class ProductAccessService {
     public boolean hasWorkspaceApiPermission(AccessSnapshot access, String module, String method, String path) {
 
         return access.hasAllApiPermissions()
-            || access.backendPermissionCodes().contains(WorkspacePermissionCatalog.code(module,
-                WorkspacePermissionCatalog.resolveAction(path)))
+            || access.backendPermissionCodes()
+                .contains(WorkspacePermissionCatalog.code(module, WorkspacePermissionCatalog.resolveAction(path)))
             || access.backendPermissionCodes().contains(WorkspacePermissionCatalog.apiCode(module, method, path));
     }
 

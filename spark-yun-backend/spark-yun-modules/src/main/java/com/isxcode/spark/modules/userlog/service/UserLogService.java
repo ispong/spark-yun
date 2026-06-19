@@ -36,11 +36,9 @@ public class UserLogService {
     public Page<PageUserLogRes> pageLog(PageUserLogReq request) {
 
         String searchKeyWord = request.getSearchKeyWord() == null ? "" : request.getSearchKeyWord();
-        return userActionRepository
-            .pageLog(searchKeyWord, request.getModuleCode(), request.getLogType(), request.getAccount(),
-                request.getTenantId(), request.getStartDateTime(), request.getEndDateTime(),
-                PageRequest.of(request.getPage(), request.getPageSize()))
-            .map(this::toPageUserLogRes);
+        return userActionRepository.pageLog(searchKeyWord, request.getModuleCode(), request.getLogType(),
+            request.getAccount(), request.getTenantId(), request.getStartDateTime(), request.getEndDateTime(),
+            PageRequest.of(request.getPage(), request.getPageSize())).map(this::toPageUserLogRes);
     }
 
     public List<UserLogDefinitionRes> definitions() {
@@ -59,9 +57,10 @@ public class UserLogService {
         return PageUserLogRes.builder().id(userAction.getId()).userId(userAction.getUserId())
             .account(resolveAccount(userAction.getUserId())).tenantId(userAction.getTenantId())
             .tenantName(resolveTenantName(userAction.getTenantId())).logType(userAction.getLogType())
-            .moduleCode(userAction.getModuleCode()).moduleName(userAction.getModuleName()).apiName(userAction.getApiName()).reqPath(userAction.getReqPath())
-            .reqMethod(userAction.getReqMethod()).reqBody(userAction.getReqBody()).resBody(userAction.getResBody())
-            .status(userAction.getStatus()).duration(userAction.getDuration()).ipAddress(userAction.getIpAddress())
+            .moduleCode(userAction.getModuleCode()).moduleName(userAction.getModuleName())
+            .apiName(userAction.getApiName()).reqPath(userAction.getReqPath()).reqMethod(userAction.getReqMethod())
+            .reqBody(userAction.getReqBody()).resBody(userAction.getResBody()).status(userAction.getStatus())
+            .duration(userAction.getDuration()).ipAddress(userAction.getIpAddress())
             .userAgent(userAction.getUserAgent()).exceptionMessage(userAction.getExceptionMessage())
             .createDateTime(userAction.getCreateDateTime()).build();
     }
@@ -69,8 +68,8 @@ public class UserLogService {
     private UserLogDefinitionRes toUserLogDefinitionRes(UserLogDefinition definition) {
 
         return UserLogDefinitionRes.builder().moduleCode(definition.getModuleCode())
-            .moduleName(definition.getModuleName()).logType(definition.getLogType())
-            .apiName(definition.getApiName()).build();
+            .moduleName(definition.getModuleName()).logType(definition.getLogType()).apiName(definition.getApiName())
+            .build();
     }
 
     private String resolveAccount(String userId) {

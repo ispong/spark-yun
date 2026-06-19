@@ -457,8 +457,7 @@ public class TenantBizService {
             .tenantMember(access.hasTenantAccess()).normalAdmin(access.normalAdmin())
             .workspaceAllPermissions(access.hasAllWorkspacePermissions())
             .permissions(List.copyOf(access.frontendPermissionCodes()))
-            .frontendPermissionCodes(List.copyOf(access.frontendPermissionCodes()))
-            .defaultArea("workspace").build();
+            .frontendPermissionCodes(List.copyOf(access.frontendPermissionCodes())).defaultArea("workspace").build();
     }
 
     public GetTenantRes getTenant(GetTenantReq getTenantReq) {

@@ -124,8 +124,8 @@ public class LoginMethodBizService {
     public void sendUpdatePasswordCode(SendUpdatePasswordCodeReq sendUpdatePasswordCodeReq) {
 
         String channel = normalizeChannel(sendUpdatePasswordCodeReq.getChannel());
-        UserEntity user = userRepository.findById(ContextHolder.getUserId())
-            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        UserEntity user =
+            userRepository.findById(ContextHolder.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
         String receiver = resolveCurrentReceiver(channel, user);
         LoginMethodRuntimeConfig config = loginMethodConfigService.getRuntimeConfig();
         validateChannelEnabled(channel, config);
@@ -144,8 +144,8 @@ public class LoginMethodBizService {
         validatePhoneCanUpdate(phone);
         verifySceneCode(LoginMethodType.PHONE, phone, LoginCodeScene.UPDATE_PHONE, code);
 
-        UserEntity user = userRepository.findById(ContextHolder.getUserId())
-            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        UserEntity user =
+            userRepository.findById(ContextHolder.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
         user.setPhone(phone);
         userRepository.save(user);
     }
@@ -162,16 +162,16 @@ public class LoginMethodBizService {
         validateEmailCanUpdate(email);
         verifySceneCode(LoginMethodType.EMAIL, email, LoginCodeScene.UPDATE_EMAIL, code);
 
-        UserEntity user = userRepository.findById(ContextHolder.getUserId())
-            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        UserEntity user =
+            userRepository.findById(ContextHolder.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
         user.setEmail(email);
         userRepository.save(user);
     }
 
     public void updateMyPassword(UpdateMyPasswordReq updateMyPasswordReq) {
 
-        UserEntity user = userRepository.findById(ContextHolder.getUserId())
-            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        UserEntity user =
+            userRepository.findById(ContextHolder.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
         if (!updateMyPasswordReq.getNewPassword().equals(updateMyPasswordReq.getConfirmPassword())) {
             throw new IsxAppException("两次输入的新密码不一致");
         }
@@ -461,8 +461,8 @@ public class LoginMethodBizService {
 
     private void validatePhoneCanUpdate(String phone) {
 
-        UserEntity currentUser = userRepository.findById(ContextHolder.getUserId())
-            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        UserEntity currentUser =
+            userRepository.findById(ContextHolder.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
         if (phone.equals(currentUser.getPhone())) {
             throw new IsxAppException("新手机号不能与当前手机号相同");
         }
@@ -475,8 +475,8 @@ public class LoginMethodBizService {
 
     private void validateEmailCanUpdate(String email) {
 
-        UserEntity currentUser = userRepository.findById(ContextHolder.getUserId())
-            .orElseThrow(() -> new IsxAppException("用户不存在"));
+        UserEntity currentUser =
+            userRepository.findById(ContextHolder.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
         if (email.equals(currentUser.getEmail())) {
             throw new IsxAppException("新邮箱不能与当前邮箱相同");
         }
@@ -502,7 +502,8 @@ public class LoginMethodBizService {
 
     private String normalizePasswordVerifyType(String verifyType) {
 
-        String normalizedVerifyType = Strings.isEmpty(verifyType) ? VERIFY_OLD_PASSWORD : verifyType.trim().toUpperCase();
+        String normalizedVerifyType =
+            Strings.isEmpty(verifyType) ? VERIFY_OLD_PASSWORD : verifyType.trim().toUpperCase();
         if (VERIFY_OLD_PASSWORD.equals(normalizedVerifyType) || LoginMethodType.PHONE.equals(normalizedVerifyType)
             || LoginMethodType.EMAIL.equals(normalizedVerifyType)) {
             return normalizedVerifyType;

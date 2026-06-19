@@ -67,7 +67,8 @@ public class UserLogAdvice {
         UserActionEntity userAction = new UserActionEntity();
         userAction.setStartTimestamp(startTimestamp);
         userAction.setUserId(Strings.isEmpty(ContextHolder.getUserId()) ? "anonymous" : ContextHolder.getUserId());
-        userAction.setTenantId(Strings.isEmpty(ContextHolder.getTenantId()) ? "anonymous" : ContextHolder.getTenantId());
+        userAction
+            .setTenantId(Strings.isEmpty(ContextHolder.getTenantId()) ? "anonymous" : ContextHolder.getTenantId());
 
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes == null ? null : attributes.getRequest();

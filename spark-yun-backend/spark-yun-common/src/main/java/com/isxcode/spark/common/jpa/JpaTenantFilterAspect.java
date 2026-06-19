@@ -49,16 +49,16 @@ public class JpaTenantFilterAspect {
             return;
         }
         if (dataScope.clusterScope() != null && dataScope.clusterScope().restricted()) {
-            session.enableFilter(DataScopeContext.CLUSTER_FILTER)
-                .setParameterList(DataScopeContext.CLUSTER_IDS_PARAM, dataScope.clusterScope().filterIds());
+            session.enableFilter(DataScopeContext.CLUSTER_FILTER).setParameterList(DataScopeContext.CLUSTER_IDS_PARAM,
+                dataScope.clusterScope().filterIds());
         }
         if (dataScope.datasourceScope() != null && dataScope.datasourceScope().restricted()) {
             session.enableFilter(DataScopeContext.DATASOURCE_FILTER)
                 .setParameterList(DataScopeContext.DATASOURCE_IDS_PARAM, dataScope.datasourceScope().filterIds());
         }
         if (dataScope.fileScope() != null && dataScope.fileScope().restricted()) {
-            session.enableFilter(DataScopeContext.FILE_FILTER)
-                .setParameterList(DataScopeContext.FILE_IDS_PARAM, dataScope.fileScope().filterIds());
+            session.enableFilter(DataScopeContext.FILE_FILTER).setParameterList(DataScopeContext.FILE_IDS_PARAM,
+                dataScope.fileScope().filterIds());
         }
     }
 }

@@ -30,8 +30,8 @@ public interface UserActionRepository extends JpaRepository<UserActionEntity, St
         + "order by U.createDateTime desc")
     Page<UserActionEntity> pageLog(@Param("keyword") String searchKeyWord, @Param("moduleCode") String moduleCode,
         @Param("logType") String logType, @Param("account") String account, @Param("tenantId") String tenantId,
-        @Param("startDateTime") LocalDateTime startDateTime,
-        @Param("endDateTime") LocalDateTime endDateTime, Pageable pageable);
+        @Param("startDateTime") LocalDateTime startDateTime, @Param("endDateTime") LocalDateTime endDateTime,
+        Pageable pageable);
 
     @Modifying
     @Query("delete from UserActionEntity U where U.createDateTime < :expireDateTime")

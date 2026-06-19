@@ -46,7 +46,8 @@ public class ProductAccessAuthorizationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
         try {
-            AccessSnapshot access = productAccessService.resolve(ContextHolder.getUserId(), ContextHolder.getTenantId());
+            AccessSnapshot access =
+                productAccessService.resolve(ContextHolder.getUserId(), ContextHolder.getTenantId());
             DataScopeContext.runWithDataScope(access.dataScope(), () -> {
                 if (isPlatformPath(path)) {
                     checkPlatformAccess(access);

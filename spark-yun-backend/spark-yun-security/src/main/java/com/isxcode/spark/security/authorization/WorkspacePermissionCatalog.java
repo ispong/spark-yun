@@ -174,8 +174,8 @@ public final class WorkspacePermissionCatalog {
 
     public static boolean hasApiPermissions(Set<String> permissions) {
 
-        return permissions.stream()
-            .anyMatch(permission -> API_ALL.equals(permission) || permission.contains(":api:") || isActionCode(permission));
+        return permissions.stream().anyMatch(
+            permission -> API_ALL.equals(permission) || permission.contains(":api:") || isActionCode(permission));
     }
 
     public static boolean hasDataPermissions(Set<String> permissions) {
