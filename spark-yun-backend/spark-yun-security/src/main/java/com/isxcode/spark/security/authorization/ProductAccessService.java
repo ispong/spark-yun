@@ -1,9 +1,11 @@
 package com.isxcode.spark.security.authorization;
 
+import com.isxcode.spark.api.authorization.constants.RoleInstanceResourceType;
 import com.isxcode.spark.api.tenant.constants.TenantStatus;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.constants.UserStatus;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
+import com.isxcode.spark.common.jpa.DataScopeContext;
 import com.isxcode.spark.common.jpa.JpaTenantContext;
 import com.isxcode.spark.security.user.TenantEntity;
 import com.isxcode.spark.security.user.TenantRepository;
@@ -37,6 +39,8 @@ public class ProductAccessService {
 
     private final RolePermissionRepository rolePermissionRepository;
 
+    private final RoleInstancePermissionRepository roleInstancePermissionRepository;
+
     private final MemberRoleRepository memberRoleRepository;
 
     private final OrgRepository orgRepository;
@@ -55,11 +59,11 @@ public class ProductAccessService {
             RoleType.PLATFORM_ADMIN.equals(user.getRoleCode()) || Boolean.TRUE.equals(user.getPlatformAdmin());
         if (platformSuperAdmin) {
             return new AccessSnapshot(userId, null, true, true, false, false, false, false, Set.of(), Set.of(),
-                Set.of());
+                Set.of(), allResourceScope(), allResourceScope(), allResourceScope());
         }
         if (Strings.isEmpty(tenantId) || "undefined".equals(tenantId)) {
             return new AccessSnapshot(userId, null, false, platformAdmin, false, false, false, false, Set.of(),
-                Set.of(), Set.of());
+                Set.of(), Set.of(), allResourceScope(), allResourceScope(), allResourceScope());
         }
 
         TenantEntity tenant = tenantRepository.findById(tenantId).orElseThrow(() -> new IsxAppException("当前租户不可用"));
@@ -75,14 +79,15 @@ public class ProductAccessService {
         boolean normalAdmin =
             Boolean.TRUE.equals(member.getNormalAdmin()) || RoleType.TENANT_ADMIN.equals(member.getRoleCode());
         WorkspacePermissionResult workspacePermission =
-            tenantAdmin || normalAdmin ? new WorkspacePermissionResult(true, true, Set.of(), Set.of())
+            tenantAdmin || normalAdmin ? WorkspacePermissionResult.allPermissions()
                 : resolveWorkspacePermissions(tenantId, userId);
         Set<String> permissions = new HashSet<>();
         permissions.addAll(workspacePermission.frontendPermissions());
         permissions.addAll(workspacePermission.backendPermissions());
         return new AccessSnapshot(userId, tenantId, false, platformAdmin, tenantAdmin, normalAdmin,
             workspacePermission.menuAllPermissions(), workspacePermission.apiAllPermissions(),
-            Set.copyOf(permissions), workspacePermission.frontendPermissions(), workspacePermission.backendPermissions());
+            Set.copyOf(permissions), workspacePermission.frontendPermissions(), workspacePermission.backendPermissions(),
+            workspacePermission.clusterScope(), workspacePermission.datasourceScope(), workspacePermission.fileScope());
     }
 
     public WorkspacePermissionResult resolveWorkspacePermissions(String tenantId, String userId) {
@@ -108,13 +113,15 @@ public class ProductAccessService {
         }
 
         if (roleIds.isEmpty()) {
-            return new WorkspacePermissionResult(false, false, Set.of(), Set.of());
+            return new WorkspacePermissionResult(false, false, Set.of(), Set.of(), allResourceScope(),
+                allResourceScope(), allResourceScope());
         }
         Set<String> enabledRoleIds = roleRepository.findAllByTenantIdAndIdIn(tenantId, roleIds).stream()
             .filter(role -> TenantStatus.ENABLE.equals(role.getStatus())).map(RoleEntity::getId)
             .collect(Collectors.toSet());
         if (enabledRoleIds.isEmpty()) {
-            return new WorkspacePermissionResult(false, false, Set.of(), Set.of());
+            return new WorkspacePermissionResult(false, false, Set.of(), Set.of(), allResourceScope(),
+                allResourceScope(), allResourceScope());
         }
         Set<String> frontendPermissions = enabledRoleIds.stream()
             .flatMap(roleId -> rolePermissionRepository.findAllByTenantIdAndRoleId(tenantId, roleId).stream())
@@ -128,8 +135,47 @@ public class ProductAccessService {
                 || (permission.getPermissionType() == null
                     && WorkspacePermissionCatalog.isBackendPermissionCode(permission.getPermissionCode())))
             .map(RolePermissionEntity::getPermissionCode).collect(Collectors.toUnmodifiableSet());
+        Map<String, RoleInstancePermissionEntity> instancePermissions = roleInstancePermissionRepository
+            .findAllByTenantIdAndRoleIdIn(tenantId, enabledRoleIds).stream()
+            .collect(Collectors.toMap(permission -> permission.getRoleId() + ":" + permission.getResourceType(),
+                permission -> permission, (left, right) -> right));
         return new WorkspacePermissionResult(frontendPermissions.contains(WorkspacePermissionCatalog.MENU_ALL),
-            backendPermissions.contains(WorkspacePermissionCatalog.API_ALL), frontendPermissions, backendPermissions);
+            backendPermissions.contains(WorkspacePermissionCatalog.API_ALL), frontendPermissions, backendPermissions,
+            resolveResourceScope(enabledRoleIds, instancePermissions, RoleInstanceResourceType.CLUSTER),
+            resolveResourceScope(enabledRoleIds, instancePermissions, RoleInstanceResourceType.DATASOURCE),
+            resolveResourceScope(enabledRoleIds, instancePermissions, RoleInstanceResourceType.RESOURCE_FILE));
+    }
+
+    private DataScopeContext.ResourceScope resolveResourceScope(Set<String> roleIds,
+        Map<String, RoleInstancePermissionEntity> permissions, String resourceType) {
+
+        Set<String> resourceIds = new HashSet<>();
+        for (String roleId : roleIds) {
+            RoleInstancePermissionEntity permission = permissions.get(roleId + ":" + resourceType);
+            if (permission == null) {
+                return allResourceScope();
+            }
+            Set<String> permissionResourceIds = splitResourceIds(permission.getResourceIds());
+            if (permissionResourceIds.contains(RoleInstanceResourceType.ALL)) {
+                return allResourceScope();
+            }
+            resourceIds.addAll(permissionResourceIds);
+        }
+        return new DataScopeContext.ResourceScope(false, Set.copyOf(resourceIds));
+    }
+
+    private Set<String> splitResourceIds(String resourceIds) {
+
+        if (Strings.isEmpty(resourceIds)) {
+            return Set.of();
+        }
+        return java.util.Arrays.stream(resourceIds.split(",")).filter(id -> !Strings.isEmpty(id))
+            .collect(Collectors.toSet());
+    }
+
+    private DataScopeContext.ResourceScope allResourceScope() {
+
+        return new DataScopeContext.ResourceScope(true, Set.of());
     }
 
     public boolean hasWorkspacePermission(AccessSnapshot access, String module, String action) {
@@ -199,5 +245,14 @@ public class ProductAccessService {
     }
 
     public record WorkspacePermissionResult(boolean menuAllPermissions, boolean apiAllPermissions,
-        Set<String> frontendPermissions, Set<String> backendPermissions) {}
+        Set<String> frontendPermissions, Set<String> backendPermissions, DataScopeContext.ResourceScope clusterScope,
+        DataScopeContext.ResourceScope datasourceScope, DataScopeContext.ResourceScope fileScope) {
+
+        public static WorkspacePermissionResult allPermissions() {
+
+            DataScopeContext.ResourceScope allResourceScope = new DataScopeContext.ResourceScope(true, Set.of());
+            return new WorkspacePermissionResult(true, true, Set.of(), Set.of(), allResourceScope, allResourceScope,
+                allResourceScope);
+        }
+    }
 }

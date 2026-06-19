@@ -1,12 +1,15 @@
 package com.isxcode.spark.modules.file.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.isxcode.spark.common.jpa.DataScopeContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import com.isxcode.spark.common.jpa.SyId;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -24,6 +27,9 @@ import com.isxcode.spark.common.security.ContextHolder;
 @SQLDelete(sql = "UPDATE sy_file SET deleted = 1 WHERE id = ? and version_number = ?")
 @SQLRestriction("deleted = 0")
 @Filter(name = "tenantFilter", condition = "tenant_id in (:tenantIds)")
+@Filter(name = DataScopeContext.FILE_FILTER, condition = "id in (:fileDataScopeIds)")
+@FilterDef(name = DataScopeContext.FILE_FILTER,
+    parameters = @ParamDef(name = DataScopeContext.FILE_IDS_PARAM, type = String.class))
 @Table(name = "sy_file")
 @JsonIgnoreProperties({"hibernateLazyInitializer"})
 @EntityListeners(AuditingEntityListener.class)

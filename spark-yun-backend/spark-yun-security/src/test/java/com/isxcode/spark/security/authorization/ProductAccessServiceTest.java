@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+import com.isxcode.spark.api.authorization.constants.RoleInstanceResourceType;
 import com.isxcode.spark.api.tenant.constants.TenantStatus;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.constants.UserStatus;
@@ -40,6 +41,9 @@ class ProductAccessServiceTest {
 
     @Mock
     private RolePermissionRepository rolePermissionRepository;
+
+    @Mock
+    private RoleInstancePermissionRepository roleInstancePermissionRepository;
 
     @Mock
     private MemberRoleRepository memberRoleRepository;
@@ -85,6 +89,8 @@ class ProductAccessServiceTest {
             .thenReturn(List.of(permission("workspace:workflow:menu")));
         when(rolePermissionRepository.findAllByTenantIdAndRoleId("tenant", "parent-role"))
             .thenReturn(List.of(permission("workspace:custom-api:execute")));
+        when(roleInstancePermissionRepository.findAllByTenantIdAndRoleIdIn("tenant",
+            Set.of("direct", "child-role", "parent-role"))).thenReturn(List.of());
 
         AccessSnapshot result = productAccessService.resolve("user", "tenant");
 
@@ -105,6 +111,34 @@ class ProductAccessServiceTest {
         assertThat(result.normalAdmin()).isTrue();
         assertThat(result.hasAllWorkspacePermissions()).isTrue();
         assertThat(result.permissions()).isEmpty();
+    }
+
+    @Test
+    void combinesRestrictedResourceIdsAndAllResourceScopeWins() {
+
+        when(memberRoleRepository.findAllByTenantIdAndUserId("tenant", "user"))
+            .thenReturn(List.of(memberRole("role-a"), memberRole("role-b")));
+        when(orgMemberRepository.findAllByTenantIdAndUserId("tenant", "user")).thenReturn(List.of());
+        when(roleRepository.findAllByTenantIdAndIdIn("tenant", Set.of("role-a", "role-b")))
+            .thenReturn(List.of(role("role-a"), role("role-b")));
+        when(rolePermissionRepository.findAllByTenantIdAndRoleId("tenant", "role-a")).thenReturn(List.of());
+        when(rolePermissionRepository.findAllByTenantIdAndRoleId("tenant", "role-b")).thenReturn(List.of());
+        when(roleInstancePermissionRepository.findAllByTenantIdAndRoleIdIn("tenant", Set.of("role-a", "role-b")))
+            .thenReturn(List.of(instancePermission("role-a", RoleInstanceResourceType.CLUSTER, false, "cluster-a"),
+                instancePermission("role-b", RoleInstanceResourceType.CLUSTER, false, "cluster-b,cluster-a"),
+                instancePermission("role-a", RoleInstanceResourceType.DATASOURCE, false, "datasource-a"),
+                instancePermission("role-b", RoleInstanceResourceType.DATASOURCE, true, RoleInstanceResourceType.ALL),
+                instancePermission("role-a", RoleInstanceResourceType.RESOURCE_FILE, false, ""),
+                instancePermission("role-b", RoleInstanceResourceType.RESOURCE_FILE, false, "")));
+
+        ProductAccessService.WorkspacePermissionResult result =
+            productAccessService.resolveWorkspacePermissions("tenant", "user");
+
+        assertThat(result.clusterScope().allEnabled()).isFalse();
+        assertThat(result.clusterScope().resourceIds()).containsExactlyInAnyOrder("cluster-a", "cluster-b");
+        assertThat(result.datasourceScope().allEnabled()).isTrue();
+        assertThat(result.fileScope().allEnabled()).isFalse();
+        assertThat(result.fileScope().resourceIds()).isEmpty();
     }
 
     @Test
@@ -238,6 +272,17 @@ class ProductAccessServiceTest {
 
         RolePermissionEntity result = new RolePermissionEntity();
         result.setPermissionCode(code);
+        return result;
+    }
+
+    private RoleInstancePermissionEntity instancePermission(String roleId, String resourceType, boolean allEnabled,
+        String resourceIds) {
+
+        RoleInstancePermissionEntity result = new RoleInstancePermissionEntity();
+        result.setRoleId(roleId);
+        result.setResourceType(resourceType);
+        result.setAllEnabled(allEnabled);
+        result.setResourceIds(resourceIds);
         return result;
     }
 }

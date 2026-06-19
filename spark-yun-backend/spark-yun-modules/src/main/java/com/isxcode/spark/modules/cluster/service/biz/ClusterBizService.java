@@ -80,6 +80,8 @@ public class ClusterBizService {
 
     public void deleteCluster(DeleteClusterReq deleteClusterReq) {
 
+        ClusterEntity cluster = clusterService.getCluster(deleteClusterReq.getEngineId());
+
         // 所有的节点都卸载了，才能删除集群
         List<ClusterNodeEntity> allNode = clusterNodeRepository.findAllByClusterId(deleteClusterReq.getEngineId());
         boolean canNoteDelete = allNode.stream().anyMatch(e -> ClusterNodeStatus.RUNNING.equals(e.getStatus()));
@@ -87,7 +89,7 @@ public class ClusterBizService {
             throw new IsxAppException("存在节点未卸载");
         }
 
-        clusterRepository.deleteById(deleteClusterReq.getEngineId());
+        clusterRepository.delete(cluster);
     }
 
     public void checkCluster(CheckClusterReq checkClusterReq) {

@@ -224,7 +224,8 @@ public class DatasourceBizService {
 
     public void deleteDatasource(DeleteDatasourceReq deleteDatasourceReq) {
 
-        datasourceRepository.deleteById(deleteDatasourceReq.getDatasourceId());
+        DatasourceEntity datasource = datasourceService.getDatasource(deleteDatasourceReq.getDatasourceId());
+        datasourceRepository.delete(datasource);
     }
 
     public TestConnectRes testConnect(GetConnectLogReq testConnectReq) {

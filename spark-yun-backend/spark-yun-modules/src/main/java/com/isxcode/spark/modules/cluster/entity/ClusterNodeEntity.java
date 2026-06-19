@@ -3,6 +3,7 @@ package com.isxcode.spark.modules.cluster.entity;
 import com.isxcode.spark.common.security.ContextHolder;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.isxcode.spark.common.jpa.DataScopeContext;
 import java.time.LocalDateTime;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -33,6 +34,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @SQLDelete(sql = "UPDATE sy_cluster_node SET deleted = 1 WHERE id = ?")
 @SQLRestriction("deleted = 0")
 @Filter(name = "tenantFilter", condition = "tenant_id in (:tenantIds)")
+@Filter(name = DataScopeContext.CLUSTER_FILTER, condition = "cluster_id in (:clusterDataScopeIds)")
 @Table(name = "sy_cluster_node")
 @JsonIgnoreProperties({"hibernateLazyInitializer"})
 @EntityListeners(AuditingEntityListener.class)

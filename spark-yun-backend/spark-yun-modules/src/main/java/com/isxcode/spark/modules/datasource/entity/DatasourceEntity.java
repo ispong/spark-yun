@@ -3,6 +3,7 @@ package com.isxcode.spark.modules.datasource.entity;
 import com.isxcode.spark.common.security.ContextHolder;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.isxcode.spark.common.jpa.DataScopeContext;
 import java.time.LocalDateTime;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -15,6 +16,8 @@ import lombok.Data;
 import com.isxcode.spark.common.jpa.SyId;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -27,6 +30,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @SQLDelete(sql = "UPDATE sy_datasource SET deleted = 1 WHERE id = ? and version_number = ?")
 @SQLRestriction("deleted = 0")
 @Filter(name = "tenantFilter", condition = "tenant_id in (:tenantIds)")
+@Filter(name = DataScopeContext.DATASOURCE_FILTER, condition = "id in (:datasourceDataScopeIds)")
+@FilterDef(name = DataScopeContext.DATASOURCE_FILTER,
+    parameters = @ParamDef(name = DataScopeContext.DATASOURCE_IDS_PARAM, type = String.class))
 @Table(name = "sy_datasource")
 @JsonIgnoreProperties({"hibernateLazyInitializer"})
 @EntityListeners(AuditingEntityListener.class)

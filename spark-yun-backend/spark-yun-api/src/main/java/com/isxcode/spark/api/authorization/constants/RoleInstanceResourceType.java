@@ -9,4 +9,6 @@ public interface RoleInstanceResourceType {
     String DATASOURCE = "DATASOURCE";
 
     String RESOURCE_FILE = "RESOURCE_FILE";
+
+    String ALL = "ALL";
 }

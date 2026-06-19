@@ -345,6 +345,7 @@ const buttonLabels: Record<string, string> = {
 }
 const MENU_ALL = 'MENU_ALL'
 const API_ALL = 'API_ALL'
+const RESOURCE_ALL = 'ALL'
 
 const instanceResourceTypes: Array<{ code: InstanceResourceType; name: string }> = [
     { code: 'CLUSTER', name: '计算集群' },
@@ -355,7 +356,7 @@ const instanceResourceTypes: Array<{ code: InstanceResourceType; name: string }>
 function createInstancePermissionState(): InstancePermissionState {
     return {
         allEnabled: true,
-        resourceIds: [],
+        resourceIds: [RESOURCE_ALL],
         tableData: [],
         page: 1,
         pageSize: 10,
@@ -572,7 +573,7 @@ function getInstanceTableConfig(resourceType: InstanceResourceType) {
         checkbox: true,
         checkboxDisabled: state.allEnabled,
         rowKey: 'id',
-        selectedRowKeys: state.resourceIds,
+        selectedRowKeys: state.allEnabled ? [] : state.resourceIds,
         loading: state.loading
     }
 }
@@ -812,8 +813,9 @@ function loadInstancePermission(resourceType: InstanceResourceType) {
     const permission = selectedRole.value.instancePermissions?.find(
         (item) => item.resourceType === resourceType
     )
-    state.allEnabled = permission?.allEnabled !== false
-    state.resourceIds = permission?.resourceIds || []
+    const resourceIds = permission?.resourceIds || [RESOURCE_ALL]
+    state.allEnabled = resourceIds.includes(RESOURCE_ALL)
+    state.resourceIds = state.allEnabled ? [RESOURCE_ALL] : resourceIds.filter((id) => id !== RESOURCE_ALL)
 }
 
 function getPagedContent(res: any) {
@@ -903,7 +905,7 @@ function handleInstanceSelectionChange(resourceType: InstanceResourceType, rows:
     const state = instancePermissionState[resourceType]
     if (state.allEnabled) return
     const currentPageIds = new Set(state.tableData.map((item) => item.id))
-    const selectedIds = new Set(state.resourceIds.filter((id) => !currentPageIds.has(id)))
+    const selectedIds = new Set(state.resourceIds.filter((id) => id !== RESOURCE_ALL && !currentPageIds.has(id)))
     rows.forEach((row) => selectedIds.add(row.id))
     state.resourceIds = Array.from(selectedIds)
 }
@@ -911,7 +913,9 @@ function handleInstanceSelectionChange(resourceType: InstanceResourceType, rows:
 function handleInstanceAllChange(resourceType: InstanceResourceType) {
     const state = instancePermissionState[resourceType]
     if (state.allEnabled) {
-        state.resourceIds = []
+        state.resourceIds = [RESOURCE_ALL]
+    } else {
+        state.resourceIds = state.resourceIds.filter((id) => id !== RESOURCE_ALL)
     }
 }
 
@@ -925,7 +929,7 @@ function saveInstancePermission(resourceType: InstanceResourceType) {
             roleId: selectedRole.value!.id,
             resourceType: item.code,
             allEnabled: itemState.allEnabled,
-            resourceIds: itemState.allEnabled ? [] : itemState.resourceIds
+            resourceIds: itemState.allEnabled ? [RESOURCE_ALL] : itemState.resourceIds.filter((id) => id !== RESOURCE_ALL)
         }
     })
     SaveRole({

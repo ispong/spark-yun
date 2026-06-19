@@ -1,5 +1,6 @@
 package com.isxcode.spark.security.main;
 
+import com.isxcode.spark.common.jpa.DataScopeContext;
 import com.isxcode.spark.common.security.ContextHolder;
 import com.isxcode.spark.security.authorization.AccessSnapshot;
 import com.isxcode.spark.security.authorization.ProductAccessService;
@@ -37,42 +38,55 @@ public class ProductAccessAuthorizationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
         try {
-            if (isPlatformPath(path)) {
-                checkPlatformAccess();
-            } else if (isAdminPath(path)) {
-                checkAdminAccess();
-            } else {
-                String module = WorkspacePermissionCatalog.resolveModule(path);
-                if (module != null) {
-                    checkWorkspaceAccess(module, WorkspacePermissionCatalog.resolveAction(path), request.getMethod(),
-                        path);
+            AccessSnapshot access = productAccessService.resolve(ContextHolder.getUserId(), ContextHolder.getTenantId());
+            DataScopeContext.runWithDataScope(access.dataScope(), () -> {
+                if (isPlatformPath(path)) {
+                    checkPlatformAccess(access);
+                } else if (isAdminPath(path)) {
+                    checkAdminAccess(access);
+                } else {
+                    String module = WorkspacePermissionCatalog.resolveModule(path);
+                    if (module != null) {
+                        checkWorkspaceAccess(access, module, WorkspacePermissionCatalog.resolveAction(path),
+                            request.getMethod(), path);
+                    }
                 }
-            }
-            filterChain.doFilter(request, response);
+                try {
+                    filterChain.doFilter(request, response);
+                } catch (IOException | ServletException exception) {
+                    throw new FilterChainException(exception);
+                }
+            });
         } catch (AccessDeniedException exception) {
             accessDeniedHandler.handle(request, response, exception);
+        } catch (FilterChainException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof IOException ioException) {
+                throw ioException;
+            }
+            if (cause instanceof ServletException servletException) {
+                throw servletException;
+            }
+            throw exception;
         }
     }
 
-    private void checkPlatformAccess() {
+    private void checkPlatformAccess(AccessSnapshot access) {
 
-        AccessSnapshot access = productAccessService.resolve(ContextHolder.getUserId(), ContextHolder.getTenantId());
         if (!access.systemAdmin() && !access.platformAdmin()) {
             throw new AccessDeniedException("无平台管理权限");
         }
     }
 
-    private void checkAdminAccess() {
+    private void checkAdminAccess(AccessSnapshot access) {
 
-        AccessSnapshot access = productAccessService.resolve(ContextHolder.getUserId(), ContextHolder.getTenantId());
         if (!access.platformAdmin() && !access.tenantAdmin() && !access.normalAdmin()) {
             throw new AccessDeniedException("无后台管理权限");
         }
     }
 
-    private void checkWorkspaceAccess(String module, String action, String method, String path) {
+    private void checkWorkspaceAccess(AccessSnapshot access, String module, String action, String method, String path) {
 
-        AccessSnapshot access = productAccessService.resolve(ContextHolder.getUserId(), ContextHolder.getTenantId());
         if (access.systemAdmin()) {
             throw new AccessDeniedException("超级管理员不能进入工作台");
         }
@@ -117,5 +131,13 @@ public class ProductAccessAuthorizationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
 
         return request.getServletPath().contains("/open/");
+    }
+
+    private static class FilterChainException extends RuntimeException {
+
+        private FilterChainException(Throwable cause) {
+
+            super(cause);
+        }
     }
 }
