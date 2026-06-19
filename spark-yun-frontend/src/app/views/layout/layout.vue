@@ -73,6 +73,12 @@
                             </el-icon>
                             <EllipsisTooltip class="zqy-layout__user-menu-text" :label="activeTenantName" />
                         </div>
+                        <div v-if="showApplyTenant" class="zqy-layout__user-menu-option" @click="openApplyTenantDialog">
+                            <el-icon>
+                                <School />
+                            </el-icon>
+                            加入租户
+                        </div>
                         <div v-if="showWorkspaceEntry" class="zqy-layout__user-menu-option" @click="goArea('/workspace')">
                             <el-icon>
                                 <SetUp />
@@ -96,12 +102,6 @@
                                 <User />
                             </el-icon>
                             个人中心
-                        </div>
-                        <div v-if="showApplyTenant" class="zqy-layout__user-menu-option" @click="openApplyTenantDialog">
-                            <el-icon>
-                                <School />
-                            </el-icon>
-                            加入租户
                         </div>
                         <div class="zqy-layout__user-menu-option" @click="handleCommand('logout')">
                             <el-icon>
