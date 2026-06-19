@@ -511,7 +511,6 @@ onMounted(() => {
         display: flex;
         gap: 8px;
         margin-top: auto;
-        transform: translateY(-2px);
 
         .el-upload {
             display: block;
