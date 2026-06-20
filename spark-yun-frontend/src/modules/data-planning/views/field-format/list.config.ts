@@ -10,6 +10,7 @@ export interface colConfig {
     align?: string
     showOverflowTooltip?: boolean
     customSlot?: string
+    headerClassName?: string
     width?: number
     minWidth?: number
     formatter?: any
@@ -52,18 +53,8 @@ export const colConfigs: colConfig[] = [
         prop: 'columnTypeCode',
         title: '字段类型',
         minWidth: 120,
-        formatter: (data: any) => {
-            const obj: any = {
-                CUSTOM: '自定义',
-                STRING: '字符串',
-                INT: '整数',
-                DOUBLE: '小数',
-                TEXT: '大文本',
-                DATE: '日期',
-                DATETIME: '日期时间'
-            }
-            return data.cellValue && obj[data.cellValue] ? obj[data.cellValue] : '-'
-        },
+        customSlot: 'fieldTypeSlot',
+        headerClassName: 'field-format-type-column',
         showOverflowTooltip: true
     },
     {

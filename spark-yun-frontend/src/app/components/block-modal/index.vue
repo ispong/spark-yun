@@ -4,7 +4,7 @@
         :title="modelConfig.title"
         :width="modelConfig.width"
         :z-index="modelConfig.zIndex"
-        :class="modelConfig.customClass + ' zqy-block-modal'"
+        :class="[modelConfig.customClass, 'zqy-block-modal']"
         :close-on-press-escape="false"
         :close-on-click-modal="false"
         :append-to-body="true"

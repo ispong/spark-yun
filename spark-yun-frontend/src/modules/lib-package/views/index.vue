@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table lib-package-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addData">新建合集</el-button>
             <div class="zqy-seach">
@@ -154,6 +154,7 @@ function inputEvent(e: string) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData()
 }
 
@@ -178,6 +179,13 @@ onMounted(() => {
     &:hover {
         color: getCssVar('color', 'primary');
         text-decoration: underline;
+    }
+}
+
+.zqy-seach-table.lib-package-page {
+    .btn-group {
+        justify-content: center;
+        gap: 16px;
     }
 }
 </style>

@@ -463,7 +463,11 @@ onMounted(() => {
         transform: translateY(0);
     }
 
-    .cluster-type-tag,
+    .cluster-type-tag {
+        max-width: 100%;
+        white-space: nowrap;
+    }
+
     .normal-cluster-tag {
         max-width: 100%;
         color: getCssVar('text-color', 'regular');

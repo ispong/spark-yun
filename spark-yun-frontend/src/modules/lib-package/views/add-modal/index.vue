@@ -28,6 +28,7 @@ const modelConfig = reactive({
     title: '添加依赖合集',
     visible: false,
     width: '520px',
+    customClass: 'lib-package-add-modal',
     okConfig: {
         title: '确定',
         ok: okEvent,
@@ -109,8 +110,15 @@ defineExpose({
 })
 </script>
 
-<style lang="scss" scoped>
-.add-lib-package {
-    padding: 20px;
+<style lang="scss">
+.lib-package-add-modal.zqy-block-modal {
+    .add-lib-package {
+        padding: 14px 20px 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+    }
 }
 </style>

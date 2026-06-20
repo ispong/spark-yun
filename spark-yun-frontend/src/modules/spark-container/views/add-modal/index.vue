@@ -72,6 +72,7 @@ const modelConfig = reactive({
     title: '新建容器',
     visible: false,
     width: '520px',
+    customClass: 'spark-container-add-modal',
     okConfig: {
         title: '确定',
         ok: okEvent,

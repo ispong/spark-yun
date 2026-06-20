@@ -468,6 +468,20 @@ onMounted(() => {
         }
         .zqy-table {
             position: relative;
+            .vxe-table--header .data-layer-path-column {
+                position: relative;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: 25%;
+                    bottom: 25%;
+                    left: 0;
+                    width: 1px;
+                    pointer-events: none;
+                    background-color: var(--vxe-ui-table-resizable-line-color);
+                }
+            }
             .data-layer-action-group {
                 justify-content: center;
                 gap: 16px;

@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table global-variables-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addData">新建变量</el-button>
             <div class="zqy-seach">
@@ -27,8 +27,8 @@
                     <template #options="scopeSlot">
                         <div class="btn-group">
                             <span @click="copyData(scopeSlot.row)">复制</span>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                            <el-dropdown trigger="click" popper-class="global-variables-action-dropdown">
+                                <span class="click-show-more global-variables-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
@@ -194,6 +194,7 @@ function inputEvent(e: string) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData()
 }
 
@@ -208,3 +209,32 @@ onMounted(() => {
     initData()
 })
 </script>
+
+<style lang="scss">
+.zqy-seach-table.global-variables-page {
+    .btn-group {
+        justify-content: center;
+        gap: 16px;
+    }
+
+    .global-variables-action-button {
+        display: inline-flex;
+        align-items: center;
+        line-height: 1;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+
+.global-variables-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+</style>

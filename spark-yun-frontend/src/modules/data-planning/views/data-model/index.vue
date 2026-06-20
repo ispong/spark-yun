@@ -40,6 +40,11 @@
                     <template #nameSlot="scopeSlot">
                         <span class="name-click" @click="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
                     </template>
+                    <template #modelTypeSlot="scopeSlot">
+                        <el-tag class="data-model-type-tag">
+                            {{ getModelTypeName(scopeSlot.row.modelType) }}
+                        </el-tag>
+                    </template>
                     <template #layerNameSlot="scopeSlot">
                         <span>{{ scopeSlot.row.layerName }}</span>
                     </template>
@@ -123,6 +128,14 @@ const copyModalRef = ref<any>(null)
 const showLogRef = ref<any>(null)
 const selectedRows = ref<any[]>([])
 const batchLoading = ref(false)
+const modelTypeList = [
+    { label: '原始模型', value: 'ORIGIN_MODEL' },
+    { label: '关联模型', value: 'LINK_MODEL' }
+]
+
+function getModelTypeName(modelType: string) {
+    return modelTypeList.find((item) => item.value === modelType)?.label || modelType || '--'
+}
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -447,6 +460,24 @@ onMounted(() => {
             transform: translateY(0);
         }
         .zqy-table {
+            .vxe-table--header .data-model-type-column {
+                position: relative;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: 25%;
+                    bottom: 25%;
+                    left: 0;
+                    width: 1px;
+                    pointer-events: none;
+                    background-color: var(--vxe-ui-table-resizable-line-color);
+                }
+            }
+            .data-model-type-tag {
+                max-width: 100%;
+                white-space: nowrap;
+            }
             .data-model-action-group {
                 justify-content: center;
                 gap: 16px;

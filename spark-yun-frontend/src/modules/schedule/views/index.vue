@@ -6,7 +6,7 @@
                 <el-radio-button label="workflow">作业流</el-radio-button>
                 <el-radio-button label="work">作业</el-radio-button>
             </el-radio-group>
-            <div class="zqy-tenant__select">
+            <div class="zqy-tenant__select schedule-filter-group">
                 <el-select v-model="executeStatus" clearable placeholder="请选择状态进行搜索" @change="initPageTable">
                     <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
@@ -85,7 +85,7 @@
                     <template #options="scopeSlot">
                         <div class="btn-group">
                             <span @click="showDetailModal(scopeSlot.row, 'log')">日志</span>
-                            <el-dropdown trigger="click">
+                            <el-dropdown trigger="click" popper-class="schedule-action-dropdown">
                                 <span class="click-show-more">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
@@ -147,7 +147,7 @@
                     <template #workFlowOptions="scopeSlot">
                         <div class="btn-group">
                             <span @click="showDagDetail(scopeSlot.row)">DAG</span>
-                            <el-dropdown trigger="click">
+                            <el-dropdown trigger="click" popper-class="schedule-action-dropdown">
                                 <span class="click-show-more">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
@@ -435,7 +435,9 @@ function inputEvent(e: string) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     tableConfigWorkFlow.pagination.pageSize = e
+    tableConfigWorkFlow.pagination.currentPage = 1
     initData()
 }
 
@@ -551,23 +553,54 @@ onUnmounted(() => {
 
     &.zqy-schedule {
         .zqy-table-top {
+            gap: 16px;
+            justify-content: flex-start;
+
             .el-radio-group {
+                flex: 0 0 auto;
+
                 .el-radio-button__inner {
                     font-size: getCssVar('font-size', 'extra-small');
                 }
             }
 
+            .schedule-filter-group {
+                display: flex;
+                flex: 0 0 auto;
+                align-items: center;
+                gap: 12px;
+
+                .el-select {
+                    width: 160px;
+                }
+            }
+
             .workflow-search {
-                margin-left: 12px;
+                margin-left: 0;
             }
         }
         .zqy-seach {
             display: flex;
             align-items: center;
+            margin-left: auto;
+
             .el-button {
                 margin-left: 12px;
             }
         }
+    }
+}
+
+.schedule-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
     }
 }
 </style>

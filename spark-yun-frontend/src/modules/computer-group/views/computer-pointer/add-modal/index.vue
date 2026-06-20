@@ -14,8 +14,8 @@
             </el-form-item>
             <el-form-item label="连接方式" prop="connectType">
                 <el-radio-group v-model="formData.connectType" class="connect-type-group">
-                    <el-radio-button label="SSH">SSH连接</el-radio-button>
-                    <el-radio-button label="AGENT_PORT">端口号连接</el-radio-button>
+                    <el-radio-button label="SSH">SSH</el-radio-button>
+                    <el-radio-button label="AGENT_PORT">HTTP</el-radio-button>
                 </el-radio-group>
             </el-form-item>
             <el-form-item v-if="!isSshConnect" label="服务端口" prop="agentPort">

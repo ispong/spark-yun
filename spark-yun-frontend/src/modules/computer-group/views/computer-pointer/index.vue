@@ -40,6 +40,9 @@
                     <template #nameSlot="scopeSlot">
                         <span class="name-click" @click="editNodeData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
                     </template>
+                    <template #connectTypeSlot="scopeSlot">
+                        <el-tag>{{ getConnectTypeName(scopeSlot.row.connectType) }}</el-tag>
+                    </template>
                     <template #cpuSlot="scopeSlot">
                         <div class="resource-progress">
                             <el-progress
@@ -241,6 +244,15 @@ function getCpuDisplay(cpuValue: string): string {
         return '--'
     }
     return text.includes('%') ? text : `${text}%`
+}
+
+function getConnectTypeName(connectType?: string): string {
+    const connectTypeMap: Record<string, string> = {
+        SSH: 'SSH',
+        HTTP: 'HTTP',
+        AGENT_PORT: 'HTTP'
+    }
+    return connectTypeMap[connectType || 'SSH'] || connectType || 'SSH'
 }
 
 function isSshNode(row: any): boolean {

@@ -40,6 +40,11 @@
                     <template #nameSlot="scopeSlot">
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
                     </template>
+                    <template #fieldTypeSlot="scopeSlot">
+                        <el-tag class="field-format-type-tag">
+                            {{ getFieldTypeName(scopeSlot.row.columnTypeCode) }}
+                        </el-tag>
+                    </template>
                     <template #options="scopeSlot">
                         <div class="btn-group field-format-action-group">
                             <span class="field-format-action-button" @click="editData(scopeSlot.row)">编辑</span>
@@ -97,6 +102,19 @@ const networkError = ref(false)
 const addModalRef = ref<any>(null)
 const selectedRows = ref<any[]>([])
 const batchLoading = ref(false)
+const fieldTypeList = [
+    { label: '自定义', value: 'CUSTOM' },
+    { label: '字符串', value: 'STRING' },
+    { label: '整数', value: 'INT' },
+    { label: '小数', value: 'DOUBLE' },
+    { label: '大文本', value: 'TEXT' },
+    { label: '日期', value: 'DATE' },
+    { label: '日期时间', value: 'DATETIME' }
+]
+
+function getFieldTypeName(columnTypeCode: string) {
+    return fieldTypeList.find((item) => item.value === columnTypeCode)?.label || columnTypeCode || '--'
+}
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -345,7 +363,25 @@ onMounted(() => {
             opacity: 1;
             transform: translateY(0);
         }
+        .field-format-type-tag {
+            max-width: 100%;
+            white-space: nowrap;
+        }
         .zqy-table {
+            .vxe-table--header .field-format-type-column {
+                position: relative;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: 25%;
+                    bottom: 25%;
+                    left: 0;
+                    width: 1px;
+                    pointer-events: none;
+                    background-color: var(--vxe-ui-table-resizable-line-color);
+                }
+            }
             .field-format-action-group {
                 justify-content: center;
                 gap: 16px;

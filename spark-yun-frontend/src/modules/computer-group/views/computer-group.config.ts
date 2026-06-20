@@ -153,6 +153,12 @@ export const PointColConfigs: colConfig[] = [
         showOverflowTooltip: true
     },
     {
+        prop: 'connectType',
+        title: '类型',
+        minWidth: 90,
+        customSlot: 'connectTypeSlot'
+    },
+    {
         prop: 'host',
         title: '地址',
         minWidth: 120,

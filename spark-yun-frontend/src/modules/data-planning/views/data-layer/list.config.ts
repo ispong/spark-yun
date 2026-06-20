@@ -10,6 +10,7 @@ export interface colConfig {
     align?: string
     showOverflowTooltip?: boolean
     customSlot?: string
+    headerClassName?: string
     width?: number
     minWidth?: number
     formatter?: any
@@ -54,6 +55,7 @@ export const colConfigs: colConfig[] = [
         title: '分层路径',
         minWidth: 180,
         customSlot: 'parentNameSlot',
+        headerClassName: 'data-layer-path-column',
         showOverflowTooltip: true
     },
     {

@@ -401,12 +401,6 @@ onMounted(() => {
         white-space: nowrap;
     }
 
-    .driver-type-tag {
-        color: getCssVar('text-color', 'regular');
-        border-color: getCssVar('border-color', 'light');
-        background-color: getCssVar('fill-color', 'lighter');
-    }
-
     .driver-action-group {
         justify-content: center;
         gap: 16px;

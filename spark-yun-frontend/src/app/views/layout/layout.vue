@@ -75,25 +75,25 @@
                             </el-icon>
                             加入租户
                         </div>
-                        <div v-if="showWorkspaceEntry" class="zqy-layout__user-menu-option" @click="goArea('/workspace')">
+                        <div v-if="showWorkspaceEntry" class="zqy-layout__user-menu-option" @mousedown.prevent.stop="goArea('workspace')">
                             <el-icon>
                                 <SetUp />
                             </el-icon>
                             工作空间
                         </div>
-                        <div v-if="showAdminEntry" class="zqy-layout__user-menu-option" @click="goArea('/admin')">
+                        <div v-if="showAdminEntry" class="zqy-layout__user-menu-option" @mousedown.prevent.stop="goArea('admin')">
                             <el-icon>
                                 <ScaleToOriginal />
                             </el-icon>
                             后台管理
                         </div>
-                        <div v-if="showPlatformEntry" class="zqy-layout__user-menu-option" @click="goArea('/platform')">
+                        <div v-if="showPlatformEntry" class="zqy-layout__user-menu-option" @mousedown.prevent.stop="goArea('platform')">
                             <el-icon>
                                 <Monitor />
                             </el-icon>
                             平台管理
                         </div>
-                        <div v-if="showPersonalInfo" class="zqy-layout__user-menu-option" @click="goPersonalInfo">
+                        <div v-if="showPersonalInfo" class="zqy-layout__user-menu-option" @mousedown.prevent.stop="goPersonalInfo">
                             <el-icon>
                                 <User />
                             </el-icon>
@@ -419,9 +419,16 @@ function goPersonalInfo() {
     })
 }
 
-function goArea(path: string) {
+function goArea(area: 'workspace' | 'admin' | 'platform') {
     menuVisible.value = false
-    router.push(path)
+    const routeNames: Record<typeof area, string> = {
+        workspace: 'zhiqing-ai',
+        admin: 'admin-tenant-user',
+        platform: 'platform-user-center'
+    }
+    router.push({
+        name: routeNames[area]
+    })
 }
 
 function handleCommand(command: 'logout') {

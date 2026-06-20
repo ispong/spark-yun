@@ -10,6 +10,7 @@ export interface colConfig {
     align?: string
     showOverflowTooltip?: boolean
     customSlot?: string
+    headerClassName?: string
     width?: number
     minWidth?: number
     formatter?: any
@@ -52,13 +53,8 @@ export const colConfigs: colConfig[] = [
         prop: 'modelType',
         title: '模型类型',
         minWidth: 120,
-        formatter: (data: any) => {
-            const obj: any = {
-                ORIGIN_MODEL: '原始模型',
-                LINK_MODEL: '关联模型'
-            }
-            return data.cellValue && obj[data.cellValue] ? obj[data.cellValue] : '-'
-        },
+        headerClassName: 'data-model-type-column',
+        customSlot: 'modelTypeSlot',
         showOverflowTooltip: true
     },
     {

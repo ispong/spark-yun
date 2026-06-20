@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table spark-container-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addData">新建容器</el-button>
             <div class="zqy-seach">
@@ -43,8 +43,8 @@
                             <el-icon v-else class="is-loading">
                                 <Loading />
                             </el-icon>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                            <el-dropdown trigger="click" popper-class="spark-container-action-dropdown">
+                                <span class="click-show-more spark-container-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item @click="showLog(scopeSlot.row)">提交日志</el-dropdown-item>
@@ -250,6 +250,7 @@ function inputEvent(e: string) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData(true)
 }
 
@@ -273,4 +274,32 @@ onUnmounted(() => {
     timer.value = null
 })
 </script>
-./spark-container.config
+
+<style lang="scss">
+.zqy-seach-table.spark-container-page {
+    .btn-group {
+        justify-content: center;
+        gap: 16px;
+    }
+
+    .spark-container-action-button {
+        display: inline-flex;
+        align-items: center;
+        line-height: 1;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+
+.spark-container-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+</style>

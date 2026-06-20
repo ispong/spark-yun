@@ -172,7 +172,7 @@ const normalizedColConfigs = computed(() => {
             headerClassNameList.push('block-table__fixed-left-end')
         }
 
-        if (colIndex === 1) {
+        if (columnResizable.value && colIndex === 1) {
             headerClassNameList.push('block-table__fixed-left-next')
         }
 

@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table custom-func-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addData">新建函数</el-button>
             <div class="zqy-seach">
@@ -155,6 +155,7 @@ function inputEvent(e: string) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData()
 }
 
@@ -169,3 +170,12 @@ onMounted(() => {
     initData()
 })
 </script>
+
+<style lang="scss">
+.zqy-seach-table.custom-func-page {
+    .btn-group {
+        justify-content: center;
+        gap: 16px;
+    }
+}
+</style>

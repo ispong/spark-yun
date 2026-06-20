@@ -491,9 +491,6 @@ onMounted(() => {
 
     .datasource-type-tag {
         max-width: 100%;
-        color: getCssVar('text-color', 'regular');
-        border-color: getCssVar('border-color', 'light');
-        background-color: getCssVar('fill-color', 'lighter');
         white-space: nowrap;
     }
 
