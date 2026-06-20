@@ -51,6 +51,13 @@ export default defineConfig({
             checks: { // rolldown打包检查
                 invalidAnnotation: false, // 关闭无效注释打印
                 pluginTimings: false // 关闭插件耗时打印
+            },
+            output: {
+                manualChunks(id) {
+                    if (id.includes('/node_modules/vue/') || id.includes('/node_modules/@vue/') || id.includes('/vue-demi')) {
+                        return 'vue-vendor'
+                    }
+                }
             }
         }
     },
