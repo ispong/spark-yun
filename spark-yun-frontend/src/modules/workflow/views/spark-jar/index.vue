@@ -61,9 +61,16 @@
             <div class="zqy-work-container jar-work-container">
                 <div class="sql-code-container">
                     <!-- 这里是表单部分 -->
-                    <el-form ref="form" label-position="top" label-width="70px" :model="jarJobConfig" :rules="rules">
+                    <el-form
+                        ref="form"
+                        class="jar-config-form"
+                        label-position="top"
+                        label-width="70px"
+                        :model="jarJobConfig"
+                        :rules="rules"
+                    >
                         <el-row :gutter="24">
-                            <el-col :span="18">
+                            <el-col :span="24">
                                 <el-form-item prop="appName" label="应用名称">
                                     <el-input
                                         v-model="jarJobConfig.appName"
@@ -75,7 +82,7 @@
                             </el-col>
                         </el-row>
                         <el-row :gutter="24">
-                            <el-col :span="18">
+                            <el-col :span="24">
                                 <el-form-item prop="jarFileId" label="资源文件">
                                     <el-select
                                         v-model="jarJobConfig.jarFileId"
@@ -94,7 +101,7 @@
                             </el-col>
                         </el-row>
                         <el-row :gutter="24">
-                            <el-col :span="18">
+                            <el-col :span="24">
                                 <el-form-item prop="mainClass" label="mainClass">
                                     <el-input
                                         v-model="jarJobConfig.mainClass"
@@ -106,11 +113,19 @@
                             </el-col>
                         </el-row>
                         <el-row :gutter="24">
-                            <el-col :span="18">
-                                <el-form-item label="请求参数" class="jar-args-container">
-                                    <el-icon class="button-add" @click="addParam(jarJobConfig.args)">
-                                        <CirclePlusFilled />
-                                    </el-icon>
+                            <el-col :span="24">
+                                <el-form-item class="jar-args-container">
+                                    <template #label>
+                                        <div class="jar-args-label">
+                                            <span>请求参数</span>
+                                            <el-button type="primary" link size="small" @click="addParam(jarJobConfig.args)">
+                                                <el-icon>
+                                                    <CirclePlusFilled />
+                                                </el-icon>
+                                                <span>添加</span>
+                                            </el-button>
+                                        </div>
+                                    </template>
                                     <el-scrollbar>
                                         <template v-for="(tag, index) in jarJobConfig.args" :key="index">
                                             <div class="input-container">
@@ -122,7 +137,7 @@
                                                     @blur.stop
                                                 />
                                                 <el-icon class="button-remove" @click="handleClose(index)">
-                                                    <RemoveFilled />
+                                                    <Close />
                                                 </el-icon>
                                             </div>
                                         </template>
@@ -607,6 +622,33 @@ onUnmounted(() => {
             height: calc(100vh - 108px);
             .sql-code-container {
                 margin-top: 12px;
+                max-width: 720px;
+
+                .jar-config-form {
+                    width: 100%;
+
+                    .el-form-item {
+                        margin-bottom: 20px;
+                    }
+
+                    .el-form-item__label {
+                        width: 100%;
+                        padding: 0;
+                        margin-bottom: 4px;
+                        line-height: 16px;
+                        color: getCssVar('text-color', 'regular');
+                    }
+
+                    .el-form-item__content,
+                    .el-select,
+                    .el-input {
+                        width: 100%;
+                    }
+
+                    .el-input__wrapper {
+                        border-radius: 2px;
+                    }
+                }
             }
 
             .work-item-log__collapse {
@@ -744,10 +786,30 @@ onUnmounted(() => {
             margin-bottom: 12px;
         }
         .el-form-item__label {
+            width: 100%;
             margin-bottom: 0;
+        }
+        .jar-args-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            line-height: 22px;
+
+            .el-button {
+                height: 22px;
+                padding: 0;
+                font-size: 12px;
+
+                .el-icon {
+                    margin-right: 2px;
+                    font-size: 14px;
+                }
+            }
         }
         .el-form-item__content {
             position: relative;
+            align-items: flex-start;
             .el-scrollbar {
                 width: 100%;
                 .el-scrollbar__view {
@@ -755,17 +817,6 @@ onUnmounted(() => {
                     max-height: calc(100vh - 450px);
                     padding-right: 0;
                     box-sizing: border-box;
-                }
-            }
-            .button-add {
-                position: absolute;
-                top: -27px;
-                z-index: 10;
-                left: 52px;
-                color: getCssVar('color', 'primary');
-                cursor: pointer;
-                &:hover {
-                    color: getCssVar('color', 'primary', 'light-3');
                 }
             }
             .input-container {
@@ -785,10 +836,13 @@ onUnmounted(() => {
                     right: 8px;
                     top: 50%;
                     transform: translateY(-50%);
-                    color: getCssVar('color', 'danger');
+                    color: getCssVar('text-color', 'placeholder');
                     cursor: pointer;
+                    font-size: 14px;
+                    line-height: 1;
+                    transition: color 0.15s ease;
                     &:hover {
-                        color: getCssVar('color', 'danger', 'light-3');
+                        color: getCssVar('color', 'primary');
                     }
                 }
             }

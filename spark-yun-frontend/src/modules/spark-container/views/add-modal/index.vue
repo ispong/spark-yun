@@ -273,130 +273,202 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.spark-container-modal {
-    padding: 12px 20px 0 20px;
-    box-sizing: border-box;
-    .el-form-item {
-        .format-json {
-            position: absolute;
-            top: -34px;
-            right: 20px;
-            font-size: 12px;
-            color: getCssVar('color', 'primary');
-            cursor: pointer;
-            &:hover {
-                text-decoration: underline;
-            }
-        }
-        &.show-screen__full {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background-color: #ffffff;
-            padding: 12px 20px;
-            box-sizing: border-box;
-            transition: all 0.15s linear;
-            z-index: 10;
-            .el-form-item__content {
-                align-items: flex-start;
-                height: 100%;
-                .vue-codemirror {
-                    height: calc(100% - 36px);
-                }
-            }
-        }
-        .el-form-item__content {
-            position: relative;
-            flex-wrap: nowrap;
-            justify-content: space-between;
+.spark-container-add-modal.zqy-block-modal {
+    --spark-container-modal-x-padding: 20px;
+    --spark-container-modal-border-color: #ebeef5;
 
-            .copy-url {
-                min-width: 24px;
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--spark-container-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--spark-container-modal-border-color);
+        }
+
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--spark-container-modal-x-padding);
+        border-top: none;
+        align-items: center;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--spark-container-modal-border-color);
+        }
+    }
+
+    .spark-container-modal {
+        padding: 14px var(--spark-container-modal-x-padding) 4px;
+        box-sizing: border-box;
+
+        .el-form-item {
+            position: relative;
+            margin-bottom: 20px;
+
+            .el-form-item__label {
+                width: 100%;
+                padding: 0;
+                margin-bottom: 4px;
+                line-height: 16px;
+                color: getCssVar('text-color', 'regular');
+            }
+
+            .el-form-item__content {
+                position: relative;
+                flex-wrap: nowrap;
+                justify-content: space-between;
+            }
+
+            .el-form-item__content,
+            .el-input,
+            .el-select,
+            .el-textarea {
+                width: 100%;
+            }
+
+            .el-input__wrapper,
+            .el-select__wrapper,
+            .el-textarea__inner {
+                border-radius: 2px;
+            }
+
+            .el-input__inner,
+            .el-select__selected-item,
+            .el-textarea__inner {
+                font-size: getCssVar('font-size', 'base');
+            }
+
+            .format-json {
+                position: absolute;
+                top: -20px;
+                right: 22px;
                 font-size: 12px;
-                margin-left: 10px;
+                line-height: 16px;
                 color: getCssVar('color', 'primary');
                 cursor: pointer;
+
                 &:hover {
                     text-decoration: underline;
                 }
             }
+
             .modal-full-screen {
                 position: absolute;
-                top: -26px;
+                top: -20px;
                 right: 0;
                 cursor: pointer;
+
                 &:hover {
                     color: getCssVar('color', 'primary');
                 }
             }
-            .vue-codemirror {
-                height: 130px;
+
+            &.show-screen__full {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 10;
                 width: 100%;
+                height: 100%;
+                padding: 12px 20px;
+                box-sizing: border-box;
+                background-color: #fff;
+                transition: all 0.15s linear;
 
-                .cm-editor {
+                .el-form-item__content {
+                    align-items: flex-start;
                     height: 100%;
-                    outline: none;
-                    border: 1px solid #dcdfe6;
+
+                    .vue-codemirror {
+                        height: calc(100% - 36px);
+                    }
                 }
+            }
+        }
 
-                .cm-gutters {
-                    font-size: 12px;
-                    font-family:
-                        v-sans,
-                        system-ui,
-                        -apple-system,
-                        BlinkMacSystemFont,
-                        'Segoe UI',
-                        sans-serif,
-                        'Apple Color Emoji',
-                        'Segoe UI Emoji',
-                        'Segoe UI Symbol';
-                }
+        .vue-codemirror {
+            width: 100%;
+            height: 130px;
 
-                .cm-content {
-                    font-size: 12px;
-                    font-family:
-                        v-sans,
-                        system-ui,
-                        -apple-system,
-                        BlinkMacSystemFont,
-                        'Segoe UI',
-                        sans-serif,
-                        'Apple Color Emoji',
-                        'Segoe UI Emoji',
-                        'Segoe UI Symbol';
-                }
+            .cm-editor {
+                height: 100%;
+                outline: none;
+                border: 1px solid #dcdfe6;
+            }
 
-                .cm-tooltip-autocomplete {
-                    ul {
-                        li {
-                            height: 40px;
-                            display: flex;
-                            align-items: center;
-                            font-size: 12px;
-                            background-color: #ffffff;
-                            font-family:
-                                v-sans,
-                                system-ui,
-                                -apple-system,
-                                BlinkMacSystemFont,
-                                'Segoe UI',
-                                sans-serif,
-                                'Apple Color Emoji',
-                                'Segoe UI Emoji',
-                                'Segoe UI Symbol';
-                        }
+            .cm-gutters,
+            .cm-content {
+                font-size: 12px;
+                font-family:
+                    v-sans,
+                    system-ui,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    'Segoe UI',
+                    sans-serif,
+                    'Apple Color Emoji',
+                    'Segoe UI Emoji',
+                    'Segoe UI Symbol';
+            }
 
-                        li[aria-selected] {
-                            background: #409eff;
-                        }
+            .cm-tooltip-autocomplete {
+                ul {
+                    li {
+                        display: flex;
+                        align-items: center;
+                        height: 40px;
+                        font-size: 12px;
+                        background-color: #fff;
+                        font-family:
+                            v-sans,
+                            system-ui,
+                            -apple-system,
+                            BlinkMacSystemFont,
+                            'Segoe UI',
+                            sans-serif,
+                            'Apple Color Emoji',
+                            'Segoe UI Emoji',
+                            'Segoe UI Symbol';
+                    }
 
-                        .cm-completionIcon {
-                            margin-right: -4px;
-                            opacity: 0;
-                        }
+                    li[aria-selected] {
+                        background: getCssVar('color', 'primary');
+                    }
+
+                    .cm-completionIcon {
+                        margin-right: -4px;
+                        opacity: 0;
                     }
                 }
             }

@@ -61,7 +61,14 @@
             <div class="zqy-work-container api-work-container">
                 <div class="sql-code-container">
                     <!-- 这里是表单部分 -->
-                    <el-form ref="form" label-position="top" label-width="70px" :model="apiWorkConfig" :rules="rules">
+                    <el-form
+                        ref="form"
+                        class="api-config-form"
+                        label-position="top"
+                        label-width="70px"
+                        :model="apiWorkConfig"
+                        :rules="rules"
+                    >
                         <el-form-item label="接口地址" class="api-request-line__form-item">
                             <div class="api-request-line">
                                 <el-form-item prop="requestType" class="api-request-line__method">
@@ -84,12 +91,18 @@
                                 </el-form-item>
                             </div>
                         </el-form-item>
-                        <el-form-item label="请求头" prop="requestHeader">
-                            <span class="add-btn">
-                                <el-icon @click="addNewOption('requestHeader')">
-                                    <CirclePlus />
-                                </el-icon>
-                            </span>
+                        <el-form-item prop="requestHeader" class="api-option-form-item">
+                            <template #label>
+                                <div class="api-option-label">
+                                    <span>请求头</span>
+                                    <el-button type="primary" link size="small" @click="addNewOption('requestHeader')">
+                                        <el-icon>
+                                            <CirclePlus />
+                                        </el-icon>
+                                        <span>添加</span>
+                                    </el-button>
+                                </div>
+                            </template>
                             <div class="form-options__list">
                                 <div
                                     v-for="(element, index) in apiWorkConfig.requestHeader"
@@ -100,28 +113,32 @@
                                         <span class="item-label">键</span>
                                         <el-input v-model="element.label" placeholder="请输入" />
                                     </div>
-                                    <div class="input-item">
+                                    <div class="input-item value-input-item">
                                         <span class="item-label">值</span>
                                         <el-input v-model="element.value" placeholder="请输入" />
-                                    </div>
-                                    <div class="option-btn">
                                         <el-icon
                                             v-if="apiWorkConfig.requestHeader.length > 1"
                                             class="remove"
                                             @click="removeItem(index, 'requestHeader')"
                                         >
-                                            <CircleClose />
+                                            <Close />
                                         </el-icon>
                                     </div>
                                 </div>
                             </div>
                         </el-form-item>
-                        <el-form-item label="请求参数" prop="requestParam">
-                            <span class="add-btn">
-                                <el-icon @click="addNewOption('requestParam')">
-                                    <CirclePlus />
-                                </el-icon>
-                            </span>
+                        <el-form-item prop="requestParam" class="api-option-form-item">
+                            <template #label>
+                                <div class="api-option-label">
+                                    <span>请求参数</span>
+                                    <el-button type="primary" link size="small" @click="addNewOption('requestParam')">
+                                        <el-icon>
+                                            <CirclePlus />
+                                        </el-icon>
+                                        <span>添加</span>
+                                    </el-button>
+                                </div>
+                            </template>
                             <div class="form-options__list">
                                 <div
                                     v-for="(element, index) in apiWorkConfig.requestParam"
@@ -132,17 +149,15 @@
                                         <span class="item-label">键</span>
                                         <el-input v-model="element.label" placeholder="请输入" />
                                     </div>
-                                    <div class="input-item">
+                                    <div class="input-item value-input-item">
                                         <span class="item-label">值</span>
                                         <el-input v-model="element.value" placeholder="请输入" />
-                                    </div>
-                                    <div class="option-btn">
                                         <el-icon
                                             v-if="apiWorkConfig.requestParam.length > 1"
                                             class="remove"
                                             @click="removeItem(index, 'requestParam')"
                                         >
-                                            <CircleClose />
+                                            <Close />
                                         </el-icon>
                                     </div>
                                 </div>
@@ -663,6 +678,33 @@ onUnmounted(() => {
             height: calc(100vh - 150px);
             .sql-code-container {
                 margin-top: 12px;
+                max-width: 920px;
+
+                .api-config-form {
+                    width: 100%;
+
+                    .el-form-item {
+                        margin-bottom: 20px;
+                    }
+
+                    .el-form-item__label {
+                        width: 100%;
+                        padding: 0;
+                        margin-bottom: 4px;
+                        line-height: 16px;
+                        color: getCssVar('text-color', 'regular');
+                    }
+
+                    .el-form-item__content,
+                    .el-select,
+                    .el-input {
+                        width: 100%;
+                    }
+
+                    .el-input__wrapper {
+                        border-radius: 2px;
+                    }
+                }
 
                 .api-request-line__form-item {
                     .api-request-line {
@@ -856,55 +898,82 @@ onUnmounted(() => {
                 }
             }
 
-            .add-btn {
-                position: absolute;
-                right: 0;
-                top: -32px;
+            .api-option-form-item {
+                .el-form-item__label {
+                    width: 100%;
+                }
 
-                .el-icon {
-                    color: getCssVar('color', 'primary');
-                    cursor: pointer;
-                    font-size: 16px;
+                .api-option-label {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 100%;
+                    line-height: 20px;
+
+                    .el-button {
+                        height: 22px;
+                        padding: 0;
+                        font-size: 12px;
+
+                        .el-icon {
+                            margin-right: 2px;
+                            font-size: 14px;
+                        }
+                    }
                 }
             }
 
             .form-options__list {
                 width: 100%;
                 max-height: 210px;
-                overflow: auto;
+                overflow-x: hidden;
+                overflow-y: auto;
 
                 .form-options__item {
-                    display: flex;
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                    column-gap: 18px;
                     margin-bottom: 8px;
 
                     .input-item {
-                        display: flex;
+                        display: grid;
+                        grid-template-columns: 18px minmax(0, 1fr);
+                        align-items: center;
                         font-size: 12px;
-                        margin-right: 8px;
                         color: #303133;
-                        width: 100%;
+                        min-width: 0;
 
                         .item-label {
-                            margin-right: 8px;
+                            line-height: 32px;
                         }
 
                         .el-input {
+                            min-width: 0;
+
                             .el-input__wrapper {
                                 // padding: 0;
                             }
                         }
-                    }
 
-                    .option-btn {
-                        display: flex;
-                        height: 32px;
-                        align-items: center;
-                        margin-right: -8px;
+                        &.value-input-item {
+                            position: relative;
+
+                            .el-input__wrapper {
+                                padding-right: 30px;
+                            }
+                        }
 
                         .remove {
-                            color: red;
+                            position: absolute;
+                            right: 8px;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            color: getCssVar('text-color', 'placeholder');
                             cursor: pointer;
-                            margin-right: 8px;
+                            font-size: 14px;
+                            line-height: 1;
+                            transition:
+                                color 0.15s ease;
 
                             &:hover {
                                 color: getCssVar('color', 'primary');
@@ -919,6 +988,31 @@ onUnmounted(() => {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    .api-option-form-item {
+        .el-form-item__label {
+            width: 100%;
+        }
+
+        .api-option-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            line-height: 20px;
+
+            .el-button {
+                height: 22px;
+                padding: 0;
+                font-size: 12px;
+
+                .el-icon {
+                    margin-right: 2px;
+                    font-size: 14px;
                 }
             }
         }

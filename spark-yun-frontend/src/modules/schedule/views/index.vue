@@ -83,10 +83,10 @@
                         <ZStatusTag :status="scopeSlot.row.status" />
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <span @click="showDetailModal(scopeSlot.row, 'log')">日志</span>
+                        <div class="btn-group schedule-action-group">
+                            <span class="schedule-action-button" @click="showDetailModal(scopeSlot.row, 'log')">日志</span>
                             <el-dropdown trigger="click" popper-class="schedule-action-dropdown">
-                                <span class="click-show-more">更多</span>
+                                <span class="click-show-more schedule-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item
@@ -145,10 +145,10 @@
                         </div>
                     </template>
                     <template #workFlowOptions="scopeSlot">
-                        <div class="btn-group">
-                            <span @click="showDagDetail(scopeSlot.row)">DAG</span>
+                        <div class="btn-group schedule-action-group">
+                            <span class="schedule-action-button" @click="showDagDetail(scopeSlot.row)">DAG</span>
                             <el-dropdown trigger="click" popper-class="schedule-action-dropdown">
-                                <span class="click-show-more">更多</span>
+                                <span class="click-show-more schedule-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item @click="reRunWorkFlowDataEvent(scopeSlot.row)">
@@ -586,6 +586,20 @@ onUnmounted(() => {
 
             .el-button {
                 margin-left: 12px;
+            }
+        }
+
+        .zqy-table {
+            .schedule-action-group {
+                justify-content: center;
+                gap: 16px;
+
+                .schedule-action-button {
+                    display: inline-flex;
+                    align-items: center;
+                    line-height: 1;
+                    font-size: getCssVar('font-size', 'extra-small');
+                }
             }
         }
     }

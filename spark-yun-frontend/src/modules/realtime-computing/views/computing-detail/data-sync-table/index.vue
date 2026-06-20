@@ -137,6 +137,10 @@ const buttons = ref([
 ])
 const connectCopy = ref()
 
+function getThemeColor() {
+    return getComputedStyle(document.documentElement).getPropertyValue('--el-color-primary').trim() || '#409eff'
+}
+
 watch(
     () => authStore.isCollapse,
     (newVal) => {
@@ -248,11 +252,12 @@ function getTableColumnData(params: TableDetailParam, type: string) {
 }
 
 function tableLinkInit() {
+    const themeColor = getThemeColor()
     instance = jsPlumb.getInstance({
         Connector: 'Straight', // 连接线形状 Bezier: 贝塞尔曲线 Flowchart: 具有90度转折点的流程线 StateMachine: 状态机 Straight: 直线
         PaintStyle: {
             strokeWidth: 2,
-            stroke: '#ff7c06'
+            stroke: themeColor
         }, // 连接线样式
         Endpoint: [
             'Blank',
@@ -284,7 +289,7 @@ function tableLinkInit() {
             ]
         ],
         EndpointStyle: {
-            fill: '#000000'
+            fill: themeColor
         }, // 端点样式
         Container: 'container' // 目标容器id
     })
@@ -520,7 +525,7 @@ defineExpose({
                     height: 6px;
                     width: 6px;
                     border-radius: 50%;
-                    background-color: #ff7c06;
+                    background-color: getCssVar('color', 'primary');
                     z-index: 1000;
                     // cursor: pointer;
                     transform: scale(1);
@@ -556,7 +561,7 @@ defineExpose({
                     height: 6px;
                     width: 6px;
                     border-radius: 50%;
-                    background-color: #ff7c06;
+                    background-color: getCssVar('color', 'primary');
                     z-index: 1000;
                     transform: scale(1);
                     transition: transform 0.15s linear;

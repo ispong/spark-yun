@@ -45,14 +45,12 @@
                                     </el-form-item>
                                     <el-form-item class="sqls-container" prop="sqls">
                                         <template #label>
-                                            聚合Sql
                                             <el-tooltip
                                                 content="例如：select username as x, count(1) as y from users group by username"
                                                 placement="top"
+                                                :enterable="false"
                                             >
-                                                <el-icon class="sql-tip-icon">
-                                                    <QuestionFilled />
-                                                </el-icon>
+                                                <span class="label-tooltip-text">聚合Sql</span>
                                             </el-tooltip>
                                         </template>
                                         <el-icon class="sqls-container-add" @click="addSqlEvent">
@@ -136,7 +134,6 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { QuestionFilled } from '@element-plus/icons-vue'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import * as echarts from 'echarts'
@@ -481,11 +478,10 @@ onUnmounted(() => {
                     &.sqls-container {
                         .el-form-item__label {
                             margin-bottom: 0;
-                            .sql-tip-icon {
-                                margin-left: 4px;
-                                color: #909399;
-                                font-size: 14px;
+                            .label-tooltip-text {
+                                display: inline-block;
                                 cursor: pointer;
+
                                 &:hover {
                                     color: getCssVar('color', 'primary');
                                 }

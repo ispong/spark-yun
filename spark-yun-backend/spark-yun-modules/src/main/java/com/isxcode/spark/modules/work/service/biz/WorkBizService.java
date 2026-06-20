@@ -529,17 +529,54 @@ public class WorkBizService {
         // 获取作业配置
         WorkConfigEntity workConfig = workConfigBizService.getWorkConfigEntity(work.getConfigId());
 
-        // 初始化作业配置
-        workConfig.setId(null);
-        workConfig.setVersionNumber(null);
-        workConfig = workConfigRepository.save(workConfig);
+        // 复制作业配置
+        WorkConfigEntity copiedWorkConfig = copyWorkConfig(workConfig);
+        copiedWorkConfig = workConfigRepository.save(copiedWorkConfig);
 
-        // 初始化作业
-        work.setTopIndex(null);
-        work.setConfigId(workConfig.getId());
-        work.setName(wokCopyWorkReq.getWorkName());
-        work.setVersionNumber(null);
-        workRepository.save(work);
+        // 复制作业
+        WorkEntity copiedWork = copyWorkInfo(work, copiedWorkConfig.getId(), wokCopyWorkReq.getWorkName());
+        workRepository.save(copiedWork);
+    }
+
+    private WorkConfigEntity copyWorkConfig(WorkConfigEntity sourceWorkConfig) {
+
+        WorkConfigEntity copiedWorkConfig = new WorkConfigEntity();
+
+        copiedWorkConfig.setDatasourceId(sourceWorkConfig.getDatasourceId());
+        copiedWorkConfig.setScript(sourceWorkConfig.getScript());
+        copiedWorkConfig.setCronConfig(sourceWorkConfig.getCronConfig());
+        copiedWorkConfig.setSyncWorkConfig(sourceWorkConfig.getSyncWorkConfig());
+        copiedWorkConfig.setSyncFlinkConfig(sourceWorkConfig.getSyncFlinkConfig());
+        copiedWorkConfig.setExcelSyncConfig(sourceWorkConfig.getExcelSyncConfig());
+        copiedWorkConfig.setApiWorkConfig(sourceWorkConfig.getApiWorkConfig());
+        copiedWorkConfig.setSyncRule(sourceWorkConfig.getSyncRule());
+        copiedWorkConfig.setClusterConfig(sourceWorkConfig.getClusterConfig());
+        copiedWorkConfig.setJarJobConfig(sourceWorkConfig.getJarJobConfig());
+        copiedWorkConfig.setFuncConfig(sourceWorkConfig.getFuncConfig());
+        copiedWorkConfig.setLibConfig(sourceWorkConfig.getLibConfig());
+        copiedWorkConfig.setLibPackageConfig(sourceWorkConfig.getLibPackageConfig());
+        copiedWorkConfig.setContainerId(sourceWorkConfig.getContainerId());
+        copiedWorkConfig.setAlarmList(sourceWorkConfig.getAlarmList());
+        copiedWorkConfig.setDbMigrateConfig(sourceWorkConfig.getDbMigrateConfig());
+        copiedWorkConfig.setQueryConfig(sourceWorkConfig.getQueryConfig());
+        copiedWorkConfig.setSparkEtlConfig(sourceWorkConfig.getSparkEtlConfig());
+        copiedWorkConfig.setApiSyncConfig(sourceWorkConfig.getApiSyncConfig());
+
+        return copiedWorkConfig;
+    }
+
+    private WorkEntity copyWorkInfo(WorkEntity sourceWork, String copiedWorkConfigId, String copiedWorkName) {
+
+        WorkEntity copiedWork = new WorkEntity();
+
+        copiedWork.setName(copiedWorkName);
+        copiedWork.setWorkType(sourceWork.getWorkType());
+        copiedWork.setRemark(sourceWork.getRemark());
+        copiedWork.setStatus(WorkStatus.UN_PUBLISHED);
+        copiedWork.setConfigId(copiedWorkConfigId);
+        copiedWork.setWorkflowId(sourceWork.getWorkflowId());
+
+        return copiedWork;
     }
 
     public void topWork(TopWorkReq topWorkReq) {

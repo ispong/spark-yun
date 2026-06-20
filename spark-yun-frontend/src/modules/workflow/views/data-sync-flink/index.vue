@@ -108,16 +108,18 @@
                                     />
                                 </el-select>
                             </el-form-item>
-                            <el-form-item prop="sourceDBId" label="数据源">
-                                <el-tooltip
-                                    v-if="!disabled"
-                                    content="数据源网速直接影响同步速度,推荐使用内网ip"
-                                    placement="top"
-                                >
-                                    <el-icon style="left: -30px" class="tooltip-msg">
-                                        <QuestionFilled />
-                                    </el-icon>
-                                </el-tooltip>
+                            <el-form-item prop="sourceDBId" class="label-tooltip-form-item">
+                                <template #label>
+                                    <el-tooltip
+                                        v-if="!disabled"
+                                        content="数据源网速直接影响同步速度,推荐使用内网ip"
+                                        placement="top"
+                                        :enterable="false"
+                                    >
+                                        <span class="label-tooltip-text">数据源</span>
+                                    </el-tooltip>
+                                    <span v-else>数据源</span>
+                                </template>
                                 <el-select
                                     v-model="formData.sourceDBId"
                                     clearable
@@ -134,7 +136,7 @@
                                     />
                                 </el-select>
                             </el-form-item>
-                            <el-form-item prop="sourceTable" label="表">
+                            <el-form-item prop="sourceTable" label="表" class="table-action-form-item">
                                 <el-select
                                     v-model="formData.sourceTable"
                                     clearable
@@ -166,16 +168,18 @@
                                     高级配置
                                 </el-button>
                             </el-form-item>
-                            <el-form-item prop="queryCondition" label="过滤条件">
-                                <el-tooltip
-                                    v-if="!disabled"
-                                    content="例如：age > 12 and username = 'zhangsan'，不需要填写where"
-                                    placement="top"
-                                >
-                                    <el-icon style="left: -20px" class="tooltip-msg">
-                                        <QuestionFilled />
-                                    </el-icon>
-                                </el-tooltip>
+                            <el-form-item prop="queryCondition" class="label-tooltip-form-item">
+                                <template #label>
+                                    <el-tooltip
+                                        v-if="!disabled"
+                                        content="例如：age > 12 and username = 'zhangsan'，不需要填写where"
+                                        placement="top"
+                                        :enterable="false"
+                                    >
+                                        <span class="label-tooltip-text">过滤条件</span>
+                                    </el-tooltip>
+                                    <span v-else>过滤条件</span>
+                                </template>
                                 <code-mirror
                                     v-model="formData.queryCondition"
                                     basic
@@ -233,7 +237,7 @@
                                     />
                                 </el-select>
                             </el-form-item>
-                            <el-form-item prop="targetTable" label="表">
+                            <el-form-item prop="targetTable" label="表" class="table-action-form-item">
                                 <el-select
                                     v-model="formData.targetTable"
                                     clearable
@@ -1147,12 +1151,6 @@ onUnmounted(() => {
                     .el-form {
                         .el-form-item {
                             position: relative;
-                            .tooltip-msg {
-                                position: absolute;
-                                top: 7px;
-                                color: getCssVar('color', 'info');
-                                font-size: 16px;
-                            }
                             .el-form-item__label {
                                 position: relative;
 
@@ -1162,9 +1160,38 @@ onUnmounted(() => {
                                 }
                             }
 
+                            &.label-tooltip-form-item {
+                                .label-tooltip-text {
+                                    display: inline-block;
+                                    cursor: help;
+
+                                    &:hover {
+                                        color: getCssVar('color', 'primary');
+                                    }
+                                }
+                            }
+
                             .el-form-item__content {
                                 flex-wrap: nowrap;
                                 justify-content: flex-end;
+                            }
+
+                            &.table-action-form-item {
+                                .el-form-item__content {
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 12px;
+                                }
+
+                                .el-select {
+                                    flex: 1;
+                                    min-width: 0;
+                                }
+
+                                .el-button {
+                                    flex: none;
+                                    margin-left: 0;
+                                }
                             }
                         }
                     }

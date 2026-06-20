@@ -13,6 +13,26 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="global-variables-batch-slide">
+                <div v-if="selectedRows.length" class="global-variables-batch-mask">
+                    <div class="global-variables-batch-actions">
+                        <el-button
+                            class="global-variables-batch-action"
+                            :loading="batchLoading"
+                            @click="batchDeleteData"
+                        >
+                            删除
+                        </el-button>
+                        <el-button
+                            class="global-variables-batch-cancel"
+                            :disabled="batchLoading"
+                            @click="cancelSelection"
+                        >
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -20,6 +40,7 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #varName="scopeSlot">
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.keyName }}</span>
@@ -69,6 +90,8 @@ const keyword = ref<string>('')
 const loading = ref<boolean>(false)
 const networkError = ref<boolean>(false)
 const addModalRef = ref<any>(null)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -81,6 +104,7 @@ function initData(tableLoading?: boolean) {
         .then((res: any) => {
             tableConfig.tableData = res.data.content
             tableConfig.pagination.total = res.data.totalElements
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = false
@@ -88,6 +112,7 @@ function initData(tableLoading?: boolean) {
         .catch(() => {
             tableConfig.tableData = []
             tableConfig.pagination.total = 0
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = true
@@ -186,6 +211,38 @@ function deleteData(data: any) {
     })
 }
 
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchDeleteData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个全局变量吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(selectedRows.value.map((row: any) => DeleteGlobalVariablesData({ id: row.id })))
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
+    })
+}
+
 function inputEvent(e: string) {
     if (e === '') {
         initData()
@@ -212,6 +269,80 @@ onMounted(() => {
 
 <style lang="scss">
 .zqy-seach-table.global-variables-page {
+    .zqy-table-top {
+        position: relative;
+        overflow: hidden;
+
+        .global-variables-batch-mask {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+    }
+
+    .global-variables-batch-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .global-variables-batch-action {
+            min-width: 66px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('color', 'primary');
+            color: getCssVar('color', 'primary');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('color', 'primary');
+                color: #fff;
+                background-color: getCssVar('color', 'primary');
+            }
+        }
+
+        .global-variables-batch-cancel {
+            min-width: 74px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('border-color');
+            color: getCssVar('text-color', 'regular');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+            }
+        }
+    }
+
+    .global-variables-batch-slide-enter-active,
+    .global-variables-batch-slide-leave-active {
+        transition:
+            opacity 0.16s ease,
+            transform 0.16s ease;
+    }
+
+    .global-variables-batch-slide-enter-from,
+    .global-variables-batch-slide-leave-to {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    .global-variables-batch-slide-enter-to,
+    .global-variables-batch-slide-leave-from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     .btn-group {
         justify-content: center;
         gap: 16px;

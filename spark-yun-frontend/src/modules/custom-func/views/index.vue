@@ -13,6 +13,22 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="custom-func-batch-slide">
+                <div v-if="selectedRows.length" class="custom-func-batch-mask">
+                    <div class="custom-func-batch-actions">
+                        <el-button class="custom-func-batch-action" :loading="batchLoading" @click="batchDeleteData">
+                            删除
+                        </el-button>
+                        <el-button
+                            class="custom-func-batch-cancel"
+                            :disabled="batchLoading"
+                            @click="cancelSelection"
+                        >
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -20,9 +36,15 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #funcName="scopeSlot">
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.funcName }}</span>
+                    </template>
+                    <template #typeSlot="scopeSlot">
+                        <el-tag class="custom-func-type-tag" effect="plain">
+                            {{ getFuncTypeName(scopeSlot.row.type) }}
+                        </el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group">
@@ -55,6 +77,8 @@ const keyword = ref('')
 const loading = ref(false)
 const networkError = ref(false)
 const addModalRef = ref(null)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 const typeList = ref([
     {
         label: '作业',
@@ -74,6 +98,10 @@ const typeList = ref([
     }
 ])
 
+function getFuncTypeName(type: string): string {
+    return typeList.value.find((item) => item.value === type)?.label || type || '--'
+}
+
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
     networkError.value = networkError.value || false
@@ -85,6 +113,7 @@ function initData(tableLoading?: boolean) {
         .then((res: any) => {
             tableConfig.tableData = res.data.content
             tableConfig.pagination.total = res.data.totalElements
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = false
@@ -92,6 +121,7 @@ function initData(tableLoading?: boolean) {
         .catch(() => {
             tableConfig.tableData = []
             tableConfig.pagination.total = 0
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = true
@@ -147,6 +177,38 @@ function deleteData(data: any) {
     })
 }
 
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchDeleteData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个函数吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(selectedRows.value.map((row: any) => DeleteFuncData({ id: row.id })))
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
+    })
+}
+
 function inputEvent(e: string) {
     if (e === '') {
         initData()
@@ -173,6 +235,88 @@ onMounted(() => {
 
 <style lang="scss">
 .zqy-seach-table.custom-func-page {
+    .zqy-table-top {
+        position: relative;
+        overflow: hidden;
+
+        .custom-func-batch-mask {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+    }
+
+    .custom-func-batch-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .custom-func-batch-action {
+            min-width: 66px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('color', 'primary');
+            color: getCssVar('color', 'primary');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('color', 'primary');
+                color: #fff;
+                background-color: getCssVar('color', 'primary');
+            }
+        }
+
+        .custom-func-batch-cancel {
+            min-width: 74px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('border-color');
+            color: getCssVar('text-color', 'regular');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+            }
+        }
+    }
+
+    .custom-func-batch-slide-enter-active,
+    .custom-func-batch-slide-leave-active {
+        transition:
+            opacity 0.16s ease,
+            transform 0.16s ease;
+    }
+
+    .custom-func-batch-slide-enter-from,
+    .custom-func-batch-slide-leave-to {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    .custom-func-batch-slide-enter-to,
+    .custom-func-batch-slide-leave-from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .custom-func-type-tag {
+        max-width: 100%;
+        white-space: nowrap;
+        border-color: getCssVar('color', 'primary', 'light-5');
+        color: getCssVar('color', 'primary');
+        background-color: getCssVar('color', 'primary', 'light-9');
+    }
+
     .btn-group {
         justify-content: center;
         gap: 16px;

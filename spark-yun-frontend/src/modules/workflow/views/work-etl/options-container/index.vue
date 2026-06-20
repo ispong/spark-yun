@@ -105,28 +105,40 @@ defineExpose({
     height: 50px;
     display: flex;
     align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
     color: getCssVar('color', 'primary', 'light-5');
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     padding-left: 20px;
+    padding-right: 12px;
+    box-sizing: border-box;
     z-index: 10;
     border-bottom: 1px solid getCssVar('border-color');
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
 
     .btn-box {
         font-size: getCssVar('font-size', 'extra-small');
         display: flex;
+        align-items: center;
+        flex: 0 0 auto;
         cursor: pointer;
-        width: 48px;
-        margin-right: 8px;
+        min-width: 48px;
+        width: auto;
+        height: 100%;
+        white-space: nowrap;
 
         &.btn-box__4 {
-            width: 70px;
+            min-width: 70px;
         }
 
         .btn-text {
             margin-left: 4px;
+            white-space: nowrap;
         }
 
         &:hover {

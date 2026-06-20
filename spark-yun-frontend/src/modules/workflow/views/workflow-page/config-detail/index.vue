@@ -398,12 +398,16 @@
                             <code-mirror v-model="syncRule.sqlConfigJson" basic :lang="sqllang" />
                         </el-form-item>
                         <template v-else>
-                            <el-form-item label="分区数">
-                                <el-tooltip content="推荐：分区数大于等于并发数,且成倍数关系" placement="top">
-                                    <el-icon style="left: -80px" class="tooltip-msg">
-                                        <QuestionFilled />
-                                    </el-icon>
-                                </el-tooltip>
+                            <el-form-item class="label-tooltip-form-item">
+                                <template #label>
+                                    <el-tooltip
+                                        content="推荐：分区数大于等于并发数,且成倍数关系"
+                                        placement="top"
+                                        :enterable="false"
+                                    >
+                                        <span class="label-tooltip-text">分区数</span>
+                                    </el-tooltip>
+                                </template>
                                 <el-input-number
                                     v-model="syncRule.numPartitions"
                                     :min="0"
@@ -1090,11 +1094,15 @@ defineExpose({
             box-sizing: border-box;
             .el-form-item {
                 position: relative;
-                .tooltip-msg {
-                    position: absolute;
-                    top: 7px;
-                    color: getCssVar('color', 'info');
-                    font-size: 16px;
+                &.label-tooltip-form-item {
+                    .label-tooltip-text {
+                        display: inline-block;
+                        cursor: help;
+
+                        &:hover {
+                            color: getCssVar('color', 'primary');
+                        }
+                    }
                 }
                 // 全屏样式
                 &.show-screen__full {

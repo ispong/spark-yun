@@ -90,6 +90,12 @@ const showMenu = ref(false)
 
 let Node
 
+function syncNodeData(data: any) {
+    status.value = data?.status || ''
+    isRunning.value = !!data?.isRunning
+    showMenu.value = !!data?.workInstanceId
+}
+
 function handleCommand(command: string) {
     eventBus.emit('nodeMenuEvent', {
         data: node.value.data,
@@ -107,10 +113,9 @@ function dbclickToDetain() {
 onMounted(() => {
     node.value = Node = getNode()
     name.value = node.value.data.name
+    syncNodeData(node.value.data)
     node.value.on('change:data', ({ current }) => {
-        status.value = current.status
-        isRunning.value = current.isRunning
-        showMenu.value = !!current.workInstanceId
+        syncNodeData(current)
     })
 })
 </script>

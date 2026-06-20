@@ -53,21 +53,17 @@
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group data-layer-action-group">
-                            <span
-                                v-if="tableType === 'layer'"
-                                class="data-layer-action-button"
-                                @click="dataModelPage(scopeSlot.row)"
-                            >
-                                模型
-                            </span>
-                            <span v-else class="data-layer-action-button" @click="layerAreaView(scopeSlot.row)">
-                                领域
-                            </span>
+                            <span class="data-layer-action-button" @click="editData(scopeSlot.row)">编辑</span>
                             <el-dropdown trigger="click" popper-class="data-layer-action-dropdown">
                                 <span class="click-show-more data-layer-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="tableType === 'layer'"
+                                            @click="dataModelPage(scopeSlot.row)"
+                                        >
+                                            模型
+                                        </el-dropdown-item>
                                         <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="tableType === 'layer'"

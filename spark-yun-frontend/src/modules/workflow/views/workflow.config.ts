@@ -25,6 +25,7 @@ export interface TableConfig {
     tableData: Array<any>
     colConfigs: Array<colConfig>
     seqType: string
+    checkbox?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -88,7 +89,7 @@ export const colConfigs: colConfig[] = [
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 80,
+        width: 120,
         fixed: 'right'
     }
 ]
@@ -102,6 +103,7 @@ export const TableConfig: TableConfig = {
         total: 0
     },
     seqType: 'seq',
+    checkbox: true,
     loading: false
 }
 

@@ -28,6 +28,7 @@ export interface TableConfig {
     seqType: string
     checkbox?: boolean
     columnResizable?: boolean
+    showFixedLeftDivider?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -221,5 +222,6 @@ export const TableConfig: TableConfig = {
     seqType: 'seq',
     checkbox: true,
     columnResizable: false,
+    showFixedLeftDivider: true,
     loading: false
 }

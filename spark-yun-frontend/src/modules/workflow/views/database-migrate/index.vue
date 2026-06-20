@@ -83,12 +83,16 @@
                                     />
                                 </el-select>
                             </el-form-item>
-                            <el-form-item prop="sourceDBId" label="数据源">
-                                <el-tooltip content="数据源网速直接影响同步速度,推荐使用内网ip" placement="top">
-                                    <el-icon style="left: -30px" class="tooltip-msg">
-                                        <QuestionFilled />
-                                    </el-icon>
-                                </el-tooltip>
+                            <el-form-item prop="sourceDBId" class="label-tooltip-form-item">
+                                <template #label>
+                                    <el-tooltip
+                                        content="数据源网速直接影响同步速度,推荐使用内网ip"
+                                        placement="top"
+                                        :enterable="false"
+                                    >
+                                        <span class="label-tooltip-text">数据源</span>
+                                    </el-tooltip>
+                                </template>
                                 <el-select
                                     v-model="formData.sourceDBId"
                                     clearable
@@ -105,15 +109,19 @@
                                     />
                                 </el-select>
                             </el-form-item>
-                            <el-form-item prop="includeTargetRule" label="同步规则">
-                                <el-tooltip
-                                    content="正则匹配：匹配需要同步的表，例如：^(A表|B表)$ 或者 ^前缀.* "
-                                    placement="top"
-                                >
-                                    <el-icon style="left: -20px" class="tooltip-msg">
-                                        <QuestionFilled />
-                                    </el-icon>
-                                </el-tooltip>
+                            <el-form-item
+                                prop="includeTargetRule"
+                                class="sync-rule-form-item label-tooltip-form-item"
+                            >
+                                <template #label>
+                                    <el-tooltip
+                                        content="正则匹配：匹配需要同步的表，例如：^(A表|B表)$ 或者 ^前缀.* "
+                                        placement="top"
+                                        :enterable="false"
+                                    >
+                                        <span class="label-tooltip-text">同步规则</span>
+                                    </el-tooltip>
+                                </template>
                                 <el-input
                                     v-model="formData.includeTargetRule"
                                     placeholder="请输入正则"
@@ -620,6 +628,37 @@ onUnmounted(() => {
         right: 0;
         top: -3px;
         z-index: 2;
+    }
+}
+
+.data-sync-page {
+    .label-tooltip-form-item {
+        .label-tooltip-text {
+            display: inline-block;
+            cursor: help;
+
+            &:hover {
+                color: getCssVar('color', 'primary');
+            }
+        }
+    }
+
+    .sync-rule-form-item {
+        .el-form-item__content {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 12px;
+        }
+
+        .el-input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .el-button {
+            flex: none;
+        }
     }
 }
 </style>

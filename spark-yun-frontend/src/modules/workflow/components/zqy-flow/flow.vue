@@ -1,7 +1,7 @@
 <template>
     <div class="zqy-flow">
         <section class="section-cot">
-            <div id="container">
+            <div ref="containerRef" class="flow-graph-container">
                 <div id="draw-cot" />
             </div>
             <!-- 后续动态注入 -->
@@ -19,16 +19,17 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, createVNode, ref, defineEmits } from 'vue'
+import { nextTick, onMounted, onUnmounted, createVNode, ref, defineEmits } from 'vue'
 import { Graph, Path, Addon } from '@antv/x6'
 import CustomNode from './custom-node.vue'
 
 let _Graph: any
 let dnd: any
-let container: HTMLElement | undefined
+let pendingCellData: any = null
 
 const runningStatus = ref(false)
 const hideGridStatus = ref(false)
+const containerRef = ref<HTMLElement>()
 
 const emit = defineEmits(['refresh'])
 
@@ -125,14 +126,14 @@ function initGraph() {
             visible: true,
             type: 'dot', // 'dot' | 'fixedDot' | 'mesh'
             args: {
-                color: '#a05410', // 网格线/点颜色
+                color: '#e1e6f0', // 网格线/点颜色
                 thickness: 1 // 网格线宽度/网格点大小
             }
         },
         background: {
             color: '#fff' // 设置画布背景颜色
         },
-        container: container,
+        container: containerRef.value,
         panning: {
             enabled: true,
             eventTypes: ['leftMouseDown', 'mouseWheel']
@@ -261,6 +262,9 @@ function initGraph() {
 
 // 添加节点
 function addNodeFn(item: any, e: any) {
+    if (!_Graph || !dnd) {
+        return
+    }
     const node = _Graph.createNode({
         id: item.id,
         shape: 'dag-node',
@@ -284,27 +288,61 @@ function addNodeFn(item: any, e: any) {
 
 // 获取所有节点以及连线的数据
 function getAllCellData() {
+    if (!_Graph) {
+        return []
+    }
     return _Graph.getCells()
 }
 
 // 选中某一个边
 function selectNodeEvent(nodeId: string) {
+    if (!_Graph) {
+        return
+    }
     _Graph.resetSelection(nodeId)
 }
 
 // 根据给定的数据结构渲染流程图
 function initCellList(data: any) {
+    if (!_Graph) {
+        pendingCellData = data
+        return
+    }
     if (data) {
         _Graph.fromJSON(data)
         _Graph.centerContent()
     }
 }
 
+// 运行刚开始时，后端节点实例可能还没生成，先让画布立即进入等待态。
+function markFlowPending() {
+    if (!_Graph) {
+        return
+    }
+    runningStatus.value = true
+    _Graph.getNodes().forEach((node: any) => {
+        const data = node.getData()
+        node.setData({
+            ...data,
+            workInstanceId: '',
+            status: 'PENDING',
+            isRunning: true
+        })
+    })
+}
+
 // 更新节点状态
 function updateFlowStatus(statusList: Array<any>, isRunning: boolean) {
+    if (!_Graph) {
+        return
+    }
     runningStatus.value = isRunning
-    statusList.forEach((item: any) => {
+    const statusMap = new Map((statusList || []).map((item: any) => [item.workId, item]))
+    statusMap.forEach((item: any) => {
         const node = _Graph.getCellById(item.workId)
+        if (!node) {
+            return
+        }
         const data = node.getData()
         node.setData({
             ...data,
@@ -313,10 +351,30 @@ function updateFlowStatus(statusList: Array<any>, isRunning: boolean) {
             isRunning: isRunning
         })
     })
+    if (!isRunning) {
+        _Graph.getNodes().forEach((node: any) => {
+            if (statusMap.has(node.id)) {
+                return
+            }
+            const data = node.getData()
+            if (!['PENDING', 'RUNNING', 'ABORTING'].includes(data?.status)) {
+                return
+            }
+            node.setData({
+                ...data,
+                workInstanceId: '',
+                status: '',
+                isRunning: false
+            })
+        })
+    }
 }
 
 // 设置是否隐藏网格以及工具---运行中
 function hideGrid(status: boolean) {
+    if (!_Graph) {
+        return
+    }
     hideGridStatus.value = status
     if (status) {
         _Graph.hideGrid()
@@ -328,31 +386,56 @@ function hideGrid(status: boolean) {
 }
 
 function zoomIn() {
+    if (!_Graph) {
+        return
+    }
     _Graph.zoom(0.2)
 }
 function zoomOut() {
+    if (!_Graph) {
+        return
+    }
     _Graph.zoom(-0.2)
 }
 function locationCenter() {
+    if (!_Graph) {
+        return
+    }
     _Graph.centerContent()
 }
 function refresh() {
     emit('refresh')
 }
 function locationContentCenter() {
+    if (!_Graph) {
+        return
+    }
     _Graph.center()
 }
 
 onMounted(async () => {
-    container = document.getElementById('container') as HTMLElement | undefined
     await import('@antv/x6-vue-shape')
-    initGraph()
+    if (containerRef.value) {
+        initGraph()
+    }
+    if (pendingCellData !== null) {
+        initCellList(pendingCellData)
+        pendingCellData = null
+    }
+})
+
+onUnmounted(() => {
+    _Graph?.dispose?.()
+    _Graph = null
+    dnd = null
+    pendingCellData = null
 })
 
 defineExpose({
     addNodeFn,
     getAllCellData,
     initCellList,
+    markFlowPending,
     updateFlowStatus,
     hideGrid,
     selectNodeEvent,
@@ -422,10 +505,29 @@ $--status-RUNNING: #1890ff;
             left: 20px;
             display: flex;
             flex-direction: column;
+            padding: 6px 10px 6px 16px;
+            border: 1px solid rgba(220, 223, 230, 0.72);
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.72);
+            box-shadow: 0 2px 8px rgba(31, 35, 41, 0.04);
+            opacity: 0.72;
+            pointer-events: auto;
+            transition:
+                opacity 0.15s ease,
+                background-color 0.15s ease,
+                box-shadow 0.15s ease;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.94);
+                box-shadow: 0 4px 12px rgba(31, 35, 41, 0.08);
+                opacity: 1;
+            }
+
             .status-tag {
                 font-size: 12px;
                 position: relative;
                 margin: 2px 0;
+                line-height: 16px;
                 &::before {
                     content: '';
                     width: 6px;
@@ -433,7 +535,7 @@ $--status-RUNNING: #1890ff;
                     border-radius: 4px;
                     position: absolute;
                     left: -10px;
-                    top: 4px;
+                    top: 5px;
                 }
             }
             .status {
@@ -483,13 +585,13 @@ $--status-RUNNING: #1890ff;
         }
     }
 
-    .section-cot #container {
+    .section-cot .flow-graph-container {
         height: 100% !important;
         position: relative;
         flex: 1;
     }
 
-    .section-cot #container #draw-cot {
+    .section-cot .flow-graph-container #draw-cot {
         width: 100%;
         height: 100%;
     }

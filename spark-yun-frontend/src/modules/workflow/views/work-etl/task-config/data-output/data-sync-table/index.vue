@@ -19,14 +19,22 @@
             </el-table>
             <ul class="source-link-pointer">
                 <li v-for="row in sourceTableColumn" :key="row.colName">
-                    <div class="lint-pointer" :class="`leftRowOutput code-source-${row.colName}`" />
+                    <div
+                        class="lint-pointer"
+                        :class="`leftRowOutput code-source-${row.colName}`"
+                        :style="{ backgroundColor: themePrimaryColor }"
+                    />
                 </li>
             </ul>
         </div>
         <div class="target-link-line">
             <ul class="target-link-pointer">
                 <li v-for="row in targetTableColumn" :key="row.colName">
-                    <div class="lint-pointer" :class="`rightRowOutput code-target-${row.colName}`" />
+                    <div
+                        class="lint-pointer"
+                        :class="`rightRowOutput code-target-${row.colName}`"
+                        :style="{ backgroundColor: themePrimaryColor }"
+                    />
                 </li>
             </ul>
         </div>
@@ -66,6 +74,7 @@ const connectNodeLoading = ref<boolean>(false)
 
 const sourceTableColumn = ref<Column[]>([])
 const targetTableColumn = ref<Column[]>([])
+const themePrimaryColor = 'var(--el-color-primary)'
 const buttons = ref([
     {
         type: 'primary',
@@ -174,11 +183,12 @@ function initPageData(data: any) {
 }
 
 function tableLinkInit() {
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--el-color-primary').trim()
     instance = jsPlumb.getInstance({
         Connector: 'Straight', // 连接线形状 Bezier: 贝塞尔曲线 Flowchart: 具有90度转折点的流程线 StateMachine: 状态机 Straight: 直线
         PaintStyle: {
             strokeWidth: 2,
-            stroke: '#ff7c06'
+            stroke: primaryColor || '#1677ff'
         }, // 连接线样式
         Endpoint: [
             'Blank',
@@ -194,7 +204,11 @@ function tableLinkInit() {
                 {
                     width: 6,
                     length: 6,
-                    location: 1
+                    location: 1,
+                    paintStyle: {
+                        fill: primaryColor || '#1677ff',
+                        stroke: primaryColor || '#1677ff'
+                    }
                 }
             ],
             [
@@ -210,7 +224,7 @@ function tableLinkInit() {
             ]
         ],
         EndpointStyle: {
-            fill: '#000000'
+            fill: primaryColor || '#1677ff'
         }, // 端点样式
         Container: 'containerOutput' // 目标容器id
     })
@@ -413,7 +427,7 @@ defineExpose({
                     height: 6px;
                     width: 6px;
                     border-radius: 50%;
-                    background-color: #ff7c06;
+                    background-color: getCssVar('color', 'primary');
                     z-index: 1000;
                     // cursor: pointer;
                     transform: scale(1);
@@ -449,7 +463,7 @@ defineExpose({
                     height: 6px;
                     width: 6px;
                     border-radius: 50%;
-                    background-color: #ff7c06;
+                    background-color: getCssVar('color', 'primary');
                     z-index: 1000;
                     transform: scale(1);
                     transition: transform 0.15s linear;

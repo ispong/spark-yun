@@ -28,7 +28,9 @@
                     </div>
                 </div>
 
-                <div v-if="tableConfig.tableData.length === 0 && !tableConfig.loading" class="empty-list">暂无数据</div>
+                <div v-if="tableConfig.tableData.length === 0 && !tableConfig.loading" class="empty-list">
+                    请在资源中心上传依赖文件
+                </div>
 
                 <div v-if="loadingMore" class="loading-more">加载中...</div>
             </div>
@@ -56,6 +58,7 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref } from 'vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage } from 'element-plus'
 import { Close } from '@element-plus/icons-vue'
 import { GetFileCenterList } from '@/app/shared/api/resources'
@@ -259,22 +262,33 @@ defineExpose({
 
 <style lang="scss" scoped>
 .config-lib-package {
-    padding: 20px;
     display: flex;
     flex-direction: column;
-    height: 500px;
+    box-sizing: border-box;
+    height: min(500px, calc(100vh - 150px));
+    min-height: 420px;
+    padding: 14px 20px 4px;
 
     .search-box {
         margin-bottom: 12px;
+
+        .el-input {
+            width: 100%;
+        }
+
+        :deep(.el-input__wrapper) {
+            border-radius: 2px;
+        }
     }
 
     .file-table {
-        height: 240px;
-        overflow-y: auto;
-        margin-bottom: 16px;
+        flex: 1 1 240px;
+        min-height: 180px;
         position: relative;
+        margin-bottom: 16px;
+        overflow-y: auto;
         border: 1px solid #e4e7ed;
-        border-radius: 4px;
+        border-radius: 2px;
 
         .file-item {
             display: flex;
@@ -301,73 +315,76 @@ defineExpose({
                 min-width: 0;
 
                 .file-name {
-                    font-size: 14px;
-                    color: #303133;
                     margin-bottom: 4px;
                     overflow: hidden;
-                    text-overflow: ellipsis;
                     white-space: nowrap;
+                    text-overflow: ellipsis;
+                    font-size: getCssVar('font-size', 'base');
+                    color: getCssVar('text-color', 'primary');
                 }
 
                 .file-remark {
-                    font-size: 12px;
-                    color: #909399;
                     overflow: hidden;
-                    text-overflow: ellipsis;
                     white-space: nowrap;
+                    text-overflow: ellipsis;
+                    font-size: getCssVar('font-size', 'extra-small');
+                    color: getCssVar('text-color', 'secondary');
                 }
             }
         }
 
         .empty-list {
-            text-align: center;
-            padding: 60px 0;
-            color: #909399;
-            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100%;
+            font-size: getCssVar('font-size', 'base');
+            color: getCssVar('text-color', 'secondary');
         }
 
         .loading-more {
-            text-align: center;
             padding: 8px;
-            color: #909399;
-            font-size: 13px;
+            text-align: center;
+            font-size: getCssVar('font-size', 'small');
+            color: getCssVar('text-color', 'secondary');
         }
     }
 
     .selected-section {
-        flex: 1;
-        border-top: 1px solid #e4e7ed;
-        padding-top: 12px;
         display: flex;
+        flex: 0 0 auto;
         flex-direction: column;
         min-height: 0;
-        max-height: 180px;
+        height: 164px;
+        padding-top: 12px;
+        border-top: 1px solid #e4e7ed;
 
         .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #303133;
-            margin-bottom: 10px;
             flex-shrink: 0;
+            margin-bottom: 10px;
+            font-size: getCssVar('font-size', 'base');
+            font-weight: 600;
+            color: getCssVar('text-color', 'primary');
 
             .count {
-                color: #909399;
                 font-weight: normal;
-                font-size: 12px;
+                font-size: getCssVar('font-size', 'extra-small');
+                color: getCssVar('text-color', 'secondary');
             }
         }
 
         .selected-list {
             flex: 1;
-            overflow-y: auto;
             min-height: 0;
-            max-height: 140px;
+            overflow-y: auto;
 
             .empty-text {
-                text-align: center;
-                color: #909399;
-                padding: 20px 0;
-                font-size: 13px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100%;
+                font-size: getCssVar('font-size', 'small');
+                color: getCssVar('text-color', 'secondary');
             }
 
             .selected-items {
@@ -381,11 +398,11 @@ defineExpose({
                     padding: 4px 10px;
                     background-color: #f4f4f5;
                     border: 1px solid #e4e7ed;
-                    border-radius: 4px;
-                    font-size: 13px;
+                    border-radius: 2px;
+                    font-size: getCssVar('font-size', 'small');
 
                     .file-name {
-                        color: #606266;
+                        color: getCssVar('text-color', 'regular');
                     }
 
                     .remove-icon {
@@ -406,11 +423,61 @@ defineExpose({
 </style>
 
 <style lang="scss">
-// 全局样式，禁用弹窗滚动
-.config-lib-package-modal {
+.config-lib-package-modal.zqy-block-modal {
+    --config-lib-package-modal-x-padding: 20px;
+    --config-lib-package-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--config-lib-package-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--config-lib-package-modal-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
     .el-dialog__body {
+        max-height: none;
         overflow: hidden !important;
         padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--config-lib-package-modal-x-padding);
+        border-top: none;
+        align-items: center;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--config-lib-package-modal-border-color);
+        }
     }
 
     .modal-content {

@@ -57,18 +57,17 @@
                             >
                                 构建
                             </span>
-                            <span
-                                v-if="scopeSlot.row.status === 'SUCCESS'"
-                                class="data-model-action-button"
-                                @click="showMetadataDetail(scopeSlot.row)"
-                            >
-                                详情
-                            </span>
+                            <span class="data-model-action-button" @click="editData(scopeSlot.row)">编辑</span>
                             <el-dropdown trigger="click" popper-class="data-model-action-dropdown">
                                 <span class="click-show-more data-model-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="scopeSlot.row.status === 'SUCCESS'"
+                                            @click="showMetadataDetail(scopeSlot.row)"
+                                        >
+                                            详情
+                                        </el-dropdown-item>
                                         <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
                                         <el-dropdown-item @click="resetData(scopeSlot.row)">重置</el-dropdown-item>
                                         <el-dropdown-item

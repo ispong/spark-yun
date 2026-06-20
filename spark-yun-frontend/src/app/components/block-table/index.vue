@@ -148,6 +148,7 @@ interface TableConfig {
     rowKey?: string
     selectedRowKeys?: string[]
     columnResizable?: boolean
+    showFixedLeftDivider?: boolean
     pagination?: Pagination // 分页数据
     loading?: boolean // 表格loading
 }
@@ -174,6 +175,10 @@ const normalizedColConfigs = computed(() => {
 
         if (columnResizable.value && colIndex === 1) {
             headerClassNameList.push('block-table__fixed-left-next')
+        }
+
+        if (!columnResizable.value && props.tableConfig.showFixedLeftDivider && colIndex === 1) {
+            headerClassNameList.push('block-table__left-divider')
         }
 
         const nextColConfig = {
@@ -388,6 +393,20 @@ function toggleAllRows(checked: boolean) {
                 pointer-events: none;
                 background-color: var(--vxe-ui-table-resizable-line-color);
             }
+        }
+    }
+    .vxe-table--header tr.vxe-header--row > th.block-table__left-divider {
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 25%;
+            bottom: 25%;
+            left: 0;
+            width: 1px;
+            pointer-events: none;
+            background-color: var(--vxe-ui-table-resizable-line-color);
         }
     }
     .vxe-table--body-wrapper {

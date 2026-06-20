@@ -11,12 +11,16 @@
             <el-form-item label="名称" prop="name">
                 <el-input v-model="formData.name" maxlength="500" placeholder="请输入" />
             </el-form-item>
-            <el-form-item label="字段名规范" prop="columnRuleInput">
-                <el-tooltip content="支持前缀/后缀/包含/精确匹配，系统会自动转为正则保存" placement="top">
-                    <el-icon style="left: 60px" class="tooltip-msg">
-                        <QuestionFilled />
-                    </el-icon>
-                </el-tooltip>
+            <el-form-item prop="columnRuleInput" class="label-tooltip-form-item">
+                <template #label>
+                    <el-tooltip
+                        content="支持前缀/后缀/包含/精确匹配，系统会自动转为正则保存"
+                        placement="top"
+                        :enterable="false"
+                    >
+                        <span class="label-tooltip-text">字段名规范</span>
+                    </el-tooltip>
+                </template>
                 <div class="table-rule-config">
                     <el-select v-model="columnRuleMode">
                         <el-option
@@ -479,11 +483,15 @@ defineExpose({
             border-radius: 2px;
         }
 
-        .tooltip-msg {
-            position: absolute;
-            top: -28px;
-            color: getCssVar('color', 'info');
-            font-size: 16px;
+        .label-tooltip-form-item {
+            .label-tooltip-text {
+                display: inline-block;
+                cursor: help;
+
+                &:hover {
+                    color: getCssVar('color', 'primary');
+                }
+            }
         }
 
         .field-attr-row {

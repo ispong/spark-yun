@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table realtime-computing-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addData">新建实时</el-button>
             <div class="zqy-seach">
@@ -13,6 +13,47 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="realtime-computing-batch-slide">
+                <div v-if="selectedRows.length" class="realtime-computing-batch-mask">
+                    <div class="realtime-computing-batch-actions">
+                        <el-button
+                            class="realtime-computing-batch-action"
+                            :loading="batchLoading"
+                            @click="batchCheckData"
+                        >
+                            检测
+                        </el-button>
+                        <el-button
+                            class="realtime-computing-batch-action"
+                            :loading="batchLoading"
+                            @click="batchStartComputing"
+                        >
+                            运行
+                        </el-button>
+                        <el-button
+                            class="realtime-computing-batch-action"
+                            :loading="batchLoading"
+                            @click="batchStopComputing"
+                        >
+                            停止
+                        </el-button>
+                        <el-button
+                            class="realtime-computing-batch-action"
+                            :loading="batchLoading"
+                            @click="batchDeleteData"
+                        >
+                            删除
+                        </el-button>
+                        <el-button
+                            class="realtime-computing-batch-cancel"
+                            :disabled="batchLoading"
+                            @click="cancelSelection"
+                        >
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -20,6 +61,7 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #nameSlot="scopeSlot">
                         <span class="name-click" @click="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
@@ -28,12 +70,13 @@
                         <ZStatusTag :status="scopeSlot.row.status === 'STOP' ? 'STOP_S' : scopeSlot.row.status" />
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <span @click="checkData(scopeSlot.row)">检测</span>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                        <div class="btn-group realtime-computing-action-group">
+                            <span class="realtime-computing-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <el-dropdown trigger="click" popper-class="realtime-computing-action-dropdown">
+                                <span class="click-show-more realtime-computing-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
+                                        <el-dropdown-item @click="checkData(scopeSlot.row)">检测</el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="scopeSlot.row.status !== 'NEW'"
                                             @click="showLog(scopeSlot.row)"
@@ -46,7 +89,6 @@
                                         >
                                             运行日志
                                         </el-dropdown-item>
-                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
                                         <el-dropdown-item @click="startComputing(scopeSlot.row)">运行</el-dropdown-item>
                                         <el-dropdown-item @click="stopComputing(scopeSlot.row)">停止</el-dropdown-item>
                                         <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
@@ -95,6 +137,8 @@ const addModalRef = ref(null)
 const timer = ref()
 const showLogRef = ref(null)
 const isRequest = ref(false)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 
 function initData(tableLoading?: boolean, type?: string) {
     loading.value = tableLoading ? false : true
@@ -117,6 +161,7 @@ function initData(tableLoading?: boolean, type?: string) {
             } else {
                 tableConfig.tableData = res.data.content
                 tableConfig.pagination.total = res.data.totalElements
+                selectedRows.value = []
             }
             loading.value = false
             tableConfig.loading = false
@@ -127,6 +172,7 @@ function initData(tableLoading?: boolean, type?: string) {
             isRequest.value = false
             tableConfig.tableData = []
             tableConfig.pagination.total = 0
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = true
@@ -223,6 +269,63 @@ function deleteData(data: any) {
     })
 }
 
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchComputingAction(
+    action: (params: { id: string }) => Promise<any>,
+    successMessage: string,
+    emptyMessage = '请选择实时计算'
+) {
+    if (!selectedRows.value.length) {
+        ElMessage.warning(emptyMessage)
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(selectedRows.value.map((row: any) => action({ id: row.id })))
+        .then(() => {
+            ElMessage.success(successMessage)
+            initData()
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchCheckData() {
+    batchComputingAction(CheckComputingStatus, '批量检测成功')
+}
+
+function batchStartComputing() {
+    batchComputingAction(RunTimeComputingData, '批量运行成功')
+}
+
+function batchStopComputing() {
+    batchComputingAction(StopTimeComputingData, '批量停止成功')
+}
+
+function batchDeleteData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个实时计算吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchComputingAction(DeleteTimeComputingData, '批量删除成功')
+    })
+}
+
 function showDetail(data: any) {
     router.push({
         name: 'computing-detail',
@@ -251,6 +354,7 @@ function inputEvent(e: string) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData()
 }
 
@@ -276,13 +380,113 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss">
-.zqy-seach-table {
+.realtime-computing-page {
+    .zqy-table-top {
+        position: relative;
+        overflow: hidden;
+
+        .realtime-computing-batch-mask {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+    }
+
+    .realtime-computing-batch-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .realtime-computing-batch-action {
+            min-width: 66px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('color', 'primary');
+            color: getCssVar('color', 'primary');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('color', 'primary');
+                color: #fff;
+                background-color: getCssVar('color', 'primary');
+            }
+        }
+
+        .realtime-computing-batch-cancel {
+            min-width: 74px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('border-color');
+            color: getCssVar('text-color', 'regular');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+            }
+        }
+    }
+
+    .realtime-computing-batch-slide-enter-active,
+    .realtime-computing-batch-slide-leave-active {
+        transition:
+            opacity 0.16s ease,
+            transform 0.16s ease;
+    }
+
+    .realtime-computing-batch-slide-enter-from,
+    .realtime-computing-batch-slide-leave-to {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    .realtime-computing-batch-slide-enter-to,
+    .realtime-computing-batch-slide-leave-from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     .name-click {
         cursor: pointer;
         color: getCssVar('color', 'primary', 'light-5');
         &:hover {
             color: getCssVar('color', 'primary');
         }
+    }
+
+    .zqy-table {
+        .realtime-computing-action-group {
+            justify-content: center;
+            gap: 16px;
+
+            .realtime-computing-action-button {
+                display: inline-flex;
+                align-items: center;
+                line-height: 1;
+                font-size: getCssVar('font-size', 'extra-small');
+            }
+        }
+    }
+}
+
+.realtime-computing-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-size: getCssVar('font-size', 'extra-small');
     }
 }
 </style>

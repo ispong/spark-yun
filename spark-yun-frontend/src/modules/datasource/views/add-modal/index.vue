@@ -44,14 +44,9 @@
             <el-form-item label="连接信息" prop="jdbcUrl">
                 <template #label>
                     <div class="datasource-form-label-row">
-                        <div class="datasource-form-label-with-icon">
-                            <span>连接信息</span>
-                            <el-tooltip :content="jdbcTip" placement="top">
-                                <el-icon class="datasource-form-tip-icon">
-                                    <QuestionFilled />
-                                </el-icon>
-                            </el-tooltip>
-                        </div>
+                        <el-tooltip :content="jdbcTip" placement="top" :enterable="false">
+                            <span class="datasource-form-label-tooltip">连接信息</span>
+                        </el-tooltip>
                         <el-button type="primary" link size="small" @click="openAdvancedConfig">高级配置</el-button>
                     </div>
                 </template>
@@ -68,12 +63,16 @@
             <el-form-item v-if="formData.dbType === 'KAFKA'" label="topic" prop="kafkaConfig.topic">
                 <el-input v-model="formData.kafkaConfig.topic" maxlength="200" placeholder="请输入" />
             </el-form-item>
-            <el-form-item v-if="formData.dbType === 'HIVE'" label="hive.metastore.uris">
-                <el-tooltip content="thrift://127.0.0.1:${port}，默认端口号9083" placement="top">
-                    <el-icon style="left: 104px" class="tooltip-msg">
-                        <QuestionFilled />
-                    </el-icon>
-                </el-tooltip>
+            <el-form-item v-if="formData.dbType === 'HIVE'">
+                <template #label>
+                    <el-tooltip
+                        content="thrift://127.0.0.1:${port}，默认端口号9083"
+                        placement="top"
+                        :enterable="false"
+                    >
+                        <span class="datasource-form-label-tooltip">hive.metastore.uris</span>
+                    </el-tooltip>
+                </template>
                 <el-input v-model="formData.metastoreUris" maxlength="500" placeholder="请输入" />
             </el-form-item>
             <el-form-item
@@ -798,12 +797,6 @@ defineExpose({
             border-radius: 2px;
         }
 
-        .tooltip-msg {
-            position: absolute;
-            top: -28px;
-            color: getCssVar('color', 'info');
-            font-size: 16px;
-        }
     }
 
     .datasource-form-label-row {
@@ -813,16 +806,13 @@ defineExpose({
         width: 100%;
     }
 
-    .datasource-form-label-with-icon {
-        display: flex;
-        align-items: center;
-    }
+    .datasource-form-label-tooltip {
+        display: inline-block;
+        cursor: help;
 
-    .datasource-form-tip-icon {
-        margin-left: 4px;
-        color: var(--el-color-info);
-        font-size: 16px;
-        cursor: pointer;
+        &:hover {
+            color: getCssVar('color', 'primary');
+        }
     }
 
     .test-button {

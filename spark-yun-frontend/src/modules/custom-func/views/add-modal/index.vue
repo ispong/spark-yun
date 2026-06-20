@@ -1,6 +1,6 @@
 <template>
     <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+        <el-form ref="form" class="custom-func-modal" label-position="top" :model="formData" :rules="rules">
             <el-form-item label="名称" prop="funcName">
                 <el-input v-model="formData.funcName" maxlength="200" placeholder="请输入" />
             </el-form-item>
@@ -42,6 +42,7 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref } from 'vue'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { GetFileCenterList } from '@/app/shared/api/resources'
 
@@ -105,6 +106,7 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
+    customClass: 'custom-func-add-modal',
     closeOnClickModal: false
 })
 const formData = reactive({
@@ -233,16 +235,94 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.license-upload {
-    margin: 20px;
+.custom-func-add-modal.zqy-block-modal {
+    --custom-func-modal-x-padding: 20px;
+    --custom-func-modal-border-color: #ebeef5;
 
-    .el-upload {
-        .el-upload-dragger {
-            border-radius: getCssVar('border-radius', 'small');
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--custom-func-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
 
-            .el-upload__text {
-                font-size: getCssVar('font-size', 'extra-small');
-            }
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--custom-func-modal-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--custom-func-modal-x-padding);
+        border-top: none;
+        align-items: center;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--custom-func-modal-border-color);
+        }
+    }
+
+    .custom-func-modal {
+        box-sizing: border-box;
+        padding: 14px var(--custom-func-modal-x-padding) 4px;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-select__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+
+        .el-input__inner,
+        .el-select__selected-item,
+        .el-textarea__inner {
+            font-size: getCssVar('font-size', 'base');
         }
     }
 }

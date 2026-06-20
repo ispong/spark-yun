@@ -54,6 +54,7 @@
                         <el-form-item prop="sourceDBType" label="类型">
                             <el-select
                                 v-model="formData.sourceDBType"
+                                disabled
                                 placeholder="请选择"
                                 @change="sourceDBTypeChangeEvent"
                             >
@@ -139,9 +140,6 @@
                         </template>
                         <template v-else>
                             <el-form-item prop="sourceDBId" label="数据源">
-                                <!-- <el-tooltip content="数据源网速直接影响同步速度,推荐使用内网ip" placement="top">
-                                    <el-icon style="left: -30px" class="tooltip-msg"><QuestionFilled /></el-icon>
-                                </el-tooltip> -->
                                 <el-select
                                     v-model="formData.sourceDBId"
                                     clearable
@@ -343,7 +341,7 @@ const sourceTablesList = ref<Option[]>([])
 const targetTablesList = ref<Option[]>([])
 const kafkaSourceList = ref<Option[]>([])
 // const overModeList = ref<Option[]>(OverModeList)
-const sourceTypeList = ref<Option[]>(CurrentSourceType)
+const sourceTypeList = ref<Option[]>(CurrentSourceType.filter((item) => item.value === 'KAFKA'))
 const typeList = ref(DataSourceType)
 const nodeArrayList = ref([])
 
@@ -371,7 +369,7 @@ const tabList = reactive([
 
 const formData = reactive({
     workId: '', // 作业id
-    sourceDBType: '', // 来源数据源类型
+    sourceDBType: 'KAFKA', // 来源数据源类型
     sourceDBId: '', // 来源数据源
     sourceTable: '', // 来源数据库表名
     kafkaConfig: {
@@ -445,6 +443,7 @@ function getData() {
                 Object.keys(formData).forEach((key: string) => {
                     formData[key] = res.data.syncConfig[key]
                 })
+                formData.sourceDBType = 'KAFKA'
 
                 nextTick(() => {
                     getDataSource(true, formData.sourceDBType, 'source')
@@ -757,14 +756,167 @@ onMounted(() => {
 
 <style lang="scss">
 .computing-detail {
+    position: relative;
+    width: 100%;
+    padding-top: 50px;
+    box-sizing: border-box;
+    background-color: #fff;
+
+    .data-sync__option-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 50px;
+        padding-left: 20px;
+        box-sizing: border-box;
+        color: getCssVar('color', 'primary', 'light-5');
+        border-bottom: 1px solid getCssVar('border-color');
+
+        .btn-box {
+            display: inline-flex;
+            align-items: center;
+            width: 48px;
+            margin-right: 8px;
+            font-size: getCssVar('font-size', 'extra-small');
+            line-height: 1;
+            cursor: pointer;
+
+            .btn-text {
+                margin-left: 4px;
+            }
+
+            &:hover {
+                color: getCssVar('color', 'primary');
+            }
+        }
+    }
+
     .data-sync {
+        position: relative;
+        width: 100%;
+        height: calc(100vh - 100px);
+        padding: 20px;
+        overflow: auto;
+        box-sizing: border-box;
+
+        &.data-sync__log {
+            padding-bottom: 70px;
+        }
+
         .data-sync-top {
+            display: flex;
+            width: 100%;
+            gap: 12px;
+
+            .vue-codemirror {
+                width: 100%;
+                height: 100px;
+
+                .cm-editor {
+                    height: 100%;
+                    outline: none;
+                    border: 1px solid #dcdfe6;
+                }
+
+                .cm-gutters,
+                .cm-content {
+                    font-size: 12px;
+                    font-family:
+                        v-sans,
+                        system-ui,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        'Segoe UI',
+                        sans-serif,
+                        'Apple Color Emoji',
+                        'Segoe UI Emoji',
+                        'Segoe UI Symbol';
+                }
+
+                .cm-tooltip-autocomplete {
+                    ul {
+                        li {
+                            display: flex;
+                            align-items: center;
+                            height: 40px;
+                            font-size: 12px;
+                            background-color: #fff;
+                            font-family:
+                                v-sans,
+                                system-ui,
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                'Segoe UI',
+                                sans-serif,
+                                'Apple Color Emoji',
+                                'Segoe UI Emoji',
+                                'Segoe UI Symbol';
+                        }
+
+                        li[aria-selected] {
+                            background: getCssVar('color', 'primary');
+                        }
+
+                        .cm-completionIcon {
+                            margin-right: -4px;
+                            opacity: 0;
+                        }
+                    }
+                }
+            }
+
             .box-card {
+                flex: 1;
+                min-width: 0;
+
+                .el-card__header {
+                    padding: 0;
+                    border: 0;
+
+                    .card-header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        height: 32px;
+                        font-size: 14px;
+                    }
+                }
+
+                .el-card__body {
+                    padding: 20px;
+                }
+
                 .el-form {
                     .el-form-item {
+                        position: relative;
+
+                        .el-form-item__label {
+                            position: relative;
+                        }
+
                         .el-form-item__content {
+                            flex-wrap: nowrap;
+                            justify-content: flex-end;
+
+                            .el-select,
+                            .el-input,
+                            .el-textarea {
+                                width: 100%;
+                            }
+
                             .el-checkbox-group {
+                                display: flex;
+                                align-items: center;
+                                flex-wrap: wrap;
+                                gap: 16px;
+
                                 .el-checkbox {
+                                    margin-right: 0;
+
                                     .el-checkbox__label {
                                         font-size: 12px;
                                         line-height: normal;
@@ -775,6 +927,14 @@ onMounted(() => {
                     }
                 }
             }
+        }
+
+        .select-link-type {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            height: 44px;
+            font-size: 12px;
         }
     }
 

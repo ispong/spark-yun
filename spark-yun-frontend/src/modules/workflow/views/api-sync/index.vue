@@ -90,23 +90,20 @@
                         <template v-if="formData.sourceDBType === 'API'">
                             <el-form-item prop="requestUrl">
                                 <template #label>
-                                    <span class="request-body-label">
-                                        <span>接口</span>
-                                        <el-tooltip placement="right" effect="dark">
-                                            <template #content>
-                                                <div class="request-body-tip__content">
-                                                    <div>POST分页请求案例：</div>
-                                                    <div>{</div>
-                                                    <div>&nbsp;&nbsp;"custom_page": "${page}",</div>
-                                                    <div>&nbsp;&nbsp;"custom_pageSize": "${pageSize}"</div>
-                                                    <div>}</div>
-                                                    <div>GET分页请求案例：</div>
-                                                    <div>?custom_page=${page}&custom_pageSize=${pageSize}</div>
-                                                </div>
-                                            </template>
-                                            <el-icon class="tooltip-msg"><QuestionFilled /></el-icon>
-                                        </el-tooltip>
-                                    </span>
+                                    <el-tooltip placement="right" effect="dark" :enterable="false">
+                                        <template #content>
+                                            <div class="request-body-tip__content">
+                                                <div>POST分页请求案例：</div>
+                                                <div>{</div>
+                                                <div>&nbsp;&nbsp;"custom_page": "${page}",</div>
+                                                <div>&nbsp;&nbsp;"custom_pageSize": "${pageSize}"</div>
+                                                <div>}</div>
+                                                <div>GET分页请求案例：</div>
+                                                <div>?custom_page=${page}&custom_pageSize=${pageSize}</div>
+                                            </div>
+                                        </template>
+                                        <span class="request-body-label">接口</span>
+                                    </el-tooltip>
                                 </template>
                                 <div class="api-request-line">
                                     <el-select
@@ -413,16 +410,14 @@
                         </template>
                         <el-form-item prop="overMode">
                             <template #label>
-                                <span class="request-body-label">
-                                    <span>写入模式</span>
                                     <el-tooltip
                                         placement="right"
                                         effect="dark"
                                         content="覆写模式会修改目标表的字段结构"
+                                        :enterable="false"
                                     >
-                                        <el-icon class="tooltip-msg"><QuestionFilled /></el-icon>
+                                        <span class="request-body-label">写入模式</span>
                                     </el-tooltip>
-                                </span>
                             </template>
                             <el-select
                                 v-model="formData.overMode"
@@ -527,7 +522,9 @@
             :close-on-click-modal="false"
             append-to-body
         >
-            <code-mirror v-model="responseBodyTemplateText" basic :lang="jsonLang" />
+            <div class="template-json-body">
+                <code-mirror v-model="responseBodyTemplateText" class="template-json-editor" basic :lang="jsonLang" />
+            </div>
             <template #footer>
                 <div class="template-config-footer template-config-footer--between">
                     <el-button type="primary" @click="formatTemplateJson('response')">格式化JSON</el-button>
@@ -564,7 +561,7 @@ import {
 } from '@/modules/workflow/api'
 import PublishLog from '../work-item/publish-log.vue'
 import RunningLog from '../work-item/running-log.vue'
-import { Delete, Loading, QuestionFilled } from '@element-plus/icons-vue'
+import { Delete, Loading } from '@element-plus/icons-vue'
 import { jsonFormatter } from '@/app/utils/formatter'
 
 interface Option {
@@ -1555,15 +1552,13 @@ onUnmounted(() => {
                                 line-height: 32px;
                             }
 
-                            .tooltip-msg {
-                                font-size: 16px;
-                                color: #c0c4cc;
-                            }
-
                             .request-body-label {
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 4px;
+                                display: inline-block;
+                                cursor: help;
+
+                                &:hover {
+                                    color: getCssVar('color', 'primary');
+                                }
                             }
 
                             .request-body-tip__content {
@@ -1592,7 +1587,17 @@ onUnmounted(() => {
                             }
 
                             .paging-line .el-input-number {
-                                width: 120px;
+                                width: 88px;
+                            }
+
+                            .paging-line .el-input-number.is-controls-right .el-input__wrapper {
+                                padding-left: 8px;
+                                padding-right: 26px;
+                            }
+
+                            .paging-line .el-input-number.is-controls-right .el-input-number__decrease,
+                            .paging-line .el-input-number.is-controls-right .el-input-number__increase {
+                                width: 22px;
                             }
 
                             .paging-line__text {
@@ -1712,5 +1717,9 @@ onUnmounted(() => {
 
 .template-json-editor .cm-editor {
     min-height: 360px;
+}
+
+.template-json-editor .cm-gutters {
+    display: none;
 }
 </style>

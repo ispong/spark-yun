@@ -38,15 +38,16 @@
             <el-option label="POST" value="POST" />
           </el-select>
         </el-form-item>
-        <el-form-item label="自定义访问路径" prop="path">
-          <el-tooltip
-            content="路径规则：/path1、/path1/path2、/path1/path2/path3，仅支持三级"
-            placement="top"
-          >
-            <el-icon style="left: 92px" class="tooltip-msg">
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
+        <el-form-item prop="path" class="label-tooltip-form-item">
+          <template #label>
+            <el-tooltip
+              content="路径规则：/path1、/path1/path2、/path1/path2/path3，仅支持三级"
+              placement="top"
+              :enterable="false"
+            >
+              <span class="label-tooltip-text">自定义访问路径</span>
+            </el-tooltip>
+          </template>
           <el-input
             v-model="formData.path"
             maxlength="1000"
@@ -81,15 +82,16 @@
       <div v-if="stepIndex === 1" class="api-item">
         <!-- 接口配置 -->
         <!-- <div class="item-title">请求配置</div> -->
-        <el-form-item label="请求头模式">
-          <el-tooltip
-            content="任何人访问：无权限拦截。系统认证：通过至轻云用户权限拦截。自定义：用户自定义请求头拦截"
-            placement="top"
-          >
-            <el-icon style="left: 68px" class="tooltip-msg">
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
+        <el-form-item class="label-tooltip-form-item">
+          <template #label>
+            <el-tooltip
+              content="任何人访问：无权限拦截。系统认证：通过至轻云用户权限拦截。自定义：用户自定义请求头拦截"
+              placement="top"
+              :enterable="false"
+            >
+              <span class="label-tooltip-text">请求头模式</span>
+            </el-tooltip>
+          </template>
           <el-radio-group
             v-model="formData.tokenType"
             size="small"
@@ -137,24 +139,26 @@
             </div>
           </div>
         </el-form-item>
-        <el-form-item label="开启分页">
-          <el-tooltip
-            content="分页系统参数如下：$system.page（分页的页数，从0开始），$system.pageSize（分页的每页条数），$system.count（总条数）"
-            placement="top"
-          >
-            <el-icon style="left: 54px" class="tooltip-msg">
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
+        <el-form-item class="label-tooltip-form-item">
+          <template #label>
+            <el-tooltip
+              content="分页系统参数如下：$system.page（分页的页数，从0开始），$system.pageSize（分页的每页条数），$system.count（总条数）"
+              placement="top"
+              :enterable="false"
+            >
+              <span class="label-tooltip-text">开启分页</span>
+            </el-tooltip>
+          </template>
           <el-switch v-model="formData.pageType" />
         </el-form-item>
         <el-form-item
-          label="请求体设置"
+          class="label-tooltip-form-item"
           :class="{ 'show-screen__full': reqBodyFullStatus }"
         >
-          <el-tooltip placement="top">
-            <template #content>
-              <pre style="max-height: 300px; overflow: auto">
+          <template #label>
+            <el-tooltip placement="top" :enterable="false">
+              <template #content>
+                <pre style="max-height: 300px; overflow: auto">
 post模版:
 {
   "req":{
@@ -174,12 +178,11 @@ get模版:
 custom_a=${a.date}&custom_b=${b.datetime}&custom_c=${c.timestamp}&custom_d=${d.string}&custom_e=
 ${e.boolean}&custom_f=${f.double}&custom_g=${g.int}&custom_page=${page.int}&custom_pageSize=${pageSize.int}
 </pre
-              >
-            </template>
-            <el-icon style="left: 68px" class="tooltip-msg">
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
+                >
+              </template>
+              <span class="label-tooltip-text">请求体设置</span>
+            </el-tooltip>
+          </template>
           <span
             class="format-json"
             @click="formatterJsonEvent(formData, 'reqBody')"
@@ -195,12 +198,13 @@ ${e.boolean}&custom_f=${f.double}&custom_g=${g.int}&custom_page=${page.int}&cust
           <code-mirror v-model="formData.reqBody" basic :lang="jsonLang" />
         </el-form-item>
         <el-form-item
-          label="SQL设置"
+          class="label-tooltip-form-item"
           :class="{ 'show-screen__full': sqlFullStatus }"
         >
-          <el-tooltip placement="top">
-            <template #content>
-              <pre>
+          <template #label>
+            <el-tooltip placement="top" :enterable="false">
+              <template #content>
+                <pre>
 不支持*表达语法，'${a}'对应请求中的"$a.date"
 插入模版：
 insert into demo (col1,col2,col3,col4,col5,col6,col7) values ('${a}','${b}','${c}','${d}','${e}','${f}','${g}')
@@ -208,12 +212,11 @@ insert into demo (col1,col2,col3,col4,col5,col6,col7) values ('${a}','${b}','${c
 查询模版：
 select col1,col2,col3,col4,col5,col6,col7 from demo where col1 = '${a}' and col2= '${b}'
 and col3= '${c}' and col4= '${d}' and col5= '${e}' and col6= '${f}' and col7= '${g}'</pre
-              >
-            </template>
-            <el-icon style="left: 48px" class="tooltip-msg">
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
+                >
+              </template>
+              <span class="label-tooltip-text">SQL设置</span>
+            </el-tooltip>
+          </template>
           <el-icon
             class="modal-full-screen"
             @click="fullScreenEvent('sqlFullStatus')"
@@ -224,13 +227,14 @@ and col3= '${c}' and col4= '${d}' and col5= '${e}' and col6= '${f}' and col7= '$
           <code-mirror v-model="formData.apiSql" basic :lang="sqlLang" />
         </el-form-item>
         <el-form-item
-          label="返回体设置"
           prop="resBody"
+          class="label-tooltip-form-item"
           :class="{ 'show-screen__full': respBodyFullStatus }"
         >
-          <el-tooltip placement="top">
-            <template #content>
-              <pre style="max-height: 300px; overflow: auto">
+          <template #label>
+            <el-tooltip placement="top" :enterable="false">
+              <template #content>
+                <pre style="max-height: 300px; overflow: auto">
 系统参数$count.long，需要开启分页激活
 
 单对象模版：
@@ -272,12 +276,11 @@ and col3= '${c}' and col4= '${d}' and col5= '${e}' and col6= '${f}' and col7= '$
   ],
   "count": "${count.long}"
 }</pre
-              >
-            </template>
-            <el-icon style="left: 68px" class="tooltip-msg">
-              <QuestionFilled />
-            </el-icon>
-          </el-tooltip>
+                >
+              </template>
+              <span class="label-tooltip-text">返回体设置</span>
+            </el-tooltip>
+          </template>
           <span
             class="format-json"
             @click="formatterJsonEvent(formData, 'resBody')"
@@ -1109,12 +1112,15 @@ defineExpose({
         text-decoration: underline;
       }
     }
-    .tooltip-msg {
-      position: absolute;
-      top: -28px;
-      // left: 20px;
-      color: getCssVar("color", "info");
-      font-size: 16px;
+    .label-tooltip-form-item {
+      .label-tooltip-text {
+        display: inline-block;
+        cursor: help;
+
+        &:hover {
+          color: getCssVar("color", "primary");
+        }
+      }
     }
     &.show-screen__full {
       position: fixed;

@@ -264,14 +264,6 @@ defineExpose({
             }
         }
 
-        .tooltip-msg {
-            position: absolute;
-            top: -28px;
-            // left: 20px;
-            color: getCssVar('color', 'info');
-            font-size: 16px;
-        }
-
         &.show-screen__full {
             position: fixed;
             width: 100%;

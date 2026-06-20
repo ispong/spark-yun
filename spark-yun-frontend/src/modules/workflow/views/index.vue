@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table workflow-page-list">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addGroup">新建作业流</el-button>
             <div class="zqy-seach">
@@ -13,6 +13,24 @@
                     @keyup.enter="initData(false)"
                 />
             </div>
+            <Transition name="workflow-batch-slide">
+                <div v-if="selectedRows.length" class="workflow-batch-mask">
+                    <div class="workflow-batch-actions">
+                        <el-button class="workflow-batch-action" :loading="batchLoading" @click="batchPublishWorkflows">
+                            发布
+                        </el-button>
+                        <el-button class="workflow-batch-action" :loading="batchLoading" @click="batchUnderlineWorkflows">
+                            下线
+                        </el-button>
+                        <el-button class="workflow-batch-action" :loading="batchLoading" @click="batchDeleteData">
+                            删除
+                        </el-button>
+                        <el-button class="workflow-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
+                            取消选择
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
         </div>
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="zqy-table">
@@ -20,6 +38,7 @@
                     :table-config="tableConfig"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
+                    @checkbox-change="handleSelectionChange"
                 >
                     <template #nameSlot="scopeSlot">
                         <span class="name-click" @click.stop="showDetail(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
@@ -28,19 +47,19 @@
                         <ZStatusTag :status="scopeSlot.row.status === 'STOP' ? 'UN_PUBLISHED' : scopeSlot.row.status" />
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <span
-                                v-if="!['UN_AUTO', 'STOP'].includes(scopeSlot.row.status)"
-                                @click="underlineWorkFlow(scopeSlot.row)"
-                            >
-                                下线
-                            </span>
-                            <span v-else @click="publishWorkFlow(scopeSlot.row)">发布</span>
-                            <el-dropdown trigger="click">
-                                <span class="click-show-more">更多</span>
+                        <div class="btn-group workflow-action-group">
+                            <span class="workflow-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <el-dropdown trigger="click" popper-class="workflow-action-dropdown">
+                                <span class="click-show-more workflow-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item @click="editData(scopeSlot.row)">编辑</el-dropdown-item>
+                                        <el-dropdown-item
+                                            v-if="canUnderlineWorkflow(scopeSlot.row)"
+                                            @click="underlineWorkFlow(scopeSlot.row)"
+                                        >
+                                            下线
+                                        </el-dropdown-item>
+                                        <el-dropdown-item v-else @click="publishWorkFlow(scopeSlot.row)">发布</el-dropdown-item>
                                         <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
@@ -85,6 +104,8 @@ const tableConfig: any = reactive(TableConfig)
 const keyword = ref('')
 const loading = ref(false)
 const networkError = ref(false)
+const selectedRows = ref<any[]>([])
+const batchLoading = ref(false)
 const addModalRef = ref(null)
 
 function refreshLicenseAndReload() {
@@ -108,6 +129,7 @@ function initData(tableLoading?: boolean) {
         .then((res: any) => {
             tableConfig.tableData = res.data.content
             tableConfig.pagination.total = res.data.totalElements
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = false
@@ -115,6 +137,7 @@ function initData(tableLoading?: boolean) {
         .catch(() => {
             tableConfig.tableData = []
             tableConfig.pagination.total = 0
+            selectedRows.value = []
             loading.value = false
             tableConfig.loading = false
             networkError.value = true
@@ -151,6 +174,14 @@ function editData(data: any) {
                 })
         })
     }, data)
+}
+
+function canPublishWorkflow(data: any) {
+    return ['UN_AUTO', 'STOP'].includes(data?.status)
+}
+
+function canUnderlineWorkflow(data: any) {
+    return !canPublishWorkflow(data)
 }
 
 // 下线工作流
@@ -208,6 +239,92 @@ function deleteData(data: any) {
     })
 }
 
+function handleSelectionChange(records: any[]) {
+    selectedRows.value = records || []
+}
+
+function cancelSelection() {
+    selectedRows.value = []
+    tableConfig.tableData = [...tableConfig.tableData]
+}
+
+function batchStatusAction(
+    rows: any[],
+    action: (params: { workflowId: string }) => Promise<any>,
+    successMessage: string,
+    emptyMessage: string
+) {
+    if (!rows.length) {
+        ElMessage.warning(emptyMessage)
+        return
+    }
+
+    batchLoading.value = true
+    Promise.all(rows.map((row: any) => action({ workflowId: row.id })))
+        .then(() => {
+            initData()
+            ElMessage({
+                type: 'success',
+                message: successMessage,
+                onClose: () => {
+                    refreshLicenseAndReload()
+                }
+            })
+        })
+        .catch(() => {})
+        .finally(() => {
+            batchLoading.value = false
+        })
+}
+
+function batchPublishWorkflows() {
+    batchStatusAction(
+        selectedRows.value.filter(canPublishWorkflow),
+        PublishWorkflowData,
+        '批量发布成功',
+        '请选择可发布的作业流'
+    )
+}
+
+function batchUnderlineWorkflows() {
+    batchStatusAction(
+        selectedRows.value.filter(canUnderlineWorkflow),
+        UnderlineWorkflowData,
+        '批量下线成功',
+        '请选择可下线的作业流'
+    )
+}
+
+function batchDeleteData() {
+    if (!selectedRows.value.length) {
+        return
+    }
+
+    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个作业流吗？`, '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        batchLoading.value = true
+        Promise.all(
+            selectedRows.value.map((row: any) =>
+                DeleteWorkflowData({
+                    workflowId: row.id,
+                    Tenant: authStore.tenantId
+                })
+            )
+        )
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                initData()
+            })
+            .catch(() => {})
+            .finally(() => {
+                batchLoading.value = false
+            })
+    })
+}
+
 function showDetail(data: any) {
     if (!data?.id) {
         ElMessage.warning('作业流信息不完整')
@@ -230,6 +347,7 @@ function inputEvent(e: string) {
 
 function handleSizeChange(e: number) {
     tableConfig.pagination.pageSize = e
+    tableConfig.pagination.currentPage = 1
     initData()
 }
 
@@ -246,13 +364,113 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
-.zqy-seach-table {
+.workflow-page-list {
+    .zqy-table-top {
+        position: relative;
+        overflow: hidden;
+
+        .workflow-batch-mask {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+    }
+
+    .workflow-batch-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .workflow-batch-action {
+            min-width: 66px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('color', 'primary');
+            color: getCssVar('color', 'primary');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('color', 'primary');
+                color: #fff;
+                background-color: getCssVar('color', 'primary');
+            }
+        }
+
+        .workflow-batch-cancel {
+            min-width: 74px;
+            height: 32px;
+            line-height: 30px;
+            border-color: getCssVar('border-color');
+            color: getCssVar('text-color', 'regular');
+            background-color: #fff;
+
+            &:hover,
+            &:focus {
+                border-color: getCssVar('border-color');
+                color: getCssVar('text-color', 'regular');
+                background-color: #fff;
+            }
+        }
+    }
+
+    .workflow-batch-slide-enter-active,
+    .workflow-batch-slide-leave-active {
+        transition:
+            opacity 0.16s ease,
+            transform 0.16s ease;
+    }
+
+    .workflow-batch-slide-enter-from,
+    .workflow-batch-slide-leave-to {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    .workflow-batch-slide-enter-to,
+    .workflow-batch-slide-leave-from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     .name-click {
         cursor: pointer;
         color: getCssVar('color', 'primary', 'light-5');
         &:hover {
             color: getCssVar('color', 'primary');
         }
+    }
+
+    .zqy-table {
+        .workflow-action-group {
+            justify-content: center;
+            gap: 16px;
+
+            .workflow-action-button {
+                display: inline-flex;
+                align-items: center;
+                line-height: 1;
+                font-size: getCssVar('font-size', 'extra-small');
+            }
+        }
+    }
+}
+
+.workflow-action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-size: getCssVar('font-size', 'extra-small');
     }
 }
 </style>

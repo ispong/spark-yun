@@ -2,7 +2,7 @@
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
     <LoadingPage :visible="loading">
         <div class="workflow-page">
-            <div class="work-list">
+            <div class="work-list" :style="{ width: `${workListWidth}px` }">
                 <div class="option-container">
                     <div class="option-title">
                         <span class="option-title__href" @click="backToFlow">
@@ -85,7 +85,7 @@
                                     <!-- <span class="label-name">{{ work.name + work.name + work.name || '-' }}</span> -->
                                     <span class="label-name">{{ workTypeName(work.workType) }}</span>
                                 </div>
-                                <el-dropdown trigger="click">
+                                <el-dropdown trigger="click" popper-class="workflow-page__work-menu-popper">
                                     <el-icon class="option-more" @click.stop>
                                         <MoreFilled />
                                     </el-icon>
@@ -110,6 +110,7 @@
                         <empty-page v-if="!workListItem.length" />
                     </div>
                 </el-scrollbar>
+                <div class="work-list-resize-handle" @mousedown="startResizeWorkList" />
             </div>
             <div class="flow-container">
                 <template v-if="containerType === 'flow'">
@@ -396,6 +397,16 @@ const runningStatus = ref(false)
 const copyModalRef = ref()
 const loading = ref<boolean>(false)
 const orderType = ref<'acs' | 'desc' | ''>('')
+const RUN_STATUS_POLLING_INTERVAL = 1000
+const WORK_LIST_DEFAULT_WIDTH = 200
+const WORK_LIST_MIN_WIDTH = 180
+const WORK_LIST_MAX_WIDTH = 420
+const workListWidth = ref(WORK_LIST_DEFAULT_WIDTH)
+const workListResizeState = reactive({
+    resizing: false,
+    startX: 0,
+    startWidth: WORK_LIST_DEFAULT_WIDTH
+})
 
 const btnLoadingConfig = reactive({
     runningLoading: false,
@@ -407,6 +418,60 @@ const btnLoadingConfig = reactive({
     exportLoading: false,
     underlineLoading: false
 })
+
+function startFlowStatusRefresh(markPending = false) {
+    zqyFlowRef.value.hideGrid(true)
+    if (markPending) {
+        zqyFlowRef.value.markFlowPending?.()
+    }
+    // 判断是否开始运行
+    runningStatus.value = true
+    queryRunWorkInstancesEvent()
+    if (!timer.value) {
+        timer.value = setInterval(() => {
+            queryRunWorkInstancesEvent()
+        }, RUN_STATUS_POLLING_INTERVAL)
+    }
+}
+
+function getMaxWorkListWidth() {
+    return Math.min(WORK_LIST_MAX_WIDTH, Math.max(WORK_LIST_MIN_WIDTH, window.innerWidth - 520))
+}
+
+function clampWorkListWidth(width: number) {
+    return Math.min(getMaxWorkListWidth(), Math.max(WORK_LIST_MIN_WIDTH, width))
+}
+
+function startResizeWorkList(event: MouseEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    workListResizeState.resizing = true
+    workListResizeState.startX = event.clientX
+    workListResizeState.startWidth = workListWidth.value
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    document.addEventListener('mousemove', onResizeWorkList)
+    document.addEventListener('mouseup', stopResizeWorkList)
+}
+
+function onResizeWorkList(event: MouseEvent) {
+    if (!workListResizeState.resizing) {
+        return
+    }
+    const nextWidth = workListResizeState.startWidth + event.clientX - workListResizeState.startX
+    workListWidth.value = clampWorkListWidth(nextWidth)
+}
+
+function stopResizeWorkList() {
+    if (!workListResizeState.resizing) {
+        return
+    }
+    workListResizeState.resizing = false
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+    document.removeEventListener('mousemove', onResizeWorkList)
+    document.removeEventListener('mouseup', stopResizeWorkList)
+}
 const breadCrumbList = reactive([
     {
         name: '作业流',
@@ -418,6 +483,14 @@ const breadCrumbList = reactive([
     }
 ])
 const typeList = reactive(TypeList)
+
+function clearNodeRuntimeStatus(data: any) {
+    if (!data) {
+        return data
+    }
+    const { status, isRunning, workInstanceId, ...rest } = data
+    return rest
+}
 
 const workTypeName = computed(() => {
     return (code: string) => {
@@ -525,7 +598,7 @@ function saveData() {
                     shape: item.shape,
                     ports: item.ports,
                     id: item.id,
-                    data: item.data,
+                    data: clearNodeRuntimeStatus(item.data),
                     zIndex: item.zIndex
                 }
             } else {
@@ -576,15 +649,7 @@ function runWorkFlowDataEvent() {
         .then((res: any) => {
             workflowInstanceId.value = res.data
             ElMessage.success(res.msg)
-            zqyFlowRef.value.hideGrid(true)
-            // 判断是否开始运行
-            runningStatus.value = true
-            queryRunWorkInstancesEvent()
-            if (!timer.value) {
-                timer.value = setInterval(() => {
-                    queryRunWorkInstancesEvent()
-                }, 2000)
-            }
+            startFlowStatusRefresh(true)
             btnLoadingConfig.runningLoading = false
         })
         .catch(() => {
@@ -599,15 +664,7 @@ function reRunWorkFlowDataEvent() {
     })
         .then((res: any) => {
             ElMessage.success(res.msg)
-            zqyFlowRef.value.hideGrid(true)
-            // 判断是否开始运行
-            runningStatus.value = true
-            queryRunWorkInstancesEvent()
-            if (!timer.value) {
-                timer.value = setInterval(() => {
-                    queryRunWorkInstancesEvent()
-                }, 1000)
-            }
+            startFlowStatusRefresh(true)
             btnLoadingConfig.reRunLoading = false
         })
         .catch(() => {
@@ -858,15 +915,7 @@ function nodeRunAfterFlow(e: any) {
     })
         .then((res: any) => {
             ElMessage.success(res.msg)
-            zqyFlowRef.value.hideGrid(true)
-            // 判断是否开始运行
-            runningStatus.value = true
-            queryRunWorkInstancesEvent()
-            if (!timer.value) {
-                timer.value = setInterval(() => {
-                    queryRunWorkInstancesEvent()
-                }, 1000)
-            }
+            startFlowStatusRefresh()
         })
         .catch(() => {})
 }
@@ -890,15 +939,7 @@ function reRunCurrentNodeFlow(e: any) {
     })
         .then((res: any) => {
             ElMessage.success(res.msg)
-            zqyFlowRef.value.hideGrid(true)
-            // 判断是否开始运行
-            runningStatus.value = true
-            queryRunWorkInstancesEvent()
-            if (!timer.value) {
-                timer.value = setInterval(() => {
-                    queryRunWorkInstancesEvent()
-                }, 1000)
-            }
+            startFlowStatusRefresh()
         })
         .catch(() => {})
 }
@@ -1044,6 +1085,7 @@ function updateDagNodeList(nodeList: any[]) {
                 node.data.name = currentNode.name
                 node.data.nodeConfigData.name = currentNode.name
             }
+            node.data = clearNodeRuntimeStatus(node.data)
         })
     }
     return nodeList
@@ -1061,7 +1103,7 @@ function updateDagNodeListByEdit(node: any, type: string) {
                     shape: item.shape,
                     ports: item.ports,
                     id: item.id,
-                    data: item.data,
+                    data: clearNodeRuntimeStatus(item.data),
                     zIndex: item.zIndex
                 }
             } else {
@@ -1089,6 +1131,7 @@ function updateDagNodeListByEdit(node: any, type: string) {
 onUnmounted(() => {
     clearInterval(timer.value)
     timer.value = null
+    stopResizeWorkList()
     eventBus.off('nodeMenuEvent')
 })
 </script>
@@ -1101,17 +1144,18 @@ onUnmounted(() => {
     overflow: hidden;
 
     .work-list {
-        min-width: 200px;
-        width: 200px;
-        max-width: 200px;
+        min-width: 180px;
+        max-width: 420px;
+        flex: none;
         height: 100%;
         border-right: 1px solid getCssVar('border-color');
         border-left: 1px solid getCssVar('border-color');
         background-color: getCssVar('color', 'white');
+        position: relative;
 
         .option-container {
             height: 50px;
-            width: 201px;
+            width: 100%;
             background-color: getCssVar('color', 'white');
             border-bottom: 1px solid getCssVar('border-color');
             display: flex;
@@ -1119,19 +1163,19 @@ onUnmounted(() => {
 
             .option-title {
                 height: 100%;
-                width: 201px;
+                width: 100%;
                 display: flex;
                 align-items: center;
                 font-size: getCssVar('font-size', 'base');
                 color: getCssVar('text-color', 'primary');
-                padding-left: 12px;
-                border-right: 1px solid getCssVar('border-color');
+                padding: 0 44px 0 12px;
                 box-sizing: border-box;
                 .option-title__href {
+                    min-width: 0;
                     cursor: pointer;
                     color: getCssVar('color', 'primary');
                     .title-tooltip {
-                        max-width: 150px;
+                        max-width: 100%;
                     }
                     &:hover {
                         color: getCssVar('color', 'primary', 'dark-2');
@@ -1141,12 +1185,14 @@ onUnmounted(() => {
 
             .change-workflow {
                 position: absolute;
-                right: 16px;
+                right: 8px;
                 top: 50%;
                 transform: translateY(-50%);
-                display: inline-block;
-                white-space: nowrap;
-                writing-mode: horizontal-tb;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
                 cursor: pointer;
                 color: getCssVar('color', 'primary');
                 font-size: 13px;
@@ -1173,16 +1219,21 @@ onUnmounted(() => {
             }
 
             .add-work-icon {
+                flex: 0 0 28px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
                 margin-left: 4px;
-                margin-right: 4px;
+                margin-right: 0;
                 width: 28px;
+                height: 28px;
                 font-size: 18px;
                 color: getCssVar('color', 'primary');
                 cursor: pointer;
             }
         }
         .el-scrollbar {
-            width: 200px;
+            width: 100%;
             max-height: calc(100vh - 148px);
             .el-scrollbar__view {
                 height: 100%;
@@ -1209,6 +1260,8 @@ onUnmounted(() => {
 
                         .item-right {
                             margin-left: 8px;
+                            min-width: 0;
+                            flex: 1;
                             display: flex;
                             flex-direction: column;
                             justify-content: space-between;
@@ -1219,13 +1272,13 @@ onUnmounted(() => {
                             .label-type {
                                 color: getCssVar('color', 'primary');
                                 .label-name-text {
-                                    max-width: 170px;
+                                    max-width: calc(100% - 8px);
                                 }
                             }
                             .label-name {
                                 color: getCssVar('color', 'info');
                                 .label-name-text {
-                                    max-width: 170px;
+                                    max-width: calc(100% - 8px);
                                 }
                             }
                         }
@@ -1259,6 +1312,31 @@ onUnmounted(() => {
                 }
             }
         }
+
+        .work-list-resize-handle {
+            position: absolute;
+            top: 0;
+            right: -3px;
+            z-index: 20;
+            width: 6px;
+            height: 100%;
+            cursor: col-resize;
+
+            &::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: 2px;
+                width: 1px;
+                height: 100%;
+                background-color: transparent;
+                transition: background-color 0.15s ease;
+            }
+
+            &:hover::after {
+                background-color: getCssVar('color', 'primary');
+            }
+        }
     }
 
     .workflow-btn-container {
@@ -1272,8 +1350,8 @@ onUnmounted(() => {
     }
 
     .flow-container {
-        width: 100%;
-        max-width: calc(100vw - 282px);
+        flex: 1;
+        min-width: 0;
         background-color: getCssVar('color', 'white');
 
         .option-btns {
@@ -1282,24 +1360,35 @@ onUnmounted(() => {
             border-bottom: 1px solid getCssVar('border-color');
             display: flex;
             align-items: center;
+            flex-wrap: nowrap;
+            gap: 8px;
+            overflow-x: auto;
+            overflow-y: hidden;
             padding-left: 20px;
+            padding-right: 12px;
             box-sizing: border-box;
             font-size: getCssVar('font-size', 'extra-small');
             color: getCssVar('color', 'primary', 'light-5');
+            scrollbar-width: thin;
 
             .btn-box {
                 font-size: getCssVar('font-size', 'extra-small');
                 display: flex;
+                align-items: center;
+                flex: 0 0 auto;
                 cursor: pointer;
-                width: 48px;
-                margin-right: 8px;
+                min-width: 48px;
+                width: auto;
+                height: 100%;
+                white-space: nowrap;
 
                 &.btn-box__4 {
-                    width: 70px;
+                    min-width: 70px;
                 }
 
                 .btn-text {
                     margin-left: 4px;
+                    white-space: nowrap;
                 }
 
                 &:hover {
@@ -1307,6 +1396,42 @@ onUnmounted(() => {
                 }
             }
         }
+    }
+}
+.workflow-page {
+    .option-btns,
+    .header-options,
+    .sql-option-container,
+    .options-container {
+        flex-wrap: nowrap;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        box-sizing: border-box;
+        scrollbar-width: thin;
+
+        .btn-box {
+            display: flex;
+            align-items: center;
+            flex: 0 0 auto;
+            min-width: 48px;
+            width: auto;
+            height: 100%;
+            margin-right: 0;
+            white-space: nowrap;
+
+            &.btn-box__4 {
+                min-width: 70px;
+            }
+
+            .btn-text {
+                white-space: nowrap;
+            }
+        }
+    }
+
+    .header-options {
+        padding-right: 12px;
     }
 }
 .workflow-page__change-item {
@@ -1332,5 +1457,16 @@ onUnmounted(() => {
 .workflow-page__change-empty {
     color: getCssVar('text-color', 'placeholder');
     cursor: default;
+}
+.workflow-page__work-menu-popper {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
 }
 </style>
