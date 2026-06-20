@@ -187,24 +187,26 @@ onUnmounted(() => {
 <style lang="scss">
 .vm-chart {
     margin-bottom: 24px;
+
     .vm-chart__header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        height: 40px;
+        height: 32px;
     }
 
     .vm-chart__title {
         font-size: getCssVar('font-size', 'medium');
-        font-weight: bold;
+        font-weight: 600;
     }
 
     .vm-chart__body {
-        height: 280px;
-        margin-top: 24px;
-        border-radius: 8px;
+        height: 300px;
+        margin-top: 12px;
+        border: 1px solid getCssVar('border-color', 'lighter');
+        border-radius: 6px;
         background-color: getCssVar('color', 'white');
-        box-shadow: getCssVar('box-shadow', 'lighter');
+        box-shadow: 0 1px 4px rgb(15 23 42 / 4%);
 
         .vm-chart__container {
             width: 100%;
@@ -216,22 +218,26 @@ onUnmounted(() => {
     .vm-chart__ops {
         display: flex;
         align-items: center;
+        gap: 10px;
 
         .vm-chart__icon {
-            margin-right: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
             cursor: pointer;
+            color: getCssVar('text-color', 'regular');
 
             &:hover {
                 color: getCssVar('color', 'primary');
-            }
-
-            &:last-child {
-                margin-right: 0;
+                background-color: getCssVar('color', 'primary', 'light-9');
             }
         }
 
         .el-date-editor {
-            --el-date-editor-width: 160px;
+            --el-date-editor-width: 180px;
         }
     }
 }

@@ -31,7 +31,7 @@ const props = withDefaults(
 )
 
 const isEmpty = computed(() => {
-    return !props.chartData.mix
+    return props.chartData.mix === undefined || props.chartData.mix === null
 })
 
 watch(
@@ -108,7 +108,7 @@ const options = computed<EChartsOption>(() => {
                     borderColor: props.chartData.color,
                     borderWidth: 2,
                     formatter: (value) => {
-                        return Math.round((value / props.chartData.total) * 100) + '%'
+                        return props.chartData.total ? Math.round((value / props.chartData.total) * 100) + '%' : '0%'
                     }
                 }
             }
@@ -136,20 +136,24 @@ const bodyContainer = ref<HTMLDivElement>()
     display: flex;
     flex-direction: column;
     min-width: 160px;
-    height: 220px;
-    border-radius: 8px;
+    height: 196px;
+    border: 1px solid getCssVar('border-color', 'lighter');
+    border-radius: 6px;
     background-color: getCssVar('color', 'white');
-    box-shadow: getCssVar('box-shadow', 'lighter');
-    padding: 12px;
+    box-shadow: 0 1px 4px rgb(15 23 42 / 4%);
+    box-sizing: border-box;
+    padding: 14px 16px 12px;
 
     .sys-chart__title {
-        font-size: getCssVar('font-size', 'medium');
-        font-weight: bold;
+        color: getCssVar('text-color', 'regular');
+        font-size: getCssVar('font-size', 'base');
+        font-weight: 600;
     }
 
     .sys-chart__mix {
         font-size: getCssVar('font-size', 'large');
-        font-weight: bold;
+        font-weight: 600;
+        color: getCssVar('text-color', 'primary');
     }
 
     .sys-chart__body {
@@ -161,7 +165,7 @@ const bodyContainer = ref<HTMLDivElement>()
 
     .sys-chart__container {
         height: 100%;
-        width: 160px;
+        width: 150px;
     }
 
     .sys-chart__footer {

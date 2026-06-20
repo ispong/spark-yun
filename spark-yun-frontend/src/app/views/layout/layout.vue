@@ -2,9 +2,11 @@
     <div class="zqy-layout">
         <div
             class="zqy-layout__sidebar"
-            :class="{ 'is-collapse': isCollapse }"
-            @mouseenter="isCollapse = false"
-            @mouseleave="isCollapse = true"
+            :class="{ 'is-collapse': menuDisplayCollapse, 'is-resizing': isResizing }"
+            :style="{ width: `${sidebarWidth}px` }"
+            @mouseenter="handleSidebarMouseEnter"
+            @mousemove="handleSidebarMouseEnter"
+            @mouseleave="handleSidebarMouseLeave"
         >
             <div class="zqy-layout__nav">
                 <img class="zqy-layout__logo" :key="menuLogoKey" :src="menuLogoSrc" alt="logo" />
@@ -14,7 +16,7 @@
                 <el-menu
                     class="zqy-layout__menu"
                     :unique-opened="true"
-                    :collapse="isCollapse"
+                    :collapse="menuDisplayCollapse"
                     :default-active="currentMenu?.code"
                     @select="handleSelect"
                 >
@@ -24,7 +26,7 @@
                                 <el-icon class="zqy-layout__icon">
                                     <component :is="resolveIcon(menuData.icon)" />
                                 </el-icon>
-                                <span v-show="!isCollapse" class="zqy-layout__text">{{ menuData.name }}</span>
+                                <span v-show="!menuDisplayCollapse" class="zqy-layout__text">{{ menuData.name }}</span>
                             </template>
 
                             <el-menu-item
@@ -108,9 +110,15 @@
                     </div>
                 </el-popover>
             </div>
+            <div class="zqy-layout__resize-handle" @mousedown.prevent="startResize" />
+            <div
+                v-if="isCollapse"
+                class="zqy-layout__resize-handle zqy-layout__resize-handle--collapsed"
+                @mousedown.stop.prevent="startResize($event, SIDEBAR_COLLAPSED_WIDTH)"
+            />
         </div>
 
-        <div class="zqy-layout__main">
+        <div class="zqy-layout__main" :style="{ paddingLeft: `${mainPaddingLeft}px` }">
             <el-empty
                 v-if="showNoWorkspaceAccess"
                 class="zqy-layout__empty"
@@ -148,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, resolveComponent, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, resolveComponent, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Monitor, OfficeBuilding, ScaleToOriginal, School, SetUp, SwitchButton, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -179,7 +187,17 @@ const router = useRouter()
 const vipEnabled = ref(false)
 const licenseApiAvailable = ref(true)
 const vipChecked = ref(false)
-const isCollapse = ref(true)
+const SIDEBAR_EXPANDED_WIDTH = 220
+const SIDEBAR_COLLAPSED_WIDTH = 80
+const SIDEBAR_COLLAPSE_THRESHOLD = 120
+const SIDEBAR_EXPAND_THRESHOLD = 160
+const SIDEBAR_COLLAPSE_STORAGE_KEY = 'spark-yun-layout-sidebar-collapse'
+const SIDEBAR_RESIZE_HOT_ZONE = 14
+const isCollapse = ref(false)
+const isHoverExpanded = ref(false)
+const isResizing = ref(false)
+const resizeWidth = ref(SIDEBAR_EXPANDED_WIDTH)
+let removeSidebarResizeListeners: (() => void) | null = null
 const menuVisible = ref(false)
 const tenantSwitchDialogRef = ref<InstanceType<typeof TenantSwitchDialog>>()
 const applyTenantDialogVisible = ref(false)
@@ -252,9 +270,11 @@ const menuViewData = computed(() => {
     return filterVipMenus(menuListData.value, vipEnabled.value, licenseApiAvailable.value)
 })
 
-const menuLogoSrc = computed(() => (isCollapse.value ? brandSetting.topLogoSmallUrl : brandSetting.topLogoUrl))
+const menuDisplayCollapse = computed(() => isCollapse.value && !isHoverExpanded.value)
 
-const menuLogoKey = computed(() => `${isCollapse.value ? 'small' : 'large'}-${menuLogoSrc.value}`)
+const menuLogoSrc = computed(() => (menuDisplayCollapse.value ? brandSetting.topLogoSmallUrl : brandSetting.topLogoUrl))
+
+const menuLogoKey = computed(() => `${menuDisplayCollapse.value ? 'small' : 'large'}-${menuLogoSrc.value}`)
 
 const currentMenu = computed(() => {
     const routeMenuCode = isPersonalInfoRoute.value
@@ -309,6 +329,18 @@ const showPersonalInfo = computed(() => !isPlatformSuperAdmin.value && !isPerson
 const showApplyTenant = computed(() => !isPlatformSuperAdmin.value)
 const showNoWorkspaceAccess = computed(() => {
     return currentArea.value === 'workspace' && vipChecked.value && !isPersonalInfoRoute.value && !menuViewData.value.length
+})
+const sidebarWidth = computed(() => {
+    if (isResizing.value) {
+        return resizeWidth.value
+    }
+    return menuDisplayCollapse.value ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH
+})
+const mainPaddingLeft = computed(() => {
+    if (isResizing.value) {
+        return resizeWidth.value
+    }
+    return isCollapse.value ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH
 })
 
 function resolveIcon(icon: string) {
@@ -474,9 +506,78 @@ function submitApplyTenant() {
         })
 }
 
+function applySidebarCollapse(collapse: boolean) {
+    isCollapse.value = collapse
+    isHoverExpanded.value = false
+    resizeWidth.value = collapse ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH
+    localStorage.setItem(SIDEBAR_COLLAPSE_STORAGE_KEY, collapse ? 'true' : 'false')
+}
+
+function handleSidebarMouseEnter(event: MouseEvent) {
+    const isInCollapsedResizeZone = event.clientX >= SIDEBAR_COLLAPSED_WIDTH - SIDEBAR_RESIZE_HOT_ZONE
+    if (isCollapse.value && !isResizing.value && !isInCollapsedResizeZone) {
+        isHoverExpanded.value = true
+    }
+}
+
+function handleSidebarMouseLeave() {
+    isHoverExpanded.value = false
+}
+
+function handleDocumentMouseMove(event: MouseEvent) {
+    if (isHoverExpanded.value && !isResizing.value && event.clientX > SIDEBAR_EXPANDED_WIDTH) {
+        isHoverExpanded.value = false
+    }
+}
+
+function startResize(event: MouseEvent, fixedStartWidth?: number) {
+    removeSidebarResizeListeners?.()
+    const startX = event.clientX
+    const startWidth = fixedStartWidth ?? sidebarWidth.value
+    isHoverExpanded.value = false
+    isResizing.value = true
+    resizeWidth.value = startWidth
+
+    const handleResizeMove = (moveEvent: MouseEvent) => {
+        const nextWidth = Math.min(
+            SIDEBAR_EXPANDED_WIDTH,
+            Math.max(SIDEBAR_COLLAPSED_WIDTH, startWidth + moveEvent.clientX - startX)
+        )
+        resizeWidth.value = nextWidth
+    }
+
+    const handleResizeEnd = () => {
+        removeSidebarResizeListeners?.()
+        removeSidebarResizeListeners = null
+
+        const shouldCollapse = resizeWidth.value <= SIDEBAR_COLLAPSE_THRESHOLD
+        const shouldExpand = resizeWidth.value >= SIDEBAR_EXPAND_THRESHOLD
+        const nextCollapse = shouldCollapse ? true : shouldExpand ? false : isCollapse.value
+        isResizing.value = false
+        applySidebarCollapse(nextCollapse)
+    }
+
+    document.addEventListener('mousemove', handleResizeMove)
+    document.addEventListener('mouseup', handleResizeEnd)
+    removeSidebarResizeListeners = () => {
+        document.removeEventListener('mousemove', handleResizeMove)
+        document.removeEventListener('mouseup', handleResizeEnd)
+    }
+}
+
 onMounted(async () => {
+    const savedCollapse = localStorage.getItem(SIDEBAR_COLLAPSE_STORAGE_KEY)
+    if (savedCollapse === 'true' || savedCollapse === 'false') {
+        applySidebarCollapse(savedCollapse === 'true')
+    }
+    document.addEventListener('mousemove', handleDocumentMouseMove)
     loadBrandSetting()
     await loadVipLicense()
+})
+
+onBeforeUnmount(() => {
+    removeSidebarResizeListeners?.()
+    document.removeEventListener('mousemove', handleDocumentMouseMove)
 })
 
 watch(
@@ -550,8 +651,12 @@ watch(
         overflow: hidden;
         background-color: getCssVar('color', 'white');
         transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        border-right: 1px solid var(--el-border-color);
+        border-right: 1px solid var(--el-border-color-lighter);
         z-index: 2000;
+
+        &.is-resizing {
+            transition: none;
+        }
 
         &.is-collapse {
             width: 80px;
@@ -570,6 +675,31 @@ watch(
         background-color: getCssVar('color', 'white');
         padding-left: 80px;
         box-sizing: border-box;
+        transition: padding-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .zqy-layout__resize-handle {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 8px;
+        height: 100%;
+        cursor: col-resize;
+        z-index: 4;
+
+        &:hover {
+            background-color: getCssVar('color', 'primary', 'light-9');
+        }
+
+        &.zqy-layout__resize-handle--collapsed {
+            left: 76px;
+            right: auto;
+            background-color: transparent;
+
+            &:hover {
+                background-color: transparent;
+            }
+        }
     }
 
     .zqy-layout__nav {

@@ -20,20 +20,32 @@ import SysInfo from './components/sys-info.vue'
 
 <style lang="scss">
 .computer-group {
-    display: flex;
-    padding: 24px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 24px;
+    padding: 20px 24px 24px;
     overflow-x: hidden;
     overflow-y: auto;
     box-sizing: border-box;
     height: 100%;
+    background-color: getCssVar('fill-color', 'lighter');
 
     &__left {
-        flex: 1;
-        margin-right: 32px;
+        min-width: 0;
     }
 
     &__right {
-        width: 340px;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 1280px) {
+    .computer-group {
+        grid-template-columns: 1fr;
+
+        &__right {
+            width: auto;
+        }
     }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
     <div class="sys-info">
         <div class="sys-info__header">
-            <span class="sys-info__title">系统监控</span>
+            <span class="sys-info__title">资源总览</span>
             <div class="sys-info__ops">
                 <el-icon class="sys-info__icon" @click="querySysInfoData">
                     <RefreshRight />
@@ -77,23 +77,22 @@ onMounted(() => {
 <style lang="scss">
 .sys-info {
     margin-bottom: 24px;
+
     .sys-info__header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        height: 40px;
+        height: 32px;
     }
 
     .sys-info__body {
-        margin-top: 24px;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(160px, 1fr));
+        gap: 16px;
+        margin-top: 12px;
 
         .sys-chart {
-            margin-right: 24px;
-            &:last-child {
-                margin-right: 0;
-            }
+            min-width: 0;
         }
     }
 
@@ -103,15 +102,26 @@ onMounted(() => {
     }
 
     .sys-info__icon {
-        margin-right: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
         cursor: pointer;
+        color: getCssVar('text-color', 'regular');
 
         &:hover {
             color: getCssVar('color', 'primary');
+            background-color: getCssVar('color', 'primary', 'light-9');
         }
+    }
+}
 
-        &:last-child {
-            margin-right: 0;
+@media (max-width: 1440px) {
+    .sys-info {
+        .sys-info__body {
+            grid-template-columns: repeat(2, minmax(180px, 1fr));
         }
     }
 }

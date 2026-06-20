@@ -96,23 +96,56 @@ onMounted(async () => {
     margin-bottom: 24px;
 
     .monitor-info__active {
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin-right: 12px;
+        min-width: 0;
+        height: 28px;
+        padding: 0 8px;
+        border-radius: 4px;
         cursor: pointer;
+        color: getCssVar('text-color', 'regular');
+        font-size: getCssVar('font-size', 'extra-small');
+        line-height: 1;
+
+        &:hover {
+            color: getCssVar('color', 'primary');
+            background-color: getCssVar('color', 'primary', 'light-9');
+        }
     }
 
     .monitor-info__header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        height: 40px;
+        height: 32px;
+        gap: 12px;
     }
 
     .monitor-info__ops {
         display: flex;
         align-items: center;
+        gap: 8px;
+    }
+
+    .monitor-info__dropdown {
+        min-width: 0;
+    }
+
+    .sys-info__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
+        cursor: pointer;
+        color: getCssVar('text-color', 'regular');
+
+        &:hover {
+            color: getCssVar('color', 'primary');
+            background-color: getCssVar('color', 'primary', 'light-9');
+        }
     }
 }
 </style>

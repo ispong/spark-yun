@@ -4,7 +4,7 @@ import type { ColonyInfo } from '../component'
 import type { Frequency } from './useFrequency'
 
 export interface MonitorInfo {
-    type: 'cpuPercent' | 'usedMemorySize' | 'diskIoWriteSpeed' | 'usedStorageSize'
+    type: 'cpuPercent' | 'usedMemorySize' | 'diskIoReadWriteSpeed' | 'networkIoReadWriteSpeed' | 'usedStorageSize'
     name: string
     value: number
     unit: '%' | 'GB' | 'KB/s' | 'MB/s'
@@ -17,11 +17,13 @@ export function useMonitor(currentColony: Ref<ColonyInfo | undefined>, currentFr
     const cpuMonitorDataList = ref<Array<number>>([])
     const memoryMonitorDataList = ref<Array<number>>([])
     const diskIoMonitorList = ref<Array<number>>([])
+    const networkIoMonitorList = ref<Array<number>>([])
     const storageMonitorDataList = ref<Array<number>>([])
     const currentInfo = ref<Record<MonitorInfo['type'], number>>({
         cpuPercent: 0,
         usedMemorySize: 0,
-        diskIoWriteSpeed: 0,
+        diskIoReadWriteSpeed: 0,
+        networkIoReadWriteSpeed: 0,
         usedStorageSize: 0
     })
 
@@ -52,12 +54,20 @@ export function useMonitor(currentColony: Ref<ColonyInfo | undefined>, currentFr
                 data: storageMonitorDataList.value
             },
             {
-                type: 'diskIoWriteSpeed',
+                type: 'diskIoReadWriteSpeed',
                 name: 'IO读写',
-                value: currentInfo.value.diskIoWriteSpeed || 0,
+                value: currentInfo.value.diskIoReadWriteSpeed || 0,
                 unit: 'MB/s',
                 color: '#D580FF85',
                 data: diskIoMonitorList.value
+            },
+            {
+                type: 'networkIoReadWriteSpeed',
+                name: '网络IO',
+                value: currentInfo.value.networkIoReadWriteSpeed || 0,
+                unit: 'MB/s',
+                color: '#14B8A685',
+                data: networkIoMonitorList.value
             }
         ]
     })
@@ -79,6 +89,7 @@ export function useMonitor(currentColony: Ref<ColonyInfo | undefined>, currentFr
             const cpuPercentList: number[] = []
             const usedMemorySizeList: number[] = []
             const diskIoWriteSpeedList: number[] = []
+            const networkIoReadWriteSpeedList: number[] = []
             const usedStorageSizeList: number[] = []
 
             data.line.forEach((clusterMonitorInfo) => {
@@ -86,7 +97,14 @@ export function useMonitor(currentColony: Ref<ColonyInfo | undefined>, currentFr
 
                 cpuPercentList.push(parseMonitorData(clusterMonitorInfo.cpuPercent))
                 usedMemorySizeList.push(parseMonitorData(clusterMonitorInfo.usedMemorySize))
-                diskIoWriteSpeedList.push(parseMonitorData(clusterMonitorInfo.diskIoWriteSpeed))
+                diskIoWriteSpeedList.push(
+                    parseMonitorData(clusterMonitorInfo.diskIoReadSpeed) +
+                        parseMonitorData(clusterMonitorInfo.diskIoWriteSpeed)
+                )
+                networkIoReadWriteSpeedList.push(
+                    parseMonitorData(clusterMonitorInfo.networkIoReadSpeed) +
+                        parseMonitorData(clusterMonitorInfo.networkIoWriteSpeed)
+                )
                 usedStorageSizeList.push(parseMonitorData(clusterMonitorInfo.usedStorageSize))
             })
 
@@ -94,12 +112,14 @@ export function useMonitor(currentColony: Ref<ColonyInfo | undefined>, currentFr
             cpuMonitorDataList.value = cpuPercentList
             memoryMonitorDataList.value = usedMemorySizeList
             diskIoMonitorList.value = diskIoWriteSpeedList
+            networkIoMonitorList.value = networkIoReadWriteSpeedList
             storageMonitorDataList.value = usedStorageSizeList
 
             currentInfo.value = {
                 cpuPercent: cpuMonitorDataList.value[cpuMonitorDataList.value.length - 1],
                 usedMemorySize: memoryMonitorDataList.value[memoryMonitorDataList.value.length - 1],
-                diskIoWriteSpeed: diskIoMonitorList.value[diskIoMonitorList.value.length - 1],
+                diskIoReadWriteSpeed: diskIoMonitorList.value[diskIoMonitorList.value.length - 1],
+                networkIoReadWriteSpeed: networkIoMonitorList.value[networkIoMonitorList.value.length - 1],
                 usedStorageSize: storageMonitorDataList.value[storageMonitorDataList.value.length - 1]
             }
         })

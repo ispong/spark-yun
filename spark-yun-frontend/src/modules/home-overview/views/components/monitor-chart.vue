@@ -134,7 +134,6 @@ watch(
 )
 
 function resizeChart() {
-    console.log('初始化')
     nextTick(() => {
         chartVm.value?.resize()
     })
@@ -156,37 +155,52 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .monitor-chart {
-    margin-top: 24px;
-    height: 200px;
-    border-radius: 8px;
+    margin-top: 12px;
+    height: 204px;
+    border: 1px solid getCssVar('border-color', 'lighter');
+    border-radius: 6px;
     background-color: getCssVar('color', 'white');
-    box-shadow: getCssVar('box-shadow', 'lighter');
-    padding: 12px;
-    transition: all 0.3s linear;
+    box-shadow: 0 1px 4px rgb(15 23 42 / 4%);
+    box-sizing: border-box;
+    padding: 10px 12px 12px;
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+
+    &:hover {
+        border-color: getCssVar('border-color');
+        box-shadow: 0 4px 12px rgb(15 23 42 / 8%);
+    }
 
     .monitor-chart__body {
         display: flex;
         align-items: center;
         justify-content: center;
-        height: calc(100% - 40px);
+        height: calc(100% - 36px);
         position: relative;
     }
 
-    .monitor-chart__title,
+    .monitor-chart__title {
+        color: getCssVar('text-color', 'regular');
+        font-size: getCssVar('font-size', 'base');
+        font-weight: 600;
+    }
+
     .monitor-chart__active {
-        font-size: getCssVar('font-size', 'medium');
+        color: getCssVar('color', 'primary');
+        font-size: getCssVar('font-size', 'base');
+        font-weight: 600;
     }
 
     .monitor-chart__header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 12px;
-        height: 40px;
+        height: 36px;
     }
 
     .monitor-chart__container {
-        width: 300px;
+        width: 100%;
         height: 100%;
     }
 
