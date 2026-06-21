@@ -22,8 +22,9 @@ public final class AgentFileUploadUtils {
 
         String contentBase64 = Base64.getEncoder().encodeToString(Files.readAllBytes(Path.of(sourcePath)));
         agentLinkUtils.getAgentLinkResponse(agentNode, SparkAgentUrl.UPLOAD_AGENT_FILE_URL,
-            UploadAgentFileReq.builder().agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
-                .directory(directory).fileName(fileName).contentBase64(contentBase64).build());
+            UploadAgentFileReq.builder()
+                .agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME).directory(directory)
+                .fileName(fileName).contentBase64(contentBase64).build());
     }
 
     public static void uploadText(AgentLinkUtils agentLinkUtils, ClusterNodeEntity agentNode, String content,
@@ -31,7 +32,8 @@ public final class AgentFileUploadUtils {
 
         String contentBase64 = Base64.getEncoder().encodeToString(content.getBytes(StandardCharsets.UTF_8));
         agentLinkUtils.getAgentLinkResponse(agentNode, SparkAgentUrl.UPLOAD_AGENT_FILE_URL,
-            UploadAgentFileReq.builder().agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
-                .directory(directory).fileName(fileName).contentBase64(contentBase64).build());
+            UploadAgentFileReq.builder()
+                .agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME).directory(directory)
+                .fileName(fileName).contentBase64(contentBase64).build());
     }
 }

@@ -63,9 +63,8 @@ public class FlinkJarExecutor extends WorkExecutor {
         WorkRepository workRepository, WorkConfigRepository workConfigRepository, Locker locker,
         IsxAppProperties isxAppProperties, FileRepository fileRepository, AlarmService alarmService,
         SqlFunctionService sqlFunctionService, WorkEventRepository workEventRepository,
-        WorkRunJobFactory workRunJobFactory, VipWorkVersionRepository vipWorkVersionRepository,
-        WorkService workService, AgentLinkUtils agentLinkUtils, MetaColumnLineageService metaColumnLineageService,
-        FileService fileService) {
+        WorkRunJobFactory workRunJobFactory, VipWorkVersionRepository vipWorkVersionRepository, WorkService workService,
+        AgentLinkUtils agentLinkUtils, MetaColumnLineageService metaColumnLineageService, FileService fileService) {
 
         super(alarmService, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
             workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository, vipWorkVersionRepository,

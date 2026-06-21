@@ -43,7 +43,8 @@ public class PlatformSettingService {
         return GetPlatformSettingRes.builder().description(setting.getDescription())
             .autoCreateTenant(valueOrDefault(setting.getAutoCreateTenant(), false))
             .defaultTenantMemberNum(valueOrDefault(setting.getDefaultTenantMemberNum(), DEFAULT_TENANT_MEMBER_NUM))
-            .defaultTenantWorkflowNum(valueOrDefault(setting.getDefaultTenantWorkflowNum(), DEFAULT_TENANT_WORKFLOW_NUM))
+            .defaultTenantWorkflowNum(
+                valueOrDefault(setting.getDefaultTenantWorkflowNum(), DEFAULT_TENANT_WORKFLOW_NUM))
             .defaultTenantValidDays(valueOrDefault(setting.getDefaultTenantValidDays(), DEFAULT_TENANT_VALID_DAYS))
             .browserTitle(setting.getBrowserTitle()).themeColor(setting.getThemeColor())
             .faviconUrl(setting.getFaviconUrl()).topLogoUrl(setting.getTopLogoUrl())

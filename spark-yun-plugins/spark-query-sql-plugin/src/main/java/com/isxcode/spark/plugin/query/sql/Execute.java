@@ -100,7 +100,8 @@ public class Execute {
         if (args.length == 0) {
             throw new RuntimeException("args is empty");
         }
-        return JSON.parseObject(new String(Base64.getDecoder().decode(args[0]), StandardCharsets.UTF_8), PluginReq.class);
+        return JSON.parseObject(new String(Base64.getDecoder().decode(args[0]), StandardCharsets.UTF_8),
+            PluginReq.class);
     }
 
     public static SparkSession initSparkSession(PluginReq pluginReq) {

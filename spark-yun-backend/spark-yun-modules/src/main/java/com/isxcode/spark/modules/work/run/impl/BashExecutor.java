@@ -61,10 +61,10 @@ public class BashExecutor extends WorkExecutor {
         WorkflowInstanceRepository workflowInstanceRepository, SqlValueService sqlValueService,
         SqlFunctionService sqlFunctionService, AlarmService alarmService, WorkEventRepository workEventRepository,
         Locker locker, WorkRepository workRepository, WorkRunJobFactory workRunJobFactory,
-        WorkConfigRepository workConfigRepository, VipWorkVersionRepository vipWorkVersionRepository,
-        AesUtils aesUtils, ClusterNodeRepository clusterNodeRepository,
-        ClusterRepository clusterRepository, WorkService workService, SecretKeyRepository secretKeyRepository,
-        MetaColumnLineageService metaColumnLineageService, AgentLinkUtils agentLinkUtils) {
+        WorkConfigRepository workConfigRepository, VipWorkVersionRepository vipWorkVersionRepository, AesUtils aesUtils,
+        ClusterNodeRepository clusterNodeRepository, ClusterRepository clusterRepository, WorkService workService,
+        SecretKeyRepository secretKeyRepository, MetaColumnLineageService metaColumnLineageService,
+        AgentLinkUtils agentLinkUtils) {
 
         super(alarmService, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
             workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository, vipWorkVersionRepository,
@@ -186,12 +186,12 @@ public class BashExecutor extends WorkExecutor {
             ClusterNodeEntity agentNode = workRunContext.getAgentNode();
 
             try {
-                AgentLinkResponse response = agentLinkUtils.getAgentLinkResponse(agentNode,
-                    SparkAgentUrl.SUBMIT_LOCAL_SCRIPT_URL,
-                    SubmitLocalScriptReq.builder()
-                        .agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
-                        .workInstanceId(workInstance.getId()).script(script + "\necho 'zhiqingyun_success'")
-                        .scriptSuffix(".sh").command("sh").build());
+                AgentLinkResponse response =
+                    agentLinkUtils.getAgentLinkResponse(agentNode, SparkAgentUrl.SUBMIT_LOCAL_SCRIPT_URL,
+                        SubmitLocalScriptReq.builder()
+                            .agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
+                            .workInstanceId(workInstance.getId()).script(script + "\necho 'zhiqingyun_success'")
+                            .scriptSuffix(".sh").command("sh").build());
                 String pid = response.getInstanceId();
                 logBuilder.append(endLog("执行Bash脚本完成 pid : " + pid));
 
@@ -260,11 +260,11 @@ public class BashExecutor extends WorkExecutor {
             // 获取日志
             String logCommand;
             try {
-                AgentLinkResponse response = agentLinkUtils.getAgentLinkResponse(agentNode,
-                    SparkAgentUrl.GET_LOCAL_SCRIPT_LOG_URL,
-                    LocalScriptLogReq.builder()
-                        .agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
-                        .workInstanceId(workInstance.getId()).build());
+                AgentLinkResponse response =
+                    agentLinkUtils.getAgentLinkResponse(agentNode, SparkAgentUrl.GET_LOCAL_SCRIPT_LOG_URL,
+                        LocalScriptLogReq.builder()
+                            .agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
+                            .workInstanceId(workInstance.getId()).build());
                 logCommand = response.getLog();
             } catch (Exception e) {
                 throw errorLogException("保存日志和数据异常 : " + e.getMessage());

@@ -2,7 +2,6 @@ package com.isxcode.spark.modules.cluster.run;
 
 import com.isxcode.spark.common.security.ContextHolder;
 import static com.isxcode.spark.common.utils.ssh.SshUtils.executeCommand;
-import static com.isxcode.spark.common.utils.ssh.SshUtils.scpFile;
 
 import com.alibaba.fastjson.JSON;
 import com.isxcode.spark.api.agent.constants.SparkAgentUrl;
@@ -118,13 +117,11 @@ public class RunAgentCheckService {
     private String buildCheckCommand(String agentHomePath) {
 
         return "bash -lc " + shellQuote("home_path=" + shellQuote(agentHomePath) + ";"
-            + "agent_path=\"${home_path}/zhiqingyun-agent\";"
-            + "if [ -e \"${agent_path}/README.md\" ]; then "
+            + "agent_path=\"${home_path}/zhiqingyun-agent\";" + "if [ -e \"${agent_path}/README.md\" ]; then "
             + "if [ -e \"${agent_path}/zhiqingyun-agent.pid\" ]; then "
             + "pid=$(cat \"${agent_path}/zhiqingyun-agent.pid\"); "
             + "if ps -p \"$pid\" > /dev/null 2>&1; then CHECK_STATUS=\"RUNNING\"; else CHECK_STATUS=\"STOP\"; fi; "
-            + "else CHECK_STATUS=\"STOP\"; fi; "
-            + "else CHECK_STATUS=\"UN_INSTALL\"; fi;"
+            + "else CHECK_STATUS=\"STOP\"; fi; " + "else CHECK_STATUS=\"UN_INSTALL\"; fi;"
             + "ALL_MEMORY=$(free | grep Mem: | awk '{printf \"%.1f\", $2/1024/1024}');"
             + "USED_MEMORY=$(free | grep Mem: | awk '{printf \"%.1f\", $3/1024/1024}');"
             + "ALL_STORAGE=$(lsblk -b | grep disk | awk '{total += $4} END {printf \"%.1f\", total/1024/1024/1024}');"

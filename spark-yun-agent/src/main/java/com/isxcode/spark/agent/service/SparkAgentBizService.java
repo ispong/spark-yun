@@ -236,8 +236,7 @@ public class SparkAgentBizService {
             String executeCommand = "source /etc/profile >/dev/null 2>&1; nohup "
                 + resolveScriptCommand(submitLocalScriptReq.getCommand()) + " " + shellQuote(scriptFile.toString())
                 + " >> " + shellQuote(logFile.toString()) + " 2>&1 < /dev/null & echo $!";
-            CommandResult result =
-                CommandRunner.run(List.of("bash", "-lc", executeCommand), Duration.ofSeconds(30));
+            CommandResult result = CommandRunner.run(List.of("bash", "-lc", executeCommand), Duration.ofSeconds(30));
             if (!result.isSuccess()) {
                 throw new IsxAppException(result.getOutput());
             }
@@ -253,8 +252,8 @@ public class SparkAgentBizService {
     public AgentLinkResponse getLocalScriptStatus(LocalScriptStatusReq localScriptStatusReq) {
 
         try {
-            CommandResult result = CommandRunner.run(List.of("ps", "-p", localScriptStatusReq.getPid()),
-                Duration.ofSeconds(10));
+            CommandResult result =
+                CommandRunner.run(List.of("ps", "-p", localScriptStatusReq.getPid()), Duration.ofSeconds(10));
             return AgentLinkResponse.builder()
                 .finalState(result.getStdout().contains(localScriptStatusReq.getPid()) ? "RUNNING" : "FINISHED")
                 .build();
@@ -267,8 +266,8 @@ public class SparkAgentBizService {
     public AgentLinkResponse getLocalScriptLog(LocalScriptLogReq localScriptLogReq) {
 
         try {
-            Path logFile = resolveWorkFile(localScriptLogReq.getAgentHomePath(), localScriptLogReq.getWorkInstanceId(),
-                ".log");
+            Path logFile =
+                resolveWorkFile(localScriptLogReq.getAgentHomePath(), localScriptLogReq.getWorkInstanceId(), ".log");
             String scriptLog = Files.exists(logFile) ? Files.readString(logFile, StandardCharsets.UTF_8) : "";
             return AgentLinkResponse.builder().log(scriptLog).build();
         } catch (Exception e) {
@@ -448,9 +447,8 @@ public class SparkAgentBizService {
             return;
         }
 
-        CommandResult result =
-            CommandRunner.run(List.of("hadoop", "fs", "-rm", "-r", "/user/" + username + "/.sparkStaging"),
-                Duration.ofMinutes(2));
+        CommandResult result = CommandRunner
+            .run(List.of("hadoop", "fs", "-rm", "-r", "/user/" + username + "/.sparkStaging"), Duration.ofMinutes(2));
         if (result.isSuccess()) {
             cleanLog.append("已清理HDFS Spark缓存\n");
             return;
@@ -466,10 +464,9 @@ public class SparkAgentBizService {
             return;
         }
 
-        CommandResult result = CommandRunner.run(
-            List.of("kubectl", "delete", "--all", "pods", "--namespace=zhiqingyun-space"), Duration.ofMinutes(2));
-        cleanLog.append(result.isSuccess() ? "已清理Kubernetes容器\n"
-            : "Kubernetes容器清理返回: " + result.getOutput() + "\n");
+        CommandResult result = CommandRunner
+            .run(List.of("kubectl", "delete", "--all", "pods", "--namespace=zhiqingyun-space"), Duration.ofMinutes(2));
+        cleanLog.append(result.isSuccess() ? "已清理Kubernetes容器\n" : "Kubernetes容器清理返回: " + result.getOutput() + "\n");
     }
 
     private void cleanDockerPods(StringBuilder cleanLog) throws IOException, InterruptedException {
@@ -479,8 +476,9 @@ public class SparkAgentBizService {
             return;
         }
 
-        CommandResult result = CommandRunner.run(List.of("sh", "-c", "containers=$(docker ps -a "
-            + "| grep 'k8s_POD_zhiqingyun-*' | awk '{print $1}'); [ -z \"$containers\" ] || docker rm $containers"),
+        CommandResult result = CommandRunner.run(
+            List.of("sh", "-c", "containers=$(docker ps -a "
+                + "| grep 'k8s_POD_zhiqingyun-*' | awk '{print $1}'); [ -z \"$containers\" ] || docker rm $containers"),
             Duration.ofMinutes(2));
         cleanLog.append(result.isSuccess() ? "已清理Docker容器\n" : "Docker容器清理返回: " + result.getOutput() + "\n");
     }

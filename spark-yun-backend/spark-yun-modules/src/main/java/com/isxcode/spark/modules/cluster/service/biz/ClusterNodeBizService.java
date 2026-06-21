@@ -424,7 +424,8 @@ public class ClusterNodeBizService {
         }
 
         // 同步调用
-        runAgentCleanService.run(cleanAgentReq.getEngineNodeId(), ContextHolder.getTenantId(), ContextHolder.getUserId());
+        runAgentCleanService.run(cleanAgentReq.getEngineNodeId(), ContextHolder.getTenantId(),
+            ContextHolder.getUserId());
     }
 
     /**

@@ -33,8 +33,8 @@ public class RunAgentCleanService {
         ClusterNodeEntity clusterNodeEntity = clusterNodeEntityOptional.get();
 
         try {
-            AgentLinkResponse response = agentLinkUtils.getAgentLinkResponse(clusterNodeEntity, SparkAgentUrl.CLEAN_AGENT_URL,
-                com.isxcode.spark.api.agent.req.spark.CleanAgentReq.builder()
+            AgentLinkResponse response = agentLinkUtils.getAgentLinkResponse(clusterNodeEntity,
+                SparkAgentUrl.CLEAN_AGENT_URL, com.isxcode.spark.api.agent.req.spark.CleanAgentReq.builder()
                     .username(clusterNodeEntity.getUsername()).build());
             clusterNodeEntity.setAgentLog(response.getLog() == null ? "清理成功" : response.getLog());
             clusterNodeRepository.saveAndFlush(clusterNodeEntity);
