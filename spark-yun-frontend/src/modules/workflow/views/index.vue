@@ -338,7 +338,7 @@ function showDetail(data: any) {
         }
     })
 }
-1
+
 function inputEvent(e: string) {
     if (e === '') {
         initData()
