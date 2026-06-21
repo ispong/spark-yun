@@ -357,7 +357,8 @@ public abstract class WorkExecutor {
         } else {
 
             // 修改状态，节点状态只能一个一个修改，防止并发压力大，导致作业执行两次
-            Integer lockerKey = locker.tryLock(LockerPrefix.WORK_CHANGE_STATUS + workRunContext.getFlowInstanceId());
+            Integer lockerKey = locker.waitLock(LockerPrefix.WORK_CHANGE_STATUS + workRunContext.getFlowInstanceId(),
+                10 * 1000L);
             if (lockerKey == null) {
                 log.debug("【作业流实例id】:{},【作业实例id】:{},【运行事件id】:{},等待状态变更锁,【作业名】:{}", workRunContext.getFlowInstanceId(),
                     workInstance.getId(), workEventId, workRunContext.getWorkName());

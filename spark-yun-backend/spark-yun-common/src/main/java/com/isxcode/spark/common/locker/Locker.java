@@ -1,7 +1,9 @@
 package com.isxcode.spark.common.locker;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.isxcode.spark.common.cluster.ClusterNodeOwner;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +23,13 @@ public class Locker {
 
     private static final long LOCK_WAIT_INTERVAL_MILLIS = 500;
 
+    private static final long SHORT_LOCK_WAIT_INTERVAL_MILLIS = 50;
+
     private final LockerRepository lockerRepository;
 
     private final PlatformTransactionManager transactionManager;
+
+    private final Map<String, Object> localLockMonitors = new ConcurrentHashMap<>();
 
     /**
      * 加锁.
@@ -66,6 +72,28 @@ public class Locker {
         return tryAcquire(name, box);
     }
 
+    /**
+     * 等待一段时间加锁.
+     */
+    public Integer waitLock(String name, long waitMillis) {
+
+        long endTime = System.currentTimeMillis() + waitMillis;
+        while (!Thread.currentThread().isInterrupted() && System.currentTimeMillis() <= endTime) {
+            clearExpiredLocks();
+            Integer lockId = tryAcquire(name, null);
+            if (lockId != null) {
+                return lockId;
+            }
+            log.debug("Waiting for database lock: {}", name);
+            sleepQuietly(SHORT_LOCK_WAIT_INTERVAL_MILLIS);
+        }
+
+        if (Thread.currentThread().isInterrupted()) {
+            Thread.currentThread().interrupt();
+        }
+        return null;
+    }
+
     private Integer lock(String name, String box) {
 
         while (!Thread.currentThread().isInterrupted()) {
@@ -85,20 +113,23 @@ public class Locker {
 
     private Integer tryAcquire(String name, String box) {
 
-        if (lockerRepository.existsByName(name)) {
-            return null;
-        }
-
-        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-        return transactionTemplate.execute(status -> {
-            try {
-                return lockerRepository.saveAndFlush(buildLocker(name, box)).getId();
-            } catch (DataIntegrityViolationException e) {
-                status.setRollbackOnly();
+        Object localMonitor = localLockMonitors.computeIfAbsent(name, ignored -> new Object());
+        synchronized (localMonitor) {
+            if (lockerRepository.existsByName(name)) {
                 return null;
             }
-        });
+
+            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+            transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            return transactionTemplate.execute(status -> {
+                try {
+                    return lockerRepository.saveAndFlush(buildLocker(name, box)).getId();
+                } catch (DataIntegrityViolationException e) {
+                    status.setRollbackOnly();
+                    return null;
+                }
+            });
+        }
     }
 
     /**
@@ -171,6 +202,14 @@ public class Locker {
         clearExpiredLocks();
     }
 
+    /**
+     * Clear all locks when the application starts.
+     */
+    public void clearStartupLocks() {
+
+        lockerRepository.deleteAllInBatch();
+    }
+
     private void clearExpiredLocks() {
 
         lockerRepository.deleteAllByExpireTimeBefore(LocalDateTime.now());
@@ -190,8 +229,13 @@ public class Locker {
 
     private void sleepQuietly() {
 
+        sleepQuietly(LOCK_WAIT_INTERVAL_MILLIS);
+    }
+
+    private void sleepQuietly(long waitIntervalMillis) {
+
         try {
-            Thread.sleep(LOCK_WAIT_INTERVAL_MILLIS);
+            Thread.sleep(waitIntervalMillis);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

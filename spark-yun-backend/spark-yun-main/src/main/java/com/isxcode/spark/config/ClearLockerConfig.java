@@ -22,6 +22,7 @@ public class ClearLockerConfig {
     @PostConstruct
     public void clearLocker() {
 
-        locker.clearCurrentOwnerAndExpiredLocks();
+        locker.clearStartupLocks();
+        log.info("项目启动清理锁表完成");
     }
 }

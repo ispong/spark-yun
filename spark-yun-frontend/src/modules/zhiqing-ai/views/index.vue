@@ -84,7 +84,7 @@
                                     <el-dropdown-menu>
                                         <el-dropdown-item command="upload-file" :icon="Upload">上传文件</el-dropdown-item>
                                         <el-dropdown-item command="select-prompt" :icon="Search">提示词</el-dropdown-item>
-                                        <el-dropdown-item command="mcp-share" :icon="Share">Mcp一键分享</el-dropdown-item>
+                                        <el-dropdown-item command="mcp-share" :icon="Share">MCP一键分享</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -573,7 +573,7 @@ function handleComposerAction(command: string) {
         return
     }
     if (command === 'mcp-share') {
-        ElMessage.info('Mcp一键分享功能准备中')
+        ElMessage.info('MCP一键分享功能准备中')
     }
 }
 

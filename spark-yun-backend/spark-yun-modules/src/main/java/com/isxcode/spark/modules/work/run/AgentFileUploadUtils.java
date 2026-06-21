@@ -6,6 +6,7 @@ import com.isxcode.spark.api.api.constants.PathConstants;
 import com.isxcode.spark.modules.cluster.entity.ClusterNodeEntity;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
@@ -20,6 +21,15 @@ public final class AgentFileUploadUtils {
         String directory, String fileName) throws IOException {
 
         String contentBase64 = Base64.getEncoder().encodeToString(Files.readAllBytes(Path.of(sourcePath)));
+        agentLinkUtils.getAgentLinkResponse(agentNode, SparkAgentUrl.UPLOAD_AGENT_FILE_URL,
+            UploadAgentFileReq.builder().agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
+                .directory(directory).fileName(fileName).contentBase64(contentBase64).build());
+    }
+
+    public static void uploadText(AgentLinkUtils agentLinkUtils, ClusterNodeEntity agentNode, String content,
+        String directory, String fileName) {
+
+        String contentBase64 = Base64.getEncoder().encodeToString(content.getBytes(StandardCharsets.UTF_8));
         agentLinkUtils.getAgentLinkResponse(agentNode, SparkAgentUrl.UPLOAD_AGENT_FILE_URL,
             UploadAgentFileReq.builder().agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
                 .directory(directory).fileName(fileName).contentBase64(contentBase64).build());

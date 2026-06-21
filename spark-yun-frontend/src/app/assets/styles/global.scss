@@ -189,6 +189,10 @@ body {
     }
 }
 
+.el-message {
+    z-index: 4000 !important;
+}
+
 .el-menu {
     border-right: none;
 }

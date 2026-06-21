@@ -18,46 +18,42 @@
         </div>
         <div class="vm-list__body">
             <div ref="tableWrapRef" v-loading="tableLoading" class="vm-list__table-wrap">
-                <el-table
-                    ref="vmTableRef"
-                    class="vm-list__table"
-                    :class="{ 'vm-list__table-empty': !tableData.length }"
-                    :data="tableData"
-                    :height="tableData.length ? 420 : undefined"
-                >
-                    <el-table-column prop="workflowName" label="作业流" width="180" show-overflow-tooltip />
-                    <el-table-column prop="status" label="状态">
-                        <template #default="{ row }">
-                            <ZStatusTag :status="row.status" />
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="lastModifiedBy" label="发布人">
-                        <template #default="{ row }">
-                            <person-tag :person-name="row.lastModifiedBy" />
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="startDateTime" label="开始时间" width="170" show-overflow-tooltip />
-                    <el-table-column prop="endDateTime" label="结束时间" width="170" show-overflow-tooltip />
-                    <el-table-column label="操作" align="center">
-                        <template #default="{ row }">
-                            <el-dropdown trigger="click">
+                <BlockTable :table-config="tableConfig">
+                    <template #workflowName="scopeSlot">
+                        <span class="vm-list__workflow-name">
+                            {{ scopeSlot.row.workflowName }}
+                        </span>
+                    </template>
+                    <template #status="scopeSlot">
+                        <ZStatusTag :status="scopeSlot.row.status" />
+                    </template>
+                    <template #lastModifiedBy="scopeSlot">
+                        <person-tag :person-name="scopeSlot.row.lastModifiedBy" />
+                    </template>
+                    <template #duration="scopeSlot">
+                        {{ formatDuration(scopeSlot.row.duration) }}
+                    </template>
+                    <template #options="scopeSlot">
+                        <div class="btn-group vm-list__action-group">
+                            <el-dropdown trigger="click" popper-class="vm-list__action-dropdown">
                                 <el-icon class="vm-list__more">
                                     <MoreFilled />
                                 </el-icon>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item @click="showDagDetail(row)">DAG</el-dropdown-item>
-                                        <el-dropdown-item @click="reRunWorkFlowDataEvent(row)">重跑</el-dropdown-item>
-                                        <el-dropdown-item @click="deleteWorkflowSchedule(row)">删除</el-dropdown-item>
+                                        <el-dropdown-item @click="showDagDetail(scopeSlot.row)">DAG</el-dropdown-item>
+                                        <el-dropdown-item @click="reRunWorkFlowDataEvent(scopeSlot.row)">
+                                            重跑
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="deleteWorkflowSchedule(scopeSlot.row)">
+                                            删除
+                                        </el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
-                        </template>
-                    </el-table-column>
-                    <template #empty>
-                        <empty-page />
+                        </div>
                     </template>
-                </el-table>
+                </BlockTable>
                 <div v-if="loadMoreLoading" class="vm-list__load-state">加载中...</div>
             </div>
         </div>
@@ -66,7 +62,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
+import BlockTable from '@/app/components/block-table/index.vue'
 import PersonTag from './person-tag.vue'
 import { ComputeInstance, queryComputeInstances } from '../services/computer-group'
 import { DagDetail } from '@/modules/schedule/components'
@@ -77,6 +74,65 @@ import { DeleteWorkFlowScheduleLog } from '@/modules/schedule/api'
 const keyWord = ref('')
 
 const tableData = ref<Array<ComputeInstance>>([])
+const tableConfig = reactive({
+    tableData: tableData.value,
+    colConfigs: [
+        {
+            prop: 'workflowName',
+            title: '作业流',
+            minWidth: 180,
+            customSlot: 'workflowName',
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'workflowInstanceId',
+            title: '实例编码',
+            minWidth: 220,
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'status',
+            title: '状态',
+            minWidth: 100,
+            customSlot: 'status'
+        },
+        {
+            prop: 'lastModifiedBy',
+            title: '发布人',
+            minWidth: 180,
+            customSlot: 'lastModifiedBy',
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'startDateTime',
+            title: '开始时间',
+            minWidth: 170,
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'endDateTime',
+            title: '结束时间',
+            minWidth: 170,
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'duration',
+            title: '耗时',
+            minWidth: 100,
+            customSlot: 'duration',
+            showOverflowTooltip: true
+        },
+        {
+            title: '操作',
+            align: 'center',
+            width: 72,
+            customSlot: 'options'
+        }
+    ],
+    columnResizable: false,
+    showFixedLeftDivider: true,
+    loading: false
+})
 const total = ref<number>(0)
 const paginationInfo = ref<{
     pageSize: number
@@ -86,7 +142,6 @@ const paginationInfo = ref<{
 const dagDetailRef = ref()
 const timer = ref()
 const tableWrapRef = ref<HTMLElement>()
-const vmTableRef = ref()
 const tableLoading = ref<boolean>(false)
 const loadMoreLoading = ref(false)
 const hasMore = computed(() => tableData.value.length < total.value)
@@ -119,11 +174,13 @@ function queryVmlistData(reset = false, silent = false) {
     })
         .then(({ data }) => {
             tableData.value = reset ? data.content : [...tableData.value, ...data.content]
+            tableConfig.tableData = tableData.value
             total.value = data.totalElements
         })
         .catch(() => {
             if (reset) {
                 tableData.value = []
+                tableConfig.tableData = []
                 total.value = 0
             }
         })
@@ -146,6 +203,7 @@ function refreshLoadedData() {
     })
         .then(({ data }) => {
             tableData.value = data.content
+            tableConfig.tableData = tableData.value
             total.value = data.totalElements
         })
         .catch(() => {})
@@ -153,7 +211,7 @@ function refreshLoadedData() {
 
 function bindTableScroll() {
     nextTick(() => {
-        const scrollEl = tableWrapRef.value?.querySelector('.el-scrollbar__wrap') as HTMLElement | null
+        const scrollEl = tableWrapRef.value?.querySelector('.vxe-table--body-wrapper') as HTMLElement | null
         if (!scrollEl || scrollEl === tableScrollEl) {
             return
         }
@@ -170,6 +228,14 @@ function handleTableScroll(event: Event) {
     if (distanceToBottom <= 24 && hasMore.value) {
         queryVmlistData()
     }
+}
+
+function formatDuration(duration?: number) {
+    if (duration === null || duration === undefined) {
+        return '-'
+    }
+
+    return `${duration}s`
 }
 
 // 展示工作流对应流程图
@@ -245,13 +311,25 @@ onUnmounted(() => {
         margin-top: 12px;
         border: 1px solid getCssVar('border-color', 'lighter');
         border-radius: 6px;
-        padding: 4px 20px 8px;
         background-color: getCssVar('color', 'white');
         box-shadow: 0 1px 4px rgb(15 23 42 / 4%);
+        overflow: hidden;
     }
 
     .vm-list__table-wrap {
+        position: relative;
+        height: 420px;
         overflow: hidden;
+
+        .block-table {
+            height: 100%;
+        }
+
+        .vxe-table--render-wrapper,
+        .vxe-table--main-wrapper,
+        .vxe-table--body-wrapper {
+            border-radius: 0;
+        }
     }
 
     .vm-list__ops {
@@ -284,69 +362,56 @@ onUnmounted(() => {
         border-radius: 2px;
     }
 
-    .vm-list__table {
-        --el-table-header-text-color: #{getCssVar('text-color', 'regular')};
-        --el-table-text-color: #{getCssVar('text-color', 'regular')};
+    .vm-list__workflow-name {
+        color: getCssVar('text-color', 'regular');
+    }
 
-        &.vm-list__table-empty {
-            .el-table__body-wrapper {
-                min-height: 132px;
-
-                .el-scrollbar__wrap {
-                    min-height: 132px;
-                    overflow: hidden;
-                }
-
-                .el-scrollbar__bar {
-                    display: none;
-                }
-            }
-        }
-
-        .el-table__inner-wrapper::before {
-            display: none;
-        }
-
-        &.el-table th.el-table__cell.is-leaf,
-        .el-table td.el-table__cell {
-            border: 0;
-        }
-
-        &.el-table th.el-table__cell {
-            font-weight: 600;
-            background-color: getCssVar('fill-color', 'blank');
-        }
-
-        .el-table__row {
-            height: 52px;
-        }
+    .vm-list__action-group {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        width: 100%;
     }
 
     .vm-list__more {
-        transform: rotate(90deg);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        color: getCssVar('color', 'primary');
         cursor: pointer;
-        margin-top: 4px;
+        transform: rotate(90deg);
 
         &:hover {
-            color: getCssVar('color', 'primary');
-        }
-    }
-
-    .vm-list__empty {
-        padding: 20px 0 0;
-        --el-empty-image-width: 60px;
-
-        .el-empty__description {
-            margin-top: 0;
+            color: getCssVar('color', 'primary', 'light-3');
         }
     }
 
     .vm-list__load-state {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
         display: flex;
         height: 36px;
         align-items: center;
         justify-content: center;
+        background-color: rgb(255 255 255 / 88%);
         color: getCssVar('text-color', 'secondary');
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+
+.vm-list__action-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
         font-size: getCssVar('font-size', 'extra-small');
     }
 }
