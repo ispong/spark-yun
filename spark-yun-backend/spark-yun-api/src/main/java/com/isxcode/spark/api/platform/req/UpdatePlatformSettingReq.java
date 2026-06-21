@@ -16,6 +16,21 @@ public class UpdatePlatformSettingReq {
     @Schema(title = "注册时是否创建租户", example = "true")
     private Boolean autoCreateTenant;
 
+    @Schema(title = "注册自动创建租户的默认成员数", example = "5")
+    @Min(value = 1, message = "默认租户成员数不能小于1")
+    @Max(value = 1000000, message = "默认租户成员数不能超过1000000")
+    private Integer defaultTenantMemberNum;
+
+    @Schema(title = "注册自动创建租户的默认作业流数", example = "10")
+    @Min(value = 1, message = "默认租户作业流数不能小于1")
+    @Max(value = 1000000, message = "默认租户作业流数不能超过1000000")
+    private Integer defaultTenantWorkflowNum;
+
+    @Schema(title = "注册自动创建租户的默认有效期（天）", example = "7")
+    @Min(value = 1, message = "默认租户有效期不能小于1天")
+    @Max(value = 3650, message = "默认租户有效期不能超过3650天")
+    private Integer defaultTenantValidDays;
+
     @Schema(title = "浏览器标题文字", example = "至轻云")
     @Size(max = 100, message = "浏览器标题文字不能超过100个字符")
     private String browserTitle;

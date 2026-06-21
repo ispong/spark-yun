@@ -11,6 +11,12 @@ public class GetPlatformSettingRes {
 
     private Boolean autoCreateTenant;
 
+    private Integer defaultTenantMemberNum;
+
+    private Integer defaultTenantWorkflowNum;
+
+    private Integer defaultTenantValidDays;
+
     private String browserTitle;
 
     private String themeColor;

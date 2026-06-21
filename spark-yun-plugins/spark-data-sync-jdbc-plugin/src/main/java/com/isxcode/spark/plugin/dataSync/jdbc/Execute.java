@@ -15,6 +15,7 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Execute {
@@ -192,7 +193,7 @@ public class Execute {
         if (args.length == 0) {
             throw new RuntimeException("args is empty");
         }
-        return JSON.parseObject(Base64.getDecoder().decode(args[0]), PluginReq.class);
+        return JSON.parseObject(new String(Base64.getDecoder().decode(args[0]), StandardCharsets.UTF_8), PluginReq.class);
     }
 
     public static SparkConf initSparkConf(Map<String, String> sparkConfig) {

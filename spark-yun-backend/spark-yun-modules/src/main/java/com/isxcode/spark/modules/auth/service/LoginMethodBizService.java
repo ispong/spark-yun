@@ -22,6 +22,7 @@ import com.isxcode.spark.api.auth.req.PageLoginCodeRecordReq;
 import com.isxcode.spark.api.auth.req.SendLoginCodeReq;
 import com.isxcode.spark.api.auth.req.VerifyLoginCodeReq;
 import com.isxcode.spark.api.auth.res.PageLoginCodeRecordRes;
+import com.isxcode.spark.api.platform.res.GetPlatformSettingRes;
 import com.isxcode.spark.api.tenant.req.AddTenantReq;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.api.user.constants.UserStatus;
@@ -42,6 +43,7 @@ import com.isxcode.spark.modules.user.service.UserBizService;
 import com.isxcode.spark.security.user.UserEntity;
 import com.isxcode.spark.security.user.UserRepository;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
@@ -560,13 +562,19 @@ public class LoginMethodBizService {
 
     private boolean createDefaultTenantIfEnabled(UserEntity user) {
 
-        if (!Boolean.TRUE.equals(platformSettingService.getSetting().getAutoCreateTenant())) {
+        GetPlatformSettingRes platformSetting = platformSettingService.getSetting();
+        if (!Boolean.TRUE.equals(platformSetting.getAutoCreateTenant())) {
             return false;
         }
 
         AddTenantReq addTenantReq = new AddTenantReq();
         addTenantReq.setName(buildDefaultTenantName(user));
         addTenantReq.setAdminUserId(user.getId());
+        addTenantReq.setMaxMemberNum(platformSetting.getDefaultTenantMemberNum());
+        addTenantReq.setMaxWorkflowNum(platformSetting.getDefaultTenantWorkflowNum());
+        LocalDateTime validStartDateTime = LocalDateTime.now();
+        addTenantReq.setValidDateTime(
+            List.of(validStartDateTime, validStartDateTime.plusDays(platformSetting.getDefaultTenantValidDays())));
         tenantBizService.addTenant(addTenantReq);
         return true;
     }

@@ -3,6 +3,9 @@ import { http } from '@/app/utils/http'
 export interface PlatformSetting {
     description: string
     autoCreateTenant: boolean
+    defaultTenantMemberNum?: number
+    defaultTenantWorkflowNum?: number
+    defaultTenantValidDays?: number
     browserTitle?: string
     themeColor?: string
     faviconUrl?: string

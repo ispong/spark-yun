@@ -565,6 +565,7 @@ function syncCodeDigits() {
     codeLoginModel.code = codeDigits.join('')
     if (codeLoginModel.code.length === codeDigits.length) {
         codeFormRef.value?.validateField('code').catch(() => {})
+        handleCodeLogin()
     }
 }
 
@@ -606,6 +607,9 @@ async function handleCodeLogin() {
             code: codeLoginModel.code
         })
         await completeLogin(res)
+    } catch {
+        resetCodeDigits()
+        focusCodeDigit(0)
     } finally {
         codeLoginLoading.value = false
     }

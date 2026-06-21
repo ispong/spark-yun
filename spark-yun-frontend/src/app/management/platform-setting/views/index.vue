@@ -14,6 +14,47 @@
                                 @change="saveAutoCreateTenant"
                             />
                         </div>
+                        <div class="zqy-platform-setting__auto-tenant-grid">
+                            <el-form-item label="默认成员数">
+                                <div class="zqy-platform-setting__number-row">
+                                    <el-input-number
+                                        v-model="form.defaultTenantMemberNum"
+                                        :min="1"
+                                        :max="1000000"
+                                        :step="1"
+                                        step-strictly
+                                        controls-position="right"
+                                    />
+                                    <span>个</span>
+                                </div>
+                            </el-form-item>
+                            <el-form-item label="默认作业流数">
+                                <div class="zqy-platform-setting__number-row">
+                                    <el-input-number
+                                        v-model="form.defaultTenantWorkflowNum"
+                                        :min="1"
+                                        :max="1000000"
+                                        :step="1"
+                                        step-strictly
+                                        controls-position="right"
+                                    />
+                                    <span>个</span>
+                                </div>
+                            </el-form-item>
+                            <el-form-item label="默认有效天数">
+                                <div class="zqy-platform-setting__number-row">
+                                    <el-input-number
+                                        v-model="form.defaultTenantValidDays"
+                                        :min="1"
+                                        :max="3650"
+                                        :step="1"
+                                        step-strictly
+                                        controls-position="right"
+                                    />
+                                    <span>天</span>
+                                </div>
+                            </el-form-item>
+                        </div>
                         <div class="zqy-platform-setting__switch-row zqy-platform-setting__switch-row--plain">
                             <span class="zqy-platform-setting__label">开启行为日志</span>
                             <el-switch v-model="form.userLogEnabled" :loading="saving" @change="saveSetting" />
@@ -153,6 +194,9 @@ const brandUploadLoading = reactive<Record<BrandImageKey, boolean>>({
 const form = reactive<PlatformSetting>({
     description: '',
     autoCreateTenant: false,
+    defaultTenantMemberNum: 5,
+    defaultTenantWorkflowNum: 10,
+    defaultTenantValidDays: 7,
     browserTitle: '',
     themeColor: defaultBrandSetting.themeColor,
     faviconUrl: '',
@@ -199,6 +243,9 @@ function initData() {
         .then((res: any) => {
             form.description = res.data?.description || ''
             form.autoCreateTenant = res.data?.autoCreateTenant ?? false
+            form.defaultTenantMemberNum = res.data?.defaultTenantMemberNum || 5
+            form.defaultTenantWorkflowNum = res.data?.defaultTenantWorkflowNum || 10
+            form.defaultTenantValidDays = res.data?.defaultTenantValidDays || 7
             form.browserTitle = res.data?.browserTitle || defaultBrandSetting.browserTitle
             form.themeColor = res.data?.themeColor || defaultBrandSetting.themeColor
             form.faviconUrl = res.data?.faviconUrl || ''
@@ -246,6 +293,9 @@ function createSubmitParams(): PlatformSetting {
     return {
         description: form.description,
         autoCreateTenant: form.autoCreateTenant,
+        defaultTenantMemberNum: form.defaultTenantMemberNum || 5,
+        defaultTenantWorkflowNum: form.defaultTenantWorkflowNum || 10,
+        defaultTenantValidDays: form.defaultTenantValidDays || 7,
         browserTitle: form.browserTitle?.trim() || '',
         themeColor: normalizeThemeColor(form.themeColor),
         faviconUrl: form.faviconUrl || '',
@@ -381,6 +431,10 @@ onMounted(() => {
         .zqy-platform-setting__retention-item {
             margin-bottom: 16px;
         }
+
+        .zqy-platform-setting__auto-tenant-grid {
+            margin-bottom: 16px;
+        }
     }
 
     .zqy-platform-setting__section--brand {
@@ -392,6 +446,7 @@ onMounted(() => {
 
     .zqy-platform-setting__title-row,
     .zqy-platform-setting__color-row,
+    .zqy-platform-setting__number-row,
     .zqy-platform-setting__retention-row {
         display: flex;
         align-items: center;
@@ -402,6 +457,20 @@ onMounted(() => {
     .zqy-platform-setting__retention-row {
         .el-input-number {
             width: 160px;
+        }
+    }
+
+    .zqy-platform-setting__auto-tenant-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        max-width: 720px;
+    }
+
+    .zqy-platform-setting__number-row {
+        .el-input-number {
+            width: 100%;
+            min-width: 0;
         }
     }
 
@@ -573,6 +642,11 @@ onMounted(() => {
     @media (max-width: 980px) {
         .zqy-platform-setting__brand-grid {
             grid-template-columns: 1fr;
+        }
+
+        .zqy-platform-setting__auto-tenant-grid {
+            grid-template-columns: 1fr;
+            max-width: 420px;
         }
     }
 }

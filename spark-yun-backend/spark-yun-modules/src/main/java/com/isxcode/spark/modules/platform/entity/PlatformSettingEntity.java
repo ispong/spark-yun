@@ -40,6 +40,12 @@ public class PlatformSettingEntity {
 
     private Boolean autoCreateTenant;
 
+    private Integer defaultTenantMemberNum;
+
+    private Integer defaultTenantWorkflowNum;
+
+    private Integer defaultTenantValidDays;
+
     @Column(length = 100)
     private String browserTitle;
 

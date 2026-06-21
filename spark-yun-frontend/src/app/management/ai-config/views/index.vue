@@ -44,18 +44,18 @@
                         <span class="name-click" @click="openEditor(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
                     </template>
                     <template #providerType="scopeSlot">
-                        {{ providerLabels[scopeSlot.row.providerType] || scopeSlot.row.providerType }}
+                        <el-tag type="primary">
+                            {{ providerLabels[scopeSlot.row.providerType] || scopeSlot.row.providerType }}
+                        </el-tag>
                     </template>
                     <template #statusTag="scopeSlot">
-                        <div class="btn-group">
-                            <el-tag v-if="scopeSlot.row.status === 'ENABLE'" class="ml-2" type="success">启用</el-tag>
-                            <el-tag v-else class="ml-2" type="danger">禁用</el-tag>
-                        </div>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group ai-config-action-group">
                             <span class="ai-config-action-button" @click="openEditor(scopeSlot.row)">编辑</span>
-                            <el-dropdown trigger="click" popper-class="ai-config-action-dropdown">
+                            <el-dropdown trigger="click" placement="bottom" popper-class="ai-config-action-dropdown">
                                 <span class="click-show-more ai-config-action-button">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
@@ -201,7 +201,7 @@ const tableConfig: any = reactive({
         },
         {
             prop: 'providerType',
-            title: '供应商',
+            title: '模型类型',
             minWidth: 110,
             customSlot: 'providerType'
         },
@@ -681,7 +681,6 @@ onMounted(() => {
 
 .ai-config-action-dropdown {
     .el-dropdown-menu {
-        min-width: 76px;
         padding: 4px 0;
     }
 

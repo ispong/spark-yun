@@ -27,6 +27,12 @@ public class PlatformSettingService {
 
     public static final int DEFAULT_USER_LOG_RETENTION_DAYS = 180;
 
+    public static final int DEFAULT_TENANT_MEMBER_NUM = 5;
+
+    public static final int DEFAULT_TENANT_WORKFLOW_NUM = 10;
+
+    public static final int DEFAULT_TENANT_VALID_DAYS = 7;
+
     private static final long MAX_BRAND_IMAGE_SIZE = 5 * 1024 * 1024;
 
     private final PlatformSettingRepository platformSettingRepository;
@@ -36,6 +42,9 @@ public class PlatformSettingService {
         PlatformSettingEntity setting = getOrCreateSetting();
         return GetPlatformSettingRes.builder().description(setting.getDescription())
             .autoCreateTenant(valueOrDefault(setting.getAutoCreateTenant(), false))
+            .defaultTenantMemberNum(valueOrDefault(setting.getDefaultTenantMemberNum(), DEFAULT_TENANT_MEMBER_NUM))
+            .defaultTenantWorkflowNum(valueOrDefault(setting.getDefaultTenantWorkflowNum(), DEFAULT_TENANT_WORKFLOW_NUM))
+            .defaultTenantValidDays(valueOrDefault(setting.getDefaultTenantValidDays(), DEFAULT_TENANT_VALID_DAYS))
             .browserTitle(setting.getBrowserTitle()).themeColor(setting.getThemeColor())
             .faviconUrl(setting.getFaviconUrl()).topLogoUrl(setting.getTopLogoUrl())
             .topLogoSmallUrl(setting.getTopLogoSmallUrl()).loginMainImageUrl(setting.getLoginMainImageUrl())
@@ -50,6 +59,12 @@ public class PlatformSettingService {
         setting.setDescription(updatePlatformSettingReq.getDescription());
         setting.setAutoCreateTenant(valueOrDefault(updatePlatformSettingReq.getAutoCreateTenant(),
             valueOrDefault(setting.getAutoCreateTenant(), false)));
+        setting.setDefaultTenantMemberNum(valueOrDefault(updatePlatformSettingReq.getDefaultTenantMemberNum(),
+            valueOrDefault(setting.getDefaultTenantMemberNum(), DEFAULT_TENANT_MEMBER_NUM)));
+        setting.setDefaultTenantWorkflowNum(valueOrDefault(updatePlatformSettingReq.getDefaultTenantWorkflowNum(),
+            valueOrDefault(setting.getDefaultTenantWorkflowNum(), DEFAULT_TENANT_WORKFLOW_NUM)));
+        setting.setDefaultTenantValidDays(valueOrDefault(updatePlatformSettingReq.getDefaultTenantValidDays(),
+            valueOrDefault(setting.getDefaultTenantValidDays(), DEFAULT_TENANT_VALID_DAYS)));
         setting.setBrowserTitle(updatePlatformSettingReq.getBrowserTitle());
         setting.setThemeColor(updatePlatformSettingReq.getThemeColor());
         setting.setFaviconUrl(updatePlatformSettingReq.getFaviconUrl());
@@ -100,6 +115,9 @@ public class PlatformSettingService {
         setting.setSettingKey(GLOBAL_SETTING_KEY);
         setting.setDescription("");
         setting.setAutoCreateTenant(false);
+        setting.setDefaultTenantMemberNum(DEFAULT_TENANT_MEMBER_NUM);
+        setting.setDefaultTenantWorkflowNum(DEFAULT_TENANT_WORKFLOW_NUM);
+        setting.setDefaultTenantValidDays(DEFAULT_TENANT_VALID_DAYS);
         setting.setBrowserTitle("");
         setting.setThemeColor("");
         setting.setUserLogEnabled(false);

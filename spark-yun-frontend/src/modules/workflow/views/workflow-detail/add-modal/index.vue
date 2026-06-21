@@ -10,6 +10,7 @@
                     placeholder="请选择"
                     :filterable="true"
                     :disabled="formData.id ? true : false"
+                    popper-class="workflow-job-add-select-popper"
                 >
                     <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
@@ -187,5 +188,9 @@ defineExpose({
 .add-computer-group {
     padding: 12px 20px 0 20px;
     box-sizing: border-box;
+}
+
+.workflow-job-add-select-popper {
+    z-index: 3100 !important;
 }
 </style>

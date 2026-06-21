@@ -3,7 +3,7 @@
         v-model="visible"
         :title="modelConfig.title"
         :width="modelConfig.width"
-        :z-index="modelConfig.zIndex"
+        :z-index="modalZIndex"
         :class="[modelConfig.customClass, 'zqy-block-modal']"
         :close-on-press-escape="false"
         :close-on-click-modal="false"
@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, ref, watch } from 'vue'
+import { computed, defineProps, ref, watch } from 'vue'
 
 interface BtnConfig {
     title: string
@@ -71,6 +71,10 @@ const visible = ref(false)
 const props = defineProps<{
     modelConfig: ModalConfig
 }>()
+
+const MIN_MODAL_Z_INDEX = 3000
+
+const modalZIndex = computed(() => Math.max(props.modelConfig.zIndex || MIN_MODAL_Z_INDEX, MIN_MODAL_Z_INDEX))
 
 watch(
     () => props.modelConfig.visible,

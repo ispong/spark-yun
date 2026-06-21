@@ -65,11 +65,21 @@
                         </el-avatar>
                     </template>
                     <div class="zqy-layout__user-menu-options" @mouseleave="menuVisible = false">
-                        <div v-if="showTenantSwitch" class="zqy-layout__user-menu-option" @click="openTenantDialog">
+                        <div
+                            v-if="showTenantSwitch"
+                            class="zqy-layout__user-menu-option zqy-layout__user-menu-option--current-tenant"
+                            @click="openTenantDialog"
+                        >
                             <el-icon>
                                 <OfficeBuilding />
                             </el-icon>
-                            切换租户
+                            <EllipsisTooltip class="zqy-layout__user-menu-text" :label="currentTenantMenuName" />
+                        </div>
+                        <div v-if="showTenantSwitch" class="zqy-layout__user-menu-option" @click="openTenantDialog">
+                            <el-icon>
+                                <Switch />
+                            </el-icon>
+                            选择租户
                         </div>
                         <div v-if="showApplyTenant" class="zqy-layout__user-menu-option" @click="openApplyTenantDialog">
                             <el-icon>
@@ -127,7 +137,7 @@
             <router-view v-else :key="authStore.tenantId" />
         </div>
 
-        <TenantSwitchDialog ref="tenantSwitchDialogRef" />
+        <TenantSwitchDialog ref="tenantSwitchDialogRef" @tenant-name-change="currentTenantName = $event" />
         <el-dialog
             v-model="applyTenantDialogVisible"
             class="zqy-layout__apply-tenant-dialog"
@@ -158,7 +168,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, resolveComponent, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, OfficeBuilding, ScaleToOriginal, School, SetUp, SwitchButton, User } from '@element-plus/icons-vue'
+import { Monitor, OfficeBuilding, ScaleToOriginal, School, SetUp, Switch, SwitchButton, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
@@ -200,6 +210,7 @@ const resizeWidth = ref(SIDEBAR_EXPANDED_WIDTH)
 let removeSidebarResizeListeners: (() => void) | null = null
 const menuVisible = ref(false)
 const tenantSwitchDialogRef = ref<InstanceType<typeof TenantSwitchDialog>>()
+const currentTenantName = ref('')
 const applyTenantDialogVisible = ref(false)
 const applyTenantLoading = ref(false)
 const applyTenantForm = reactive({
@@ -324,6 +335,7 @@ const showAdminEntry = computed(() => {
     return currentArea.value === 'platform' && hasTenant.value && isTenantManager.value
 })
 const showTenantSwitch = computed(() => hasWorkspaceAccess.value)
+const currentTenantMenuName = computed(() => currentTenantName.value || '当前租户')
 const isPersonalInfoRoute = computed(() => !!route.meta.personalInfo || route.name === 'personalInfo')
 const showPersonalInfo = computed(() => !isPlatformSuperAdmin.value && !isPersonalInfoRoute.value)
 const showApplyTenant = computed(() => !isPlatformSuperAdmin.value)
@@ -896,8 +908,15 @@ watch(
         color: getCssVar('color-primary');
     }
 
+    &.zqy-layout__user-menu-option--current-tenant {
+        color: getCssVar('color-primary');
+        font-weight: 500;
+    }
+
     .zqy-layout__user-menu-text {
-        max-width: 120px;
+        flex: 1;
+        min-width: 0;
+        max-width: 84px;
     }
 }
 

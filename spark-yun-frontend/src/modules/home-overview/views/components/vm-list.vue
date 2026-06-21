@@ -23,7 +23,7 @@
                     class="vm-list__table"
                     :class="{ 'vm-list__table-empty': !tableData.length }"
                     :data="tableData"
-                    height="420"
+                    :height="tableData.length ? 420 : undefined"
                 >
                     <el-table-column prop="workflowName" label="作业流" width="180" show-overflow-tooltip />
                     <el-table-column prop="status" label="状态">
@@ -291,8 +291,14 @@ onUnmounted(() => {
         &.vm-list__table-empty {
             .el-table__body-wrapper {
                 min-height: 132px;
+
                 .el-scrollbar__wrap {
                     min-height: 132px;
+                    overflow: hidden;
+                }
+
+                .el-scrollbar__bar {
+                    display: none;
                 }
             }
         }

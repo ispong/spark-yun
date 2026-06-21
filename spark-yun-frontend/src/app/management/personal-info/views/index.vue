@@ -130,6 +130,7 @@
                                             maxlength="6"
                                             placeholder="请输入验证码"
                                             clearable
+                                            @input="handlePasswordCodeInput('PHONE')"
                                         />
                                         <el-button
                                             class="personal-info__code-button"
@@ -169,6 +170,7 @@
                                             maxlength="6"
                                             placeholder="请输入验证码"
                                             clearable
+                                            @input="handlePasswordCodeInput('EMAIL')"
                                         />
                                         <el-button
                                             class="personal-info__code-button"
@@ -238,6 +240,7 @@
                                     maxlength="6"
                                     placeholder="请输入验证码"
                                     clearable
+                                    @input="handlePhoneCodeInput"
                                 />
                                 <el-button
                                     class="personal-info__code-button"
@@ -286,6 +289,7 @@
                                     maxlength="6"
                                     placeholder="请输入验证码"
                                     clearable
+                                    @input="handleEmailCodeInput"
                                 />
                                 <el-button
                                     class="personal-info__code-button"
@@ -617,6 +621,38 @@ const emailRule: FormRules = {
     ]
 }
 
+function normalizeCodeInput(value: string | number | undefined): string {
+    return String(value ?? '').replace(/\D/g, '').slice(0, 6)
+}
+
+function handlePhoneCodeInput(value: string | number) {
+    phoneModel.code = normalizeCodeInput(value)
+    if (phoneModel.code.length === 6) {
+        handleUpdatePhone()
+    }
+}
+
+function handleEmailCodeInput(value: string | number) {
+    emailModel.code = normalizeCodeInput(value)
+    if (emailModel.code.length === 6) {
+        handleUpdateEmail()
+    }
+}
+
+function handlePasswordCodeInput(channel: 'PHONE' | 'EMAIL') {
+    if (channel === 'PHONE') {
+        passwordModel.phoneCode = normalizeCodeInput(passwordModel.phoneCode)
+        if (passwordModel.phoneCode.length === 6) {
+            handleChangePassword('PHONE')
+        }
+        return
+    }
+    passwordModel.emailCode = normalizeCodeInput(passwordModel.emailCode)
+    if (passwordModel.emailCode.length === 6) {
+        handleChangePassword('EMAIL')
+    }
+}
+
 const pageTitle = computed(() => {
     if (activeMenu.value === 'basic-info') {
         return '基础信息'
@@ -681,20 +717,34 @@ const handleChangePassword = function (verifyType: 'OLD_PASSWORD' | 'PHONE' | 'E
                 confirmPassword: passwordModel.confirmPassword
             }
             updatePasswordLoading.value = verifyType
-            UpdateMyPassword(updateParams).then(async (res: any) => {
-                ElMessage.success(res.msg)
-                resetPasswordForm()
-                authStore.setUserInfo({
-                    ...authStore.userInfo,
-                    hasPassword: true
+            UpdateMyPassword(updateParams)
+                .then(async (res: any) => {
+                    ElMessage.success(res.msg)
+                    resetPasswordForm()
+                    authStore.setUserInfo({
+                        ...authStore.userInfo,
+                        hasPassword: true
+                    })
+                    await nextTick()
+                    resetPasswordForm()
+                    clearSendPasswordCountdown('PHONE')
+                    clearSendPasswordCountdown('EMAIL')
                 })
-                await nextTick()
-                resetPasswordForm()
-                clearSendPasswordCountdown('PHONE')
-                clearSendPasswordCountdown('EMAIL')
-            }).finally(() => {
-                updatePasswordLoading.value = ''
-            })
+                .catch(() => {
+                    if (verifyType === 'PHONE') {
+                        passwordModel.phoneCode = ''
+                        passwordModel.code = ''
+                        passwordFormRef.value?.clearValidate('phoneCode')
+                    }
+                    if (verifyType === 'EMAIL') {
+                        passwordModel.emailCode = ''
+                        passwordModel.code = ''
+                        passwordFormRef.value?.clearValidate('emailCode')
+                    }
+                })
+                .finally(() => {
+                    updatePasswordLoading.value = ''
+                })
         }
     })
 }
@@ -759,6 +809,9 @@ async function handleUpdatePhone() {
         phoneFormRef.value?.resetFields()
         clearSendCodeCountdown()
         ElMessage.success(res.msg)
+    } catch {
+        phoneModel.code = ''
+        phoneFormRef.value?.clearValidate('code')
     } finally {
         updatePhoneLoading.value = false
     }
@@ -800,6 +853,9 @@ async function handleUpdateEmail() {
         emailFormRef.value?.resetFields()
         clearSendEmailCodeCountdown()
         ElMessage.success(res.msg)
+    } catch {
+        emailModel.code = ''
+        emailFormRef.value?.clearValidate('code')
     } finally {
         updateEmailLoading.value = false
     }

@@ -10,6 +10,7 @@
                     placeholder="请选择"
                     :disabled="formData.id ? true : false"
                     :filterable="true"
+                    popper-class="workflow-job-add-select-popper"
                     @change="workTypeChange"
                 >
                     <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
@@ -41,6 +42,7 @@
                         v-model="formData.clusterId"
                         placeholder="请选择"
                         :filterable="true"
+                        popper-class="workflow-job-add-select-popper"
                         @change="clusterIdChangeEvent"
                         @visible-change="getClusterList"
                     >
@@ -61,6 +63,7 @@
                         v-model="formData.clusterNodeId"
                         placeholder="请选择"
                         :filterable="true"
+                        popper-class="workflow-job-add-select-popper"
                         @visible-change="getClusterNodeList"
                     >
                         <el-option
@@ -83,6 +86,7 @@
                         v-model="formData.datasourceId"
                         placeholder="请选择"
                         :filterable="true"
+                        popper-class="workflow-job-add-select-popper"
                         @visible-change="getDataSourceList($event, 'HIVE')"
                     >
                         <el-option
@@ -102,6 +106,7 @@
                         v-model="formData.datasourceId"
                         :filterable="true"
                         placeholder="请选择"
+                        popper-class="workflow-job-add-select-popper"
                         @visible-change="getDataSourceList"
                     >
                         <el-option
@@ -121,6 +126,7 @@
                         v-model="formData.containerId"
                         placeholder="请选择"
                         :filterable="true"
+                        popper-class="workflow-job-add-select-popper"
                         @visible-change="getSparkContainerList"
                     >
                         <el-option
@@ -517,5 +523,9 @@ defineExpose({
             border-radius: 2px;
         }
     }
+}
+
+.workflow-job-add-select-popper {
+    z-index: 3100 !important;
 }
 </style>

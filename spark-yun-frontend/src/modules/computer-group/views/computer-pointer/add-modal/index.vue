@@ -13,7 +13,7 @@
                 <el-input v-model="formData.host" placeholder="请输入" />
             </el-form-item>
             <el-form-item label="连接方式" prop="connectType">
-                <el-radio-group v-model="formData.connectType" class="connect-type-group">
+                <el-radio-group v-model="formData.connectType" class="connect-type-group" @change="handleConnectTypeChange">
                     <el-radio-button label="SSH">SSH</el-radio-button>
                     <el-radio-button label="AGENT_PORT">HTTP</el-radio-button>
                 </el-radio-group>
@@ -114,6 +114,8 @@ const pwdType = ref('pwd')
 const clusterType = ref('')
 const testLoading = ref(false)
 const testResult = ref()
+const DEFAULT_SSH_PORT = '22'
+const DEFAULT_AGENT_PORT = '30177'
 const modelConfig = reactive({
     title: '添加节点',
     visible: false,
@@ -223,7 +225,7 @@ function showModal(cb: () => void, data: any): void {
         formData.username = data.username
         formData.passwd = data.passwd
         formData.agentHomePath = data.agentHomePath
-        formData.agentPort = data.agentPort
+        formData.agentPort = data.agentPort || (data.connectType === 'AGENT_PORT' ? DEFAULT_AGENT_PORT : '')
         formData.connectType = data.connectType || 'SSH'
         formData.hadoopHomePath = data.hadoopHomePath
         formData.installSparkLocal = data.installSparkLocal
@@ -234,7 +236,7 @@ function showModal(cb: () => void, data: any): void {
     } else {
         formData.name = ''
         formData.host = ''
-        formData.port = '22'
+        formData.port = DEFAULT_SSH_PORT
         formData.username = ''
         formData.passwd = ''
         formData.agentHomePath = ''
@@ -263,7 +265,7 @@ function testFun() {
         testLoading.value = true
         TestComputerPointHostData({
             host: formData.host,
-            port: formData.port || '22',
+            port: formData.port || DEFAULT_SSH_PORT,
             username: formData.username,
             passwd: formData.passwd,
             agentPort: formData.agentPort,
@@ -285,6 +287,12 @@ function testFun() {
 function togglePwdType() {
     pwdType.value = pwdType.value === 'pwd' ? 'ssh' : 'pwd'
     formData.passwd = ''
+}
+
+function handleConnectTypeChange() {
+    if (!isSshConnect.value && !formData.agentPort) {
+        formData.agentPort = DEFAULT_AGENT_PORT
+    }
 }
 
 function okEvent() {
