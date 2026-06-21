@@ -73,6 +73,8 @@ public class ClusterNodeBizService {
 
         ClusterEntity cluster = clusterService.getCluster(addClusterNodeReq.getClusterId());
 
+        validateClusterNodeNameUnique(addClusterNodeReq.getClusterId(), addClusterNodeReq.getName(), null);
+
         ClusterNodeEntity clusterNode = engineNodeMapper.addClusterNodeReqToClusterNodeEntity(addClusterNodeReq);
 
         String connectType = clusterNodeService.getDefaultConnectType(addClusterNodeReq.getConnectType());
@@ -144,6 +146,9 @@ public class ClusterNodeBizService {
         ClusterEntity cluster = clusterService.getCluster(updateClusterNodeReq.getClusterId());
 
         ClusterNodeEntity clusterNode = clusterNodeService.getClusterNode(updateClusterNodeReq.getId());
+
+        validateClusterNodeNameUnique(updateClusterNodeReq.getClusterId(), updateClusterNodeReq.getName(),
+            updateClusterNodeReq.getId());
 
         // 如果是安装中等状态，需要等待运行结束
         if (ClusterNodeStatus.CHECKING.equals(clusterNode.getStatus())
@@ -225,6 +230,15 @@ public class ClusterNodeBizService {
         // 集群状态修改
         cluster.setStatus(ClusterStatus.UN_CHECK);
         clusterRepository.save(cluster);
+    }
+
+    private void validateClusterNodeNameUnique(String clusterId, String name, String currentNodeId) {
+
+        clusterNodeRepository.findByClusterIdAndName(clusterId, name).ifPresent(clusterNode -> {
+            if (currentNodeId == null || !clusterNode.getId().equals(currentNodeId)) {
+                throw new IsxAppException("同一计算集群中节点名称不能重复");
+            }
+        });
     }
 
     public Page<QueryNodeRes> pageClusterNode(PageClusterNodeReq enoQueryNodeReq) {
@@ -400,10 +414,6 @@ public class ClusterNodeBizService {
         // 获取节点信息
         ClusterNodeEntity engineNode = clusterNodeService.getClusterNode(cleanAgentReq.getEngineNodeId());
 
-        if (clusterNodeService.isAgentPortConnectType(engineNode.getConnectType())) {
-            throw new IsxAppException("端口连接方式不支持清理节点");
-        }
-
         // 如果是安装中等状态，需要等待运行结束
         if (ClusterNodeStatus.CHECKING.equals(engineNode.getStatus())
             || ClusterNodeStatus.INSTALLING.equals(engineNode.getStatus())
@@ -413,13 +423,8 @@ public class ClusterNodeBizService {
             throw new IsxAppException("当前状态无法操作，请稍后再试");
         }
 
-        // 将节点信息转成工具类识别对象
-        ScpFileEngineNodeDto scpFileEngineNodeDto = engineNodeMapper.engineNodeEntityToScpFileEngineNodeDto(engineNode);
-        scpFileEngineNodeDto.setPasswd(aesUtils.decrypt(scpFileEngineNodeDto.getPasswd()));
-
         // 同步调用
-        runAgentCleanService.run(cleanAgentReq.getEngineNodeId(), scpFileEngineNodeDto, ContextHolder.getTenantId(),
-            ContextHolder.getUserId());
+        runAgentCleanService.run(cleanAgentReq.getEngineNodeId(), ContextHolder.getTenantId(), ContextHolder.getUserId());
     }
 
     /**

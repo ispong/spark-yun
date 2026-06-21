@@ -9,7 +9,6 @@ import com.isxcode.spark.api.agent.constants.SparkAgentUrl;
 import com.isxcode.spark.api.agent.req.spark.*;
 import com.isxcode.spark.api.api.constants.PathConstants;
 import com.isxcode.spark.api.cluster.constants.ClusterNodeStatus;
-import com.isxcode.spark.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.spark.api.datasource.constants.DatasourceType;
 import com.isxcode.spark.api.instance.constants.InstanceStatus;
 import com.isxcode.spark.api.work.constants.WorkType;
@@ -22,7 +21,6 @@ import com.isxcode.spark.common.utils.path.PathUtils;
 import com.isxcode.spark.modules.alarm.service.AlarmService;
 import com.isxcode.spark.modules.cluster.entity.ClusterEntity;
 import com.isxcode.spark.modules.cluster.entity.ClusterNodeEntity;
-import com.isxcode.spark.modules.cluster.mapper.ClusterNodeMapper;
 import com.isxcode.spark.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.spark.modules.cluster.repository.ClusterRepository;
 import com.isxcode.spark.modules.datasource.entity.DatasourceEntity;
@@ -40,6 +38,7 @@ import com.isxcode.spark.modules.secret.repository.SecretKeyRepository;
 import com.isxcode.spark.modules.work.entity.WorkEventEntity;
 import com.isxcode.spark.modules.work.entity.WorkInstanceEntity;
 import com.isxcode.spark.modules.work.repository.*;
+import com.isxcode.spark.modules.work.run.AgentFileUploadUtils;
 import com.isxcode.spark.modules.work.run.AgentLinkUtils;
 import com.isxcode.spark.modules.work.run.WorkExecutor;
 import com.isxcode.spark.modules.work.run.WorkRunContext;
@@ -49,8 +48,6 @@ import com.isxcode.spark.modules.work.sql.SqlCommentService;
 import com.isxcode.spark.modules.work.sql.SqlFunctionService;
 import com.isxcode.spark.modules.work.sql.SqlValueService;
 import com.isxcode.spark.modules.workflow.repository.WorkflowInstanceRepository;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
@@ -59,8 +56,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-
-import static com.isxcode.spark.common.utils.ssh.SshUtils.scpJar;
 
 @Service
 @Slf4j
@@ -71,8 +66,6 @@ public class SyncWorkExecutor extends WorkExecutor {
     private final ClusterNodeRepository clusterNodeRepository;
 
     private final AesUtils aesUtils;
-
-    private final ClusterNodeMapper clusterNodeMapper;
 
     private final DatasourceService datasourceService;
 
@@ -99,13 +92,12 @@ public class SyncWorkExecutor extends WorkExecutor {
     public SyncWorkExecutor(WorkInstanceRepository workInstanceRepository, ClusterRepository clusterRepository,
         ClusterNodeRepository clusterNodeRepository, WorkflowInstanceRepository workflowInstanceRepository,
         WorkRepository workRepository, WorkConfigRepository workConfigRepository, Locker locker, AesUtils aesUtils,
-        ClusterNodeMapper clusterNodeMapper, DatasourceService datasourceService, IsxAppProperties isxAppProperties,
-        FuncRepository funcRepository, FileRepository fileRepository, SqlCommentService sqlCommentService,
-        SqlValueService sqlValueService, SqlFunctionService sqlFunctionService, AlarmService alarmService,
-        WorkEventRepository workEventRepository, WorkRunJobFactory workRunJobFactory,
-        VipWorkVersionRepository vipWorkVersionRepository, WorkService workService,
-        SecretKeyRepository secretKeyRepository, FuncMapper funcMapper, AgentLinkUtils agentLinkUtils,
-        MetaColumnLineageService metaColumnLineageService, FileService fileService) {
+        DatasourceService datasourceService, IsxAppProperties isxAppProperties, FuncRepository funcRepository,
+        FileRepository fileRepository, SqlCommentService sqlCommentService, SqlValueService sqlValueService,
+        SqlFunctionService sqlFunctionService, AlarmService alarmService, WorkEventRepository workEventRepository,
+        WorkRunJobFactory workRunJobFactory, VipWorkVersionRepository vipWorkVersionRepository,
+        WorkService workService, SecretKeyRepository secretKeyRepository, FuncMapper funcMapper,
+        AgentLinkUtils agentLinkUtils, MetaColumnLineageService metaColumnLineageService, FileService fileService) {
 
         super(alarmService, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
             workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository, vipWorkVersionRepository,
@@ -114,7 +106,6 @@ public class SyncWorkExecutor extends WorkExecutor {
         this.clusterRepository = clusterRepository;
         this.clusterNodeRepository = clusterNodeRepository;
         this.aesUtils = aesUtils;
-        this.clusterNodeMapper = clusterNodeMapper;
         this.datasourceService = datasourceService;
         this.isxAppProperties = isxAppProperties;
         this.funcRepository = funcRepository;
@@ -165,14 +156,11 @@ public class SyncWorkExecutor extends WorkExecutor {
                 throw errorLogException("申请计算集群资源异常 : 集群不存在可用节点，请切换一个集群");
             }
 
-            // 随机选择一个节点，解析请求节点信息
+            // 随机选择一个节点
             ClusterNodeEntity agentNode = clusterNodes.get(ThreadLocalRandom.current().nextInt(clusterNodes.size()));
-            ScpFileEngineNodeDto scpNode = clusterNodeMapper.engineNodeEntityToScpFileEngineNodeDto(agentNode);
-            scpNode.setPasswd(aesUtils.decrypt(scpNode.getPasswd()));
 
             // 保存上下文
             workRunContext.setClusterType(cluster.getClusterType());
-            workRunContext.setScpNodeInfo(scpNode);
             workRunContext.setAgentNode(agentNode);
 
             // 保存日志
@@ -244,7 +232,6 @@ public class SyncWorkExecutor extends WorkExecutor {
             if (workRunContext.getFuncConfig() != null) {
 
                 // 获取上下文参数
-                ScpFileEngineNodeDto scpNode = workRunContext.getScpNodeInfo();
                 ClusterNodeEntity agentNode = workRunContext.getAgentNode();
 
                 // 函数文件目录
@@ -253,9 +240,9 @@ public class SyncWorkExecutor extends WorkExecutor {
                 List<FuncEntity> allFunc = funcRepository.findAllById(workRunContext.getFuncConfig());
                 allFunc.forEach(e -> {
                     try {
-                        scpJar(scpNode, funcDir + File.separator + e.getFileId(),
-                            agentNode.getAgentHomePath() + "/zhiqingyun-agent/file/" + e.getFileId() + ".jar");
-                    } catch (JSchException | SftpException | InterruptedException | IOException ex) {
+                        AgentFileUploadUtils.uploadFile(agentLinkUtils, agentNode,
+                            funcDir + File.separator + e.getFileId(), "file", e.getFileId() + ".jar");
+                    } catch (IOException ex) {
                         throw errorLogException("上传函数异常 : " + ex.getMessage());
                     }
                 });
@@ -290,7 +277,6 @@ public class SyncWorkExecutor extends WorkExecutor {
             if (!uploadFileSet.isEmpty()) {
 
                 // 获取上下文参数
-                ScpFileEngineNodeDto scpNode = workRunContext.getScpNodeInfo();
                 ClusterNodeEntity agentNode = workRunContext.getAgentNode();
 
                 // 遍历上传到集群节点
@@ -299,9 +285,9 @@ public class SyncWorkExecutor extends WorkExecutor {
                 List<FileEntity> libFile = fileRepository.findAllById(uploadFileSet);
                 libFile.forEach(e -> {
                     try {
-                        scpJar(scpNode, libDir + File.separator + e.getId(),
-                            agentNode.getAgentHomePath() + "/zhiqingyun-agent/file/" + e.getId() + ".jar");
-                    } catch (JSchException | SftpException | InterruptedException | IOException ex) {
+                        AgentFileUploadUtils.uploadFile(agentLinkUtils, agentNode, libDir + File.separator + e.getId(),
+                            "file", e.getId() + ".jar");
+                    } catch (IOException ex) {
                         throw errorLogException("上传依赖包异常 : " + ex.getMessage());
                     }
                 });

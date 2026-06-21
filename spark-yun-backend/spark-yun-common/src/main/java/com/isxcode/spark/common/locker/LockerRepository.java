@@ -27,5 +27,7 @@ public interface LockerRepository extends JpaRepository<LockerEntity, Integer> {
 
     void deleteAllByOwner(String owner);
 
+    void deleteAllByOwnerEndingWith(String ownerSuffix);
+
     void deleteAllByExpireTimeBefore(LocalDateTime expireTime);
 }

@@ -4,16 +4,17 @@ import com.isxcode.spark.common.security.ContextHolder;
 
 import com.alibaba.fastjson.JSON;
 import com.isxcode.spark.api.cluster.constants.ClusterNodeStatus;
-import com.isxcode.spark.api.cluster.dto.ScpFileEngineNodeDto;
+import com.isxcode.spark.api.agent.constants.SparkAgentUrl;
+import com.isxcode.spark.api.agent.req.spark.*;
+import com.isxcode.spark.api.api.constants.PathConstants;
 import com.isxcode.spark.api.instance.constants.InstanceStatus;
+import com.isxcode.spark.api.work.res.AgentLinkResponse;
 import com.isxcode.spark.api.work.constants.WorkType;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import com.isxcode.spark.common.locker.Locker;
 import com.isxcode.spark.common.utils.aes.AesUtils;
-import com.isxcode.spark.common.utils.ssh.SshUtils;
 import com.isxcode.spark.modules.alarm.service.AlarmService;
 import com.isxcode.spark.modules.cluster.entity.ClusterNodeEntity;
-import com.isxcode.spark.modules.cluster.mapper.ClusterNodeMapper;
 import com.isxcode.spark.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.spark.modules.cluster.repository.ClusterRepository;
 import com.isxcode.spark.modules.meta.service.MetaColumnLineageService;
@@ -22,6 +23,7 @@ import com.isxcode.spark.modules.secret.repository.SecretKeyRepository;
 import com.isxcode.spark.modules.work.entity.WorkEventEntity;
 import com.isxcode.spark.modules.work.entity.WorkInstanceEntity;
 import com.isxcode.spark.modules.work.repository.*;
+import com.isxcode.spark.modules.work.run.AgentLinkUtils;
 import com.isxcode.spark.modules.work.run.WorkExecutor;
 import com.isxcode.spark.modules.work.run.WorkRunContext;
 import com.isxcode.spark.modules.work.run.WorkRunJobFactory;
@@ -29,27 +31,19 @@ import com.isxcode.spark.modules.work.service.WorkService;
 import com.isxcode.spark.modules.work.sql.SqlFunctionService;
 import com.isxcode.spark.modules.work.sql.SqlValueService;
 import com.isxcode.spark.modules.workflow.repository.WorkflowInstanceRepository;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.isxcode.spark.common.utils.ssh.SshUtils.executeBackgroundCommand;
-import static com.isxcode.spark.common.utils.ssh.SshUtils.executeCommand;
-import static com.isxcode.spark.common.utils.ssh.SshUtils.scpText;
 
 @Service
 @Slf4j
 public class PythonExecutor extends WorkExecutor {
 
     private final ClusterNodeRepository clusterNodeRepository;
-
-    private final ClusterNodeMapper clusterNodeMapper;
 
     private final AesUtils aesUtils;
 
@@ -61,25 +55,27 @@ public class PythonExecutor extends WorkExecutor {
 
     private final SecretKeyRepository secretKeyRepository;
 
+    private final AgentLinkUtils agentLinkUtils;
+
     public PythonExecutor(WorkInstanceRepository workInstanceRepository,
         WorkflowInstanceRepository workflowInstanceRepository, SqlValueService sqlValueService,
         SqlFunctionService sqlFunctionService, AlarmService alarmService, WorkEventRepository workEventRepository,
         Locker locker, WorkRepository workRepository, WorkRunJobFactory workRunJobFactory,
         WorkConfigRepository workConfigRepository, VipWorkVersionRepository vipWorkVersionRepository,
-        ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, ClusterNodeRepository clusterNodeRepository,
+        AesUtils aesUtils, ClusterNodeRepository clusterNodeRepository,
         ClusterRepository clusterRepository, WorkService workService, SecretKeyRepository secretKeyRepository,
-        MetaColumnLineageService metaColumnLineageService) {
+        MetaColumnLineageService metaColumnLineageService, AgentLinkUtils agentLinkUtils) {
 
         super(alarmService, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
             workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository, vipWorkVersionRepository,
             workService, metaColumnLineageService);
         this.clusterRepository = clusterRepository;
         this.clusterNodeRepository = clusterNodeRepository;
-        this.clusterNodeMapper = clusterNodeMapper;
         this.aesUtils = aesUtils;
         this.sqlValueService = sqlValueService;
         this.sqlFunctionService = sqlFunctionService;
         this.secretKeyRepository = secretKeyRepository;
+        this.agentLinkUtils = agentLinkUtils;
     }
 
     @Override
@@ -127,12 +123,7 @@ public class PythonExecutor extends WorkExecutor {
                 throw errorLogException("检测服务器节点异常 : 节点状态不可用");
             }
 
-            // 解析请求节点信息
-            ScpFileEngineNodeDto scpNode = clusterNodeMapper.engineNodeEntityToScpFileEngineNodeDto(agentNode);
-            scpNode.setPasswd(aesUtils.decrypt(scpNode.getPasswd()));
-
             // 保存上下文
-            workRunContext.setScpNodeInfo(scpNode);
             workRunContext.setAgentNode(agentNode);
 
             // 保存日志
@@ -193,24 +184,20 @@ public class PythonExecutor extends WorkExecutor {
             // 获取上下文参数
             String script = workRunContext.getScript();
             ClusterNodeEntity agentNode = workRunContext.getAgentNode();
-            ScpFileEngineNodeDto scpNode = workRunContext.getScpNodeInfo();
 
             try {
-                // 上传脚本
-                scpText(scpNode, script + "\nprint('zhiqingyun_success')",
-                    agentNode.getAgentHomePath() + "/zhiqingyun-agent/works/" + workInstance.getId() + ".py");
-
-                // 执行命令获取pid
-                String executeBashWorkCommand =
-                    "bash -lc \"source /etc/profile >/dev/null 2>&1; nohup python3 " + agentNode.getAgentHomePath()
-                        + "/zhiqingyun-agent/works/" + workInstance.getId() + ".py >> " + agentNode.getAgentHomePath()
-                        + "/zhiqingyun-agent/works/" + workInstance.getId() + ".log 2>&1 < /dev/null & echo \\$!\"";
-                String pid = executeBackgroundCommand(scpNode, executeBashWorkCommand, false);
+                AgentLinkResponse response = agentLinkUtils.getAgentLinkResponse(agentNode,
+                    SparkAgentUrl.SUBMIT_LOCAL_SCRIPT_URL,
+                    SubmitLocalScriptReq.builder()
+                        .agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
+                        .workInstanceId(workInstance.getId()).script(script + "\nprint('zhiqingyun_success')")
+                        .scriptSuffix(".py").command("python3").build());
+                String pid = response.getInstanceId();
                 logBuilder.append(endLog("执行Python脚本完成 pid : " + pid));
 
                 // 保存上下文
                 workRunContext.setPid(pid);
-            } catch (JSchException | SftpException | InterruptedException | IOException e) {
+            } catch (Exception e) {
                 log.debug(e.getMessage(), e);
 
                 // 优化日志
@@ -228,15 +215,14 @@ public class PythonExecutor extends WorkExecutor {
             // 获取上下文参数
             String preStatus = workRunContext.getPreStatus() == null ? "" : workRunContext.getPreStatus();
             String pid = workRunContext.getPid();
-            ScpFileEngineNodeDto scpNodeInfo = workRunContext.getScpNodeInfo();
 
             // 获取pid状态
             String pidStatus;
             try {
-                String getPidStatusCommand = "ps -p " + pid;
-                String pidCommandResult = executeCommand(scpNodeInfo, getPidStatusCommand, false);
-                pidStatus = pidCommandResult.contains(pid) ? InstanceStatus.RUNNING : InstanceStatus.FINISHED;
-            } catch (JSchException | InterruptedException | IOException e) {
+                AgentLinkResponse response = agentLinkUtils.getAgentLinkResponse(workRunContext.getAgentNode(),
+                    SparkAgentUrl.GET_LOCAL_SCRIPT_STATUS_URL, LocalScriptStatusReq.builder().pid(pid).build());
+                pidStatus = response.getFinalState();
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
 
                 // 优化日志
@@ -269,16 +255,18 @@ public class PythonExecutor extends WorkExecutor {
         if (workEvent.getEventProcess() == 5) {
 
             // 获取上下文参数
-            ScpFileEngineNodeDto scpNodeInfo = workRunContext.getScpNodeInfo();
             ClusterNodeEntity agentNode = workRunContext.getAgentNode();
 
             // 获取日志
-            String getLogCommand =
-                "cat " + agentNode.getAgentHomePath() + "/zhiqingyun-agent/works/" + workInstance.getId() + ".log";
             String logCommand;
             try {
-                logCommand = executeCommand(scpNodeInfo, getLogCommand, false);
-            } catch (JSchException | InterruptedException | IOException e) {
+                AgentLinkResponse response = agentLinkUtils.getAgentLinkResponse(agentNode,
+                    SparkAgentUrl.GET_LOCAL_SCRIPT_LOG_URL,
+                    LocalScriptLogReq.builder()
+                        .agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
+                        .workInstanceId(workInstance.getId()).build());
+                logCommand = response.getLog();
+            } catch (Exception e) {
                 throw errorLogException("保存日志和数据异常 : " + e.getMessage());
             }
 
@@ -306,16 +294,15 @@ public class PythonExecutor extends WorkExecutor {
         if (workEvent.getEventProcess() == 6) {
 
             // 获取上下文参数
-            ScpFileEngineNodeDto scpNode = workRunContext.getScpNodeInfo();
             ClusterNodeEntity agentNode = workRunContext.getAgentNode();
 
             // 删除脚本和日志
             try {
-                String clearWorkRunFile = "rm -f " + agentNode.getAgentHomePath() + "/zhiqingyun-agent/works/"
-                    + workInstance.getId() + ".log && " + "rm -f " + agentNode.getAgentHomePath()
-                    + "/zhiqingyun-agent/works/" + workInstance.getId() + ".py";
-                SshUtils.executeCommand(scpNode, clearWorkRunFile, false);
-            } catch (JSchException | InterruptedException | IOException e) {
+                agentLinkUtils.getAgentLinkResponse(agentNode, SparkAgentUrl.CLEAN_LOCAL_SCRIPT_URL,
+                    CleanLocalScriptReq.builder()
+                        .agentHomePath(agentNode.getAgentHomePath() + "/" + PathConstants.AGENT_PATH_NAME)
+                        .workInstanceId(workInstance.getId()).scriptSuffix(".py").build());
+            } catch (Exception e) {
                 throw errorLogException("清理缓存文件异常 : " + e.getMessage());
             }
 
@@ -350,13 +337,13 @@ public class PythonExecutor extends WorkExecutor {
             if (!Strings.isEmpty(workRunContext.getPid())) {
 
                 // 杀死程序
-                String killCommand = "kill -9 " + workRunContext.getPid();
-                executeCommand(workRunContext.getScpNodeInfo(), killCommand, false);
+                agentLinkUtils.getAgentLinkResponse(workRunContext.getAgentNode(), SparkAgentUrl.STOP_LOCAL_SCRIPT_URL,
+                    StopLocalScriptReq.builder().pid(workRunContext.getPid()).build());
             }
 
             // 可以中止
             return true;
-        } catch (JSchException | InterruptedException | IOException e) {
+        } catch (Exception e) {
             throw new IsxAppException(e.getMessage());
         }
     }

@@ -6,18 +6,15 @@ import com.isxcode.spark.api.agent.constants.SparkAgentUrl;
 import com.isxcode.spark.api.agent.req.spark.*;
 import com.isxcode.spark.api.api.constants.PathConstants;
 import com.isxcode.spark.api.cluster.constants.ClusterNodeStatus;
-import com.isxcode.spark.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.spark.api.instance.constants.InstanceStatus;
 import com.isxcode.spark.api.work.constants.WorkType;
 import com.isxcode.spark.api.work.res.AgentLinkResponse;
 import com.isxcode.spark.backend.api.base.properties.IsxAppProperties;
 import com.isxcode.spark.common.locker.Locker;
-import com.isxcode.spark.common.utils.aes.AesUtils;
 import com.isxcode.spark.common.utils.path.PathUtils;
 import com.isxcode.spark.modules.alarm.service.AlarmService;
 import com.isxcode.spark.modules.cluster.entity.ClusterEntity;
 import com.isxcode.spark.modules.cluster.entity.ClusterNodeEntity;
-import com.isxcode.spark.modules.cluster.mapper.ClusterNodeMapper;
 import com.isxcode.spark.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.spark.modules.cluster.repository.ClusterRepository;
 import com.isxcode.spark.modules.file.entity.FileEntity;
@@ -28,6 +25,7 @@ import com.isxcode.spark.modules.meta.service.MetaColumnLineageService;
 import com.isxcode.spark.modules.work.entity.WorkEventEntity;
 import com.isxcode.spark.modules.work.entity.WorkInstanceEntity;
 import com.isxcode.spark.modules.work.repository.*;
+import com.isxcode.spark.modules.work.run.AgentFileUploadUtils;
 import com.isxcode.spark.modules.work.run.AgentLinkUtils;
 import com.isxcode.spark.modules.work.run.WorkExecutor;
 import com.isxcode.spark.modules.work.run.WorkRunContext;
@@ -35,8 +33,6 @@ import com.isxcode.spark.modules.work.run.WorkRunJobFactory;
 import com.isxcode.spark.modules.work.service.WorkService;
 import com.isxcode.spark.modules.work.sql.SqlFunctionService;
 import com.isxcode.spark.modules.workflow.repository.WorkflowInstanceRepository;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
@@ -45,8 +41,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-
-import static com.isxcode.spark.common.utils.ssh.SshUtils.scpJar;
 
 @Service
 @Slf4j
@@ -60,10 +54,6 @@ public class SparkJarExecutor extends WorkExecutor {
 
     private final AgentLinkUtils agentLinkUtils;
 
-    private final ClusterNodeMapper clusterNodeMapper;
-
-    private final AesUtils aesUtils;
-
     private final FileRepository fileRepository;
 
     private final FileService fileService;
@@ -71,10 +61,10 @@ public class SparkJarExecutor extends WorkExecutor {
     public SparkJarExecutor(WorkInstanceRepository workInstanceRepository, ClusterRepository clusterRepository,
         ClusterNodeRepository clusterNodeRepository, WorkflowInstanceRepository workflowInstanceRepository,
         WorkRepository workRepository, WorkConfigRepository workConfigRepository, IsxAppProperties isxAppProperties,
-        Locker locker, ClusterNodeMapper clusterNodeMapper, AesUtils aesUtils, FileRepository fileRepository,
-        AlarmService alarmService, SqlFunctionService sqlFunctionService, WorkEventRepository workEventRepository,
-        WorkRunJobFactory workRunJobFactory, VipWorkVersionRepository vipWorkVersionRepository, WorkService workService,
-        AgentLinkUtils agentLinkUtils, MetaColumnLineageService metaColumnLineageService, FileService fileService) {
+        Locker locker, FileRepository fileRepository, AlarmService alarmService, SqlFunctionService sqlFunctionService,
+        WorkEventRepository workEventRepository, WorkRunJobFactory workRunJobFactory,
+        VipWorkVersionRepository vipWorkVersionRepository, WorkService workService, AgentLinkUtils agentLinkUtils,
+        MetaColumnLineageService metaColumnLineageService, FileService fileService) {
 
         super(alarmService, locker, workRepository, workInstanceRepository, workflowInstanceRepository,
             workEventRepository, workRunJobFactory, sqlFunctionService, workConfigRepository, vipWorkVersionRepository,
@@ -83,8 +73,6 @@ public class SparkJarExecutor extends WorkExecutor {
         this.clusterNodeRepository = clusterNodeRepository;
         this.isxAppProperties = isxAppProperties;
         this.agentLinkUtils = agentLinkUtils;
-        this.clusterNodeMapper = clusterNodeMapper;
-        this.aesUtils = aesUtils;
         this.fileRepository = fileRepository;
         this.fileService = fileService;
     }
@@ -126,14 +114,11 @@ public class SparkJarExecutor extends WorkExecutor {
                 throw errorLogException("申请计算集群资源异常 : 集群不存在可用节点，请切换一个集群");
             }
 
-            // 随机选择一个节点，解析请求节点信息
+            // 随机选择一个节点
             ClusterNodeEntity agentNode = clusterNodes.get(ThreadLocalRandom.current().nextInt(clusterNodes.size()));
-            ScpFileEngineNodeDto scpNode = clusterNodeMapper.engineNodeEntityToScpFileEngineNodeDto(agentNode);
-            scpNode.setPasswd(aesUtils.decrypt(scpNode.getPasswd()));
 
             // 保存上下文
             workRunContext.setClusterType(cluster.getClusterType());
-            workRunContext.setScpNodeInfo(scpNode);
             workRunContext.setAgentNode(agentNode);
 
             // 保存日志
@@ -146,7 +131,6 @@ public class SparkJarExecutor extends WorkExecutor {
         if (workEvent.getEventProcess() == 2) {
 
             // 获取上下文参数
-            ScpFileEngineNodeDto scpNode = workRunContext.getScpNodeInfo();
             ClusterNodeEntity agentNode = workRunContext.getAgentNode();
 
             // 检测Jar是否配置
@@ -158,10 +142,10 @@ public class SparkJarExecutor extends WorkExecutor {
             try {
                 String jarDir = PathUtils.parseProjectPath(isxAppProperties.getResourcesPath()) + File.separator
                     + "file" + File.separator + agentNode.getTenantId();
-                scpJar(scpNode, jarDir + File.separator + workRunContext.getJarJobConfig().getJarFileId(),
-                    agentNode.getAgentHomePath() + "/zhiqingyun-agent/file/"
-                        + workRunContext.getJarJobConfig().getJarFileId() + ".jar");
-            } catch (JSchException | SftpException | InterruptedException | IOException e) {
+                AgentFileUploadUtils.uploadFile(agentLinkUtils, agentNode,
+                    jarDir + File.separator + workRunContext.getJarJobConfig().getJarFileId(), "file",
+                    workRunContext.getJarJobConfig().getJarFileId() + ".jar");
+            } catch (IOException e) {
                 log.error(e.getMessage());
                 throw errorLogException("上传Jar包异常 : " + e.getMessage());
             }
@@ -195,7 +179,6 @@ public class SparkJarExecutor extends WorkExecutor {
             if (!uploadFileSet.isEmpty()) {
 
                 // 获取上下文参数
-                ScpFileEngineNodeDto scpNode = workRunContext.getScpNodeInfo();
                 ClusterNodeEntity agentNode = workRunContext.getAgentNode();
 
                 // 遍历上传到集群节点
@@ -204,9 +187,9 @@ public class SparkJarExecutor extends WorkExecutor {
                 List<FileEntity> libFile = fileRepository.findAllById(uploadFileSet);
                 libFile.forEach(e -> {
                     try {
-                        scpJar(scpNode, libDir + File.separator + e.getId(),
-                            agentNode.getAgentHomePath() + "/zhiqingyun-agent/file/" + e.getId() + ".jar");
-                    } catch (JSchException | SftpException | InterruptedException | IOException ex) {
+                        AgentFileUploadUtils.uploadFile(agentLinkUtils, agentNode, libDir + File.separator + e.getId(),
+                            "file", e.getId() + ".jar");
+                    } catch (IOException ex) {
                         throw errorLogException("上传依赖包异常 : " + ex.getMessage());
                     }
                 });

@@ -36,6 +36,11 @@ processResources {
     from(rootDir.getAbsolutePath() + '/VERSION') {
         into '.'
     }
+
+    from(rootDir.getAbsolutePath() + '/resources/libs') {
+        include 'libprql_*'
+        into '.'
+    }
 }
 
 bootRun {

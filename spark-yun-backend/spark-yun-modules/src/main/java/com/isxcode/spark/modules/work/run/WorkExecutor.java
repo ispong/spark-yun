@@ -357,101 +357,104 @@ public abstract class WorkExecutor {
         } else {
 
             // 修改状态，节点状态只能一个一个修改，防止并发压力大，导致作业执行两次
-            Integer lockerKey = locker.lock(LockerPrefix.WORK_CHANGE_STATUS + workRunContext.getFlowInstanceId());
-
-            // 获取最新作业实例，一定要以加锁后的实例为准
-            workInstance = workService.getWorkInstance(workRunContext.getInstanceId());
-
-            // 作业事件和实例绑定的不一致，为上游重复推送，不再运行
-            if (workInstance.getEventId() != null && !workInstance.getEventId().equals(workEventId)) {
-                locker.unlock(lockerKey);
-                return InstanceStatus.FINISHED;
-            }
-
-            // 中止、中止中，不可以再运行
-            if (InstanceStatus.ABORT.equals(workInstance.getStatus())
-                || InstanceStatus.ABORTING.equals(workInstance.getStatus())) {
-                locker.unlock(lockerKey);
-                return InstanceStatus.FINISHED;
-            }
-
-            // 在调度中的作业，如果自身定时器没有被触发，不可以再运行，上游推过来，但是定时器还没到时间
-            if (!Strings.isEmpty(workRunContext.getVersionId()) && !workInstance.getQuartzHasRun()) {
-                locker.unlock(lockerKey);
-                return InstanceStatus.FINISHED;
-            }
-
-            // 如果是中断状态赋值workEventId
-            if (InstanceStatus.BREAK.equals(workInstance.getStatus())) {
-                workInstance.setEventId(workEventId);
-            }
-
-            // 开始修改对PENDING状态的作业，中断状态需要传递
-            if (InstanceStatus.PENDING.equals(workInstance.getStatus())) {
-
-                // 获取父级的作业实例状态
-                List<String> parentNodes =
-                    WorkflowUtils.getParentNodes(workRunContext.getNodeMapping(), workRunContext.getWorkId());
-                List<WorkInstanceEntity> parentInstances = workInstanceRepository
-                    .findAllByWorkIdAndWorkflowInstanceId(parentNodes, workRunContext.getFlowInstanceId());
-                boolean parentIsError =
-                    parentInstances.stream().anyMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()));
-                boolean parentIsBreak =
-                    parentInstances.stream().anyMatch(e -> InstanceStatus.BREAK.equals(e.getStatus()));
-                boolean parentIsRunning = parentInstances.stream().anyMatch(
-                    e -> InstanceStatus.RUNNING.equals(e.getStatus()) || InstanceStatus.PENDING.equals(e.getStatus()));
-
-                // 修改状态
-                if (parentIsRunning) {
-
-                    // 如果父级在运行中，不可以再运行
-                    locker.unlock(lockerKey);
-                    return InstanceStatus.FINISHED;
-                } else if (parentIsError) {
-
-                    // 如果父级有错，则状态直接变更为失败
-                    workInstance.setStatus(InstanceStatus.FAIL);
-                    workInstance.setSubmitLog("父级执行失败");
-                    workInstance.setExecEndDateTime(new Date());
-                    workInstance.setDuration(0L);
-                } else if (parentIsBreak) {
-
-                    // 如果父级有中断，则状态直接变更为中断
-                    workInstance.setStatus(InstanceStatus.BREAK);
-                    workInstance.setSubmitLog("当前作业中断");
-                    workInstance.setExecEndDateTime(new Date());
-                    workInstance.setDuration(0L);
-                } else {
-                    // 修改作业状态为RUNNING
-                    log.debug("【作业流实例id】:{},【作业实例id】:{},【运行事件id】:{},修改状态:RUNNING,【作业名】:{}",
-                        workInstance.getWorkflowInstanceId(), workInstance.getId(), workEventId,
-                        workRunContext.getWorkName());
-
-                    // 基线管理，任务开始运行，发送消息
-                    if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
-                        alarmService.sendWorkMessage(workInstance, AlarmEventType.START_RUN);
-                    }
-
-                    // 修改作业实例状态为运行中
-                    workInstance.setSubmitLog(infoLog("🔥 开始运行作业"));
-                    workInstance.setStatus(InstanceStatus.RUNNING);
-                    refreshRunnerHeartbeat(workInstance);
-                }
-
-                // 绑定作业事件
-                workInstance.setEventId(workEvent.getId());
-
-                // 保存实例状态
-                workInstance.setExecStartDateTime(new Date());
-                workInstanceRepository.saveAndFlush(workInstance);
-
-                // 修改状态后继续执行
-                locker.unlock(lockerKey);
+            Integer lockerKey = locker.tryLock(LockerPrefix.WORK_CHANGE_STATUS + workRunContext.getFlowInstanceId());
+            if (lockerKey == null) {
+                log.debug("【作业流实例id】:{},【作业实例id】:{},【运行事件id】:{},等待状态变更锁,【作业名】:{}", workRunContext.getFlowInstanceId(),
+                    workInstance.getId(), workEventId, workRunContext.getWorkName());
                 return InstanceStatus.RUNNING;
             }
 
-            // 最终都要解锁
-            locker.unlock(lockerKey);
+            try {
+
+                // 获取最新作业实例，一定要以加锁后的实例为准
+                workInstance = workService.getWorkInstance(workRunContext.getInstanceId());
+
+                // 作业事件和实例绑定的不一致，为上游重复推送，不再运行
+                if (workInstance.getEventId() != null && !workInstance.getEventId().equals(workEventId)) {
+                    return InstanceStatus.FINISHED;
+                }
+
+                // 中止、中止中，不可以再运行
+                if (InstanceStatus.ABORT.equals(workInstance.getStatus())
+                    || InstanceStatus.ABORTING.equals(workInstance.getStatus())) {
+                    return InstanceStatus.FINISHED;
+                }
+
+                // 在调度中的作业，如果自身定时器没有被触发，不可以再运行，上游推过来，但是定时器还没到时间
+                if (!Strings.isEmpty(workRunContext.getVersionId()) && !workInstance.getQuartzHasRun()) {
+                    return InstanceStatus.FINISHED;
+                }
+
+                // 如果是中断状态赋值workEventId
+                if (InstanceStatus.BREAK.equals(workInstance.getStatus())) {
+                    workInstance.setEventId(workEventId);
+                }
+
+                // 开始修改对PENDING状态的作业，中断状态需要传递
+                if (InstanceStatus.PENDING.equals(workInstance.getStatus())) {
+
+                    // 获取父级的作业实例状态
+                    List<String> parentNodes =
+                        WorkflowUtils.getParentNodes(workRunContext.getNodeMapping(), workRunContext.getWorkId());
+                    List<WorkInstanceEntity> parentInstances = workInstanceRepository
+                        .findAllByWorkIdAndWorkflowInstanceId(parentNodes, workRunContext.getFlowInstanceId());
+                    boolean parentIsError =
+                        parentInstances.stream().anyMatch(e -> InstanceStatus.FAIL.equals(e.getStatus()));
+                    boolean parentIsBreak =
+                        parentInstances.stream().anyMatch(e -> InstanceStatus.BREAK.equals(e.getStatus()));
+                    boolean parentIsRunning =
+                        parentInstances.stream().anyMatch(e -> InstanceStatus.RUNNING.equals(e.getStatus())
+                            || InstanceStatus.PENDING.equals(e.getStatus()));
+
+                    // 修改状态
+                    if (parentIsRunning) {
+
+                        // 如果父级在运行中，不可以再运行
+                        return InstanceStatus.FINISHED;
+                    } else if (parentIsError) {
+
+                        // 如果父级有错，则状态直接变更为失败
+                        workInstance.setStatus(InstanceStatus.FAIL);
+                        workInstance.setSubmitLog("父级执行失败");
+                        workInstance.setExecEndDateTime(new Date());
+                        workInstance.setDuration(0L);
+                    } else if (parentIsBreak) {
+
+                        // 如果父级有中断，则状态直接变更为中断
+                        workInstance.setStatus(InstanceStatus.BREAK);
+                        workInstance.setSubmitLog("当前作业中断");
+                        workInstance.setExecEndDateTime(new Date());
+                        workInstance.setDuration(0L);
+                    } else {
+                        // 修改作业状态为RUNNING
+                        log.debug("【作业流实例id】:{},【作业实例id】:{},【运行事件id】:{},修改状态:RUNNING,【作业名】:{}",
+                            workInstance.getWorkflowInstanceId(), workInstance.getId(), workEventId,
+                            workRunContext.getWorkName());
+
+                        // 基线管理，任务开始运行，发送消息
+                        if (InstanceType.AUTO.equals(workInstance.getInstanceType())) {
+                            alarmService.sendWorkMessage(workInstance, AlarmEventType.START_RUN);
+                        }
+
+                        // 修改作业实例状态为运行中
+                        workInstance.setSubmitLog(infoLog("🔥 开始运行作业"));
+                        workInstance.setStatus(InstanceStatus.RUNNING);
+                        refreshRunnerHeartbeat(workInstance);
+                    }
+
+                    // 绑定作业事件
+                    workInstance.setEventId(workEvent.getId());
+
+                    // 保存实例状态
+                    workInstance.setExecStartDateTime(new Date());
+                    workInstanceRepository.saveAndFlush(workInstance);
+
+                    // 修改状态后继续执行
+                    return InstanceStatus.RUNNING;
+                }
+            } finally {
+                locker.unlock(lockerKey);
+            }
         }
 
         // 每个作业运行完，都要检测一次作业流的所有作业状态，并推送后面的节点，且只对绑定事件id的实例才生效

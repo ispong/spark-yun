@@ -104,6 +104,62 @@ public class SparkAgentController {
         return AgentLinkResponse.builder().msg("心跳正常").build();
     }
 
+    @Operation(summary = "清理代理缓存")
+    @PostMapping(SparkAgentUrl.CLEAN_AGENT_URL)
+    @SuccessResponse("清理成功")
+    public AgentLinkResponse cleanAgent(@RequestBody CleanAgentReq cleanAgentReq) {
+
+        return sparkYunAgentBizService.cleanAgent(cleanAgentReq);
+    }
+
+    @Operation(summary = "上传代理文件")
+    @PostMapping(SparkAgentUrl.UPLOAD_AGENT_FILE_URL)
+    @SuccessResponse("上传成功")
+    public AgentLinkResponse uploadAgentFile(@RequestBody UploadAgentFileReq uploadAgentFileReq) {
+
+        return sparkYunAgentBizService.uploadAgentFile(uploadAgentFileReq);
+    }
+
+    @Operation(summary = "提交本地脚本")
+    @PostMapping(SparkAgentUrl.SUBMIT_LOCAL_SCRIPT_URL)
+    @SuccessResponse("提交成功")
+    public AgentLinkResponse submitLocalScript(@RequestBody SubmitLocalScriptReq submitLocalScriptReq) {
+
+        return sparkYunAgentBizService.submitLocalScript(submitLocalScriptReq);
+    }
+
+    @Operation(summary = "获取本地脚本状态")
+    @PostMapping(SparkAgentUrl.GET_LOCAL_SCRIPT_STATUS_URL)
+    @SuccessResponse("获取成功")
+    public AgentLinkResponse getLocalScriptStatus(@RequestBody LocalScriptStatusReq localScriptStatusReq) {
+
+        return sparkYunAgentBizService.getLocalScriptStatus(localScriptStatusReq);
+    }
+
+    @Operation(summary = "获取本地脚本日志")
+    @PostMapping(SparkAgentUrl.GET_LOCAL_SCRIPT_LOG_URL)
+    @SuccessResponse("获取成功")
+    public AgentLinkResponse getLocalScriptLog(@RequestBody LocalScriptLogReq localScriptLogReq) {
+
+        return sparkYunAgentBizService.getLocalScriptLog(localScriptLogReq);
+    }
+
+    @Operation(summary = "清理本地脚本")
+    @PostMapping(SparkAgentUrl.CLEAN_LOCAL_SCRIPT_URL)
+    @SuccessResponse("清理成功")
+    public AgentLinkResponse cleanLocalScript(@RequestBody CleanLocalScriptReq cleanLocalScriptReq) {
+
+        return sparkYunAgentBizService.cleanLocalScript(cleanLocalScriptReq);
+    }
+
+    @Operation(summary = "中止本地脚本")
+    @PostMapping(SparkAgentUrl.STOP_LOCAL_SCRIPT_URL)
+    @SuccessResponse("中止成功")
+    public AgentLinkResponse stopLocalScript(@RequestBody StopLocalScriptReq stopLocalScriptReq) {
+
+        return sparkYunAgentBizService.stopLocalScript(stopLocalScriptReq);
+    }
+
     @Operation(summary = "获取节点监控")
     @PostMapping(SparkAgentUrl.GET_NODE_MONITOR_URL)
     @SuccessResponse("获取成功")

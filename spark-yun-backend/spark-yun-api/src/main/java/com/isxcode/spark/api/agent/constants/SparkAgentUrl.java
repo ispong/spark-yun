@@ -24,6 +24,20 @@ public interface SparkAgentUrl {
 
     String HEART_CHECK_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/heartCheck";
 
+    String CLEAN_AGENT_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/cleanAgent";
+
+    String UPLOAD_AGENT_FILE_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/uploadAgentFile";
+
+    String SUBMIT_LOCAL_SCRIPT_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/submitLocalScript";
+
+    String GET_LOCAL_SCRIPT_STATUS_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/getLocalScriptStatus";
+
+    String GET_LOCAL_SCRIPT_LOG_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/getLocalScriptLog";
+
+    String CLEAN_LOCAL_SCRIPT_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/cleanLocalScript";
+
+    String STOP_LOCAL_SCRIPT_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/stopLocalScript";
+
     String GET_NODE_MONITOR_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/getNodeMonitor";
 
     String CONTAINER_CHECK_URL = "/" + ModuleCode.SPARK_YUN_AGENT + "/containerCheck";

@@ -332,10 +332,6 @@ install_resources_libs() {
         copy_file_if_missing "$lib" "$LIBS_DIR" "project dependency: $(basename "$lib")"
     done
 
-    for lib in "${LIBS_DIR}"/libprql_*; do
-        [[ -f "$lib" ]] || continue
-        copy_file_if_missing "$lib" "$RESOURCE_DIR" "project native library: $(basename "$lib")"
-    done
 }
 
 # 拷贝驱动

@@ -11,15 +11,12 @@ import com.isxcode.spark.api.cluster.constants.ClusterNodeStatus;
 import com.isxcode.spark.api.cluster.constants.ClusterStatus;
 import com.isxcode.spark.api.cluster.dto.AgentInfo;
 import com.isxcode.spark.api.cluster.dto.ScpFileEngineNodeDto;
-import com.isxcode.spark.api.main.properties.SparkYunProperties;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
-import com.isxcode.spark.common.utils.os.OsUtils;
 import com.isxcode.spark.modules.cluster.entity.ClusterNodeEntity;
 import com.isxcode.spark.modules.cluster.repository.ClusterNodeRepository;
 import com.isxcode.spark.modules.cluster.repository.ClusterRepository;
 import com.isxcode.spark.modules.work.run.AgentLinkUtils;
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -37,8 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class, noRollbackFor = {IsxAppException.class})
 public class RunAgentCheckService {
-
-    private final SparkYunProperties sparkYunProperties;
 
     private final ClusterNodeRepository clusterNodeRepository;
 
@@ -71,26 +66,20 @@ public class RunAgentCheckService {
     }
 
     public void checkAgent(ScpFileEngineNodeDto scpFileEngineNodeDto, ClusterNodeEntity engineNode)
-        throws JSchException, IOException, InterruptedException, SftpException {
+        throws JSchException, IOException, InterruptedException {
 
         if (ClusterNodeConnectType.AGENT_PORT.equals(engineNode.getConnectType())) {
             checkAgentPort(engineNode);
             return;
         }
 
-        String bashFilePath = sparkYunProperties.getTmpDir() + "/agent-check.sh";
-
-        // 拷贝检测脚本
-        scpFile(scpFileEngineNodeDto, "classpath:bash/agent-check.sh", bashFilePath);
-
-        // 运行安装脚本
-        String checkCommand = "bash " + bashFilePath + " --home-path=" + engineNode.getAgentHomePath();
+        // 运行检测命令
+        String checkCommand = buildCheckCommand(engineNode.getAgentHomePath());
 
         log.debug("执行远程命令:{}", checkCommand);
 
         // 获取返回结果
-        String executeLog =
-            executeCommand(scpFileEngineNodeDto, OsUtils.fixWindowsChar(bashFilePath, checkCommand), false);
+        String executeLog = executeCommand(scpFileEngineNodeDto, checkCommand, false);
 
         log.debug("远程返回值:{}", executeLog);
         AgentInfo agentCheckInfo = JSON.parseObject(executeLog, AgentInfo.class);
@@ -124,6 +113,32 @@ public class RunAgentCheckService {
                 clusterRepository.saveAndFlush(clusterEntity);
             });
         }
+    }
+
+    private String buildCheckCommand(String agentHomePath) {
+
+        return "bash -lc " + shellQuote("home_path=" + shellQuote(agentHomePath) + ";"
+            + "agent_path=\"${home_path}/zhiqingyun-agent\";"
+            + "if [ -e \"${agent_path}/README.md\" ]; then "
+            + "if [ -e \"${agent_path}/zhiqingyun-agent.pid\" ]; then "
+            + "pid=$(cat \"${agent_path}/zhiqingyun-agent.pid\"); "
+            + "if ps -p \"$pid\" > /dev/null 2>&1; then CHECK_STATUS=\"RUNNING\"; else CHECK_STATUS=\"STOP\"; fi; "
+            + "else CHECK_STATUS=\"STOP\"; fi; "
+            + "else CHECK_STATUS=\"UN_INSTALL\"; fi;"
+            + "ALL_MEMORY=$(free | grep Mem: | awk '{printf \"%.1f\", $2/1024/1024}');"
+            + "USED_MEMORY=$(free | grep Mem: | awk '{printf \"%.1f\", $3/1024/1024}');"
+            + "ALL_STORAGE=$(lsblk -b | grep disk | awk '{total += $4} END {printf \"%.1f\", total/1024/1024/1024}');"
+            + "USED_STORAGE=$(df -B 1 -T | egrep 'ext4|xfs|btrfs' "
+            + "| awk '{total += $4} END {printf \"%.1f\",total/1024/1024/1024}');"
+            + "CPU_PERCENT=$(top -bn 1 | grep \"Cpu(s)\" | awk -F',' '{print 100 - $4}' | awk '{print $1}');"
+            + "printf '{\"status\":\"%s\",\"log\":\"检测完成\",\"allMemory\":\"%s\",\"usedMemory\":\"%s\","
+            + "\"allStorage\":\"%s\",\"usedStorage\":\"%s\",\"cpuPercent\":\"%s\"}\\n' \"$CHECK_STATUS\" "
+            + "\"$ALL_MEMORY\" \"$USED_MEMORY\" \"$ALL_STORAGE\" \"$USED_STORAGE\" \"$CPU_PERCENT\";");
+    }
+
+    private String shellQuote(String value) {
+
+        return "'" + value.replace("'", "'\"'\"'") + "'";
     }
 
     private void checkAgentPort(ClusterNodeEntity engineNode) {

@@ -279,11 +279,6 @@ tasks.register('install', Exec) {
         layout.projectDirectory.dir('resources/jdbc/system'),
         layout.projectDirectory.dir('resources/libs')
     )
-    outputs.files(
-        layout.projectDirectory.file('spark-yun-backend/spark-yun-main/src/main/resources/libprql_java-linux-aarch64.so'),
-        layout.projectDirectory.file('spark-yun-backend/spark-yun-main/src/main/resources/libprql_java-linux64.so'),
-        layout.projectDirectory.file('spark-yun-backend/spark-yun-main/src/main/resources/libprql_java-osx-arm64.dylib')
-    )
     if (!System.properties['os.name'].toString().contains('Mac OS X')) {
         doFirst {
             exec {

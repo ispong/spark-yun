@@ -49,6 +49,23 @@ public class Locker {
         return lock(name, null);
     }
 
+    /**
+     * 尝试加锁，不等待.
+     */
+    public Integer tryLock(String name) {
+
+        return tryLock(name, null);
+    }
+
+    /**
+     * 尝试加锁，不等待.
+     */
+    public Integer tryLock(String name, String box) {
+
+        clearExpiredLocks();
+        return tryAcquire(name, box);
+    }
+
     private Integer lock(String name, String box) {
 
         while (!Thread.currentThread().isInterrupted()) {
@@ -67,6 +84,10 @@ public class Locker {
     }
 
     private Integer tryAcquire(String name, String box) {
+
+        if (lockerRepository.existsByName(name)) {
+            return null;
+        }
 
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -143,6 +164,10 @@ public class Locker {
     public void clearCurrentOwnerAndExpiredLocks() {
 
         lockerRepository.deleteAllByOwner(getOwner());
+        String hostName = ClusterNodeOwner.getHostName();
+        if (hostName != null && !hostName.isBlank()) {
+            lockerRepository.deleteAllByOwnerEndingWith("@" + hostName);
+        }
         clearExpiredLocks();
     }
 

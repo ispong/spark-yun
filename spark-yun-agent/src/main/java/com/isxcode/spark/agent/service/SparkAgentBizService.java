@@ -1,12 +1,15 @@
 package com.isxcode.spark.agent.service;
 
 import com.alibaba.fastjson.JSON;
+import com.isxcode.spark.agent.run.utils.CommandRunner;
+import com.isxcode.spark.agent.run.utils.CommandRunner.CommandResult;
 import com.isxcode.spark.agent.run.spark.SparkAgentFactory;
 import com.isxcode.spark.agent.run.spark.SparkAgentService;
 import com.isxcode.spark.api.agent.req.spark.*;
 import com.isxcode.spark.api.agent.res.spark.*;
 import com.isxcode.spark.api.monitor.constants.MonitorStatus;
 import com.isxcode.spark.api.monitor.dto.NodeMonitorInfo;
+import com.isxcode.spark.api.work.res.AgentLinkResponse;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,13 +20,18 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -183,6 +191,121 @@ public class SparkAgentBizService {
         }
     }
 
+    public AgentLinkResponse cleanAgent(CleanAgentReq cleanAgentReq) {
+
+        try {
+            String username = resolveCleanUsername(cleanAgentReq);
+            StringBuilder cleanLog = new StringBuilder();
+
+            cleanHadoopLocalFileCache(username, cleanLog);
+            cleanSparkStaging(username, cleanLog);
+            cleanKubernetesPods(cleanLog);
+            cleanDockerPods(cleanLog);
+
+            return AgentLinkResponse.builder().msg("清理成功").log(cleanLog.toString()).build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new IsxAppException(e.getMessage());
+        }
+    }
+
+    public AgentLinkResponse uploadAgentFile(UploadAgentFileReq uploadAgentFileReq) {
+
+        try {
+            Path targetFile = resolveAgentFile(uploadAgentFileReq.getAgentHomePath(), uploadAgentFileReq.getDirectory(),
+                uploadAgentFileReq.getFileName());
+            Files.createDirectories(targetFile.getParent());
+            Files.write(targetFile, Base64.getDecoder().decode(uploadAgentFileReq.getContentBase64()));
+            return AgentLinkResponse.builder().msg("上传成功").build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new IsxAppException(e.getMessage());
+        }
+    }
+
+    public AgentLinkResponse submitLocalScript(SubmitLocalScriptReq submitLocalScriptReq) {
+
+        try {
+            Path scriptFile = resolveWorkFile(submitLocalScriptReq.getAgentHomePath(),
+                submitLocalScriptReq.getWorkInstanceId(), submitLocalScriptReq.getScriptSuffix());
+            Path logFile = resolveWorkFile(submitLocalScriptReq.getAgentHomePath(),
+                submitLocalScriptReq.getWorkInstanceId(), ".log");
+            Files.createDirectories(scriptFile.getParent());
+            Files.writeString(scriptFile, submitLocalScriptReq.getScript(), StandardCharsets.UTF_8);
+
+            String executeCommand = "source /etc/profile >/dev/null 2>&1; nohup "
+                + resolveScriptCommand(submitLocalScriptReq.getCommand()) + " " + shellQuote(scriptFile.toString())
+                + " >> " + shellQuote(logFile.toString()) + " 2>&1 < /dev/null & echo $!";
+            CommandResult result =
+                CommandRunner.run(List.of("bash", "-lc", executeCommand), Duration.ofSeconds(30));
+            if (!result.isSuccess()) {
+                throw new IsxAppException(result.getOutput());
+            }
+
+            String pid = result.getStdout().trim();
+            return AgentLinkResponse.builder().msg("提交成功").instanceId(pid).build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new IsxAppException(e.getMessage());
+        }
+    }
+
+    public AgentLinkResponse getLocalScriptStatus(LocalScriptStatusReq localScriptStatusReq) {
+
+        try {
+            CommandResult result = CommandRunner.run(List.of("ps", "-p", localScriptStatusReq.getPid()),
+                Duration.ofSeconds(10));
+            return AgentLinkResponse.builder()
+                .finalState(result.getStdout().contains(localScriptStatusReq.getPid()) ? "RUNNING" : "FINISHED")
+                .build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new IsxAppException(e.getMessage());
+        }
+    }
+
+    public AgentLinkResponse getLocalScriptLog(LocalScriptLogReq localScriptLogReq) {
+
+        try {
+            Path logFile = resolveWorkFile(localScriptLogReq.getAgentHomePath(), localScriptLogReq.getWorkInstanceId(),
+                ".log");
+            String scriptLog = Files.exists(logFile) ? Files.readString(logFile, StandardCharsets.UTF_8) : "";
+            return AgentLinkResponse.builder().log(scriptLog).build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new IsxAppException(e.getMessage());
+        }
+    }
+
+    public AgentLinkResponse cleanLocalScript(CleanLocalScriptReq cleanLocalScriptReq) {
+
+        try {
+            Files.deleteIfExists(resolveWorkFile(cleanLocalScriptReq.getAgentHomePath(),
+                cleanLocalScriptReq.getWorkInstanceId(), cleanLocalScriptReq.getScriptSuffix()));
+            Files.deleteIfExists(resolveWorkFile(cleanLocalScriptReq.getAgentHomePath(),
+                cleanLocalScriptReq.getWorkInstanceId(), ".log"));
+            return AgentLinkResponse.builder().msg("清理成功").build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new IsxAppException(e.getMessage());
+        }
+    }
+
+    public AgentLinkResponse stopLocalScript(StopLocalScriptReq stopLocalScriptReq) {
+
+        try {
+            CommandResult result =
+                CommandRunner.run(List.of("kill", "-9", stopLocalScriptReq.getPid()), Duration.ofSeconds(10));
+            if (!result.isSuccess() && !result.getOutput().contains("No such process")) {
+                throw new IsxAppException(result.getOutput());
+            }
+            return AgentLinkResponse.builder().msg("中止成功").build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new IsxAppException(e.getMessage());
+        }
+    }
+
     public static int findUnusedPort() {
 
         try (ServerSocket socket = new ServerSocket(0)) {
@@ -242,6 +365,147 @@ public class SparkAgentBizService {
             (com.sun.management.OperatingSystemMXBean) java.lang.management.ManagementFactory
                 .getOperatingSystemMXBean();
         return toGb(operatingSystemMXBean.getTotalMemorySize() - operatingSystemMXBean.getFreeMemorySize());
+    }
+
+    private String resolveCleanUsername(CleanAgentReq cleanAgentReq) {
+
+        if (cleanAgentReq != null && cleanAgentReq.getUsername() != null && !cleanAgentReq.getUsername().isBlank()) {
+            return cleanAgentReq.getUsername();
+        }
+
+        return System.getProperty("user.name");
+    }
+
+    private Path resolveAgentFile(String agentHomePath, String directory, String fileName) {
+
+        if (!"file".equals(directory) && !"works".equals(directory)) {
+            throw new IsxAppException("不支持的上传目录");
+        }
+
+        Path agentHome = Path.of(agentHomePath).toAbsolutePath().normalize();
+        Path targetDir = agentHome.resolve(directory).normalize();
+        Path targetFile = targetDir.resolve(Path.of(fileName).getFileName()).normalize();
+        if (!targetFile.startsWith(targetDir)) {
+            throw new IsxAppException("文件名不合法");
+        }
+
+        return targetFile;
+    }
+
+    private Path resolveWorkFile(String agentHomePath, String workInstanceId, String suffix) {
+
+        if (!".sh".equals(suffix) && !".py".equals(suffix) && !".log".equals(suffix)) {
+            throw new IsxAppException("脚本后缀不合法");
+        }
+
+        String safeWorkInstanceId = Path.of(workInstanceId).getFileName().toString();
+        return resolveAgentFile(agentHomePath, "works", safeWorkInstanceId + suffix);
+    }
+
+    private String resolveScriptCommand(String command) {
+
+        if (!"sh".equals(command) && !"python3".equals(command)) {
+            throw new IsxAppException("脚本命令不合法");
+        }
+
+        return command;
+    }
+
+    private String shellQuote(String value) {
+
+        return "'" + value.replace("'", "'\\''") + "'";
+    }
+
+    private void cleanHadoopLocalFileCache(String username, StringBuilder cleanLog) throws IOException {
+
+        Path tmpDir = Path.of("/tmp");
+        if (!Files.exists(tmpDir)) {
+            cleanLog.append("/tmp目录不存在，跳过本地缓存清理\n");
+            return;
+        }
+
+        try (Stream<Path> hadoopDirs = Files.list(tmpDir)) {
+            List<Path> fileCachePaths = hadoopDirs
+                .filter(path -> Files.isDirectory(path) && path.getFileName().toString().startsWith("hadoop-"))
+                .map(path -> path.resolve("nm-local-dir").resolve("usercache").resolve(username).resolve("filecache"))
+                .filter(Files::exists).toList();
+
+            for (Path fileCachePath : fileCachePaths) {
+                deleteRecursively(fileCachePath);
+                cleanLog.append("已清理本地缓存: ").append(fileCachePath).append("\n");
+            }
+
+            if (fileCachePaths.isEmpty()) {
+                cleanLog.append("未发现本地Hadoop filecache缓存\n");
+            }
+        }
+    }
+
+    private void cleanSparkStaging(String username, StringBuilder cleanLog) throws IOException, InterruptedException {
+
+        if (!commandExists("hadoop")) {
+            cleanLog.append("未安装hadoop命令，跳过HDFS Spark缓存清理\n");
+            return;
+        }
+
+        CommandResult result =
+            CommandRunner.run(List.of("hadoop", "fs", "-rm", "-r", "/user/" + username + "/.sparkStaging"),
+                Duration.ofMinutes(2));
+        if (result.isSuccess()) {
+            cleanLog.append("已清理HDFS Spark缓存\n");
+            return;
+        }
+
+        cleanLog.append("HDFS Spark缓存清理返回: ").append(result.getOutput()).append("\n");
+    }
+
+    private void cleanKubernetesPods(StringBuilder cleanLog) throws IOException, InterruptedException {
+
+        if (!commandExists("kubectl")) {
+            cleanLog.append("未安装kubectl命令，跳过Kubernetes容器清理\n");
+            return;
+        }
+
+        CommandResult result = CommandRunner.run(
+            List.of("kubectl", "delete", "--all", "pods", "--namespace=zhiqingyun-space"), Duration.ofMinutes(2));
+        cleanLog.append(result.isSuccess() ? "已清理Kubernetes容器\n"
+            : "Kubernetes容器清理返回: " + result.getOutput() + "\n");
+    }
+
+    private void cleanDockerPods(StringBuilder cleanLog) throws IOException, InterruptedException {
+
+        if (!commandExists("docker")) {
+            cleanLog.append("未安装docker命令，跳过Docker容器清理\n");
+            return;
+        }
+
+        CommandResult result = CommandRunner.run(List.of("sh", "-c", "containers=$(docker ps -a "
+            + "| grep 'k8s_POD_zhiqingyun-*' | awk '{print $1}'); [ -z \"$containers\" ] || docker rm $containers"),
+            Duration.ofMinutes(2));
+        cleanLog.append(result.isSuccess() ? "已清理Docker容器\n" : "Docker容器清理返回: " + result.getOutput() + "\n");
+    }
+
+    private boolean commandExists(String command) throws IOException, InterruptedException {
+
+        return CommandRunner.run(List.of("sh", "-c", "command -v " + command), Duration.ofSeconds(10)).isSuccess();
+    }
+
+    private void deleteRecursively(Path path) throws IOException {
+
+        try (Stream<Path> pathStream = Files.walk(path)) {
+            pathStream.sorted(Comparator.reverseOrder()).forEach(deletePath -> {
+                try {
+                    Files.deleteIfExists(deletePath);
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            });
+        } catch (IllegalStateException e) {
+            if (e.getCause() instanceof IOException ioException) {
+                throw ioException;
+            }
+            throw e;
+        }
     }
 
     private Double getUsedStorageSize() throws IOException {

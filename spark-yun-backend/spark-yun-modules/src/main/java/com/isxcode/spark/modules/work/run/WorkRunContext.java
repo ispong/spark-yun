@@ -1,7 +1,6 @@
 package com.isxcode.spark.modules.work.run;
 
 import com.isxcode.spark.api.agent.req.spark.SubmitWorkReq;
-import com.isxcode.spark.api.cluster.dto.ScpFileEngineNodeDto;
 import com.isxcode.spark.api.work.dto.*;
 import com.isxcode.spark.modules.cluster.entity.ClusterNodeEntity;
 import lombok.AllArgsConstructor;
@@ -37,8 +36,6 @@ public class WorkRunContext {
     private String versionId;
 
     private String script;
-
-    private ScpFileEngineNodeDto scpNodeInfo;
 
     private ClusterNodeEntity agentNode;
 
