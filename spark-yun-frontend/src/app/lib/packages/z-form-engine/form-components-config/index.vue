@@ -93,37 +93,116 @@ function validateChange(prop: string, isValid: boolean, message: string): void {
 
 <style lang="scss">
 .form-components-config {
-    min-width: 270px;
-    width: 270px;
+    min-width: 320px;
+    width: 320px;
     height: 100%;
     overflow: auto;
+    box-sizing: border-box;
+    background-color: #fff;
+
     .el-form {
-        padding: 8px 12px;
+        padding: 16px 12px;
         box-sizing: border-box;
+
         .el-form-item {
-            margin-bottom: 16px;
+            display: block;
+            margin-bottom: 18px;
+
             .el-form-item__label {
+                display: block;
+                width: 100%;
+                min-height: 16px !important;
+                padding: 0;
+                margin-bottom: 6px;
                 font-size: 12px;
-                line-height: 12px !important;
-                min-height: 12px !important;
-                display: inline-block;
+                line-height: 16px !important;
+                color: getCssVar('text-color', 'regular');
                 position: relative;
+
                 &::before {
                     position: absolute;
                     left: -8px;
                 }
             }
+
             .el-form-item__content {
+                display: flex;
+                align-items: center;
+                width: 100%;
+                min-height: 32px;
+                line-height: 32px;
+
+                .el-input,
+                .el-select,
+                .el-input-number,
+                .el-date-editor,
+                .el-textarea {
+                    width: 100%;
+                }
+
                 .el-input {
                     font-size: 12px;
                     height: 32px;
+
                     .el-input__inner {
                         height: 100%;
                         border-radius: 2px;
                         padding: 0 8px;
                     }
+
                     .el-input__wrapper {
-                        padding: 0 12px 0 0;
+                        width: 100%;
+                        padding: 0 8px;
+                        border-radius: 2px;
+                    }
+                }
+            }
+        }
+
+        .form-config-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 24px;
+            margin-bottom: 12px;
+
+            .el-form-item__label {
+                flex: 1;
+                width: auto;
+                margin-bottom: 0;
+                line-height: 24px !important;
+            }
+
+            .el-form-item__content {
+                position: static !important;
+                top: auto !important;
+                right: auto !important;
+                flex: none;
+                justify-content: flex-end;
+                width: auto;
+                min-height: 24px;
+                line-height: 24px;
+            }
+        }
+
+        .form-code-select {
+            .form-code-select__type {
+                top: -22px;
+                right: 0;
+
+                .el-radio-group {
+                    display: flex;
+                    align-items: center;
+                    flex-wrap: nowrap;
+                }
+
+                .el-radio {
+                    height: 20px;
+                    margin-right: 12px;
+                    line-height: 20px;
+
+                    &:last-child {
+                        margin-right: 0;
                     }
                 }
             }

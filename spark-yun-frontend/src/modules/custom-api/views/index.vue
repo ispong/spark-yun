@@ -31,25 +31,32 @@
               scopeSlot.row.name
             }}</span>
           </template>
+          <template #apiTypeTag="scopeSlot">
+            <el-tag class="custom-api-method-tag" type="primary" effect="light">
+              {{ scopeSlot.row.apiType || "-" }}
+            </el-tag>
+          </template>
           <template #statusTag="scopeSlot">
             <ZStatusTag :status="scopeSlot.row.status" />
           </template>
           <template #options="scopeSlot">
-            <div class="btn-group">
+            <div class="btn-group custom-api-action-group">
               <span
+                class="custom-api-action-button"
                 v-if="scopeSlot.row.status !== 'UNPUBLISHED'"
                 @click="underlineApi(scopeSlot.row)"
               >
                 下线
               </span>
               <span
+                class="custom-api-action-button"
                 v-if="scopeSlot.row.status === 'UNPUBLISHED'"
                 @click="publishApi(scopeSlot.row)"
               >
                 发布
               </span>
               <el-dropdown trigger="click" popper-class="zqy-action-dropdown">
-                <span class="click-show-more">更多</span>
+                <span class="click-show-more custom-api-action-button">更多</span>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item @click="editData(scopeSlot.row)"
@@ -291,8 +298,24 @@ onMounted(() => {
       }
     }
     .zqy-table {
-      .btn-group {
-        // justify-content: center;
+      .custom-api-method-tag {
+        --el-tag-text-color: #{getCssVar("color", "primary")};
+        --el-tag-border-color: #{getCssVar("color", "primary", "light-5")};
+        --el-tag-bg-color: #{getCssVar("color", "primary", "light-9")};
+        white-space: nowrap;
+      }
+
+      .custom-api-action-group {
+        justify-content: center;
+        gap: 16px;
+
+        .custom-api-action-button {
+          display: inline-flex;
+          align-items: center;
+          line-height: 1;
+          font-size: getCssVar("font-size", "extra-small");
+          white-space: nowrap;
+        }
       }
     }
   }

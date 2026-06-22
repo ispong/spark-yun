@@ -55,7 +55,7 @@ export const colConfigs: colConfig[] = [
     prop: "apiType",
     title: "请求方式",
     minWidth: 100,
-    showOverflowTooltip: true,
+    customSlot: "apiTypeTag",
   },
   {
     prop: "path",

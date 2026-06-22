@@ -25,9 +25,9 @@ import Header from '@/app/layout/header/index.vue'
 import ZChartsEngine from '@/app/lib/packages/z-charts-engine/index.vue'
 import {
     GetChartsLinkInfoConfig,
-    RefreshReportViewItemData,
+    RefreshShareReportViewItemData,
     GetReportComponentData,
-    GetReportViewDetail
+    GetShareReportViewDetail
 } from '../../../api'
 
 interface baseParam {
@@ -57,15 +57,10 @@ const shareReportConfig = ref<baseParam>({
 function getRealDataOption(config: any) {
     return new Promise((resolve, reject) => {
         // console.log('获取真实数据')
-        RefreshReportViewItemData(
-            {
-                id: config.id
-            },
-            {
-                authorization: shareReportConfig.value.viewToken,
-                tenant: shareReportConfig.value.tenantId
-            }
-        )
+        RefreshShareReportViewItemData({
+            viewLinkId: shareLinkId.value,
+            id: config.id
+        })
             .then((res: any) => {
                 resolve(res.data.viewData)
             })
@@ -90,15 +85,10 @@ function getPreviewOption(config: any) {
 function getReportConfigById(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
     networkError.value = networkError.value || false
-    GetReportViewDetail(
-        {
-            id: shareReportConfig.value.viewId
-        },
-        {
-            authorization: shareReportConfig.value.viewToken,
-            tenant: shareReportConfig.value.tenantId
-        }
-    )
+    GetShareReportViewDetail({
+        viewLinkId: shareLinkId.value,
+        id: shareReportConfig.value.viewId
+    })
         .then((res: any) => {
             componentList.value = res.data?.webConfig?.cardList || []
             loading.value = false

@@ -140,6 +140,24 @@ export function RefreshReportViewItemData(params: any, config?: any): Promise<an
     })
 }
 
+// 报表大屏分享-获取详情视图数据
+export function GetShareReportViewDetail(params: any): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/vip/view/open/getView',
+        params: params
+    })
+}
+
+// 报表大屏分享-刷新真实数据接口
+export function RefreshShareReportViewItemData(params: any): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/vip/view/open/getViewCardDataById',
+        params: params
+    })
+}
+
 // 报表大屏展示-发布大屏
 export function PublishReportViewData(params: any): Promise<any> {
     return http.request({

@@ -30,8 +30,10 @@
             </el-form-item>
         </el-form>
         <template #customLeft>
-            <el-button @click="closeEvent">取消</el-button>
-            <el-button :loading="okLoading" type="primary" @click="okEvent">确定</el-button>
+            <div class="access-rule-modal-footer">
+                <el-button @click="closeEvent">取消</el-button>
+                <el-button :loading="okLoading" type="primary" @click="okEvent">确定</el-button>
+            </div>
         </template>
     </BlockModal>
 </template>
@@ -57,7 +59,8 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
-    closeOnClickModal: false
+    closeOnClickModal: false,
+    customClass: 'access-rule-add-modal'
 })
 
 const formData = reactive<any>({
@@ -146,9 +149,56 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.access-rule-form {
-    box-sizing: border-box;
-    padding: 12px 20px 0 20px;
-    width: 100%;
+.access-rule-add-modal.zqy-block-modal {
+    --access-rule-modal-x-padding: 20px;
+
+    .el-dialog__footer {
+        min-height: 56px;
+        padding: 12px var(--access-rule-modal-x-padding);
+        box-sizing: border-box;
+    }
+
+    .access-rule-modal-footer {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+
+        .el-button {
+            margin-left: 0;
+            min-width: 64px;
+        }
+    }
+
+    .access-rule-form {
+        box-sizing: border-box;
+        padding: 14px var(--access-rule-modal-x-padding) 4px;
+        width: 100%;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+    }
 }
 </style>

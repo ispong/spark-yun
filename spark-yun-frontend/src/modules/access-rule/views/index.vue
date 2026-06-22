@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table access-rule-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addData">新建名单</el-button>
             <div class="zqy-seach">
@@ -30,9 +30,9 @@
                         </el-tag>
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
-                            <span @click="editData(scopeSlot.row)">编辑</span>
-                            <span @click="deleteData(scopeSlot.row)">删除</span>
+                        <div class="btn-group access-rule-action-group">
+                            <span class="access-rule-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <span class="access-rule-action-button" @click="deleteData(scopeSlot.row)">删除</span>
                         </div>
                     </template>
                 </BlockTable>
@@ -149,6 +149,21 @@ onMounted(() => {
         color: getCssVar('color', 'primary', 'light-5');
         &:hover {
             color: getCssVar('color', 'primary');
+        }
+    }
+
+    &.access-rule-page {
+        .access-rule-action-group {
+            justify-content: center;
+            gap: 16px;
+
+            .access-rule-action-button {
+                display: inline-flex;
+                align-items: center;
+                line-height: 1;
+                font-size: getCssVar('font-size', 'extra-small');
+                white-space: nowrap;
+            }
         }
     }
 }

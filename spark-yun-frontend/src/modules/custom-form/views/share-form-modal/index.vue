@@ -1,52 +1,46 @@
 <template>
     <BlockModal :model-config="modelConfig">
-        <template #customLeft>
-            <el-button
-                id="share-url"
-                class="footer-share-copy-btn"
-                :disabled="!url"
-                :data-clipboard-text="url"
-                @click="copyUrlEvent('share-url')"
-            >
-                一键复制
-            </el-button>
-            <el-button class="footer-share-generate-btn" :loading="loading" type="primary" @click="getShareFormUrl">
-                生成链接
-            </el-button>
-        </template>
-        <div class="share-form-container">
-            <!-- <div class="img-code">
+        <div class="share-form-content zqy-block-modal-form">
+            <div class="share-form-setting">
+                <div class="share-form-valid-day">
+                    <span class="share-form-label">有效期（天）</span>
+                    <el-input-number v-model="validDay" :min="1" controls-position="right" />
+                </div>
+                <el-button :loading="loading" type="primary" @click="getShareFormUrl">生成分享链接</el-button>
+            </div>
 
-            </div> -->
-            <div class="share-form">
-                <span class="url">
-                    <a v-if="url" class="url-link" :href="url" target="_blank" rel="noopener noreferrer">
+            <div class="share-form-link-box">
+                <span class="share-form-link-label">链接</span>
+                <span class="share-form-link-value" :class="{ 'is-empty': !url }">
+                    <a v-if="url" class="share-form-link" :href="url" target="_blank" rel="noopener noreferrer">
                         <EllipsisTooltip class="url-show" :label="url" />
                     </a>
-                    <EllipsisTooltip v-else class="url-show" label="暂无链接" />
+                    <EllipsisTooltip v-else class="url-show" label="生成后显示分享链接" />
                 </span>
-            </div>
-        </div>
-        <div class="share-option-container">
-            <div class="valid-day-input">
-                <span>有效时间（天）</span>
-                <el-input-number v-model="validDay" :min="1" controls-position="right" />
+                <el-button
+                    v-if="url"
+                    id="share-form-url"
+                    class="share-form-copy"
+                    link
+                    type="primary"
+                    :data-clipboard-text="url"
+                    @click="copyUrlEvent('share-form-url')"
+                >
+                    复制
+                </el-button>
             </div>
         </div>
     </BlockModal>
 </template>
 
 <script lang="ts" setup>
-import { reactive, defineExpose, ref, nextTick } from 'vue'
+import { reactive, defineExpose, ref } from 'vue'
 import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
 import Clipboard from 'clipboard'
 import { ElMessage } from 'element-plus'
-import { useAuthStore } from '@/app/store/useAuth'
-import { GetFormLinkConfig, ShareFormGetCustomToken } from '../../api'
+import { GetFormLinkConfig } from '../../api'
 
-const authStore = useAuthStore()
 const url = ref('')
-const token = ref('')
 const cardInfo = ref()
 const loading = ref(false)
 const validDay = ref(1)
@@ -68,6 +62,8 @@ const modelConfig = reactive({
 
 function showModal(card: any): void {
     cardInfo.value = card
+    url.value = ''
+    validDay.value = 1
     modelConfig.visible = true
 }
 
@@ -78,14 +74,7 @@ function getShareFormUrl() {
         validDay: validDay.value
     })
         .then((res: any) => {
-            // token.value = res.data.token
             loading.value = false
-            // const params = {
-            //     formId: cardInfo.value.id,
-            //     formVersion: cardInfo.value.formVersion,
-            //     tenantId: authStore.tenantId,
-            //     token: token.value
-            // }
             url.value = `${location.origin}/share/${res.data.formLinkId}`
         })
         .catch(() => {
@@ -103,6 +92,8 @@ function copyUrlEvent(id: string) {
 
 function closeEvent() {
     modelConfig.visible = false
+    url.value = ''
+    validDay.value = 1
 }
 
 defineExpose({
@@ -111,87 +102,88 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.share-form-setting__modal {
-    .footer-share-copy-btn {
-        margin-right: 8px;
+.share-form-setting__modal.zqy-block-modal {
+    .share-form-content {
+        padding-bottom: 18px;
     }
 
-    .footer-share-generate-btn {
-        margin-right: 8px;
-    }
-
-    .share-form-container {
-        display: flex;
-        justify-content: space-around;
-        flex-direction: column;
-        align-items: center;
-        height: 160px;
-        padding: 0 20px;
-
-        .img-code {
-            border: 1px solid red;
-            height: 100px;
-            width: 100px;
-        }
-
-        .share-form {
-            width: 100%;
-            background: getCssVar('fill-color', 'light');
-            border: 1px dashed getCssVar('border-color');
-            border-radius: 6px;
-            padding: 10px 12px;
-            box-sizing: border-box;
-
-            .url {
-                color: getCssVar('text-color', 'regular');
-                font-size: 12px;
-                width: 100%;
-
-                .url-show {
-                    max-width: 100%;
-                }
-
-                .url-link {
-                    color: getCssVar('color', 'primary');
-                    text-decoration: none;
-                }
-
-                .url-link:hover {
-                    text-decoration: underline;
-                }
-            }
-        }
-    }
-
-    .share-option-container {
-        padding: 20px;
-        box-sizing: border-box;
-        padding-top: 0;
+    .share-form-setting {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin-bottom: 18px;
 
-        .valid-day-input {
+        .share-form-valid-day {
             display: flex;
             align-items: center;
+            gap: 10px;
 
-            span {
+            .share-form-label {
                 font-size: 12px;
                 color: getCssVar('text-color', 'primary');
             }
+
             .el-input-number {
+                width: 128px;
+
                 .el-input-number__decrease,
                 .el-input-number__increase {
                     border: 0;
-                    background-color: unset;
+                    background-color: transparent;
                 }
-                .el-input {
-                    .el-input__wrapper {
-                        box-shadow: none;
-                        border-bottom: 1px solid getCssVar('border-color');
-                    }
+
+                .el-input__wrapper {
+                    border-radius: 2px;
                 }
             }
+        }
+    }
+
+    .share-form-link-box {
+        display: flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 12px;
+        box-sizing: border-box;
+        border: 1px solid getCssVar('border-color');
+        border-radius: 2px;
+        background-color: getCssVar('fill-color', 'lighter');
+
+        .share-form-link-label {
+            flex: 0 0 auto;
+            margin-right: 10px;
+            font-size: 12px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .share-form-link-value {
+            min-width: 0;
+            flex: 1;
+            font-size: 12px;
+            color: getCssVar('color', 'primary');
+
+            &.is-empty {
+                color: getCssVar('text-color', 'placeholder');
+            }
+
+            .share-form-link {
+                color: inherit;
+                text-decoration: none;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+
+            .url-show {
+                max-width: 100%;
+            }
+        }
+
+        .share-form-copy {
+            flex: 0 0 auto;
+            margin-left: 12px;
+            font-size: getCssVar('font-size', 'extra-small');
         }
     }
 }

@@ -137,14 +137,27 @@ function codeTypeChange() {
 <style lang="scss">
 .form-code-select {
     position: relative;
+
     .form-code-select__type {
         position: absolute;
-        top: -28px;
+        top: -22px;
         right: 0;
+
         .el-radio-group {
+            margin-left: 0;
+
             .el-radio {
+                height: 20px;
+                line-height: 20px;
+                margin-right: 12px;
+                font-size: 12px;
+
                 &:first-child {
                     margin-right: 12px;
+                }
+
+                &:last-child {
+                    margin-right: 0;
                 }
             }
         }

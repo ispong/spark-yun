@@ -334,7 +334,7 @@ and col3= '${c}' and col4= '${d}' and col5= '${e}' and col6= '${f}' and col7= '$
           id="api-path"
           class="copy-url"
           :data-clipboard-text="formDataTest.path"
-          @click="copyUrlEvent('api-path-test')"
+          @click="copyUrlEvent('api-path')"
         >
           复制
         </span>
@@ -450,7 +450,7 @@ and col3= '${c}' and col4= '${d}' and col5= '${e}' and col6= '${f}' and col7= '$
         >
         <span
           class="resp-http-status"
-          :style="{ color: httpStatus == 500 ? 'red' : '' }"
+          :style="{ color: httpStatus && httpStatus >= 400 ? 'red' : '' }"
         >
           {{ httpStatus }}
         </span>
@@ -472,34 +472,36 @@ and col3= '${c}' and col4= '${d}' and col5= '${e}' and col6= '${f}' and col7= '$
     </el-form>
     <!-- 第四步-接口检测---------------- ++ -->
     <template #customLeft>
-      <template v-if="stepIndex === 0">
-        <el-button @click="closeEvent">取消</el-button>
-        <el-button type="primary" @click="nextStepEvent">下一步</el-button>
-      </template>
-      <template v-if="stepIndex === 1">
-        <el-button @click="closeEvent">取消</el-button>
-        <el-button type="primary" @click="stepIndex = 0">上一步</el-button>
-        <el-button :loading="okLoading" type="primary" @click="nextStepEvent"
-          >下一步</el-button
-        >
-      </template>
-      <template v-if="stepIndex === 2">
-        <el-button @click="closeEvent">取消</el-button>
-        <el-button type="primary" @click="stepIndex = 1">上一步</el-button>
-        <el-button :loading="okLoading" type="primary" @click="nextStepEvent"
-          >下一步</el-button
-        >
-      </template>
-      <template v-if="stepIndex === 3">
-        <el-button @click="closeEvent">取消</el-button>
-        <el-button type="primary" @click="stepIndex = 2">上一步</el-button>
-        <el-button :loading="testLoading" type="primary" @click="testApiEvent"
-          >检测</el-button
-        >
-        <el-button :loading="okLoading" type="primary" @click="okToCloseEvent"
-          >确定</el-button
-        >
-      </template>
+      <div class="custom-api-modal-footer">
+        <template v-if="stepIndex === 0">
+          <el-button @click="closeEvent">取消</el-button>
+          <el-button type="primary" @click="nextStepEvent">下一步</el-button>
+        </template>
+        <template v-if="stepIndex === 1">
+          <el-button @click="closeEvent">取消</el-button>
+          <el-button @click="stepIndex = 0">上一步</el-button>
+          <el-button :loading="okLoading" type="primary" @click="nextStepEvent">
+            下一步
+          </el-button>
+        </template>
+        <template v-if="stepIndex === 2">
+          <el-button @click="closeEvent">取消</el-button>
+          <el-button @click="stepIndex = 1">上一步</el-button>
+          <el-button :loading="okLoading" type="primary" @click="nextStepEvent">
+            下一步
+          </el-button>
+        </template>
+        <template v-if="stepIndex === 3">
+          <el-button @click="closeEvent">取消</el-button>
+          <el-button @click="stepIndex = 2">上一步</el-button>
+          <el-button :loading="testLoading" type="primary" @click="testApiEvent">
+            检测
+          </el-button>
+          <el-button :loading="okLoading" type="primary" @click="okToCloseEvent">
+            确定
+          </el-button>
+        </template>
+      </div>
     </template>
   </BlockModal>
 </template>
@@ -528,6 +530,29 @@ interface Option {
 import { useAuthStore } from "@/app/store/useAuth";
 
 const authStore = useAuthStore();
+
+function buildOptionParams(options: Option[], skipEmptyValue = false) {
+  const params: Record<string, string> = {};
+  (options || []).forEach((item) => {
+    const label = item.label?.trim();
+    if (!label) {
+      return;
+    }
+    if (skipEmptyValue && !item.value) {
+      return;
+    }
+    params[label] = item.value;
+  });
+  return params;
+}
+
+function buildTestHeaderParams(options: Option[]) {
+  const headerParams = buildOptionParams(options, true);
+  if (formData.tokenType === "SYSTEM" && authStore.token) {
+    headerParams.authorization = authStore.token;
+  }
+  return headerParams;
+}
 
 const checkPath = (rule: any, value: any, callback: any) => {
   const phoneReg = /^\/([a-zA-Z0-9_]+(\/[a-zA-Z0-9_]+)*)$/;
@@ -581,7 +606,7 @@ const DEFAULT_RES_BODY = `{
 const modelConfig = reactive({
   title: "新建接口",
   visible: false,
-  width: "564px",
+  width: "680px",
   cancelConfig: {
     title: "取消",
     cancel: closeEvent,
@@ -591,6 +616,7 @@ const modelConfig = reactive({
   needScale: false,
   zIndex: 1100,
   closeOnClickModal: false,
+  customClass: "custom-api-add-modal",
 });
 const formData = reactive<
   | {
@@ -917,16 +943,11 @@ function nextStepEvent() {
 }
 
 function testApiEvent() {
-  const headerParams: any = {};
-  formDataTest.headerConfig.forEach((item) => {
-    headerParams[item.label] = item.value;
-  });
+  const headerParams = buildTestHeaderParams(formDataTest.headerConfig);
   try {
     let bodyParams: any = {};
     if (formDataTest.method === "GET") {
-      formDataTest.bodyConfig.forEach((item) => {
-        bodyParams[item.label] = item.value;
-      });
+      bodyParams = buildOptionParams(formDataTest.bodyConfig);
     } else {
       bodyParams = JSON.parse(formDataTest.bodyParams);
     }
@@ -1047,15 +1068,42 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.custom-api-form__step {
+.custom-api-add-modal.zqy-block-modal {
+  --custom-api-modal-x-padding: 20px;
+  --custom-api-modal-border-color: #ebeef5;
+
+  .el-dialog__body {
+    overflow: hidden;
+    max-height: calc(78vh - 102px);
+  }
+
+  .el-dialog__footer {
+    min-height: 56px;
+    padding: 12px var(--custom-api-modal-x-padding);
+    box-sizing: border-box;
+  }
+
+  .custom-api-modal-footer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+
+    .el-button {
+      margin-left: 0;
+      min-width: 64px;
+    }
+  }
+
+  .custom-api-form__step {
   margin: auto;
-  padding-top: 20px;
+  min-height: 70px;
+  padding: 14px 72px 12px;
   position: sticky;
   top: 0;
   background: #ffffff;
   z-index: 10;
-  padding-left: 15%;
-  padding-right: 15%;
   box-sizing: border-box;
   border-bottom: 1px solid getCssVar("border-color");
   .el-step__head {
@@ -1078,15 +1126,15 @@ defineExpose({
       }
     }
   }
-}
-.custom-api-form__config,
-.custom-api-form__test {
-  height: calc(74vh - 162px);
+  }
+  .custom-api-form__config,
+  .custom-api-form__test {
+  height: min(520px, calc(78vh - 172px));
   overflow: auto;
-}
-.custom-api-form {
+  }
+  .custom-api-form {
   box-sizing: border-box;
-  padding: 12px 20px 0 20px;
+  padding: 14px var(--custom-api-modal-x-padding) 4px;
   width: 100%;
 
   .api-item {
@@ -1101,9 +1149,19 @@ defineExpose({
     }
   }
   .el-form-item {
+    margin-bottom: 20px;
+
+    .el-form-item__label {
+      width: 100%;
+      padding: 0;
+      margin-bottom: 4px;
+      line-height: 16px;
+      color: getCssVar("text-color", "regular");
+    }
+
     .format-json {
       position: absolute;
-      top: -34px;
+      top: -28px;
       right: 20px;
       font-size: 12px;
       color: getCssVar("color", "primary");
@@ -1112,7 +1170,7 @@ defineExpose({
         text-decoration: underline;
       }
     }
-    .label-tooltip-form-item {
+    &.label-tooltip-form-item {
       .label-tooltip-text {
         display: inline-block;
         cursor: help;
@@ -1132,7 +1190,7 @@ defineExpose({
       padding: 12px 20px;
       box-sizing: border-box;
       transition: all 0.15s linear;
-      z-index: 10;
+      z-index: 4000;
       .el-form-item__content {
         align-items: flex-start;
         height: 100%;
@@ -1151,6 +1209,46 @@ defineExpose({
       }
     }
     .el-form-item__content {
+      position: relative;
+      width: 100%;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+
+      .el-input,
+      .el-select,
+      .el-textarea {
+        width: 100%;
+      }
+
+      .el-input__wrapper,
+      .el-textarea__inner {
+        border-radius: 2px;
+      }
+
+      .copy-url {
+        min-width: 24px;
+        margin-left: 10px;
+        font-size: 12px;
+        color: getCssVar("color", "primary");
+        cursor: pointer;
+        white-space: nowrap;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .modal-full-screen {
+        position: absolute;
+        top: -26px;
+        right: 0;
+        cursor: pointer;
+
+        &:hover {
+          color: getCssVar("color", "primary");
+        }
+      }
+
       .vue-codemirror {
         height: 130px;
         width: 100%;
@@ -1274,6 +1372,7 @@ defineExpose({
         }
       }
     }
+  }
   }
 }
 </style>

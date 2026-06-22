@@ -131,7 +131,7 @@
         >
         <span
           class="resp-http-status"
-          :style="{ color: httpStatus == 500 ? 'red' : '' }"
+          :style="{ color: httpStatus && httpStatus >= 400 ? 'red' : '' }"
         >
           {{ httpStatus }}
         </span>
@@ -172,6 +172,29 @@ interface Option {
 
 const authStore = useAuthStore();
 
+function buildOptionParams(options: Option[], skipEmptyValue = false) {
+  const params: Record<string, string> = {};
+  (options || []).forEach((item) => {
+    const label = item.label?.trim();
+    if (!label) {
+      return;
+    }
+    if (skipEmptyValue && !item.value) {
+      return;
+    }
+    params[label] = item.value;
+  });
+  return params;
+}
+
+function buildTestHeaderParams(options: Option[]) {
+  const headerParams = buildOptionParams(options, true);
+  if (formData.tokenType === "SYSTEM" && authStore.token) {
+    headerParams.authorization = authStore.token;
+  }
+  return headerParams;
+}
+
 const form = ref<FormInstance>();
 const jsonLang = ref<any>(json());
 const responseBodyRef = ref();
@@ -204,6 +227,7 @@ const formData = reactive<{
   id: string;
   path: string;
   method: string;
+  tokenType: string;
   headerConfig: Option[];
   bodyConfig: Option[];
   bodyParams: any;
@@ -212,6 +236,7 @@ const formData = reactive<{
   id: "",
   path: "", // 自定义访问路径
   method: "",
+  tokenType: "",
   headerConfig: [], // 请求头
   bodyConfig: [], // 请求体
   bodyParams: null,
@@ -265,6 +290,7 @@ function getApiDetailData(id: string) {
           };
         });
       }
+      formData.tokenType = res.data.tokenType;
       if (res.data.apiType === "POST") {
         formData.bodyParams = jsonFormatter(JSON.parse(res.data.reqJsonTemp));
       } else {
@@ -277,16 +303,11 @@ function getApiDetailData(id: string) {
 function okEvent() {
   form.value?.validate((valid) => {
     if (valid) {
-      const headerParams: any = {};
-      formData.headerConfig.forEach((item) => {
-        headerParams[item.label] = item.value;
-      });
+      const headerParams = buildTestHeaderParams(formData.headerConfig);
       try {
         let bodyParams: any = {};
         if (formData.method === "GET") {
-          formData.bodyConfig.forEach((item) => {
-            bodyParams[item.label] = item.value;
-          });
+          bodyParams = buildOptionParams(formData.bodyConfig);
         } else {
           bodyParams = JSON.parse(formData.bodyParams);
         }

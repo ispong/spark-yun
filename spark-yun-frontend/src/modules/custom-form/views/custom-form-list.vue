@@ -16,7 +16,7 @@
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="initData(false)">
             <div class="form-card-container">
                 <template v-if="formList?.length">
-                    <el-scrollbar max-height="calc(100vh - 146px)" class="form-card-list">
+                    <el-scrollbar max-height="calc(100vh - 122px)" class="form-card-list">
                         <template v-for="card in formList" :key="card.id">
                             <el-tooltip
                                 :disabled="!card.remark"
@@ -25,29 +25,31 @@
                                 :show-after="600"
                             >
                                 <div class="form-card-item" @click="redirectQuery(card)">
-                                    <div class="card-title">
-                                        <EllipsisTooltip class="card-title-name" :label="card.name" />
+                                    <div class="card-header">
+                                        <div class="card-title">
+                                            <EllipsisTooltip class="card-title-name" :label="card.name" />
+                                        </div>
+                                        <el-tag
+                                            class="card-status"
+                                            size="small"
+                                            :type="card.status === 'UNPUBLISHED' ? 'warning' : 'success'"
+                                        >
+                                            {{ card.status === 'UNPUBLISHED' ? '未发布' : '已发布' }}
+                                        </el-tag>
                                     </div>
-                                    <div class="card-item">
-                                        <span class="name name_3">数据源：</span>
-                                        <EllipsisTooltip
-                                            class="card-item-name card-item-name_3"
-                                            :label="card.datasourceName"
-                                        />
-                                    </div>
-                                    <div class="card-item">
-                                        <span class="name">表名：</span>
-                                        <EllipsisTooltip class="card-item-name" :label="card.mainTable" />
-                                    </div>
-                                    <div class="card-item">
-                                        <span class="name name_4">创建时间：</span>
-                                        <EllipsisTooltip
-                                            class="card-item-name card-item-name_4"
-                                            :label="card.createDateTime"
-                                        />
-                                    </div>
-                                    <div class="card-item">
-                                        状态：{{ card.status === 'UNPUBLISHED' ? '未发布' : '已发布' }}
+                                    <div class="card-content">
+                                        <div class="card-item">
+                                            <span class="name">数据源</span>
+                                            <EllipsisTooltip class="card-item-name" :label="card.datasourceName" />
+                                        </div>
+                                        <div class="card-item">
+                                            <span class="name">表名</span>
+                                            <EllipsisTooltip class="card-item-name" :label="card.mainTable" />
+                                        </div>
+                                        <div class="card-item">
+                                            <span class="name">创建时间</span>
+                                            <EllipsisTooltip class="card-item-name" :label="card.createDateTime" />
+                                        </div>
                                     </div>
                                     <div class="card-actions">
                                         <span
@@ -84,23 +86,7 @@
                                 </div>
                             </el-tooltip>
                         </template>
-                        <template v-for="(_, index) in emptyBox" :key="index">
-                            <div class="form-card-item form-card-item__empty" />
-                        </template>
                     </el-scrollbar>
-                    <el-pagination
-                        v-if="pagination"
-                        class="pagination"
-                        popper-class="pagination-popper"
-                        background
-                        layout="prev, pager, next, total, jumper"
-                        :default-page-size="pagination.pageSize"
-                        :default-current-page="pagination.currentPage"
-                        :hide-on-single-page="false"
-                        :total="pagination.total || 0"
-                        @size-change="handleSizeChange"
-                        @current-change="handleCurrentChange"
-                    />
                 </template>
                 <template v-else>
                     <empty-page />
@@ -113,10 +99,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, onMounted, computed } from 'vue'
-import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
+import { ref, onMounted } from 'vue'
 import LoadingPage from '@/app/components/loading/index.vue'
-import { PaginationParam } from './custom-form.config'
 import { useRouter } from 'vue-router'
 import AddForm from './add-form/index.vue'
 import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
@@ -142,49 +126,29 @@ interface formDataParam {
 }
 
 const router = useRouter()
-const breadCrumbList = ref([
-    {
-        name: '表单管理',
-        code: 'custom-form'
-    }
-])
 const networkError = ref(false)
 const loading = ref(false)
 const addFormRef = ref()
 const keyword = ref('')
-const formList = ref() // 卡片列表
-const pagination = reactive(PaginationParam)
+const formList = ref<any[]>([])
 const shareFormRef = ref()
-
-const emptyBox = computed(() => {
-    if (formList.value?.length > 4 && formList.value?.length % 4) {
-        const length = 4 - (formList.value?.length % 4)
-        return new Array(length)
-    } else if (formList.value?.length < 4 && formList.value?.length > 0) {
-        const length = 4 - formList.value?.length
-        return new Array(length)
-    } else {
-        return []
-    }
-})
+const listPageSize = 1000
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
     networkError.value = networkError.value || false
     QueryCustomFormList({
-        page: pagination.currentPage - 1,
-        pageSize: pagination.pageSize,
+        page: 0,
+        pageSize: listPageSize,
         searchKeyWord: keyword.value || ''
     })
         .then((res: any) => {
             formList.value = res.data.content
-            pagination.total = res.data.totalElements
             loading.value = false
             networkError.value = false
         })
         .catch(() => {
             formList.value = []
-            pagination.total = 0
             loading.value = false
             networkError.value = true
         })
@@ -194,15 +158,6 @@ function inputEvent(e: string) {
     if (e === '') {
         initData()
     }
-}
-function handleSizeChange(e: number) {
-    pagination.pageSize = e
-    initData()
-}
-
-function handleCurrentChange(e: number) {
-    pagination.currentPage = e
-    initData()
 }
 
 function addData() {
@@ -265,7 +220,7 @@ function deleteData(card: any) {
             formId: card.id
         })
             .then((res: any) => {
-                handleCurrentChange(1)
+                initData()
                 ElMessage.success(res.msg)
             })
             .catch((err) => {})
@@ -321,8 +276,6 @@ function redirectQuery(data: any) {
 }
 
 onMounted(() => {
-    pagination.currentPage = 1
-    pagination.pageSize = 10
     initData()
 })
 </script>
@@ -330,108 +283,113 @@ onMounted(() => {
 <style lang="scss">
 .costom-form {
     .form-card-container {
-        margin-top: -20px;
+        min-height: calc(100vh - 122px);
+
         .form-card-list {
             width: 100%;
-            margin-bottom: -20px;
+
             .el-scrollbar__wrap {
                 .el-scrollbar__view {
-                    padding: 20px 20px;
-                    display: flex;
-                    flex-wrap: wrap;
-                    justify-content: space-between;
-                    // padding: 0 20px;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    gap: 14px;
+                    padding: 16px 20px 20px;
                     box-sizing: border-box;
                 }
             }
 
             .form-card-item {
-                width: 24%;
-                min-height: 166px;
+                min-height: 168px;
                 border: 1px solid getCssVar('border-color');
-                border-radius: 6px;
+                border-radius: 4px;
                 background-color: getCssVar('color', 'white');
-                box-shadow: getCssVar('box-shadow', 'lighter');
-                transition: transform 0.15s linear;
-                display: inline-flex;
+                transition:
+                    border-color 0.15s linear,
+                    box-shadow 0.15s linear;
+                display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                padding: 12px;
+                padding: 14px 14px 12px;
                 box-sizing: border-box;
                 font-size: getCssVar('font-size', 'extra-small');
-                // margin-top: 12px;
                 cursor: pointer;
-                color: #666;
+                color: getCssVar('text-color', 'regular');
                 position: relative;
 
-                &:not(:nth-child(1), :nth-child(2), :nth-child(3), :nth-child(4)) {
-                    margin-top: 12px;
-                }
                 &:hover {
-                    transition: transform 0.15s linear;
-                    transform: scale(1.03);
+                    border-color: getCssVar('color', 'primary', 'light-5');
+                    box-shadow: 0 6px 18px rgb(31 45 61 / 8%);
+
                     .card-title {
                         color: getCssVar('color', 'primary');
                     }
                 }
 
+                .card-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 10px;
+                    margin-bottom: 12px;
+                }
+
+                .card-status {
+                    flex: none;
+                }
+
+                .card-content {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 9px;
+                }
+
                 .card-item {
                     display: flex;
+                    align-items: center;
+                    min-width: 0;
+                    line-height: 18px;
+
                     .name {
-                        width: 40px;
-                        &.name_3 {
-                            min-width: 48px;
-                        }
-                        &.name_4 {
-                            min-width: 64px;
-                        }
+                        flex: none;
+                        width: 54px;
+                        color: getCssVar('text-color', 'secondary');
                     }
+
                     .card-item-name {
-                        display: inline-block;
-                        max-width: 72%;
-                        &.card-item-name_3 {
-                            max-width: 68%;
-                        }
-                        &.card-item-name_4 {
-                            max-width: 54%;
-                        }
-                    }
-                    .url {
-                        width: 62px;
-                    }
-                    .card-item-url {
-                        display: inline-block;
-                        max-width: 60%;
+                        flex: 1;
+                        min-width: 0;
+                        color: getCssVar('text-color', 'regular');
                     }
                 }
+
                 .card-title {
+                    min-width: 0;
+                    flex: 1;
                     display: flex;
                     align-items: center;
                     font-size: 15px;
                     font-weight: 600;
                     color: getCssVar('text-color', 'regular');
                     transition: color 0.15s linear;
-                    margin-bottom: 6px;
 
                     .card-title-name {
                         display: inline-block;
                         max-width: 100%;
                     }
                 }
-                &.form-card-item__empty {
-                    opacity: 0;
-                    cursor: default;
-                    pointer-events: none;
-                }
 
                 .card-actions {
                     display: flex;
                     align-items: center;
                     flex-wrap: wrap;
-                    padding-top: 8px;
-                    margin-top: 4px;
+                    gap: 0;
+                    padding-top: 12px;
+                    margin-top: 12px;
+                    border-top: 1px solid getCssVar('border-color', 'lighter');
                     line-height: 16px;
                 }
+
                 .card-action {
                     cursor: pointer;
                     font-size: 12px;
@@ -450,11 +408,6 @@ onMounted(() => {
                     }
                 }
             }
-        }
-
-        .el-pagination {
-            padding-right: 20px;
-            box-sizing: border-box;
         }
     }
 }

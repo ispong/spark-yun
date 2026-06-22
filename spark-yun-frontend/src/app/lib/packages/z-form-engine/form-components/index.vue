@@ -140,7 +140,9 @@ defineExpose({
 
 <style lang="scss">
 .form-components {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
+    width: auto;
     height: 100%;
     &.form-components__dragger {
         border-left: 1px solid getCssVar('border-color');
