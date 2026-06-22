@@ -10,7 +10,19 @@
         "dev": "vite --mode dev",
         "build": "vite build",
         "preview": "vite preview",
-        "orval": "orval"
+        "orval": "orval",
+        "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+        "lint": "eslint . --max-warnings=0",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier . --write",
+        "format:check": "prettier . --check",
+        "test": "vitest",
+        "test:unit": "vitest run",
+        "test:unit:coverage": "vitest run --coverage",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui",
+        "check:base": "pnpm lint && pnpm test:unit && pnpm build",
+        "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit"
     },
     "dependencies": {
         "@antv/g6": "^5.1.1",
@@ -45,16 +57,31 @@
         "xe-utils": "^3.5.10"
     },
     "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@playwright/test": "^1.61.0",
         "@types/lodash-es": "^4.17.9",
         "@types/node": "22.19.21",
         "@types/validator": "^13.15.10",
         "@vitejs/plugin-vue": "6.0.7",
         "@vitejs/plugin-vue-jsx": "5.1.5",
+        "@vitest/coverage-v8": "^4.1.9",
+        "@vue/test-utils": "^2.4.11",
+        "eslint": "^10.5.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-vue": "^10.9.2",
+        "globals": "^17.6.0",
+        "jsdom": "^29.1.1",
         "orval": "^8.17.0",
+        "playwright": "^1.61.0",
+        "prettier": "^3.8.4",
         "sass": "1.101.0",
         "typescript": "5.9.3",
+        "typescript-eslint": "^8.61.1",
         "unplugin-element-plus": "^0.11.2",
         "unplugin-vue-components": "32.1.0",
-        "vite": "8.0.16"
+        "vite": "8.0.16",
+        "vitest": "^4.1.9",
+        "vue-eslint-parser": "^10.4.1",
+        "vue-tsc": "^3.3.5"
     }
 }
