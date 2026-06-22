@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS sy_tenant
   deleted INT DEFAULT 0 COMMENT '逻辑删除' NOT NULL,
   valid_start_date_time TIMESTAMP,
   valid_end_date_time TIMESTAMP,
-  PRIMARY KEY (id)
-);
+  admin_user_id VARCHAR(200) COMMENT '租户管理员ID',
+  PRIMARY KEY (id));
 
 CREATE TABLE IF NOT EXISTS sy_user
 (
@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS sy_user
   role_code VARCHAR(200) COMMENT '角色编码' NOT NULL,
   status VARCHAR(200) COMMENT '用户状态' NOT NULL,
   create_by VARCHAR(200) COMMENT '创建人' NOT NULL,
+  platform_admin BOOLEAN DEFAULT FALSE COMMENT '平台管理员' NOT NULL,
   current_tenant_id VARCHAR(200) COMMENT '当前用户使用的租户id',
   create_date_time TIMESTAMP COMMENT '创建时间' NOT NULL,
   last_modified_by VARCHAR(200) COMMENT '更新人' NOT NULL,
@@ -42,8 +43,7 @@ CREATE TABLE IF NOT EXISTS sy_user
   deleted INT DEFAULT 0 COMMENT '逻辑删除' NOT NULL,
   valid_start_date_time TIMESTAMP,
   valid_end_date_time TIMESTAMP,
-  PRIMARY KEY (id)
-);
+  PRIMARY KEY (id));
 
 CREATE TABLE IF NOT EXISTS sy_tenant_users
 (
@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS sy_tenant_users
   tenant_id VARCHAR(200) COMMENT '租户id' NOT NULL,
   role_code VARCHAR(200) COMMENT '角色编码' NOT NULL,
   status VARCHAR(200) COMMENT '用户状态' NOT NULL,
+  normal_admin BOOLEAN DEFAULT FALSE COMMENT '普通管理员' NOT NULL,
   remark VARCHAR(200) COMMENT '备注',
   create_by VARCHAR(200) COMMENT '创建人' NOT NULL,
   create_date_time TIMESTAMP COMMENT '创建时间' NOT NULL,
@@ -59,8 +60,9 @@ CREATE TABLE IF NOT EXISTS sy_tenant_users
   last_modified_date_time TIMESTAMP COMMENT '更新时间' NOT NULL,
   version_number INT COMMENT '版本号' NOT NULL,
   deleted INT DEFAULT 0 COMMENT '逻辑删除' NOT NULL,
-  PRIMARY KEY (id)
-);
+  apply_role_ids VARCHAR(2000) COMMENT '申请角色ID列表',
+  apply_invite_code VARCHAR(200) COMMENT '申请邀请码',
+  PRIMARY KEY (id));
 
 CREATE TABLE IF NOT EXISTS sy_meta_table_info
 (
@@ -151,11 +153,12 @@ CREATE TABLE IF NOT EXISTS sy_cluster_node
   cpu_percent DOUBLE COMMENT 'cpu使用占比' NOT NULL,
   cluster_id VARCHAR(200) COMMENT '集群id' NOT NULL,
   host VARCHAR(200) COMMENT '节点服务器host' NOT NULL,
-  port INT COMMENT '节点服务器端口号' NOT NULL,
+  port INT COMMENT '节点服务器端口号',
+  connect_type VARCHAR(100) DEFAULT 'SSH' COMMENT '连接方式',
   agent_log VARCHAR(2000) COMMENT '代理日志',
-  username VARCHAR(200) COMMENT '节点服务器用户名' NOT NULL,
-  passwd VARCHAR(5000) COMMENT '节点服务器密码' NOT NULL,
-  agent_home_path VARCHAR(200) COMMENT '至轻云代理安装目录' NOT NULL,
+  username VARCHAR(200) COMMENT '节点服务器用户名',
+  passwd VARCHAR(5000) COMMENT '节点服务器密码',
+  agent_home_path VARCHAR(200) COMMENT '至轻云代理安装目录',
   agent_port VARCHAR(200) COMMENT '至轻云代理服务端口号' NOT NULL,
   hadoop_home_path VARCHAR(200) COMMENT 'hadoop家目录',
   spark_home_path VARCHAR(200) COMMENT 'standalone模式spark的安装目录',
@@ -168,8 +171,7 @@ CREATE TABLE IF NOT EXISTS sy_cluster_node
   install_spark_local BOOLEAN DEFAULT FALSE COMMENT '是否安装spark-local组件',
   install_flink_local BOOLEAN DEFAULT FALSE COMMENT '是否安装spark-local组件',
   flink_home_path VARCHAR(200) COMMENT 'standalone模式flink的安装目录',
-  PRIMARY KEY (id)
-);
+  PRIMARY KEY (id));
 
 CREATE TABLE IF NOT EXISTS sy_work
 (
@@ -409,15 +411,25 @@ CREATE TABLE IF NOT EXISTS sy_user_action
   tenant_id VARCHAR(200) COMMENT '租户id',
   req_path VARCHAR(200) COMMENT '请求路径',
   req_method VARCHAR(200) COMMENT '请求方式',
-  req_header VARCHAR(2000) COMMENT '请求头',
+  req_header CLOB COMMENT '请求头',
   req_body CLOB COMMENT '请求体',
   res_body CLOB COMMENT '响应体',
   start_timestamp BIGINT COMMENT '开始时间戳',
   end_timestamp BIGINT COMMENT '结束时间戳',
+  module_code VARCHAR(100) COMMENT '模块编码',
+  module_name VARCHAR(200) COMMENT '模块名称',
+  log_type VARCHAR(100) COMMENT '日志类型',
+  action_code VARCHAR(100) COMMENT '操作编码',
+  action_name VARCHAR(200) COMMENT '操作名称',
+  api_name VARCHAR(200) COMMENT '接口名称',
+  ip_address VARCHAR(200) COMMENT 'IP地址',
+  user_agent VARCHAR(1000) COMMENT 'User-Agent',
+  status VARCHAR(100) COMMENT '状态',
+  duration BIGINT COMMENT '耗时',
+  exception_message CLOB COMMENT '异常信息',
   create_by VARCHAR(200) COMMENT '创建人' NOT NULL,
   create_date_time TIMESTAMP COMMENT '创建时间' NOT NULL,
-  PRIMARY KEY (id)
-);
+  PRIMARY KEY (id));
 
 CREATE TABLE IF NOT EXISTS sy_form
 (
@@ -1085,7 +1097,7 @@ VALUES
   ('greenplum(postgresql-42.6.0)', 'greenplum(postgresql-42.6.0)', 'GREENPLUM', 'postgresql-42.6.0.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', TRUE),
   ('h2-2.2.224', 'h2-2.2.224', 'H2', 'h2-2.2.224.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', TRUE),
   ('hana_2.18.13', 'hana_2.18.13', 'HANA_SAP', 'ngdbc-2.18.13.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', TRUE),
-  ('hive_3.1.3', 'hive_3.1.3', 'HIVE', 'hive-jdbc-3.1.3-standalone.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', FALSE),
+  ('hive_3.1.3', 'hive_4.1.0', 'HIVE', 'hive-jdbc-4.1.0-standalone.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', FALSE),
   ('hive_uber_2.6.3.jar', 'hive_uber_2.6.3.jar', 'HIVE', 'hive-jdbc-uber-2.6.3.0-235.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', TRUE),
   ('impala_hive_uber_2.6.3', 'impala_hive_uber_2.6.3', 'IMPALA', 'hive-jdbc-uber-2.6.3.0-235.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', TRUE),
   ('kafka_client_3.1.2', 'kafka_client_3.1.2', 'KAFKA', 'kafka_client_3.1.2.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', TRUE),
@@ -1104,3 +1116,318 @@ VALUES
   ('taos-jdbcdriver-3.7.7-dist', 'taos-jdbcdriver-3.7.7-dist', 'T_DENGINE', 'taos-jdbcdriver-3.7.7-dist.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', TRUE),
   ('tidb(mysql_5.1.49)', 'tidb(mysql_5.1.49)', 'TIDB', 'mysql-connector-java-5.1.49.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', TRUE),
   ('trino-jdbc-418', 'trino-jdbc-418', 'TRINO', 'trino-jdbc-418.jar', 'SYSTEM_DRIVER', 'zhiqingyun', '2023-11-01 16:54:34', 'zhiqingyun', '2023-11-01 16:54:39', 1, 0, 'zhiqingyun', '系统自带驱动', TRUE);
+
+CREATE TABLE sy_role
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  code VARCHAR(200) NOT NULL,
+  status VARCHAR(100) NOT NULL,
+  remark VARCHAR(500),
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id));
+
+CREATE TABLE sy_role_permission
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  role_id VARCHAR(200) NOT NULL,
+  permission_code VARCHAR(200) NOT NULL,
+  permission_type VARCHAR(50) DEFAULT 'API' NOT NULL,
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id));
+
+CREATE TABLE sy_member_role
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  user_id VARCHAR(200) NOT NULL,
+  role_id VARCHAR(200) NOT NULL,
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE sy_org
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  parent_id VARCHAR(200),
+  name VARCHAR(200) NOT NULL,
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE sy_org_member
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  org_id VARCHAR(200) NOT NULL,
+  user_id VARCHAR(200) NOT NULL,
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE sy_org_role
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  org_id VARCHAR(200) NOT NULL,
+  role_id VARCHAR(200) NOT NULL,
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX idx_sy_role_tenant ON sy_role (tenant_id);
+
+CREATE INDEX idx_sy_role_permission_role ON sy_role_permission (tenant_id, role_id);
+
+CREATE INDEX idx_sy_member_role_user ON sy_member_role (tenant_id, user_id);
+
+CREATE INDEX idx_sy_org_tenant ON sy_org (tenant_id);
+
+CREATE INDEX idx_sy_org_member_user ON sy_org_member (tenant_id, user_id);
+
+CREATE INDEX idx_sy_org_role_org ON sy_org_role (tenant_id, org_id);
+
+CREATE TABLE IF NOT EXISTS sy_login_method_config
+(
+  id VARCHAR(200) NOT NULL,
+  config_key VARCHAR(200) NOT NULL,
+  default_login_method VARCHAR(100) DEFAULT 'ACCOUNT' NOT NULL,
+  account_enabled BOOLEAN DEFAULT TRUE NOT NULL,
+  account_phone_password_enabled BOOLEAN DEFAULT TRUE NOT NULL,
+  account_email_password_enabled BOOLEAN DEFAULT TRUE NOT NULL,
+  email_enabled BOOLEAN DEFAULT FALSE NOT NULL,
+  email_register_enabled BOOLEAN DEFAULT FALSE NOT NULL,
+  phone_enabled BOOLEAN DEFAULT FALSE NOT NULL,
+  phone_register_enabled BOOLEAN DEFAULT FALSE NOT NULL,
+  auto_create_tenant BOOLEAN DEFAULT TRUE NOT NULL,
+  config_json TEXT,
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  account_password_enabled BOOLEAN DEFAULT TRUE NOT NULL,
+  PRIMARY KEY (id));
+
+CREATE TABLE IF NOT EXISTS sy_login_code_record
+(
+  id VARCHAR(200) NOT NULL,
+  channel VARCHAR(100) NOT NULL,
+  receiver VARCHAR(200) NOT NULL,
+  scene VARCHAR(100) NOT NULL,
+  code_hash VARCHAR(200),
+  expire_date_time TIMESTAMP,
+  send_status VARCHAR(100) NOT NULL,
+  verify_status VARCHAR(100) NOT NULL,
+  verify_fail_count INT DEFAULT 0 NOT NULL,
+  registered BOOLEAN DEFAULT FALSE NOT NULL,
+  auto_tenant_created BOOLEAN DEFAULT FALSE NOT NULL,
+  error_message VARCHAR(1000),
+  provider_message TEXT,
+  verify_date_time TIMESTAMP,
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX idx_sy_login_code_receiver ON sy_login_code_record (channel, receiver, scene, create_date_time);
+
+INSERT INTO sy_login_method_config (
+  id, config_key, default_login_method, account_enabled, account_phone_password_enabled, account_email_password_enabled,
+  email_enabled, email_register_enabled, phone_enabled, phone_register_enabled, auto_create_tenant,
+  config_json, create_by, create_date_time, last_modified_by, last_modified_date_time, version_number, deleted
+)
+SELECT
+  'sy_login_method_config_default', 'GLOBAL', 'ACCOUNT', TRUE, TRUE, TRUE,
+  FALSE, FALSE, FALSE, FALSE, TRUE,
+  '{"emailConfig":{},"phoneConfig":{"provider":"ALIYUN","regionId":"cn-hangzhou","templateParamName":"code"}}',
+  'system', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 0, 0
+WHERE NOT EXISTS (SELECT 1 FROM sy_login_method_config WHERE config_key = 'GLOBAL');
+
+CREATE TABLE IF NOT EXISTS sy_platform_setting
+(
+  id VARCHAR(200) NOT NULL,
+  setting_key VARCHAR(200) NOT NULL,
+  description VARCHAR(2000),
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  auto_create_tenant BOOLEAN DEFAULT FALSE NOT NULL,
+  browser_title VARCHAR(200) DEFAULT '至轻云' NOT NULL,
+  theme_color VARCHAR(20) DEFAULT '#FF4D00' NOT NULL,
+  favicon_url CLOB,
+  top_logo_url CLOB,
+  top_logo_small_url CLOB,
+  login_main_image_url CLOB,
+  user_log_enabled BOOLEAN DEFAULT FALSE NOT NULL,
+  user_log_retention_days INT DEFAULT 180 NOT NULL,
+  default_tenant_member_num INT DEFAULT 5 NOT NULL,
+  default_tenant_workflow_num INT DEFAULT 10 NOT NULL,
+  default_tenant_valid_days INT DEFAULT 7 NOT NULL,
+  PRIMARY KEY (id));
+
+INSERT INTO sy_platform_setting (
+  id, setting_key, description,
+  create_by, create_date_time, last_modified_by, last_modified_date_time, version_number, deleted
+)
+SELECT
+  'sy_platform_setting_default', 'GLOBAL', '',
+  'system', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 0, 0
+WHERE NOT EXISTS (SELECT 1 FROM sy_platform_setting WHERE setting_key = 'GLOBAL');
+
+CREATE TABLE sy_ai_config
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  provider_type VARCHAR(100) NOT NULL,
+  base_url VARCHAR(500) NOT NULL,
+  api_key VARCHAR(1000),
+  model_name VARCHAR(200) NOT NULL,
+  temperature DOUBLE DEFAULT 0.7 NOT NULL,
+  max_tokens INT DEFAULT 2000 NOT NULL,
+  status VARCHAR(100) NOT NULL,
+  remark VARCHAR(500),
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX idx_sy_ai_config_tenant ON sy_ai_config (tenant_id);
+
+CREATE TABLE sy_ai_chat_session
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  user_id VARCHAR(200) NOT NULL,
+  config_id VARCHAR(200) NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  messages_json CLOB NOT NULL,
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX idx_sy_ai_chat_session_tenant_user ON sy_ai_chat_session (tenant_id, user_id);
+
+CREATE TABLE sy_ai_prompt
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  content CLOB NOT NULL,
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX idx_sy_ai_prompt_tenant ON sy_ai_prompt (tenant_id);
+
+CREATE TABLE sy_tenant_invite_code
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  invite_code VARCHAR(64) NOT NULL,
+  valid_days INT,
+  expire_date_time TIMESTAMP,
+  role_ids VARCHAR(1000),
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX idx_sy_tenant_invite_code_tenant ON sy_tenant_invite_code (tenant_id);
+
+CREATE TABLE IF NOT EXISTS sy_login_log
+(
+  id VARCHAR(200) NOT NULL,
+  login_method VARCHAR(100) NOT NULL,
+  account_identifier VARCHAR(200) NOT NULL,
+  user_id VARCHAR(200),
+  ip_address VARCHAR(200),
+  user_agent VARCHAR(1000),
+  login_status VARCHAR(100) NOT NULL,
+  registered BOOLEAN DEFAULT FALSE NOT NULL,
+  error_message VARCHAR(1000),
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX idx_sy_login_log_query ON sy_login_log (login_method, login_status, create_date_time);
+
+CREATE TABLE sy_role_instance_permission
+(
+  id VARCHAR(200) NOT NULL,
+  tenant_id VARCHAR(200) NOT NULL,
+  role_id VARCHAR(200) NOT NULL,
+  resource_type VARCHAR(100) NOT NULL,
+  all_enabled BOOLEAN DEFAULT TRUE NOT NULL,
+  resource_ids CLOB,
+  create_by VARCHAR(200) NOT NULL,
+  create_date_time TIMESTAMP NOT NULL,
+  last_modified_by VARCHAR(200) NOT NULL,
+  last_modified_date_time TIMESTAMP NOT NULL,
+  version_number BIGINT NOT NULL,
+  deleted INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX idx_sy_role_instance_permission_role ON sy_role_instance_permission (tenant_id, role_id, resource_type);
+
+CREATE INDEX idx_sy_user_action_query ON sy_user_action (log_type, module_code, status, create_date_time);
+
+CREATE INDEX idx_sy_role_permission_type ON sy_role_permission (tenant_id, role_id, permission_type);
