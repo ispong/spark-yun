@@ -27,6 +27,16 @@ class ProductAccessAuthorizationFilterTest {
     }
 
     @Test
+    void skipsAnonymousRolePathsWhenConfigured() {
+
+        TestProductAccessAuthorizationFilter anonymousFilter = new TestProductAccessAuthorizationFilter(
+            List.of("/vip/form/getFormConfigForAnonymous", "/vip/form/addData"));
+
+        assertThat(anonymousFilter.shouldSkip(request("/vip/form/getFormConfigForAnonymous"))).isTrue();
+        assertThat(anonymousFilter.shouldSkip(request("/vip/form/addData"))).isTrue();
+    }
+
+    @Test
     void keepsProtectedApiPathsFiltered() {
 
         assertThat(filter.shouldSkip(request("/cluster/pageCluster"))).isFalse();

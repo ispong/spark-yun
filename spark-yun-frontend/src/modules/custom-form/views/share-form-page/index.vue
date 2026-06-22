@@ -137,7 +137,8 @@ function getFormConfigById(tableLoading?: boolean) {
     networkError.value = networkError.value || false
     ShareFormGetFormConfig(
         {
-            formId: shareFormConfig.value.formId
+            formId: shareFormConfig.value.formId,
+            formLinkId: shareLinkId.value
         },
         {
             authorization: shareFormConfig.value.formToken,
@@ -162,6 +163,7 @@ function saveData() {
                 {
                     formId: shareFormConfig.value.formId,
                     formVersion: shareFormConfig.value.formVersion,
+                    formLinkId: shareLinkId.value,
                     data: normalizeTimeFieldData(formData.value)
                 },
                 {

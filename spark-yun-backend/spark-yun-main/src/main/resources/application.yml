@@ -137,6 +137,7 @@ app:
     - /*/developer/**
   anonymous-role-url:
     - /vip/form/getFormConfigForAnonymous
+    - /vip/form/addData
   open-url:
     - /
     - /manifest.json

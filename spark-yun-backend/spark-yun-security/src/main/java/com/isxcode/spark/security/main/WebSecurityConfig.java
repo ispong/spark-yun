@@ -86,7 +86,8 @@ public class WebSecurityConfig {
     @Bean
     public ProductAccessAuthorizationFilter productAccessAuthorizationFilter(AccessDeniedHandler accessDeniedHandler) {
 
-        return new ProductAccessAuthorizationFilter(productAccessService, accessDeniedHandler, openUrlPatterns());
+        return new ProductAccessAuthorizationFilter(productAccessService, accessDeniedHandler,
+            productAccessExcludeUrlPatterns());
     }
 
     @Bean
@@ -197,6 +198,15 @@ public class WebSecurityConfig {
         List<String> patterns = new ArrayList<>(openUrlPatterns());
         if (isxAppProperties.getAdminRoleUrl() != null) {
             patterns.addAll(isxAppProperties.getAdminRoleUrl());
+        }
+        return List.copyOf(patterns);
+    }
+
+    private List<String> productAccessExcludeUrlPatterns() {
+
+        List<String> patterns = new ArrayList<>(openUrlPatterns());
+        if (isxAppProperties.getAnonymousRoleUrl() != null) {
+            patterns.addAll(isxAppProperties.getAnonymousRoleUrl());
         }
         return List.copyOf(patterns);
     }

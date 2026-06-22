@@ -17,6 +17,9 @@ public class AddDataReq {
     @NotEmpty(message = "formVersion不能为空")
     private String formVersion;
 
+    @Schema(title = "分享链接唯一id", example = "sy_fd34e4a53db640f5943a4352c4d549b9")
+    private String formLinkId;
+
     @Schema(title = "请求体", example = "")
     @NotEmpty(message = "数据不能为空")
     private Map<String, Object> data;

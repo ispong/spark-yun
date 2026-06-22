@@ -34,6 +34,17 @@ body {
         box-sizing: border-box;
         align-items: center;
         justify-content: space-between;
+        > .el-button,
+        [class$='toolbar-button'],
+        .top-action-btn,
+        .role-page__add-button {
+            min-width: 86px !important;
+            height: 28px !important;
+            padding: 0 15px !important;
+            box-sizing: border-box;
+            line-height: 26px !important;
+            flex-shrink: 0;
+        }
         .zqy-seach {
             .el-input {
                 width: 330px;
