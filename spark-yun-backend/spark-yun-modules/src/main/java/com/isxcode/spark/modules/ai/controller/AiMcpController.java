@@ -24,8 +24,9 @@ public class AiMcpController {
 
     @Operation(summary = "AI MCP Streamable HTTP")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> handleMcp(@RequestHeader(value = SecurityConstants.HEADER_AUTHORIZATION,
-        required = false) String authorization, @RequestBody Object payload) {
+    public ResponseEntity<Object> handleMcp(
+        @RequestHeader(value = SecurityConstants.HEADER_AUTHORIZATION, required = false) String authorization,
+        @RequestBody Object payload) {
 
         Object response = aiConfigBizService.handleMcpPayload(authorization, payload);
         if (response == null) {

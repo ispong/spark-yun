@@ -372,8 +372,8 @@ public class AiConfigBizService {
             throw new IsxAppException("MCP鉴权失败");
         }
         try {
-            AiMcpToken token = JwtUtils.decrypt(isxAppProperties.getJwtKey(), authorization, isxAppProperties.getAesSlat(),
-                AiMcpToken.class);
+            AiMcpToken token = JwtUtils.decrypt(isxAppProperties.getJwtKey(), authorization,
+                isxAppProperties.getAesSlat(), AiMcpToken.class);
             if (token == null || Strings.isEmpty(token.userId()) || Strings.isEmpty(token.tenantId())
                 || Strings.isEmpty(token.configId()) || !MCP_SCOPE.equals(token.scope())) {
                 throw new IsxAppException("MCP鉴权失败");
@@ -416,7 +416,8 @@ public class AiConfigBizService {
     private Map<String, Object> buildMcpInitializeResult(Object params) {
 
         String protocolVersion = MCP_PROTOCOL_VERSION;
-        if (params instanceof Map<?, ?> paramsMap && paramsMap.get("protocolVersion") instanceof String requestedVersion) {
+        if (params instanceof Map<?, ?> paramsMap
+            && paramsMap.get("protocolVersion") instanceof String requestedVersion) {
             protocolVersion = requestedVersion;
         }
 
