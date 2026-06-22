@@ -25,7 +25,11 @@
                 />
             </el-form-item>
             <el-form-item label="租户超级管理员" prop="adminUserId">
-                <el-select v-model="formData.adminUserId" placeholder="请选择">
+                <el-select
+                    v-model="formData.adminUserId"
+                    placeholder="请选择"
+                    popper-class="tenant-admin-select-popper"
+                >
                     <el-option v-for="item in userList" :key="item.id" :label="item.username" :value="item.id" />
                 </el-select>
             </el-form-item>
@@ -317,6 +321,9 @@ defineExpose({
         display: flex;
         justify-content: space-between;
     }
+}
+.tenant-admin-select-popper.el-select__popper {
+    z-index: 6000 !important;
 }
 @media (max-width: 560px) {
     .tenant-add-modal.zqy-block-modal {

@@ -2,7 +2,7 @@
     <BlockModal :model-config="modelConfig">
         <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
             <el-form-item label="成员" prop="userId">
-                <el-select v-model="formData.userId" placeholder="请选择">
+                <el-select v-model="formData.userId" placeholder="请选择" popper-class="tenant-user-select-popper">
                     <el-option v-for="item in userList" :key="item.id" :label="item.username" :value="item.id" />
                 </el-select>
             </el-form-item>
@@ -196,5 +196,8 @@ defineExpose({
             border-radius: 2px;
         }
     }
+}
+.tenant-user-select-popper.el-select__popper {
+    z-index: 6000 !important;
 }
 </style>
