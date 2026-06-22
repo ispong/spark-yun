@@ -25,6 +25,11 @@
                     <template #name="scopeSlot">
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.name }}</span>
                     </template>
+                    <template #alarmTypeTag="scopeSlot">
+                        <el-tag type="primary" effect="light" class="warning-type-tag">
+                            {{ getAlarmTypeName(scopeSlot.row.alarmType) }}
+                        </el-tag>
+                    </template>
                     <template #statusTag="scopeSlot">
                         <ZStatusTag :status="scopeSlot.row.status" />
                     </template>
@@ -36,7 +41,7 @@
                             <span v-if="['ENABLE'].includes(scopeSlot.row.status)" @click="disableData(scopeSlot.row)">
                                 禁用
                             </span>
-                            <el-dropdown trigger="click">
+                            <el-dropdown trigger="click" popper-class="zqy-action-dropdown">
                                 <span class="click-show-more">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
@@ -81,6 +86,15 @@ const loading = ref(false)
 const networkError = ref(false)
 const addModalRef = ref(null)
 const router = useRouter()
+
+function getAlarmTypeName(alarmType: string) {
+    const alarmTypeMap: Record<string, string> = {
+        WORK: '作业',
+        WORKFLOW: '作业流'
+    }
+
+    return alarmTypeMap[alarmType] || alarmType || '-'
+}
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -236,6 +250,16 @@ onMounted(() => {
         }
 
         .zqy-table {
+            .warning-type-tag {
+                --el-tag-text-color: #{getCssVar('color', 'primary')};
+                --el-tag-border-color: #{getCssVar('color', 'primary', 'light-5')};
+                --el-tag-bg-color: #{getCssVar('color', 'primary', 'light-9')};
+                color: getCssVar('color', 'primary');
+                border-color: getCssVar('color', 'primary', 'light-5');
+                background-color: getCssVar('color', 'primary', 'light-9');
+                white-space: nowrap;
+            }
+
             .btn-group-msg {
                 justify-content: space-around;
             }

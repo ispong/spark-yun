@@ -1,6 +1,6 @@
 <template>
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
-    <div class="zqy-seach-table">
+    <div class="zqy-seach-table report-views-page">
         <div class="zqy-table-top">
             <el-button type="primary" @click="addData">新建大屏</el-button>
             <div class="zqy-seach">
@@ -28,7 +28,7 @@
                         <ZStatusTag :status="scopeSlot.row.status" />
                     </template>
                     <template #options="scopeSlot">
-                        <div class="btn-group">
+                        <div class="btn-group report-views-action-group">
                             <span
                                 v-if="['NEW', 'OFFLINE'].includes(scopeSlot.row.status)"
                                 @click="showDetail(scopeSlot.row)"
@@ -41,7 +41,7 @@
                             >
                                 预览
                             </span>
-                            <el-dropdown trigger="click">
+                            <el-dropdown trigger="click" popper-class="zqy-action-dropdown">
                                 <span class="click-show-more">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
@@ -276,6 +276,21 @@ onMounted(() => {
 
         &:hover {
             color: getCssVar('color', 'primary');
+        }
+    }
+
+    &.report-views-page {
+        .report-views-action-group {
+            justify-content: center;
+            gap: 16px;
+
+            span {
+                display: inline-flex;
+                align-items: center;
+                line-height: 1;
+                font-size: getCssVar('font-size', 'extra-small');
+                white-space: nowrap;
+            }
         }
     }
 }

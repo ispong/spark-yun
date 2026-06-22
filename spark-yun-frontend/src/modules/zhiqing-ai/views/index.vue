@@ -84,7 +84,9 @@
                                     <el-dropdown-menu>
                                         <el-dropdown-item command="upload-file" :icon="Upload">上传文件</el-dropdown-item>
                                         <el-dropdown-item command="select-prompt" :icon="Search">提示词</el-dropdown-item>
-                                        <el-dropdown-item command="mcp-share" :icon="Share">MCP一键分享</el-dropdown-item>
+                                        <el-dropdown-item command="mcp-share" :disabled="mcpConfigLoading" :icon="Share">
+                                            MCP一键分享
+                                        </el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -230,6 +232,44 @@
             </Transition>
         </Teleport>
 
+        <el-dialog
+            v-model="mcpConfigDialogVisible"
+            append-to-body
+            class="zhiqing-ai-mcp-dialog"
+            title="MCP一键分享"
+            width="640px"
+        >
+            <div class="zhiqing-ai-mcp-config">
+                <div class="zhiqing-ai-mcp-config__summary">
+                    <div class="zhiqing-ai-mcp-config__identity">
+                        <span class="zhiqing-ai-mcp-config__icon">
+                            <el-icon><Share /></el-icon>
+                        </span>
+                        <div>
+                            <strong>{{ currentAiConfig?.name || '至轻智能' }}</strong>
+                            <span>{{ mcpConfigUrl }}</span>
+                        </div>
+                    </div>
+                    <el-tag effect="plain" type="success">Streamable HTTP</el-tag>
+                </div>
+                <div class="zhiqing-ai-mcp-config__panel">
+                    <div class="zhiqing-ai-mcp-config__toolbar">
+                        <span>JSON</span>
+                        <el-button :disabled="!mcpConfigJson" :icon="CopyDocument" text @click="copyMcpConfig">
+                            复制
+                        </el-button>
+                    </div>
+                    <pre class="zhiqing-ai-mcp-config__code"><code>{{ mcpConfigJson }}</code></pre>
+                </div>
+            </div>
+            <template #footer>
+                <div class="zhiqing-ai-mcp-config__footer">
+                    <el-button @click="mcpConfigDialogVisible = false">关闭</el-button>
+                    <el-button type="primary" :disabled="!mcpConfigJson" @click="copyMcpConfig">复制配置</el-button>
+                </div>
+            </template>
+        </el-dialog>
+
     </div>
 </template>
 
@@ -240,6 +280,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import {
     DeleteAiPrompt,
     DeleteChatSession,
+    GenerateAiMcpConfig,
     ListChatSessions,
     ListAiPrompts,
     ListWorkspaceAiConfig,
@@ -318,10 +359,15 @@ const promptForm = ref({
     name: '',
     content: ''
 })
+const mcpConfigDialogVisible = ref(false)
+const mcpConfigLoading = ref(false)
+const mcpConfigJson = ref('')
+const mcpConfigUrl = ref('')
 const fileInputRef = ref<HTMLInputElement>()
 const composerEditorRef = ref<HTMLElement>()
 const uploadingFile = ref(false)
 let savedComposerRange: Range | null = null
+const currentAiConfig = computed(() => aiConfigs.value.find((config) => config.id === currentConfigId.value))
 const canSend = computed(
     () =>
         !!currentConfigId.value &&
@@ -573,7 +619,42 @@ function handleComposerAction(command: string) {
         return
     }
     if (command === 'mcp-share') {
-        ElMessage.info('MCP一键分享功能准备中')
+        openMcpShare()
+    }
+}
+
+async function openMcpShare() {
+    if (!currentConfigId.value) {
+        ElMessage.warning('请先选择智能体')
+        return
+    }
+    if (mcpConfigLoading.value) {
+        return
+    }
+    mcpConfigLoading.value = true
+    try {
+        const res = await GenerateAiMcpConfig({
+            configId: currentConfigId.value
+        })
+        mcpConfigJson.value = res.data?.configJson || ''
+        mcpConfigUrl.value = res.data?.url || ''
+        mcpConfigDialogVisible.value = true
+    } catch {
+        ElMessage.error('MCP配置生成失败')
+    } finally {
+        mcpConfigLoading.value = false
+    }
+}
+
+async function copyMcpConfig() {
+    if (!mcpConfigJson.value) {
+        return
+    }
+    try {
+        await copyText(mcpConfigJson.value)
+        ElMessage.success('复制成功')
+    } catch {
+        ElMessage.error('复制失败')
     }
 }
 
@@ -1284,8 +1365,8 @@ onMounted(() => {
 }
 
 .zhiqing-ai__select {
-    width: 220px;
-    flex: 0 0 220px;
+    width: 190px;
+    flex: 0 0 190px;
     align-self: flex-end;
 }
 
@@ -1333,8 +1414,12 @@ onMounted(() => {
     outline: none;
 
     &:empty::before {
+        display: block;
+        overflow: hidden;
         color: var(--el-text-color-placeholder);
         content: attr(data-placeholder);
+        text-overflow: ellipsis;
+        white-space: nowrap;
         pointer-events: none;
     }
 
@@ -1992,6 +2077,137 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+:global(.zhiqing-ai-mcp-dialog .el-dialog__body) {
+    padding: 14px 20px 6px;
+}
+
+:global(.zhiqing-ai-mcp-dialog .el-dialog__footer) {
+    box-sizing: border-box;
+    height: 56px;
+    padding: 0 20px !important;
+    border-top: 1px solid var(--el-border-color-lighter);
+    box-shadow: none !important;
+}
+
+.zhiqing-ai-mcp-config__footer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+
+    :deep(.el-button) {
+        margin-left: 0;
+    }
+}
+
+.zhiqing-ai-mcp-config {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.zhiqing-ai-mcp-config__summary {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 64px;
+    padding: 10px 12px;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 4px;
+    background-color: var(--el-fill-color-extra-light);
+}
+
+.zhiqing-ai-mcp-config__identity {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    > div {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    strong,
+    span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    strong {
+        color: var(--el-text-color-primary);
+        font-size: 14px;
+        line-height: 18px;
+    }
+
+    span {
+        color: var(--el-text-color-secondary);
+        font-size: 12px;
+        line-height: 16px;
+    }
+}
+
+.zhiqing-ai-mcp-config__icon {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: var(--el-color-primary);
+    background-color: var(--el-color-primary-light-9);
+}
+
+.zhiqing-ai-mcp-config__panel {
+    overflow: hidden;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 4px;
+    background-color: #ffffff;
+}
+
+.zhiqing-ai-mcp-config__toolbar {
+    box-sizing: border-box;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px 0 12px;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+    background-color: var(--el-fill-color-extra-light);
+
+    > span {
+        color: var(--el-text-color-secondary);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    :deep(.el-button) {
+        height: 26px;
+        padding: 0 6px;
+    }
+}
+
+.zhiqing-ai-mcp-config__code {
+    box-sizing: border-box;
+    max-height: 340px;
+    margin: 0;
+    overflow: auto;
+    padding: 12px;
+    background-color: #fbfcfe;
+    color: var(--el-text-color-primary);
+    font-size: 12px;
+    line-height: 20px;
+    white-space: pre;
 }
 
 .zhiqing-ai-prompt-dialog__toolbar {

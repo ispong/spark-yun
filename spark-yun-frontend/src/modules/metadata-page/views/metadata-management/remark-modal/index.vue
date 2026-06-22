@@ -1,6 +1,6 @@
 <template>
     <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group acquisition-task-add" label-position="top" :model="formData">
+        <el-form ref="form" class="metadata-remark-form zqy-block-modal-form" label-position="top" :model="formData">
             <el-form-item label="备注">
                 <el-input
                     v-model="formData.remark"
@@ -16,11 +16,10 @@
 
 <script lang="ts" setup>
 import { reactive, defineExpose, ref } from 'vue'
-import { ElMessage, FormInstance, FormRules } from 'element-plus'
+import { ElMessage, FormInstance } from 'element-plus'
 
 const form = ref<FormInstance>()
 const callback = ref<any>()
-const dataSourceList = ref<Option[]>([])
 
 const modelConfig = reactive({
     title: '备注',
@@ -39,6 +38,7 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 3100,
+    customClass: 'metadata-remark-modal',
     closeOnClickModal: false
 })
 const formData = reactive({
@@ -86,28 +86,13 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.acquisition-task-add {
-    .el-form-item {
+.metadata-remark-modal.zqy-block-modal {
+    .metadata-remark-form {
         .el-form-item__content {
             position: relative;
             flex-wrap: nowrap;
             justify-content: space-between;
-
-            .time-num-input {
-                height: 36px;
-
-                .el-input-number__decrease {
-                    top: 16px;
-                }
-            }
         }
-    }
-
-    .cron-config {
-        border: 1px solid getCssVar('border-color');
-        padding: 8px 12px;
-        margin-bottom: 12px;
-        border-radius: 5px;
     }
 }
 </style>

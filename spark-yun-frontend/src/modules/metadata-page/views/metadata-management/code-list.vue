@@ -4,7 +4,7 @@
             <span class="name-click" @click="showPreviewModal(scopeSlot.row)">{{ scopeSlot.row.tableName }}</span>
         </template>
         <template #options="scopeSlot">
-            <div class="btn-group">
+            <div class="btn-group metadata-action-group">
                 <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
                 <span @click="editEvent(scopeSlot.row)">备注</span>
             </div>
@@ -72,7 +72,7 @@ const tableConfig = reactive({
             title: '操作',
             align: 'center',
             customSlot: 'options',
-            width: 80,
+            width: 120,
             fixed: 'right'
         }
     ],

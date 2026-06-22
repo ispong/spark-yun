@@ -41,7 +41,12 @@
                     />
                 </el-select>
             </el-form-item>
-            <el-form-item label="通知内容" prop="alarmTemplate">
+            <el-form-item
+                class="alarm-template-item"
+                :class="{ 'show-screen__full': fullStatus }"
+                label="通知内容"
+                prop="alarmTemplate"
+            >
                 <span class="format-json" @click="formatterJsonEvent(formData, 'alarmTemplate')">格式化JSON</span>
                 <el-icon class="modal-full-screen" @click="fullScreenEvent()">
                     <FullScreen v-if="!fullStatus" />
@@ -63,7 +68,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, defineExpose, ref } from 'vue'
+import { reactive, defineExpose, nextTick, ref } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 // import CodeMirror from 'vue-codemirror6'
 import { json } from '@codemirror/lang-json'
@@ -122,6 +127,7 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
+    customClass: 'warning-config-add-modal',
     closeOnClickModal: false
 })
 const formData = reactive({
@@ -180,6 +186,7 @@ const rules = reactive<FormRules>({
 })
 
 function showModal(cb: () => void, data: any): void {
+    fullStatus.value = false
     getUserList()
     getMessageList()
     if (data) {
@@ -205,6 +212,9 @@ function showModal(cb: () => void, data: any): void {
 
     callback.value = cb
     modelConfig.visible = true
+    nextTick(() => {
+        form.value?.resetFields()
+    })
 }
 
 function okEvent() {
@@ -270,6 +280,7 @@ function getMessageList() {
 }
 
 function closeEvent() {
+    fullStatus.value = false
     modelConfig.visible = false
 }
 
@@ -279,52 +290,103 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.message-check-form {
-    .el-form-item {
-        .format-json {
+.warning-config-add-modal.zqy-block-modal {
+    --warning-modal-x-padding: 20px;
+    --warning-modal-border-color: #ebeef5;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--warning-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        &::after {
             position: absolute;
-            top: -34px;
-            right: 20px;
-            font-size: 12px;
-            color: getCssVar('color', 'primary');
-            cursor: pointer;
-
-            &:hover {
-                text-decoration: underline;
-            }
-        }
-
-        &.show-screen__full {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
+            right: 0;
+            bottom: 0;
             left: 0;
-            background-color: #ffffff;
-            padding: 12px 20px;
-            box-sizing: border-box;
-            transition: all 0.15s linear;
-            z-index: 10;
-
-            .el-form-item__content {
-                align-items: flex-start;
-                height: 100%;
-
-                .vue-codemirror {
-                    height: calc(100% - 36px);
-                }
-            }
+            height: 1px;
+            content: '';
+            background-color: var(--warning-modal-border-color);
         }
 
-        .el-form-item__content {
-            position: relative;
-            flex-wrap: nowrap;
-            justify-content: space-between;
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+    }
 
-            .copy-url {
-                min-width: 24px;
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--warning-modal-x-padding);
+        align-items: center;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--warning-modal-border-color);
+        }
+    }
+
+    .add-computer-group {
+        box-sizing: border-box;
+        padding: 14px var(--warning-modal-x-padding) 4px;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+    }
+
+    .message-check-form {
+        .alarm-template-item {
+            .el-form-item__content {
+                position: relative;
+                display: block;
+            }
+
+            .format-json {
+                position: absolute;
+                top: -22px;
+                right: 24px;
                 font-size: 12px;
-                margin-left: 10px;
+                line-height: 16px;
                 color: getCssVar('color', 'primary');
                 cursor: pointer;
 
@@ -335,8 +397,10 @@ defineExpose({
 
             .modal-full-screen {
                 position: absolute;
-                top: -26px;
+                top: -22px;
                 right: 0;
+                width: 16px;
+                height: 16px;
                 cursor: pointer;
 
                 &:hover {
@@ -345,29 +409,17 @@ defineExpose({
             }
 
             .vue-codemirror {
-                height: 130px;
                 width: 100%;
+                height: 132px;
 
                 .cm-editor {
                     height: 100%;
                     outline: none;
                     border: 1px solid #dcdfe6;
+                    border-radius: 2px;
                 }
 
-                .cm-gutters {
-                    font-size: 12px;
-                    font-family:
-                        v-sans,
-                        system-ui,
-                        -apple-system,
-                        BlinkMacSystemFont,
-                        'Segoe UI',
-                        sans-serif,
-                        'Apple Color Emoji',
-                        'Segoe UI Emoji',
-                        'Segoe UI Symbol';
-                }
-
+                .cm-gutters,
                 .cm-content {
                     font-size: 12px;
                     font-family:
@@ -385,9 +437,9 @@ defineExpose({
                 .cm-tooltip-autocomplete {
                     ul {
                         li {
-                            height: 40px;
                             display: flex;
                             align-items: center;
+                            height: 40px;
                             font-size: 12px;
                             background-color: #ffffff;
                             font-family:
@@ -411,6 +463,25 @@ defineExpose({
                             opacity: 0;
                         }
                     }
+                }
+            }
+
+            &.show-screen__full {
+                position: fixed;
+                z-index: 3202;
+                inset: 0;
+                padding: 16px 20px;
+                margin-bottom: 0;
+                box-sizing: border-box;
+                background-color: #ffffff;
+                transition: all 0.15s linear;
+
+                .el-form-item__content {
+                    height: calc(100% - 20px);
+                }
+
+                .vue-codemirror {
+                    height: 100%;
                 }
             }
         }

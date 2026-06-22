@@ -18,8 +18,13 @@
                     <VideoPause />
                 </el-icon>
             </template>
-            <el-dropdown v-if="showMenu" trigger="click" @command="handleCommand">
-                <el-icon class="node-option-more">
+            <el-dropdown
+                v-if="showMenu"
+                trigger="click"
+                popper-class="zqy-flow-node-dropdown"
+                @command="handleCommand"
+            >
+                <el-icon class="node-option-more" @click.stop>
                     <MoreFilled />
                 </el-icon>
                 <template #dropdown>
@@ -199,6 +204,22 @@ p {
 
 .zqy-flow-node .status {
     flex-shrink: 0;
+}
+
+.zqy-flow-node-dropdown {
+    z-index: 3100 !important;
+
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        box-sizing: border-box;
+        height: 26px;
+        padding: 0 16px;
+        line-height: 26px;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
 }
 
 .zqy-flow-node.SUCCESS {

@@ -31,7 +31,7 @@
                     <template #options="scopeSlot">
                         <div class="btn-group btn-group-msg">
                             <span @click="triggerData(scopeSlot.row)">采集</span>
-                            <el-dropdown trigger="click">
+                            <el-dropdown trigger="click" popper-class="zqy-action-dropdown">
                                 <span class="click-show-more">更多</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>

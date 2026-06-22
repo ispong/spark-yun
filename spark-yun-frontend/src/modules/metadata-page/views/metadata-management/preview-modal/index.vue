@@ -159,14 +159,18 @@ defineExpose({
         }
         .btn-group {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            gap: 16px;
             &.btn-group__center {
                 justify-content: center;
             }
             span {
                 cursor: pointer;
+                line-height: 1;
+                font-size: getCssVar('font-size', 'extra-small');
                 color: getCssVar('color', 'primary', 'light-5');
+                white-space: nowrap;
                 &:hover {
                     color: getCssVar('color', 'primary');
                 }

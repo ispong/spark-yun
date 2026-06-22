@@ -28,7 +28,12 @@
                     />
                 </el-select>
             </el-form-item>
-            <el-form-item label="通知内容" prop="content" :class="{ 'show-screen__full': fullStatus }">
+            <el-form-item
+                class="message-test-content-item"
+                :class="{ 'show-screen__full': fullStatus }"
+                label="通知内容"
+                prop="content"
+            >
                 <span
                     v-if="formData.msgType === 'ALI_SMS'"
                     class="format-json"
@@ -47,7 +52,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, defineExpose, ref } from 'vue'
+import { reactive, defineExpose, nextTick, ref } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { GetUserList } from '@/app/shared/api/user'
 // import CodeMirror from 'vue-codemirror6'
@@ -86,6 +91,7 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
+    customClass: 'message-notification-check-modal',
     closeOnClickModal: false
 })
 const formData = reactive({
@@ -114,6 +120,7 @@ const rules = reactive<FormRules>({
 })
 
 function showModal(cb: () => void, data: any): void {
+    fullStatus.value = false
     getUserList()
     formData.name = data.name
     formData.msgType = data.msgType
@@ -127,6 +134,9 @@ function showModal(cb: () => void, data: any): void {
 
     callback.value = cb
     modelConfig.visible = true
+    nextTick(() => {
+        form.value?.resetFields()
+    })
 }
 
 function getUserList() {
@@ -184,6 +194,7 @@ function formatterJsonEvent(formData: any, key: string) {
 }
 
 function closeEvent() {
+    fullStatus.value = false
     modelConfig.visible = false
 }
 
@@ -193,86 +204,136 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.message-check-form {
-    .el-form-item {
-        .format-json {
-            position: absolute;
-            top: -34px;
-            right: 20px;
-            font-size: 12px;
-            color: getCssVar('color', 'primary');
-            cursor: pointer;
-            &:hover {
-                text-decoration: underline;
-            }
-        }
-        &.show-screen__full {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background-color: #ffffff;
-            padding: 12px 20px;
-            box-sizing: border-box;
-            transition: all 0.15s linear;
-            z-index: 10;
-            .el-form-item__content {
-                align-items: flex-start;
-                height: 100%;
-                .vue-codemirror {
-                    height: calc(100% - 36px);
-                }
-            }
-        }
-        .el-form-item__content {
-            position: relative;
-            flex-wrap: nowrap;
-            justify-content: space-between;
+.message-notification-check-modal.zqy-block-modal {
+    --message-check-modal-x-padding: 20px;
+    --message-check-modal-border-color: #ebeef5;
 
-            .copy-url {
-                min-width: 24px;
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--message-check-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--message-check-modal-border-color);
+        }
+
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--message-check-modal-x-padding);
+        align-items: center;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--message-check-modal-border-color);
+        }
+    }
+
+    .add-computer-group {
+        box-sizing: border-box;
+        padding: 14px var(--message-check-modal-x-padding) 4px;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
+        }
+    }
+
+    .message-check-form {
+        .message-test-content-item {
+            .el-form-item__content {
+                position: relative;
+                display: block;
+            }
+
+            .format-json {
+                position: absolute;
+                top: -22px;
+                right: 24px;
                 font-size: 12px;
-                margin-left: 10px;
+                line-height: 16px;
                 color: getCssVar('color', 'primary');
                 cursor: pointer;
+
                 &:hover {
                     text-decoration: underline;
                 }
             }
+
             .modal-full-screen {
                 position: absolute;
-                top: -26px;
+                top: -22px;
                 right: 0;
+                width: 16px;
+                height: 16px;
                 cursor: pointer;
+
                 &:hover {
                     color: getCssVar('color', 'primary');
                 }
             }
+
             .vue-codemirror {
-                height: 130px;
                 width: 100%;
+                height: 132px;
 
                 .cm-editor {
                     height: 100%;
                     outline: none;
                     border: 1px solid #dcdfe6;
+                    border-radius: 2px;
                 }
 
-                .cm-gutters {
-                    font-size: 12px;
-                    font-family:
-                        v-sans,
-                        system-ui,
-                        -apple-system,
-                        BlinkMacSystemFont,
-                        'Segoe UI',
-                        sans-serif,
-                        'Apple Color Emoji',
-                        'Segoe UI Emoji',
-                        'Segoe UI Symbol';
-                }
-
+                .cm-gutters,
                 .cm-content {
                     font-size: 12px;
                     font-family:
@@ -290,9 +351,9 @@ defineExpose({
                 .cm-tooltip-autocomplete {
                     ul {
                         li {
-                            height: 40px;
                             display: flex;
                             align-items: center;
+                            height: 40px;
                             font-size: 12px;
                             background-color: #ffffff;
                             font-family:
@@ -316,6 +377,25 @@ defineExpose({
                             opacity: 0;
                         }
                     }
+                }
+            }
+
+            &.show-screen__full {
+                position: fixed;
+                z-index: 3202;
+                inset: 0;
+                padding: 16px 20px;
+                margin-bottom: 0;
+                box-sizing: border-box;
+                background-color: #ffffff;
+                transition: all 0.15s linear;
+
+                .el-form-item__content {
+                    height: calc(100% - 20px);
+                }
+
+                .vue-codemirror {
+                    height: 100%;
                 }
             }
         }

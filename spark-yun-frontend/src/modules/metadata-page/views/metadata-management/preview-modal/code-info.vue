@@ -1,7 +1,7 @@
 <template>
     <BlockTable :table-config="tableConfig">
         <template #options="scopeSlot">
-            <div class="btn-group">
+            <div class="btn-group metadata-preview-action-group">
                 <span @click="dataLineageEvent(scopeSlot.row)">血缘</span>
                 <span @click="editEvent(scopeSlot.row)">备注</span>
             </div>
@@ -69,7 +69,7 @@ const normalCol = [
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 80,
+        width: 120,
         fixed: 'right'
     }
 ]
@@ -106,7 +106,7 @@ const hiveCol = [
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 80,
+        width: 120,
         fixed: 'right'
     }
 ]

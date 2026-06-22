@@ -2,7 +2,7 @@
     <BlockModal :model-config="modelConfig">
         <el-form
             ref="form"
-            class="add-computer-group acquisition-task-add"
+            class="metadata-collect-form zqy-block-modal-form"
             label-position="top"
             :model="formData"
             :rules="rules"
@@ -190,6 +190,7 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
+    customClass: 'metadata-collect-modal',
     closeOnClickModal: false
 })
 const formData = reactive({
@@ -321,25 +322,24 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.acquisition-task-add {
-    .el-form-item {
+.metadata-collect-modal.zqy-block-modal {
+    .metadata-collect-form {
         .el-form-item__content {
             position: relative;
             flex-wrap: nowrap;
             justify-content: space-between;
-            .time-num-input {
-                height: 36px;
-                .el-input-number__decrease {
-                    top: 16px;
-                }
-            }
         }
-    }
-    .cron-config {
-        border: 1px solid getCssVar('border-color');
-        padding: 8px 12px;
-        margin-bottom: 12px;
-        border-radius: 5px;
+
+        .el-radio-group {
+            width: 100%;
+            min-height: 28px;
+            align-items: center;
+        }
+
+        .el-radio {
+            height: 28px;
+            margin-right: 24px;
+        }
     }
 }
 </style>

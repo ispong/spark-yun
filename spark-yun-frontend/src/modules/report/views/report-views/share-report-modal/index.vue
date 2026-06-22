@@ -1,28 +1,31 @@
 <template>
     <BlockModal :model-config="modelConfig">
-        <div class="share-form-container">
-            <div class="share-form">
-                <span class="label">链接：</span>
-                <span class="url">
-                    <EllipsisTooltip class="url-show" :label="url || '暂无链接'" />
+        <div class="share-report-form zqy-block-modal-form">
+            <div class="share-report-setting">
+                <div class="share-report-valid-day">
+                    <span class="share-report-label">有效期（天）</span>
+                    <el-input-number v-model="validDay" :min="1" controls-position="right" />
+                </div>
+                <el-button :loading="loading" type="primary" @click="getShareFormUrl">生成分享链接</el-button>
+            </div>
+
+            <div class="share-report-link-box">
+                <span class="share-report-link-label">链接</span>
+                <span class="share-report-link-value" :class="{ 'is-empty': !url }">
+                    <EllipsisTooltip class="url-show" :label="url || '生成后显示分享链接'" />
                 </span>
-                <span
+                <el-button
                     v-if="url"
                     id="share-report-url"
-                    class="copy-url"
+                    class="share-report-copy"
+                    link
+                    type="primary"
                     :data-clipboard-text="url"
                     @click="copyUrlEvent('share-report-url')"
                 >
                     复制
-                </span>
+                </el-button>
             </div>
-        </div>
-        <div class="share-option-container">
-            <div class="valid-day-input">
-                <span>生效时间（天）</span>
-                <el-input-number v-model="validDay" :min="1" controls-position="right" />
-            </div>
-            <el-button :loading="loading" type="primary" @click="getShareFormUrl">生成分享链接</el-button>
         </div>
     </BlockModal>
 </template>
@@ -57,6 +60,8 @@ const modelConfig = reactive({
 
 function showModal(card: any): void {
     cardInfo.value = card
+    url.value = ''
+    validDay.value = 1
     modelConfig.visible = true
 }
 
@@ -85,6 +90,8 @@ function copyUrlEvent(id: string) {
 
 function closeEvent() {
     modelConfig.visible = false
+    url.value = ''
+    validDay.value = 1
 }
 
 defineExpose({
@@ -93,83 +100,79 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.share-form-setting__modal {
-    .share-form-container {
+.share-form-setting__modal.zqy-block-modal {
+    .share-report-form {
+        padding-bottom: 18px;
+    }
+
+    .share-report-setting {
         display: flex;
-        justify-content: space-around;
-        flex-direction: column;
         align-items: center;
-        height: 160px;
-        padding: 0 20px;
+        justify-content: space-between;
+        margin-bottom: 18px;
 
-        .img-code {
-            border: 1px solid red;
-            height: 100px;
-            width: 100px;
-        }
-
-        .share-form {
+        .share-report-valid-day {
             display: flex;
-            width: 100%;
+            align-items: center;
+            gap: 10px;
 
-            .label {
-                color: getCssVar('color', 'primary');
-                margin-right: 12px;
+            .share-report-label {
                 font-size: 12px;
-                min-width: 40px;
+                color: getCssVar('text-color', 'primary');
             }
 
-            .url {
-                color: getCssVar('color', 'primary', 'light-5');
-                font-size: 12px;
-                max-width: 400px;
+            .el-input-number {
+                width: 128px;
 
-                .url-show {
-                    max-width: 100%;
+                .el-input-number__decrease,
+                .el-input-number__increase {
+                    border: 0;
+                    background-color: transparent;
                 }
-            }
 
-            .copy-url {
-                font-size: 12px;
-                color: getCssVar('color', 'primary');
-                cursor: pointer;
-
-                &:hover {
-                    text-decoration: underline;
+                .el-input__wrapper {
+                    border-radius: 2px;
                 }
             }
         }
     }
 
-    .share-option-container {
-        padding: 20px;
-        box-sizing: border-box;
-        padding-top: 0;
+    .share-report-link-box {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        min-height: 40px;
+        padding: 0 12px;
+        box-sizing: border-box;
+        border: 1px solid getCssVar('border-color');
+        border-radius: 2px;
+        background-color: getCssVar('fill-color', 'lighter');
 
-        .valid-day-input {
-            display: flex;
-            align-items: center;
+        .share-report-link-label {
+            flex: 0 0 auto;
+            margin-right: 10px;
+            font-size: 12px;
+            color: getCssVar('text-color', 'regular');
+        }
 
-            span {
-                font-size: 12px;
-                color: getCssVar('text-color', 'primary');
+        .share-report-link-value {
+            min-width: 0;
+            flex: 1;
+            font-size: 12px;
+            color: getCssVar('color', 'primary');
+
+            &.is-empty {
+                color: getCssVar('text-color', 'placeholder');
             }
-            .el-input-number {
-                .el-input-number__decrease,
-                .el-input-number__increase {
-                    border: 0;
-                    background-color: unset;
-                }
-                .el-input {
-                    .el-input__wrapper {
-                        box-shadow: none;
-                        border-bottom: 1px solid getCssVar('border-color');
-                    }
-                }
+
+            .url-show {
+                max-width: 100%;
             }
+        }
+
+        .share-report-copy {
+            flex: 0 0 auto;
+            margin-left: 12px;
+            font-size: getCssVar('font-size', 'extra-small');
         }
     }
 }

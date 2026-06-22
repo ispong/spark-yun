@@ -1,5 +1,5 @@
 <template>
-    <div id="chartsComponentsInstance" class="charts-components">
+    <div id="chartsComponentsInstance" class="charts-components" @dragover.prevent @drop.prevent="dropEvent">
         <el-scrollbar>
             <template v-if="componentList.length">
                 <grid-layout
@@ -48,7 +48,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, computed, markRaw, ref, shallowRef, watch, nextTick, onMounted } from 'vue'
+import { defineProps, defineEmits, computed, markRaw, ref, shallowRef, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import ChartsItem from './charts-item.vue'
 import EmptyPage from '../empty-page/index.vue'
 
@@ -92,6 +92,7 @@ const chartsItemRef = ref<any[]>([])
 const gridlayoutRef = ref()
 const gridItemRef = ref<any[]>([])
 const componentList = ref<ChartLayout[]>([])
+const dragChartConfig = ref<any>(null)
 
 watch(
     () => props.chartList,
@@ -115,6 +116,63 @@ const DragPos: DragPos = {
     i: null
 }
 
+function createId() {
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function getMouseInGrid() {
+    const parentRect: any = document.getElementById('chartsComponentsInstance')?.getBoundingClientRect()
+    if (!parentRect) {
+        return {
+            parentRect,
+            mouseInGrid: false
+        }
+    }
+
+    return {
+        parentRect,
+        mouseInGrid:
+            mouseXY.x > parentRect.left &&
+            mouseXY.x < parentRect.right &&
+            mouseXY.y > parentRect.top &&
+            mouseXY.y < parentRect.bottom
+    }
+}
+
+function clearDropItem() {
+    componentList.value = componentList.value.filter((obj) => obj.i !== 'drop')
+}
+
+function finishDrop(config?: any) {
+    const dropItem = componentList.value.find((obj) => obj.i === 'drop')
+    if (!dropItem) {
+        dragChartConfig.value = null
+        return
+    }
+
+    const { mouseInGrid } = getMouseInGrid()
+    const dropX = DragPos.x ?? dropItem.x ?? 0
+    const dropY = DragPos.y ?? dropItem.y ?? componentList.value.length
+
+    gridlayoutRef.value?.dragEvent?.('dragend', 'drop', dropX, dropY, 1, 1)
+    clearDropItem()
+
+    if (mouseInGrid && config) {
+        componentList.value.push({
+            ...config,
+            i: config.i && config.i !== 'drop' ? config.i : createId(),
+            uuid: config.uuid || createId(),
+            x: dropX,
+            y: dropY
+        })
+    }
+
+    DragPos.i = null
+    DragPos.x = null
+    DragPos.y = null
+    dragChartConfig.value = null
+}
+
 function layoutUpdatedEvent(newLayout: any) {
     // console.log('newLayout', newLayout)
 }
@@ -136,19 +194,12 @@ function resizeAllCharts() {
 }
 
 function startMoveEvent(e: any) {
-    const parentRect: any = document.getElementById('chartsComponentsInstance')?.getBoundingClientRect()
+    dragChartConfig.value = { ...e }
+    const { parentRect, mouseInGrid } = getMouseInGrid()
     if (!parentRect) {
         return
     }
-    let mouseInGrid = false
-    if (
-        mouseXY.x > parentRect.left &&
-        mouseXY.x < parentRect.right &&
-        mouseXY.y > parentRect.top &&
-        mouseXY.y < parentRect.bottom
-    ) {
-        mouseInGrid = true
-    }
+
     if (mouseInGrid === true && componentList.value.findIndex((item) => item.i === 'drop') === -1) {
         componentList.value.push({
             ...e,
@@ -156,7 +207,6 @@ function startMoveEvent(e: any) {
             y: componentList.value.length + colNum.value,
             i: 'drop'
         })
-        console.log('这里塞值', componentList.value)
     }
     const index = componentList.value.findIndex((item) => item.i === 'drop')
     if (index !== -1) {
@@ -174,45 +224,23 @@ function startMoveEvent(e: any) {
             const new_pos = el.calcXY(mouseXY.y - parentRect.top, mouseXY.x - parentRect.left)
             if (mouseInGrid === true) {
                 gridlayoutRef.value.dragEvent('dragstart', 'drop', new_pos.x, new_pos.y, 1, 1)
-                DragPos.i = String(index)
+                DragPos.i = 'drop'
                 DragPos.x = componentList.value[index].x
                 DragPos.y = componentList.value[index].y
             }
             if (mouseInGrid === false) {
                 gridlayoutRef.value.dragEvent('dragend', 'drop', new_pos.x, new_pos.y, 1, 1)
-                componentList.value = componentList.value.filter((obj) => obj.i !== 'drop')
+                clearDropItem()
             }
         })
     }
 }
 function endMoveEvent(e: any) {
-    const parentRect: any = document.getElementById('chartsComponentsInstance')?.getBoundingClientRect()
-    if (!parentRect) {
-        return
-    }
-    let mouseInGrid = false
-    if (
-        mouseXY.x > parentRect.left &&
-        mouseXY.x < parentRect.right &&
-        mouseXY.y > parentRect.top &&
-        mouseXY.y < parentRect.bottom
-    ) {
-        mouseInGrid = true
-    }
-    if (mouseInGrid === true) {
-        componentList.value = componentList.value.filter((obj) => obj.i !== 'drop')
-        componentList.value.push({
-            ...e,
-            x: DragPos.x,
-            y: DragPos.y
-        })
-        gridlayoutRef.value.dragEvent('dragend', DragPos.i, DragPos.x, DragPos.y, 1, 1)
-        try {
-            gridItemRef.value[componentList.value.length - 1].style.display = 'block'
-        } catch (error) {
-            console.error('拖拽结束报错', error)
-        }
-    }
+    finishDrop({ ...e })
+}
+
+function dropEvent() {
+    finishDrop(dragChartConfig.value)
 }
 
 function removeChart(e: any): void {
@@ -220,7 +248,7 @@ function removeChart(e: any): void {
 }
 
 function getComponentList(): ChartLayout[] {
-    return componentList.value
+    return componentList.value.filter((chart: any) => chart.i !== 'drop')
 }
 
 onMounted(() => {
@@ -232,6 +260,11 @@ onMounted(() => {
         },
         false
     )
+    document.addEventListener('dragend', dropEvent, false)
+})
+
+onUnmounted(() => {
+    document.removeEventListener('dragend', dropEvent, false)
 })
 
 defineExpose({

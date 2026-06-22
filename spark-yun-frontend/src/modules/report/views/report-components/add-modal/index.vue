@@ -1,6 +1,12 @@
 <template>
     <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="custom-api-form" label-position="top" :model="formData" :rules="rules">
+        <el-form
+            ref="form"
+            class="report-component-form zqy-block-modal-form"
+            label-position="top"
+            :model="formData"
+            :rules="rules"
+        >
             <el-form-item label="名称" prop="name">
                 <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
             </el-form-item>
@@ -40,6 +46,7 @@
 <script lang="ts" setup>
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
+import BlockModal from '@/app/components/block-modal/index.vue'
 import { GetDatasourceList } from '@/app/shared/api/resources'
 import { ChartTypeList } from '../report-item/report-item.config'
 
@@ -57,7 +64,7 @@ const renderSence = ref<string>('new')
 const modelConfig = reactive({
     title: '新建卡片',
     visible: false,
-    width: '564px',
+    width: '520px',
     okConfig: {
         title: '确定',
         ok: okEvent,
@@ -72,6 +79,7 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
+    customClass: 'report-component-modal',
     closeOnClickModal: false
 })
 const formData = reactive<{
@@ -194,49 +202,14 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.custom-api-form__step {
-    margin: auto;
-    padding-top: 20px;
-    position: sticky;
-    top: 0;
-    background: #ffffff;
-    z-index: 10;
-    padding-left: 25%;
-    padding-right: 25%;
-    box-sizing: border-box;
-    border-bottom: 1px solid getCssVar('border-color');
-
-    .el-step__head {
-        &.is-process {
-            color: getCssVar('color', 'primary');
-
-            .el-step__line {
-                // background-color: getCssVar('color', 'primary');
-            }
-
-            .el-step__icon {
-                border-color: getCssVar('color', 'primary');
-            }
+.report-component-modal.zqy-block-modal {
+    .report-component-form {
+        .el-form-item__content {
+            position: relative;
+            flex-wrap: nowrap;
+            justify-content: space-between;
         }
     }
-
-    .el-step__main {
-        margin-left: -12px;
-
-        .el-step__title {
-            font-size: 12px;
-
-            &.is-process {
-                color: getCssVar('color', 'primary');
-            }
-        }
-    }
-}
-
-.custom-api-form {
-    box-sizing: border-box;
-    padding: 12px 20px 0 20px;
-    width: 100%;
 
     .api-item {
         .item-title {

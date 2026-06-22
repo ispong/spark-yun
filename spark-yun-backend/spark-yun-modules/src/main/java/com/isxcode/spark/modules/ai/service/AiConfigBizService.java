@@ -1,11 +1,13 @@
 package com.isxcode.spark.modules.ai.service;
 
+import com.isxcode.spark.api.ai.ao.AiMcpToken;
 import com.isxcode.spark.api.ai.constants.AiConfigStatus;
 import com.isxcode.spark.api.ai.constants.AiProviderType;
 import com.isxcode.spark.api.ai.req.AiChatReq;
 import com.isxcode.spark.api.ai.req.DeleteAiChatSessionReq;
 import com.isxcode.spark.api.ai.req.DeleteAiConfigReq;
 import com.isxcode.spark.api.ai.req.DeleteAiPromptReq;
+import com.isxcode.spark.api.ai.req.GenerateAiMcpConfigReq;
 import com.isxcode.spark.api.ai.req.PageAiConfigReq;
 import com.isxcode.spark.api.ai.req.SaveAiChatSessionReq;
 import com.isxcode.spark.api.ai.req.SaveAiConfigReq;
@@ -15,9 +17,12 @@ import com.isxcode.spark.api.ai.res.AiChatFileRes;
 import com.isxcode.spark.api.ai.res.AiChatRes;
 import com.isxcode.spark.api.ai.res.AiChatSessionRes;
 import com.isxcode.spark.api.ai.res.AiConfigRes;
+import com.isxcode.spark.api.ai.res.AiMcpConfigRes;
 import com.isxcode.spark.api.ai.res.AiPromptRes;
 import com.isxcode.spark.backend.api.base.exceptions.IsxAppException;
+import com.isxcode.spark.backend.api.base.properties.IsxAppProperties;
 import com.isxcode.spark.common.security.ContextHolder;
+import com.isxcode.spark.common.utils.jwt.JwtUtils;
 import com.isxcode.spark.modules.ai.entity.AiChatSessionEntity;
 import com.isxcode.spark.modules.ai.entity.AiConfigEntity;
 import com.isxcode.spark.modules.ai.entity.AiPromptEntity;
@@ -31,7 +36,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Objects;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +84,16 @@ public class AiConfigBizService {
 
     private static final int MAX_EXTRACTED_FILE_CHARS = 20000;
 
+    private static final String MCP_SERVER_NAME = "spark-yun-ai";
+
+    private static final String MCP_TRANSPORT = "streamable-http";
+
+    private static final String MCP_SCOPE = "SPARK_YUN_AI_MCP";
+
+    private static final String MCP_TOOL_NAME = "ask_zhiqing_ai";
+
+    private static final String MCP_PROTOCOL_VERSION = "2025-03-26";
+
     private final AiConfigRepository aiConfigRepository;
 
     private final AiChatSessionRepository aiChatSessionRepository;
@@ -83,6 +101,8 @@ public class AiConfigBizService {
     private final AiPromptRepository aiPromptRepository;
 
     private final ObjectMapper objectMapper;
+
+    private final IsxAppProperties isxAppProperties;
 
     public void saveConfig(SaveAiConfigReq request) {
 
@@ -297,6 +317,193 @@ public class AiConfigBizService {
         };
     }
 
+    @Transactional(rollbackFor = Exception.class, readOnly = true)
+    public AiMcpConfigRes generateMcpConfig(GenerateAiMcpConfigReq request, String mcpUrl) {
+
+        AiConfigEntity config = getCurrentTenantConfig(request.getConfigId());
+        if (!AiConfigStatus.ENABLE.equals(config.getStatus())) {
+            throw new IsxAppException("智能配置已禁用");
+        }
+
+        String token = JwtUtils.encrypt(isxAppProperties.getAesSlat(),
+            new AiMcpToken(requireUserId(), requireTenantId(), config.getId(), MCP_SCOPE), isxAppProperties.getJwtKey(),
+            isxAppProperties.getExpirationMin());
+
+        Map<String, Object> serverConfig = new LinkedHashMap<>();
+        serverConfig.put("type", MCP_TRANSPORT);
+        serverConfig.put("url", mcpUrl);
+        serverConfig.put("headers", Map.of("Authorization", token));
+
+        Map<String, Object> servers = new LinkedHashMap<>();
+        servers.put(MCP_SERVER_NAME, serverConfig);
+
+        Map<String, Object> configJson = new LinkedHashMap<>();
+        configJson.put("mcpServers", servers);
+
+        return AiMcpConfigRes.builder().serverName(MCP_SERVER_NAME).transport(MCP_TRANSPORT).url(mcpUrl)
+            .configJson(toPrettyJson(configJson)).build();
+    }
+
+    @Transactional(rollbackFor = Exception.class, readOnly = true)
+    public Object handleMcpPayload(String authorization, Object payload) {
+
+        AiMcpToken token = decryptMcpToken(authorization);
+        ContextHolder.setCurrentUser(token.userId(), token.tenantId());
+        try {
+            if (payload instanceof List<?> requests) {
+                List<Object> responses = new ArrayList<>();
+                for (Object request : requests) {
+                    Object response = handleMcpRequest(token, request);
+                    if (response != null) {
+                        responses.add(response);
+                    }
+                }
+                return responses.isEmpty() ? null : responses;
+            }
+            return handleMcpRequest(token, payload);
+        } finally {
+            ContextHolder.clear();
+        }
+    }
+
+    private AiMcpToken decryptMcpToken(String authorization) {
+
+        if (Strings.isEmpty(authorization)) {
+            throw new IsxAppException("MCP鉴权失败");
+        }
+        try {
+            AiMcpToken token = JwtUtils.decrypt(isxAppProperties.getJwtKey(), authorization, isxAppProperties.getAesSlat(),
+                AiMcpToken.class);
+            if (token == null || Strings.isEmpty(token.userId()) || Strings.isEmpty(token.tenantId())
+                || Strings.isEmpty(token.configId()) || !MCP_SCOPE.equals(token.scope())) {
+                throw new IsxAppException("MCP鉴权失败");
+            }
+            return token;
+        } catch (Exception exception) {
+            throw new IsxAppException("MCP鉴权失败");
+        }
+    }
+
+    private Object handleMcpRequest(AiMcpToken token, Object request) {
+
+        if (!(request instanceof Map<?, ?> requestMap)) {
+            return rpcError(null, -32600, "Invalid Request");
+        }
+
+        Object id = requestMap.get("id");
+        Object methodValue = requestMap.get("method");
+        if (!(methodValue instanceof String method)) {
+            return rpcError(id, -32600, "Invalid Request");
+        }
+        if (id == null && method.startsWith("notifications/")) {
+            return null;
+        }
+
+        try {
+            return switch (method) {
+                case "initialize" -> rpcResponse(id, buildMcpInitializeResult(requestMap.get("params")));
+                case "tools/list" -> rpcResponse(id, buildMcpToolsListResult());
+                case "tools/call" -> rpcResponse(id, callMcpTool(token, requestMap.get("params")));
+                default -> rpcError(id, -32601, "Method not found");
+            };
+        } catch (IsxAppException exception) {
+            return rpcError(id, -32000, exception.getMessage());
+        } catch (Exception exception) {
+            return rpcError(id, -32603, "Internal error");
+        }
+    }
+
+    private Map<String, Object> buildMcpInitializeResult(Object params) {
+
+        String protocolVersion = MCP_PROTOCOL_VERSION;
+        if (params instanceof Map<?, ?> paramsMap && paramsMap.get("protocolVersion") instanceof String requestedVersion) {
+            protocolVersion = requestedVersion;
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("protocolVersion", protocolVersion);
+        result.put("capabilities", Map.of("tools", Map.of()));
+        result.put("serverInfo", Map.of("name", MCP_SERVER_NAME, "version", "1.0.0"));
+        return result;
+    }
+
+    private Map<String, Object> buildMcpToolsListResult() {
+
+        Map<String, Object> messageProperty = new LinkedHashMap<>();
+        messageProperty.put("type", "string");
+        messageProperty.put("description", "要发送给当前至轻智能体的问题");
+
+        Map<String, Object> inputSchema = new LinkedHashMap<>();
+        inputSchema.put("type", "object");
+        inputSchema.put("properties", Map.of("message", messageProperty));
+        inputSchema.put("required", List.of("message"));
+
+        Map<String, Object> tool = new LinkedHashMap<>();
+        tool.put("name", MCP_TOOL_NAME);
+        tool.put("description", "向当前选中的至轻智能体发起一次无上下文问答");
+        tool.put("inputSchema", inputSchema);
+
+        return Map.of("tools", List.of(tool));
+    }
+
+    private Map<String, Object> callMcpTool(AiMcpToken token, Object params) {
+
+        if (!(params instanceof Map<?, ?> paramsMap)) {
+            throw new IsxAppException("工具调用参数不能为空");
+        }
+        String toolName = Objects.toString(paramsMap.get("name"), "");
+        if (!MCP_TOOL_NAME.equals(toolName)) {
+            throw new IsxAppException("不支持的MCP工具");
+        }
+        Object arguments = paramsMap.get("arguments");
+        if (!(arguments instanceof Map<?, ?> argumentMap)) {
+            throw new IsxAppException("工具参数不能为空");
+        }
+        String message = Objects.toString(argumentMap.get("message"), "").trim();
+        if (Strings.isEmpty(message)) {
+            throw new IsxAppException("请输入问题");
+        }
+
+        AiChatReq request = new AiChatReq();
+        request.setConfigId(token.configId());
+        AiChatReq.AiChatMessageReq messageReq = new AiChatReq.AiChatMessageReq();
+        messageReq.setRole("user");
+        messageReq.setContent(message);
+        request.setMessages(List.of(messageReq));
+        AiChatRes response = chat(request);
+
+        Map<String, Object> textContent = new LinkedHashMap<>();
+        textContent.put("type", "text");
+        textContent.put("text", response.getContent());
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("content", List.of(textContent));
+        result.put("isError", false);
+        return result;
+    }
+
+    private Map<String, Object> rpcResponse(Object id, Object result) {
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("jsonrpc", "2.0");
+        response.put("id", id);
+        response.put("result", result);
+        return response;
+    }
+
+    private Map<String, Object> rpcError(Object id, int code, String message) {
+
+        Map<String, Object> error = new LinkedHashMap<>();
+        error.put("code", code);
+        error.put("message", message);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("jsonrpc", "2.0");
+        response.put("id", id);
+        response.put("error", error);
+        return response;
+    }
+
     private List<Message> toSpringAiMessages(AiChatReq request) {
 
         List<Message> messages = request.getMessages().stream()
@@ -346,6 +553,15 @@ public class AiConfigBizService {
             return objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException exception) {
             throw new IsxAppException("AI响应序列化失败：" + exception.getMessage());
+        }
+    }
+
+    private String toPrettyJson(Object data) {
+
+        try {
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(data);
+        } catch (JsonProcessingException exception) {
+            throw new IsxAppException("MCP配置序列化失败：" + exception.getMessage());
         }
     }
 

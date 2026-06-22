@@ -49,13 +49,7 @@ export const colConfigs: colConfig[] = [
         prop: 'alarmType',
         title: '类型',
         minWidth: 80,
-        formatter: (data: any) => {
-            const obj = {
-                WORK: '作业',
-                WORKFLOW: '作业流'
-            }
-            return obj[data.cellValue]
-        }
+        customSlot: 'alarmTypeTag'
     },
     {
         prop: 'alarmEvent',
@@ -116,7 +110,7 @@ export const colConfigs: colConfig[] = [
         title: '操作',
         align: 'center',
         customSlot: 'options',
-        width: 80,
+        width: 120,
         fixed: 'right'
     }
 ]

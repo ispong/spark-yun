@@ -3,18 +3,21 @@ package com.isxcode.spark.modules.ai.controller;
 import com.isxcode.spark.api.ai.req.AiChatReq;
 import com.isxcode.spark.api.ai.req.DeleteAiChatSessionReq;
 import com.isxcode.spark.api.ai.req.DeleteAiPromptReq;
+import com.isxcode.spark.api.ai.req.GenerateAiMcpConfigReq;
 import com.isxcode.spark.api.ai.req.SaveAiChatSessionReq;
 import com.isxcode.spark.api.ai.req.SaveAiPromptReq;
 import com.isxcode.spark.api.ai.res.AiChatFileRes;
 import com.isxcode.spark.api.ai.res.AiChatRes;
 import com.isxcode.spark.api.ai.res.AiChatSessionRes;
 import com.isxcode.spark.api.ai.res.AiConfigRes;
+import com.isxcode.spark.api.ai.res.AiMcpConfigRes;
 import com.isxcode.spark.api.ai.res.AiPromptRes;
 import com.isxcode.spark.api.user.constants.RoleType;
 import com.isxcode.spark.common.annotations.successResponse.SuccessResponse;
 import com.isxcode.spark.modules.ai.service.AiConfigBizService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @Tag(name = "ai-chat", description = "至轻智能")
@@ -118,5 +122,17 @@ public class AiChatController {
         return ResponseEntity.ok().contentType(MediaType.TEXT_EVENT_STREAM)
             .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-transform").header(HttpHeaders.CONNECTION, "keep-alive")
             .header("X-Accel-Buffering", "no").body(aiConfigBizService.streamChat(request));
+    }
+
+    @Operation(summary = "生成AI MCP配置")
+    @PostMapping("/mcp/config")
+    @SuccessResponse("生成成功")
+    public AiMcpConfigRes generateMcpConfig(@Valid @RequestBody GenerateAiMcpConfigReq request,
+        HttpServletRequest servletRequest) {
+
+        String mcpUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
+            .replacePath(servletRequest.getContextPath() + "/api/workspace/ai/mcp").replaceQuery(null).build()
+            .toUriString();
+        return aiConfigBizService.generateMcpConfig(request, mcpUrl);
     }
 }

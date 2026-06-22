@@ -463,6 +463,16 @@ onMounted(() => {
                 margin-right: 12px;
             }
         }
+        .metadata-action-group {
+            justify-content: center;
+            gap: 16px;
+
+            span {
+                line-height: 1;
+                font-size: getCssVar('font-size', 'extra-small');
+                white-space: nowrap;
+            }
+        }
     }
 }
 </style>

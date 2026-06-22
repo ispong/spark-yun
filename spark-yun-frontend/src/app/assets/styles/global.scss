@@ -61,6 +61,42 @@ body {
                     color: getCssVar('color', 'primary');
                 }
             }
+            .click-show-more {
+                display: inline-flex;
+                align-items: center;
+                line-height: 1;
+                font-family: Avenir, Helvetica, Arial, sans-serif;
+                font-size: getCssVar('font-size', 'extra-small');
+                white-space: nowrap;
+            }
+        }
+    }
+}
+
+.zqy-action-dropdown,
+.el-dropdown__popper[class*='action-dropdown'] {
+    .el-dropdown-menu {
+        width: max-content;
+        min-width: unset;
+        padding: 6px 0 !important;
+    }
+
+    .el-dropdown-menu__item {
+        display: flex !important;
+        align-items: center;
+        justify-content: flex-start;
+        box-sizing: border-box;
+        width: auto;
+        height: 30px !important;
+        line-height: 30px !important;
+        padding: 0 14px !important;
+        font-family: Avenir, Helvetica, Arial, sans-serif !important;
+        font-size: getCssVar('font-size', 'extra-small') !important;
+
+        span {
+            line-height: 30px;
+            font-family: Avenir, Helvetica, Arial, sans-serif;
+            font-size: getCssVar('font-size', 'extra-small');
         }
     }
 }

@@ -157,7 +157,7 @@ function getFormConfigById(tableLoading?: boolean) {
                         align: 'center',
                         customSlot: 'options',
                         fixed: 'right',
-                        width: 80
+                        width: 120
                     }
                 ]
             } else {

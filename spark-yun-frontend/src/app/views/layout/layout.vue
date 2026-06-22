@@ -21,7 +21,7 @@
                     @select="handleSelect"
                 >
                     <template v-for="menuData in menuViewData" :key="menuData.code">
-                        <el-sub-menu v-if="menuData.children?.length" :index="menuData.code">
+                        <el-sub-menu v-if="menuData.children?.length && !menuDisplayCollapse" :index="menuData.code">
                             <template #title>
                                 <el-icon class="zqy-layout__icon">
                                     <component :is="resolveIcon(menuData.icon)" />
@@ -41,7 +41,11 @@
                             </el-menu-item>
                         </el-sub-menu>
 
-                        <el-menu-item v-else :index="menuData.code">
+                        <el-menu-item
+                            v-else
+                            :index="resolveMenuIndex(menuData)"
+                            :class="{ 'is-active': menuDisplayCollapse && isMenuActive(menuData) }"
+                        >
                           <el-icon class="zqy-layout__icon">
                             <component :is="resolveIcon(menuData.icon)" />
                           </el-icon>
@@ -357,6 +361,20 @@ const mainPaddingLeft = computed(() => {
 
 function resolveIcon(icon: string) {
     return resolveComponent(icon)
+}
+
+function resolveMenuIndex(menu: Menu) {
+    return firstLeafMenu([menu])?.code || menu.code
+}
+
+function isMenuActive(menu: Menu) {
+    if (!currentMenu.value) {
+        return false
+    }
+    if (menu.code === currentMenu.value.code || menu.childPage?.includes(currentMenu.value.code)) {
+        return true
+    }
+    return !!menu.children?.some((child) => isMenuActive(child))
 }
 
 function filterWorkspaceMenus(menuList: Menu[]): Menu[] {

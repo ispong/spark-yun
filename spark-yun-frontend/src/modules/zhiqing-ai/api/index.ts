@@ -67,6 +67,14 @@ export function DeleteAiPrompt(params: any): Promise<any> {
     })
 }
 
+export function GenerateAiMcpConfig(params: any): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/api/workspace/ai/mcp/config',
+        params
+    })
+}
+
 export async function ParseChatFile(file: File): Promise<any> {
     const authStore = useAuthStore()
     const urlPrefix = import.meta.env.VITE_VUE_APP_BASE_DOMAIN || ''

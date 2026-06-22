@@ -26,12 +26,11 @@ bootJar {
         into 'BOOT-INF/classes'
     }
 
-    from(rootProject.file('spark-yun-dist/build/distributions/zhiqingyun-agent.tar.gz')) {
-        into 'BOOT-INF/classes/agent'
-    }
 }
 
 processResources {
+
+    dependsOn(':spark-yun-dist:build_agent')
 
     from(rootDir.getAbsolutePath() + '/VERSION') {
         into '.'
@@ -40,6 +39,10 @@ processResources {
     from(rootDir.getAbsolutePath() + '/resources/libs') {
         include 'libprql_*'
         into '.'
+    }
+
+    from(rootProject.file('spark-yun-dist/build/distributions/zhiqingyun-agent.tar.gz')) {
+        into 'agent'
     }
 }
 

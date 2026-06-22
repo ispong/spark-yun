@@ -10,7 +10,10 @@
 
             <div class="report-item-config">
                 <el-tabs tab-position="left">
-                    <el-tab-pane label="基础配置">
+                    <el-tab-pane>
+                        <template #label>
+                            <span class="report-item-tab-label">基础配置</span>
+                        </template>
                         <div class="config-item">
                             <div class="item-title">基础配置</div>
                             <el-scrollbar>
@@ -91,7 +94,10 @@
                             </el-scrollbar>
                         </div>
                     </el-tab-pane>
-                    <el-tab-pane label="图表设置">
+                    <el-tab-pane>
+                        <template #label>
+                            <span class="report-item-tab-label">图表设置</span>
+                        </template>
                         <div class="config-item">
                             <div class="item-title">图表设置</div>
                             <el-scrollbar>
@@ -419,61 +425,99 @@ onUnmounted(() => {
         align-items: center;
         .charts-container {
             height: 50%;
-            width: 100%;
+            flex: 1;
+            min-width: 0;
         }
+
         .report-item-config {
             width: 360px;
+            flex: 0 0 360px;
             height: 100%;
             border-left: 1px solid var(--el-border-color);
             background-color: #ffffff;
-            padding-top: 12px;
             box-sizing: border-box;
             position: relative;
 
             .el-tabs {
-                position: absolute;
-                left: -41px;
-                width: calc(100% + 40px);
-                top: 0;
+                position: relative;
+                left: -48px;
+                width: calc(100% + 48px);
+                height: 100%;
+
                 .el-tabs__header {
                     margin-right: 0;
                     border-left: 1px solid var(--el-border-color);
+
                     .el-tabs__item {
-                        width: 40px;
+                        width: 48px;
                         padding: 0;
                         font-size: 12px;
                         display: flex;
                         justify-content: center;
-                        white-space: pre-wrap;
-                        padding: 0 14px;
-                        height: 68px;
+                        align-items: center;
+                        line-height: 1;
+                        height: 96px;
                         border-right: 1px solid var(--el-border-color);
                         border-bottom: 1px solid var(--el-border-color);
                         background-color: #ffffff;
+                        box-sizing: border-box;
+
+                        .report-item-tab-label {
+                            writing-mode: vertical-rl;
+                            text-orientation: upright;
+                            letter-spacing: 0;
+                            white-space: nowrap;
+                        }
                     }
                 }
+
                 .el-tabs__content {
-                    padding-top: 12px;
+                    height: 100%;
+                    background-color: #ffffff;
                 }
             }
 
             .el-scrollbar {
                 .el-scrollbar__view {
-                    height: calc(100vh - 80px);
-                    padding-right: 0px;
+                    height: calc(100vh - 112px);
                 }
             }
 
             .item-title {
-                font-size: 12px;
-                padding-bottom: 12px;
-                padding-left: 12px;
+                height: 44px;
+                line-height: 43px;
+                font-size: 14px;
+                padding: 0 20px;
                 box-sizing: border-box;
                 border-bottom: 1px solid #ebeef5;
             }
             .el-form {
-                padding: 12px 12px;
+                padding: 18px 20px 8px;
                 box-sizing: border-box;
+
+                .el-form-item {
+                    margin-bottom: 22px;
+
+                    .el-form-item__label {
+                        height: 18px;
+                        line-height: 18px;
+                        margin-bottom: 6px;
+                        padding: 0;
+                        color: getCssVar('text-color', 'regular');
+                    }
+
+                    .el-input,
+                    .el-select,
+                    .el-input-number {
+                        width: 100%;
+                    }
+
+                    .el-input__wrapper,
+                    .el-select__wrapper {
+                        border-radius: 2px;
+                    }
+                }
+
                 .el-form-item {
                     &.sqls-container {
                         .el-form-item__label {

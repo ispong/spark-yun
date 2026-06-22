@@ -525,7 +525,7 @@ const memberTableConfig = computed(() => ({
         },
         {
             title: '操作',
-            width: 90,
+            width: 120,
             align: 'center',
             customSlot: 'options'
         }

@@ -1,6 +1,6 @@
 <template>
     <BlockModal :model-config="modelConfig">
-        <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
+        <el-form ref="form" class="report-view-form zqy-block-modal-form" label-position="top" :model="formData" :rules="rules">
             <el-form-item label="名称" prop="name">
                 <el-input v-model="formData.name" maxlength="100" placeholder="请输入" show-word-limit />
             </el-form-item>
@@ -22,11 +22,9 @@
 import { reactive, defineExpose, ref, nextTick } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { GetUserInfoList } from '@/app/shared/api/user'
 
 const form = ref<FormInstance>()
 const callback = ref<any>()
-const userList = ref([])
 const renderSence = ref('new')
 const modelConfig = reactive({
     title: '新建大屏',
@@ -45,6 +43,7 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
+    customClass: 'report-view-modal',
     closeOnClickModal: false
 })
 const formData = reactive({
@@ -117,3 +116,15 @@ defineExpose({
     showModal
 })
 </script>
+
+<style lang="scss">
+.report-view-modal.zqy-block-modal {
+    .report-view-form {
+        .el-form-item__content {
+            position: relative;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+        }
+    }
+}
+</style>

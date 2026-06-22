@@ -117,6 +117,7 @@ const modelConfig = reactive({
     },
     needScale: false,
     zIndex: 1100,
+    customClass: 'message-notification-add-modal',
     closeOnClickModal: false
 })
 const formData = reactive({
@@ -143,7 +144,7 @@ const rules = reactive<FormRules>({
     name: [
         {
             required: true,
-            message: '请输入函数名',
+            message: '请输入名称',
             trigger: ['blur', 'change']
         }
     ],
@@ -296,16 +297,87 @@ defineExpose({
 </script>
 
 <style lang="scss">
-.license-upload {
-    margin: 20px;
+.message-notification-add-modal.zqy-block-modal {
+    --message-modal-x-padding: 20px;
+    --message-modal-border-color: #ebeef5;
 
-    .el-upload {
-        .el-upload-dragger {
-            border-radius: getCssVar('border-radius', 'small');
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--message-modal-x-padding) 8px !important;
+        margin-right: 0;
+        border-bottom: none;
 
-            .el-upload__text {
-                font-size: getCssVar('font-size', 'extra-small');
-            }
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--message-modal-border-color);
+        }
+
+        .el-dialog__headerbtn {
+            top: 0;
+            width: 42px;
+            height: 46px;
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        line-height: 28px;
+    }
+
+    .el-dialog__body {
+        padding: 0 !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--message-modal-x-padding);
+        align-items: center;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--message-modal-border-color);
+        }
+    }
+
+    .add-computer-group {
+        box-sizing: border-box;
+        padding: 14px var(--message-modal-x-padding) 4px;
+
+        .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item__label {
+            width: 100%;
+            padding: 0;
+            margin-bottom: 4px;
+            line-height: 16px;
+            color: getCssVar('text-color', 'regular');
+        }
+
+        .el-form-item__content,
+        .el-input,
+        .el-select,
+        .el-textarea {
+            width: 100%;
+        }
+
+        .el-input__wrapper,
+        .el-textarea__inner {
+            border-radius: 2px;
         }
     }
 }

@@ -152,6 +152,7 @@ app:
     - /auth
     - /share/**
     - /dashboard/**
+    - /api/workspace/ai/mcp
     - /*/open/**
     - /vip/*/open/**
     - /*/api/**

@@ -125,7 +125,7 @@ const tableConfig = reactive({
         {
             title: '操作',
             align: 'center',
-            width: 72,
+            width: 120,
             customSlot: 'options'
         }
     ],
@@ -329,6 +329,22 @@ onUnmounted(() => {
         .vxe-table--main-wrapper,
         .vxe-table--body-wrapper {
             border-radius: 0;
+        }
+
+        .block-table.block-table__empty {
+            .vxe-table--render-wrapper {
+                min-height: 100%;
+            }
+
+            .vxe-table--empty-content {
+                height: 376px;
+            }
+
+            .empty-page {
+                width: 100%;
+                right: auto;
+                left: 0;
+            }
         }
     }
 
