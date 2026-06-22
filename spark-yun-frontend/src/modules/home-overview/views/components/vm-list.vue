@@ -318,7 +318,7 @@ onUnmounted(() => {
 
     .vm-list__table-wrap {
         position: relative;
-        height: 420px;
+        height: 434px;
         overflow: hidden;
 
         .block-table {

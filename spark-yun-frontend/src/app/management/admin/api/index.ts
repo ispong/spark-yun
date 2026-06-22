@@ -4,7 +4,7 @@ export function PageRole(params: any): Promise<any> {
     return http.request({
         method: 'post',
         url: '/api/admin/roles/page',
-        params
+        data: params
     })
 }
 
@@ -12,7 +12,7 @@ export function ListRole(params: { tenantId?: string } = {}): Promise<any> {
     return http.request({
         method: 'post',
         url: '/api/admin/roles/list',
-        params
+        data: params
     })
 }
 
@@ -20,7 +20,7 @@ export function SaveRole(params: any): Promise<any> {
     return http.request({
         method: 'post',
         url: '/api/admin/roles/save',
-        params
+        data: params
     })
 }
 
@@ -28,7 +28,7 @@ export function DeleteRole(params: any): Promise<any> {
     return http.request({
         method: 'post',
         url: '/api/admin/roles/delete',
-        params
+        data: params
     })
 }
 

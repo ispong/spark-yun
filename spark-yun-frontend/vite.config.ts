@@ -9,6 +9,41 @@ import Components from 'unplugin-vue-components/vite'
 import {ElementPlusResolver} from 'unplugin-vue-components/resolvers'
 import {readFileSync} from 'node:fs'
 
+function patchRolldownVueInitPlugin() {
+    const initFns = [
+        'init_reactivity_esm_bundler',
+        'init_runtime_core_esm_bundler',
+        'init_runtime_dom_esm_bundler',
+        'init_shared_esm_bundler'
+    ]
+
+    return {
+        name: 'patch-rolldown-vue-init',
+        augmentChunkHash(chunkInfo: { name: string }) {
+            if (chunkInfo.name === 'vue-router' || chunkInfo.name === 'vue-vendor') {
+                return 'patch-rolldown-vue-init-v1'
+            }
+
+            return null
+        },
+        generateBundle(_options: unknown, bundle: Record<string, any>) {
+            Object.values(bundle).forEach((chunk) => {
+                if (chunk.type !== 'chunk') {
+                    return
+                }
+
+                const missingInitFns = initFns.filter(
+                    (fn) => chunk.code.includes(`${fn}()`) && !chunk.code.includes(`function ${fn}`)
+                )
+
+                if (missingInitFns.length) {
+                    chunk.code = `${missingInitFns.map((fn) => `var ${fn}=()=>{};`).join('')}${chunk.code}`
+                }
+            })
+        }
+    }
+}
+
 // 负责启动部署
 export default defineConfig({
 
@@ -40,7 +75,8 @@ export default defineConfig({
             resolvers: [ElementPlusResolver({
                 importStyle: 'sass'  // 引入sass版本的element组件库，需要自定义样式
             })]
-        })
+        }),
+        patchRolldownVueInitPlugin()
     ],
 
     // 构建配置
