@@ -26,28 +26,32 @@ export interface TableConfig {
     colConfigs: Array<colConfig>
     seqType: string
     checkbox?: boolean
-    pagination?: Pagination // 分页数据
-    loading?: boolean // 表格loading
+    pagination?: Pagination
+    loading?: boolean
 }
 
-export const BreadCrumbList: Array<BreadCrumb> = [
+type Translate = (key: string) => string
+
+const fallbackTranslate: Translate = (key: string) => key
+
+export const createBreadCrumbList = (t: Translate = fallbackTranslate): Array<BreadCrumb> => [
     {
-        name: '免密登录',
+        name: t('oauthManagement.title'),
         code: 'oauth-management'
     }
 ]
 
-export const colConfigs: colConfig[] = [
+export const createColConfigs = (t: Translate = fallbackTranslate): colConfig[] => [
     {
         prop: 'name',
-        title: '名称',
+        title: t('oauthManagement.name'),
         minWidth: 125,
         customSlot: 'name',
         showOverflowTooltip: true
     },
     {
         prop: 'ssoType',
-        title: '类型',
+        title: t('oauthManagement.type'),
         minWidth: 100,
         customSlot: 'ssoType'
     },
@@ -58,23 +62,23 @@ export const colConfigs: colConfig[] = [
     },
     {
         prop: 'status',
-        title: '状态',
+        title: t('oauthManagement.status'),
         minWidth: 100,
         customSlot: 'statusTag'
     },
     {
         prop: 'createDateTime',
-        title: '创建时间',
+        title: t('oauthManagement.createTime'),
         minWidth: 110
     },
     {
         prop: 'remark',
-        title: '备注',
+        title: t('oauthManagement.remark'),
         minWidth: 100,
         showOverflowTooltip: true
     },
     {
-        title: '操作',
+        title: t('oauthManagement.options'),
         align: 'center',
         customSlot: 'options',
         width: 120,
@@ -82,9 +86,9 @@ export const colConfigs: colConfig[] = [
     }
 ]
 
-export const TableConfig: TableConfig = {
+export const createTableConfig = (t: Translate = fallbackTranslate): TableConfig => ({
     tableData: [],
-    colConfigs: colConfigs,
+    colConfigs: createColConfigs(t),
     checkbox: true,
     pagination: {
         currentPage: 1,
@@ -93,4 +97,8 @@ export const TableConfig: TableConfig = {
     },
     seqType: 'seq',
     loading: false
-}
+})
+
+export const BreadCrumbList: Array<BreadCrumb> = createBreadCrumbList()
+export const colConfigs: colConfig[] = createColConfigs()
+export const TableConfig: TableConfig = createTableConfig()

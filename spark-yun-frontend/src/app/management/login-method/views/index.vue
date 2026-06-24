@@ -8,17 +8,17 @@
                         <div class="zqy-login-method__card-header">
                             <div class="zqy-login-method__card-name">
                                 <el-icon><User /></el-icon>
-                                账号登录
+                                {{ t('loginMethod.accountLogin') }}
                             </div>
                             <div class="zqy-login-method__header-switches zqy-login-method__header-placeholder" aria-hidden="true">
-                                <span>启用</span>
+                                <span>{{ t('loginMethod.enable') }}</span>
                                 <el-switch disabled />
                             </div>
                         </div>
                     </template>
                     <div class="zqy-login-method__card-body">
                         <div class="zqy-login-method__option-row">
-                            <span>默认登录方式</span>
+                            <span>{{ t('loginMethod.defaultLoginMethod') }}</span>
                             <el-switch
                                 :model-value="form.defaultLoginMethod === 'ACCOUNT'"
                                 :disabled="saving"
@@ -26,7 +26,7 @@
                             />
                         </div>
                         <div class="zqy-login-method__option-row">
-                            <span>手机+密码登录</span>
+                            <span>{{ t('loginMethod.phonePasswordLogin') }}</span>
                             <el-switch
                                 v-model="form.accountPhonePasswordEnabled"
                                 :disabled="saving"
@@ -34,7 +34,7 @@
                             />
                         </div>
                         <div class="zqy-login-method__option-row">
-                            <span>邮箱+密码登录</span>
+                            <span>{{ t('loginMethod.emailPasswordLogin') }}</span>
                             <el-switch
                                 v-model="form.accountEmailPasswordEnabled"
                                 :disabled="saving"
@@ -49,17 +49,17 @@
                         <div class="zqy-login-method__card-header">
                             <div class="zqy-login-method__card-name">
                                 <el-icon><Iphone /></el-icon>
-                                手机登录
+                                {{ t('loginMethod.phoneLogin') }}
                             </div>
                             <div class="zqy-login-method__header-switches">
-                                <span>启用</span>
+                                <span>{{ t('loginMethod.enable') }}</span>
                                 <el-switch v-model="form.phoneEnabled" :loading="saving" @change="persistConfig" />
                             </div>
                         </div>
                     </template>
                     <div class="zqy-login-method__card-body">
                         <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.phoneEnabled }">
-                            <span>默认登录方式</span>
+                            <span>{{ t('loginMethod.defaultLoginMethod') }}</span>
                             <el-switch
                                 :model-value="form.defaultLoginMethod === 'PHONE'"
                                 :disabled="!form.phoneEnabled || saving"
@@ -67,7 +67,7 @@
                             />
                         </div>
                         <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.phoneEnabled }">
-                            <span>自动注册</span>
+                            <span>{{ t('loginMethod.autoRegister') }}</span>
                             <el-switch
                                 v-model="form.phoneRegisterEnabled"
                                 :disabled="!form.phoneEnabled || saving"
@@ -81,7 +81,7 @@
                             :disabled="!form.phoneEnabled || saving"
                             @click="openPhoneConfig"
                         >
-                            <span>短信配置</span>
+                            <span>{{ t('loginMethod.smsConfig') }}</span>
                             <el-icon><Setting /></el-icon>
                         </button>
                     </div>
@@ -92,17 +92,17 @@
                         <div class="zqy-login-method__card-header">
                             <div class="zqy-login-method__card-name">
                                 <el-icon><Message /></el-icon>
-                                邮箱登录
+                                {{ t('loginMethod.emailLogin') }}
                             </div>
                             <div class="zqy-login-method__header-switches">
-                                <span>启用</span>
+                                <span>{{ t('loginMethod.enable') }}</span>
                                 <el-switch v-model="form.emailEnabled" :loading="saving" @change="persistConfig" />
                             </div>
                         </div>
                     </template>
                     <div class="zqy-login-method__card-body">
                         <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.emailEnabled }">
-                            <span>默认登录方式</span>
+                            <span>{{ t('loginMethod.defaultLoginMethod') }}</span>
                             <el-switch
                                 :model-value="form.defaultLoginMethod === 'EMAIL'"
                                 :disabled="!form.emailEnabled || saving"
@@ -110,7 +110,7 @@
                             />
                         </div>
                         <div class="zqy-login-method__option-row" :class="{ 'is-disabled': !form.emailEnabled }">
-                            <span>自动注册</span>
+                            <span>{{ t('loginMethod.autoRegister') }}</span>
                             <el-switch
                                 v-model="form.emailRegisterEnabled"
                                 :disabled="!form.emailEnabled || saving"
@@ -124,7 +124,7 @@
                             :disabled="!form.emailEnabled || saving"
                             @click="openEmailConfig"
                         >
-                            <span>邮箱配置</span>
+                            <span>{{ t('loginMethod.emailConfig') }}</span>
                             <el-icon><Setting /></el-icon>
                         </button>
                     </div>
@@ -135,7 +135,7 @@
         <el-dialog
             v-model="phoneConfigVisible"
             class="login-method-config-dialog"
-            title="短信配置"
+            :title="t('loginMethod.smsConfig')"
             width="520px"
         >
             <el-form
@@ -145,9 +145,9 @@
                 :model="form.config.phoneConfig"
                 :rules="phoneConfigRules"
             >
-                <el-form-item label="类型" prop="provider">
+                <el-form-item :label="t('loginMethod.type')" prop="provider">
                     <el-select v-model="form.config.phoneConfig.provider">
-                        <el-option label="阿里云短信" value="ALIYUN" />
+                        <el-option :label="t('loginMethod.aliyunSms')" value="ALIYUN" />
                     </el-select>
                 </el-form-item>
                 <el-form-item label="RegionId" prop="regionId">
@@ -161,20 +161,20 @@
                         v-model="form.config.phoneConfig.accessKeySecret"
                         type="password"
                         show-password
-                        placeholder="留空表示不修改"
+                        :placeholder="t('loginMethod.leaveBlankKeep')"
                     />
                 </el-form-item>
-                <el-form-item label="短信签名" prop="signName">
+                <el-form-item :label="t('loginMethod.smsSignName')" prop="signName">
                     <el-input v-model="form.config.phoneConfig.signName" />
                 </el-form-item>
-                <el-form-item label="模板Code" prop="templateCode">
+                <el-form-item :label="t('loginMethod.templateCode')" prop="templateCode">
                     <el-input v-model="form.config.phoneConfig.templateCode" />
                 </el-form-item>
-                <el-form-item label="验证码变量名" prop="templateParamName">
+                <el-form-item :label="t('loginMethod.codeParamName')" prop="templateParamName">
                     <el-input v-model="form.config.phoneConfig.templateParamName" />
                 </el-form-item>
-                <el-form-item label="测试手机号">
-                    <el-input v-model="phoneTestReceiver" placeholder="请输入接收手机号" />
+                <el-form-item :label="t('loginMethod.testPhone')">
+                    <el-input v-model="phoneTestReceiver" :placeholder="t('loginMethod.inputTestPhone')" />
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -186,7 +186,7 @@
                             :loading="testingChannel === 'PHONE'"
                             @click="testConfig('PHONE')"
                         >
-                            测试发送
+                            {{ t('loginMethod.testSend') }}
                         </el-button>
                         <el-button
                             v-if="phoneTestErrorMessage"
@@ -195,12 +195,14 @@
                             type="danger"
                             @click="showPhoneTestError"
                         >
-                            连接失败
+                            {{ t('loginMethod.connectionFailed') }}
                         </el-button>
                     </div>
                     <div class="login-method-config-dialog__footer-actions">
-                        <el-button @click="phoneConfigVisible = false">关闭</el-button>
-                        <el-button type="primary" :loading="saving" @click="saveConfigWithMessage">保存配置</el-button>
+                        <el-button @click="phoneConfigVisible = false">{{ t('common.close') }}</el-button>
+                        <el-button type="primary" :loading="saving" @click="saveConfigWithMessage">
+                            {{ t('loginMethod.saveConfig') }}
+                        </el-button>
                     </div>
                 </div>
             </template>
@@ -209,7 +211,7 @@
         <el-dialog
             v-model="emailConfigVisible"
             class="login-method-config-dialog"
-            title="邮箱配置"
+            :title="t('loginMethod.emailConfig')"
             width="520px"
         >
             <el-form
@@ -219,26 +221,26 @@
                 :model="form.config.emailConfig"
                 :rules="emailConfigRules"
             >
-                <el-form-item label="类型" prop="provider">
+                <el-form-item :label="t('loginMethod.type')" prop="provider">
                     <el-select v-model="form.config.emailConfig.provider" @change="applyEmailProvider">
-                        <el-option label="邮箱" value="QQ" />
+                        <el-option :label="t('loginMethod.email')" value="QQ" />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="SMTP服务器" prop="host">
+                <el-form-item :label="t('loginMethod.smtpServer')" prop="host">
                     <el-input v-model="form.config.emailConfig.host" />
                 </el-form-item>
-                <el-form-item label="SMTP端口" prop="port">
+                <el-form-item :label="t('loginMethod.smtpPort')" prop="port">
                     <el-input-number v-model="form.config.emailConfig.port" :min="1" :max="65535" :controls="false" />
                 </el-form-item>
-                <el-form-item label="用户名" prop="username">
+                <el-form-item :label="t('loginMethod.username')" prop="username">
                     <el-input v-model="form.config.emailConfig.username" />
                 </el-form-item>
-                <el-form-item label="授权码">
+                <el-form-item :label="t('loginMethod.authCode')">
                     <el-input
                         v-model="form.config.emailConfig.password"
                         type="password"
                         show-password
-                        placeholder="留空表示不修改"
+                        :placeholder="t('loginMethod.leaveBlankKeep')"
                     />
                 </el-form-item>
                 <div class="zqy-login-method__switch-row">
@@ -249,8 +251,8 @@
                         <el-switch v-model="form.config.emailConfig.startTls" />
                     </el-form-item>
                 </div>
-                <el-form-item label="测试邮箱">
-                    <el-input v-model="emailTestReceiver" placeholder="请输入接收邮箱" />
+                <el-form-item :label="t('loginMethod.testEmail')">
+                    <el-input v-model="emailTestReceiver" :placeholder="t('loginMethod.inputTestEmail')" />
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -262,7 +264,7 @@
                             :loading="testingChannel === 'EMAIL'"
                             @click="testConfig('EMAIL')"
                         >
-                            测试发送
+                            {{ t('loginMethod.testSend') }}
                         </el-button>
                         <el-button
                             v-if="emailTestErrorMessage"
@@ -271,12 +273,14 @@
                             type="danger"
                             @click="showEmailTestError"
                         >
-                            连接失败
+                            {{ t('loginMethod.connectionFailed') }}
                         </el-button>
                     </div>
                     <div class="login-method-config-dialog__footer-actions">
-                        <el-button @click="emailConfigVisible = false">关闭</el-button>
-                        <el-button type="primary" :loading="saving" @click="saveConfigWithMessage">保存配置</el-button>
+                        <el-button @click="emailConfigVisible = false">{{ t('common.close') }}</el-button>
+                        <el-button type="primary" :loading="saving" @click="saveConfigWithMessage">
+                            {{ t('loginMethod.saveConfig') }}
+                        </el-button>
                     </div>
                 </div>
             </template>
@@ -285,10 +289,11 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { Iphone, Message, Setting, User } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
@@ -300,9 +305,10 @@ import {
     type LoginMethodConfig,
     type LoginMethodType
 } from '@/app/management/login-method/api'
-import { BreadCrumbList } from './login-method.config'
+import { createBreadCrumbList } from './login-method.config'
 
-const breadCrumbList = reactive(BreadCrumbList)
+const { t, locale } = useI18n()
+const breadCrumbList = reactive(createBreadCrumbList(t))
 const loading = ref(false)
 const saving = ref(false)
 const networkError = ref(false)
@@ -319,20 +325,20 @@ const phonePattern = /^1[3-9]\d{9}$/
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const requiredRule = (message: string) => [{ required: true, message, trigger: ['blur', 'change'] }]
-const phoneConfigRules: FormRules = {
-    provider: requiredRule('请选择类型'),
-    regionId: requiredRule('请输入RegionId'),
-    accessKeyId: requiredRule('请输入AccessKeyId'),
-    signName: requiredRule('请输入短信签名'),
-    templateCode: requiredRule('请输入模板Code'),
-    templateParamName: requiredRule('请输入验证码变量名')
-}
-const emailConfigRules: FormRules = {
-    provider: requiredRule('请选择类型'),
-    host: requiredRule('请输入SMTP服务器'),
-    port: requiredRule('请输入SMTP端口'),
-    username: requiredRule('请输入用户名')
-}
+const phoneConfigRules = computed<FormRules>(() => ({
+    provider: requiredRule(t('loginMethod.selectType')),
+    regionId: requiredRule(t('loginMethod.inputRegionId')),
+    accessKeyId: requiredRule(t('loginMethod.inputAccessKeyId')),
+    signName: requiredRule(t('loginMethod.inputSmsSignName')),
+    templateCode: requiredRule(t('loginMethod.inputTemplateCode')),
+    templateParamName: requiredRule(t('loginMethod.inputCodeParamName'))
+}))
+const emailConfigRules = computed<FormRules>(() => ({
+    provider: requiredRule(t('loginMethod.selectType')),
+    host: requiredRule(t('loginMethod.inputSmtpServer')),
+    port: requiredRule(t('loginMethod.inputSmtpPort')),
+    username: requiredRule(t('loginMethod.inputUsername'))
+}))
 
 const form = reactive<LoginMethodConfig>(createDefaultForm())
 
@@ -352,10 +358,10 @@ function createDefaultForm(): LoginMethodConfig {
                 provider: 'QQ',
                 host: 'smtp.qq.com',
                 port: 465,
-                fromName: '至轻云',
+                fromName: t('loginMethod.defaultFromName'),
                 ssl: true,
                 startTls: false,
-                subject: '至轻云登录验证码'
+                subject: t('loginMethod.defaultSubject')
             },
             phoneConfig: {
                 provider: 'ALIYUN',
@@ -401,10 +407,17 @@ function cloneForm(): LoginMethodConfig {
         data.config.emailConfig.provider === 'QQ'
             ? data.config.emailConfig.username || ''
             : data.config.emailConfig.fromAddress || data.config.emailConfig.username || ''
-    data.config.emailConfig.fromName = data.config.emailConfig.fromName || '至轻云'
-    data.config.emailConfig.subject = data.config.emailConfig.subject || '至轻云登录验证码'
+    data.config.emailConfig.fromName = data.config.emailConfig.fromName || t('loginMethod.defaultFromName')
+    data.config.emailConfig.subject = data.config.emailConfig.subject || t('loginMethod.defaultSubject')
     return data
 }
+
+watch(locale, () => {
+    const nextBreadCrumbList = createBreadCrumbList(t)
+    breadCrumbList.splice(0, breadCrumbList.length, ...nextBreadCrumbList)
+    phoneConfigFormRef.value?.clearValidate()
+    emailConfigFormRef.value?.clearValidate()
+})
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -440,7 +453,7 @@ async function validateVisibleConfigForm(): Promise<boolean> {
         await formRef.validate()
         return true
     } catch {
-        ElMessage.warning('请将表单输入完整')
+        ElMessage.warning(t('validation.completeForm'))
         return false
     }
 }
@@ -455,7 +468,7 @@ async function validateConfigForm(channel: LoginChannel): Promise<boolean> {
         await formRef.validate()
         return true
     } catch {
-        ElMessage.warning('请将表单输入完整')
+        ElMessage.warning(t('validation.completeForm'))
         return false
     }
 }
@@ -504,7 +517,7 @@ function validateConfig() {
 
 function changeDefaultLoginMethod(loginMethod: LoginMethodType, enabled: boolean | string | number) {
     if (!enabled) {
-        ElMessage.warning('默认登录方式必须保留一个')
+        ElMessage.warning(t('loginMethod.defaultRequired'))
         return
     }
     form.defaultLoginMethod = loginMethod
@@ -546,25 +559,25 @@ async function testConfig(channel: LoginChannel) {
         return
     }
     if (channel === 'PHONE' && !form.config.phoneConfig.accessKeySecret) {
-        ElMessage.warning('请输入AccessKeySecret')
+        ElMessage.warning(t('loginMethod.inputAccessKeySecret'))
         return
     }
     if (channel === 'EMAIL' && !form.config.emailConfig.password) {
-        ElMessage.warning('请输入授权码')
+        ElMessage.warning(t('loginMethod.inputAuthCode'))
         return
     }
 
     const receiver = (channel === 'PHONE' ? phoneTestReceiver.value : emailTestReceiver.value).trim()
     if (!receiver) {
-        ElMessage.warning(channel === 'PHONE' ? '请输入测试手机号' : '请输入测试邮箱')
+        ElMessage.warning(channel === 'PHONE' ? t('loginMethod.inputTestPhone') : t('loginMethod.inputTestEmail'))
         return
     }
     if (channel === 'PHONE' && !phonePattern.test(receiver)) {
-        ElMessage.warning('请输入正确的测试手机号')
+        ElMessage.warning(t('loginMethod.invalidTestPhone'))
         return
     }
     if (channel === 'EMAIL' && !emailPattern.test(receiver)) {
-        ElMessage.warning('请输入正确的测试邮箱')
+        ElMessage.warning(t('loginMethod.invalidTestEmail'))
         return
     }
     testingChannel.value = channel
@@ -580,7 +593,7 @@ async function testConfig(channel: LoginChannel) {
             channel,
             receiver
         })
-        ElMessage.success('测试发送成功')
+        ElMessage.success(t('loginMethod.testSendSuccess'))
     } catch (error) {
         if (channel === 'PHONE') {
             phoneTestErrorMessage.value = getErrorMessage(error)
@@ -605,19 +618,19 @@ function getErrorMessage(error: unknown) {
         const data = error as { msg?: string; message?: string }
         return data.msg || data.message || JSON.stringify(error)
     }
-    return '测试发送失败'
+    return t('loginMethod.testSendFailed')
 }
 
 function showPhoneTestError() {
-    ElMessageBox.alert(phoneTestErrorMessage.value, '连接失败', {
-        confirmButtonText: '确定',
+    ElMessageBox.alert(phoneTestErrorMessage.value, t('loginMethod.connectionFailed'), {
+        confirmButtonText: t('common.confirm'),
         customClass: 'login-method-test-error-dialog'
     })
 }
 
 function showEmailTestError() {
-    ElMessageBox.alert(emailTestErrorMessage.value, '连接失败', {
-        confirmButtonText: '确定',
+    ElMessageBox.alert(emailTestErrorMessage.value, t('loginMethod.connectionFailed'), {
+        confirmButtonText: t('common.confirm'),
         customClass: 'login-method-test-error-dialog'
     })
 }

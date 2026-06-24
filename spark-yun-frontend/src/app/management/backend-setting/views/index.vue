@@ -1,16 +1,23 @@
 <template>
-    <Breadcrumb :bread-crumb-list="[{ name: '后台设置', code: 'backend-setting' }]" />
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
     <div class="zqy-backend-setting backend-setting-page">
         <LoadingPage :visible="loading" :network-error="networkError" @loading-refresh="loadSetting">
             <div class="zqy-backend-setting__wrap">
                 <el-form ref="formRef" class="zqy-backend-setting__form" label-position="top" :model="form" :rules="rules">
                     <div class="zqy-backend-setting__section">
-                        <el-form-item label="租户名称" prop="name">
-                            <el-input v-model="form.name" maxlength="100" placeholder="请输入租户名称" show-word-limit />
+                        <el-form-item :label="t('backendSetting.tenantName')" prop="name">
+                            <el-input
+                                v-model="form.name"
+                                maxlength="100"
+                                :placeholder="t('backendSetting.inputTenantName')"
+                                show-word-limit
+                            />
                         </el-form-item>
                     </div>
                     <div class="zqy-backend-setting__actions">
-                        <el-button type="primary" :loading="saving" @click="saveSetting">保存</el-button>
+                        <el-button type="primary" :loading="saving" @click="saveSetting">
+                            {{ t('common.save') }}
+                        </el-button>
                     </div>
                 </el-form>
             </div>
@@ -19,14 +26,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import { useAuthStore } from '@/app/store/useAuth'
 import eventBus from '@/app/utils/eventBus'
 import { GetTenant, UpdateTenantForTenantAdmin } from '@/app/management/backend-setting/api'
 
+const { t } = useI18n({ useScope: 'global' })
 const authStore = useAuthStore()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
@@ -36,15 +45,21 @@ const form = reactive({
     id: '',
     name: ''
 })
-const rules = reactive<FormRules>({
+const breadCrumbList = computed(() => [
+    {
+        name: t('menu.backend-setting'),
+        code: 'backend-setting'
+    }
+])
+const rules = computed<FormRules>(() => ({
     name: [
         {
             required: true,
-            message: '请输入租户名称',
+            message: t('backendSetting.inputTenantName'),
             trigger: ['blur', 'change']
         }
     ]
-})
+}))
 
 function loadSetting() {
     if (!authStore.tenantId) {
@@ -74,7 +89,7 @@ function saveSetting() {
         }
         form.name = form.name.trim()
         if (!form.name) {
-            ElMessage.warning('请输入租户名称')
+            ElMessage.warning(t('backendSetting.inputTenantName'))
             return
         }
         saving.value = true
@@ -83,7 +98,7 @@ function saveSetting() {
             name: form.name
         })
             .then(() => {
-                ElMessage.success('保存成功')
+                ElMessage.success(t('backendSetting.saveSuccess'))
                 eventBus.emit('tenantListUpdate')
                 loadSetting()
             })

@@ -2,11 +2,11 @@
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
     <div class="zqy-seach-table oauth-management-page">
         <div class="zqy-table-top">
-            <el-button type="primary" @click="addData">新建免密</el-button>
+            <el-button type="primary" @click="addData">{{ t('oauthManagement.addOauth') }}</el-button>
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
-                    placeholder="请输入备注 回车进行搜索"
+                    :placeholder="t('oauthManagement.searchPlaceholder')"
                     :maxlength="200"
                     clearable
                     @input="inputEvent"
@@ -17,16 +17,16 @@
                 <div v-if="selectedRows.length" class="oauth-batch-mask">
                     <div class="oauth-batch-actions">
                         <el-button class="oauth-batch-action" :loading="batchLoading" @click="batchEnableOauth">
-                            启用
+                            {{ t('oauthManagement.enable') }}
                         </el-button>
                         <el-button class="oauth-batch-action" :loading="batchLoading" @click="batchDisableOauth">
-                            禁用
+                            {{ t('oauthManagement.disable') }}
                         </el-button>
                         <el-button class="oauth-batch-action" :loading="batchLoading" @click="batchDeleteOauth">
-                            删除
+                            {{ t('oauthManagement.delete') }}
                         </el-button>
                         <el-button class="oauth-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
-                            取消选择
+                            {{ t('oauthManagement.cancelSelection') }}
                         </el-button>
                     </div>
                 </div>
@@ -47,18 +47,24 @@
                         <el-tag>{{ getSsoTypeLabel(scopeSlot.row.ssoType) }}</el-tag>
                     </template>
                     <template #statusTag="scopeSlot">
-                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
-                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">
+                            {{ t('oauthManagement.enable') }}
+                        </el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">
+                            {{ t('oauthManagement.disable') }}
+                        </el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group oauth-action-group">
-                            <span class="oauth-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <span class="oauth-action-button" @click="editData(scopeSlot.row)">
+                                {{ t('oauthManagement.edit') }}
+                            </span>
                             <el-dropdown trigger="click" popper-class="oauth-action-dropdown">
-                                <span class="click-show-more oauth-action-button">更多</span>
+                                <span class="click-show-more oauth-action-button">{{ t('common.more') }}</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item @click="getUrlEvent(scopeSlot.row)">
-                                            复制链接
+                                            {{ t('oauthManagement.copyLink') }}
                                         </el-dropdown-item>
                                         <el-dropdown-item
                                             :disabled="scopeSlot.row.statusLoading"
@@ -68,13 +74,19 @@
                                             "
                                         >
                                             <span v-if="!scopeSlot.row.statusLoading">
-                                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                                                {{
+                                                    scopeSlot.row.status === 'ENABLE'
+                                                        ? t('oauthManagement.disable')
+                                                        : t('oauthManagement.enable')
+                                                }}
                                             </span>
                                             <el-icon v-else class="is-loading">
                                                 <Loading />
                                             </el-icon>
                                         </el-dropdown-item>
-                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">
+                                            {{ t('oauthManagement.delete') }}
+                                        </el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -88,14 +100,15 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, watch } from 'vue'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
-import { BreadCrumbList, TableConfig } from './list.config'
+import { createBreadCrumbList, createColConfigs, createTableConfig } from './list.config'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import {
     OauthQueryList,
     OauthCreateData,
@@ -106,6 +119,7 @@ import {
     OauthUrlCopy
 } from '@/app/api'
 
+const { t, locale } = useI18n()
 const keyword = ref<string>('')
 const loading = ref<boolean>(false)
 const networkError = ref<boolean>(false)
@@ -113,8 +127,13 @@ const selectedRows = ref<any[]>([])
 const batchLoading = ref(false)
 const addModalRef = ref<any>(null)
 
-const breadCrumbList = reactive(BreadCrumbList)
-const tableConfig: any = reactive(TableConfig)
+const breadCrumbList = reactive(createBreadCrumbList(t))
+const tableConfig: any = reactive(createTableConfig(t))
+
+watch(locale, () => {
+    breadCrumbList.splice(0, breadCrumbList.length, ...createBreadCrumbList(t))
+    tableConfig.colConfigs = createColConfigs(t)
+})
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -185,14 +204,14 @@ function cancelSelection() {
 function batchEnableOauth() {
     const disableRows = selectedRows.value.filter((row: any) => row.status === 'DISABLE')
     if (!disableRows.length) {
-        ElMessage.warning('请选择禁用状态的免密配置')
+        ElMessage.warning(t('oauthManagement.selectDisabledOauth'))
         return
     }
 
     batchLoading.value = true
     Promise.all(disableRows.map((row: any) => OauthEnableData({ id: row.id })))
         .then(() => {
-            ElMessage.success('批量启用成功')
+            ElMessage.success(t('oauthManagement.batchEnableSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -204,14 +223,14 @@ function batchEnableOauth() {
 function batchDisableOauth() {
     const enableRows = selectedRows.value.filter((row: any) => row.status === 'ENABLE')
     if (!enableRows.length) {
-        ElMessage.warning('请选择启用状态的免密配置')
+        ElMessage.warning(t('oauthManagement.selectEnabledOauth'))
         return
     }
 
     batchLoading.value = true
     Promise.all(enableRows.map((row: any) => OauthDisableData({ id: row.id })))
         .then(() => {
-            ElMessage.success('批量禁用成功')
+            ElMessage.success(t('oauthManagement.batchDisableSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -225,15 +244,15 @@ function batchDeleteOauth() {
         return
     }
 
-    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个免密配置吗？`, '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('oauthManagement.deleteSelectedConfirm', { count: selectedRows.value.length }), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         batchLoading.value = true
         Promise.all(selectedRows.value.map((row: any) => OauthDeleteData({ id: row.id })))
             .then(() => {
-                ElMessage.success('批量删除成功')
+                ElMessage.success(t('oauthManagement.batchDeleteSuccess'))
                 initData()
             })
             .catch(() => {})
@@ -243,7 +262,6 @@ function batchDeleteOauth() {
     })
 }
 
-// 启用 or 禁用
 function changeStatus(data: any, status: boolean) {
     data.statusLoading = true
     if (status) {
@@ -273,11 +291,10 @@ function changeStatus(data: any, status: boolean) {
     }
 }
 
-// 删除
 function deleteData(data: any) {
-    ElMessageBox.confirm('确定删除该配置吗？', '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('oauthManagement.deleteOauthConfirm'), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         OauthDeleteData({
@@ -290,14 +307,14 @@ function deleteData(data: any) {
             .catch(() => {})
     })
 }
-// 复制链接
+
 function getUrlEvent(data: any) {
     OauthUrlCopy({
         id: data.id
     })
         .then(async (res: any) => {
             await navigator.clipboard.writeText(res.data.invokeUrl)
-            ElMessage.success('复制成功')
+            ElMessage.success(t('common.copySuccess'))
         })
         .catch(() => {})
 }

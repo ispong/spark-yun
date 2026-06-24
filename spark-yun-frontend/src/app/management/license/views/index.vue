@@ -2,11 +2,11 @@
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
     <div class="zqy-seach-table license-page">
         <div class="zqy-table-top">
-            <el-button type="primary" @click="addData">上传证书</el-button>
+            <el-button type="primary" @click="addData">{{ t('license.uploadCertificate') }}</el-button>
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
-                    placeholder="请输入备注 回车进行搜索"
+                    :placeholder="t('license.searchPlaceholder')"
                     :maxlength="200"
                     clearable
                     @input="inputEvent"
@@ -17,16 +17,16 @@
                 <div v-if="selectedRows.length" class="license-batch-mask">
                     <div class="license-batch-actions">
                         <el-button class="license-batch-action" :loading="batchLoading" @click="batchEnableLicense">
-                            启用
+                            {{ t('license.enable') }}
                         </el-button>
                         <el-button class="license-batch-action" :loading="batchLoading" @click="batchDisableLicense">
-                            禁用
+                            {{ t('license.disable') }}
                         </el-button>
                         <el-button class="license-batch-action" :loading="batchLoading" @click="batchDeleteLicense">
-                            删除
+                            {{ t('license.delete') }}
                         </el-button>
                         <el-button class="license-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
-                            取消选择
+                            {{ t('license.cancelSelection') }}
                         </el-button>
                     </div>
                 </div>
@@ -41,13 +41,13 @@
                     @checkbox-change="handleSelectionChange"
                 >
                     <template #statusTag="scopeSlot">
-                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
-                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">{{ t('license.enable') }}</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">{{ t('license.disable') }}</el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group license-action-group">
                             <el-dropdown trigger="click" popper-class="license-action-dropdown">
-                                <span class="click-show-more license-action-button">更多</span>
+                                <span class="click-show-more license-action-button">{{ t('common.more') }}</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item
@@ -58,13 +58,19 @@
                                             "
                                         >
                                             <span v-if="!scopeSlot.row.statusLoading">
-                                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                                                {{
+                                                    scopeSlot.row.status === 'ENABLE'
+                                                        ? t('license.disable')
+                                                        : t('license.enable')
+                                                }}
                                             </span>
                                             <el-icon v-else class="is-loading">
                                                 <Loading />
                                             </el-icon>
                                         </el-dropdown-item>
-                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">
+                                            {{ t('license.delete') }}
+                                        </el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -78,13 +84,13 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, watch } from 'vue'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
-import { BreadCrumbList, TableConfig } from './license.config'
+import { createBreadCrumbList, createColConfigs, createTableConfig } from './license.config'
 import {
     GetLicenseList,
     UploadLicenseFile,
@@ -95,9 +101,11 @@ import {
 } from '../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 
-const breadCrumbList = reactive(BreadCrumbList)
-const tableConfig: any = reactive(TableConfig)
+const { t, locale } = useI18n()
+const breadCrumbList = reactive(createBreadCrumbList(t))
+const tableConfig: any = reactive(createTableConfig(t))
 const keyword = ref('')
 const loading = ref(false)
 const networkError = ref(false)
@@ -105,10 +113,15 @@ const addModalRef = ref(null)
 const selectedRows = ref<any[]>([])
 const batchLoading = ref(false)
 
+watch(locale, () => {
+    breadCrumbList.splice(0, breadCrumbList.length, ...createBreadCrumbList(t))
+    tableConfig.colConfigs = createColConfigs(t)
+})
+
 function refreshLicenseAndReload() {
     CheckLicenseStatus()
         .catch(() => {
-            // 上传/启用后仅做许可证状态刷新，失败也继续刷新页面
+            // Refresh the page even if the license status refresh fails.
         })
         .finally(() => {
             window.location.reload()
@@ -150,7 +163,7 @@ function addData() {
                 .then((res: any) => {
                     ElMessage({
                         type: 'success',
-                        message: res?.data?.msg || '上传成功',
+                        message: res?.data?.msg || t('license.uploadSuccess'),
                         onClose: () => {
                             refreshLicenseAndReload()
                         }
@@ -177,14 +190,14 @@ function cancelSelection() {
 function batchEnableLicense() {
     const disableRows = selectedRows.value.filter((row: any) => row.status === 'DISABLE')
     if (!disableRows.length) {
-        ElMessage.warning('请选择禁用状态的证书')
+        ElMessage.warning(t('license.selectDisabledCertificates'))
         return
     }
 
     batchLoading.value = true
     Promise.all(disableRows.map((row: any) => EnableLicense({ licenseId: row.id })))
         .then(() => {
-            ElMessage.success('批量启用成功')
+            ElMessage.success(t('license.batchEnableSuccess'))
             refreshLicenseAndReload()
         })
         .catch(() => {})
@@ -196,14 +209,14 @@ function batchEnableLicense() {
 function batchDisableLicense() {
     const enableRows = selectedRows.value.filter((row: any) => row.status === 'ENABLE')
     if (!enableRows.length) {
-        ElMessage.warning('请选择启用状态的证书')
+        ElMessage.warning(t('license.selectEnabledCertificates'))
         return
     }
 
     batchLoading.value = true
     Promise.all(enableRows.map((row: any) => DisableLicense({ licenseId: row.id })))
         .then(() => {
-            ElMessage.success('批量禁用成功')
+            ElMessage.success(t('license.batchDisableSuccess'))
             refreshLicenseAndReload()
         })
         .catch(() => {})
@@ -217,15 +230,15 @@ function batchDeleteLicense() {
         return
     }
 
-    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个证书吗？`, '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('license.deleteSelectedConfirm', { count: selectedRows.value.length }), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         batchLoading.value = true
         Promise.all(selectedRows.value.map((row: any) => DeleteLicense({ licenseId: row.id })))
             .then(() => {
-                ElMessage.success('批量删除成功')
+                ElMessage.success(t('license.batchDeleteSuccess'))
                 initData()
             })
             .catch(() => {})
@@ -235,7 +248,6 @@ function batchDeleteLicense() {
     })
 }
 
-// 启用 or 禁用
 function changeStatus(data: any, status: boolean) {
     data.statusLoading = true
     if (status) {
@@ -267,11 +279,10 @@ function changeStatus(data: any, status: boolean) {
     }
 }
 
-// 删除
 function deleteData(data: any) {
-    ElMessageBox.confirm('确定删除该证书吗？', '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('license.deleteCertificateConfirm'), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         DeleteLicense({

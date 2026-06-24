@@ -16,7 +16,7 @@ interface AuthResponse {
     [key: string]: any
 }
 
-const USER_PROFILE_FIELDS = ['id', 'username', 'account', 'phone', 'email', 'remark']
+const USER_PROFILE_FIELDS = ['id', 'username', 'account', 'phone', 'email', 'remark', 'locale']
 
 function getPreservedUserProfile(userInfo: Record<string, any>, data: AuthResponse): Record<string, any> {
     return USER_PROFILE_FIELDS.reduce((profile, field) => {

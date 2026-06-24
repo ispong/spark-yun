@@ -1,5 +1,5 @@
 <template>
-    <Breadcrumb :bread-crumb-list="[{ name: '角色管理', code: 'role-management' }]" />
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
     <div class="role-page">
         <aside class="role-page__sidebar">
             <div class="role-page__search">
@@ -7,11 +7,13 @@
                     v-model="keyword"
                     clearable
                     :prefix-icon="Search"
-                    placeholder="搜索角色名称或编码"
+                    :placeholder="t('roleManagement.searchRolePlaceholder')"
                     @keyup.enter="loadRoles()"
                     @clear="loadRoles()"
                 />
-                <el-button type="primary" class="role-page__add-button" @click="openRoleEditor()">新建</el-button>
+                <el-button type="primary" class="role-page__add-button" @click="openRoleEditor()">
+                    {{ t('roleManagement.addRole') }}
+                </el-button>
             </div>
             <div v-loading="loading" class="role-list">
                 <div
@@ -31,40 +33,46 @@
                             link
                             :icon="Edit"
                             class="role-list__action"
-                            title="编辑"
+                            :title="t('common.edit')"
                             @click.stop="openRoleEditor(role)"
                         />
                         <el-button
                             link
                             :icon="Delete"
                             class="role-list__action role-list__action--danger"
-                            title="删除"
+                            :title="t('common.delete')"
                             @click.stop="removeRole(role)"
                         />
                     </span>
                 </div>
-                <el-empty v-if="!roles.length && !loading" :image-size="80" description="暂无角色" />
+                <el-empty
+                    v-if="!roles.length && !loading"
+                    :image-size="80"
+                    :description="t('roleManagement.noRole')"
+                />
             </div>
         </aside>
 
         <section class="role-page__detail">
             <div v-if="!selectedRole" class="role-page__empty">
-                <el-empty description="请选择左侧角色" />
+                <el-empty :description="t('roleManagement.selectRole')" />
             </div>
             <template v-else>
                 <el-tabs v-model="activeTab" class="role-tabs" @tab-change="handleTabChange">
-                    <el-tab-pane label="角色成员" name="members">
+                    <el-tab-pane :label="t('roleManagement.roleMembers')" name="members">
                         <div class="role-member-panel">
                             <div class="zqy-table-top role-member-toolbar">
                                 <div class="role-member-toolbar__left">
-                                    <el-button type="primary" @click="openMemberAdder">添加成员</el-button>
+                                    <el-button type="primary" @click="openMemberAdder">
+                                        {{ t('roleManagement.addMember') }}
+                                    </el-button>
                                 </div>
                                 <div class="zqy-seach role-member-search">
                                     <el-input
                                         v-model="memberKeyword"
                                         clearable
                                         :prefix-icon="Search"
-                                        placeholder="搜索成员账号、姓名、手机或邮箱"
+                                        :placeholder="t('roleManagement.searchMemberPlaceholder')"
                                         @keyup.enter="searchMembers"
                                         @clear="searchMembers"
                                     />
@@ -77,14 +85,14 @@
                                                 :loading="memberRemoving"
                                                 @click="removeSelectedMembers"
                                             >
-                                                删除
+                                                {{ t('common.delete') }}
                                             </el-button>
                                             <el-button
                                                 class="role-member-batch-cancel"
                                                 :disabled="memberRemoving"
                                                 @click="cancelMemberSelection"
                                             >
-                                                取消选择
+                                                {{ t('roleManagement.cancelSelection') }}
                                             </el-button>
                                         </div>
                                     </div>
@@ -100,7 +108,7 @@
                                     <template #options="scopeSlot">
                                         <div class="btn-group role-member-action-group">
                                             <span class="role-member-action-button" @click="removeMember(scopeSlot.row)">
-                                                删除
+                                                {{ t('common.delete') }}
                                             </span>
                                         </div>
                                     </template>
@@ -109,11 +117,12 @@
                         </div>
                     </el-tab-pane>
 
-                    <el-tab-pane label="功能权限" name="buttons">
+                    <el-tab-pane :label="t('roleManagement.functionPermission')" name="buttons">
                         <PermissionMatrix
                             :modules="catalog.modules"
                             :frontend-permission-codes="visibleFrontendPermissionCodes"
                             :backend-permission-codes="visibleBackendPermissionCodes"
+                            :module-labels="moduleLabels"
                             :labels="buttonLabels"
                             :disabled="permissionAllChecked"
                             @menu-change="setMenuPermission"
@@ -121,10 +130,10 @@
                         />
                         <div class="role-permission-footer">
                             <el-checkbox :model-value="permissionAllChecked" @change="setPermissionAllChecked">
-                                全选
+                                {{ t('roleManagement.selectAll') }}
                             </el-checkbox>
                             <el-button type="primary" :loading="permissionSaving" @click="savePermissions">
-                                保存
+                                {{ t('common.save') }}
                             </el-button>
                         </div>
                     </el-tab-pane>
@@ -132,7 +141,7 @@
                     <el-tab-pane
                         v-for="resourceType in instanceResourceTypes"
                         :key="resourceType.code"
-                        :label="resourceType.name"
+                        :label="t(resourceType.nameKey)"
                         :name="resourceType.code"
                     >
                         <div class="role-instance-panel">
@@ -141,7 +150,7 @@
                                     v-model="instancePermissionState[resourceType.code].keyword"
                                     clearable
                                     :prefix-icon="Search"
-                                    placeholder="搜索名称、类型或备注"
+                                    :placeholder="t('roleManagement.searchResourcePlaceholder')"
                                     @keyup.enter="searchInstanceResources(resourceType.code)"
                                     @clear="searchInstanceResources(resourceType.code)"
                                 />
@@ -165,14 +174,14 @@
                                                 v-model="instancePermissionState[resourceType.code].allEnabled"
                                                 @change="handleInstanceAllChange(resourceType.code)"
                                             >
-                                                全选
+                                                {{ t('roleManagement.selectAll') }}
                                             </el-checkbox>
                                             <el-button
                                                 type="primary"
                                                 :loading="instancePermissionState[resourceType.code].saving"
                                                 @click="saveInstancePermission(resourceType.code)"
                                             >
-                                                保存
+                                                {{ t('common.save') }}
                                             </el-button>
                                         </div>
                                     </template>
@@ -189,26 +198,28 @@
     <el-dialog
         v-model="roleEditorVisible"
         class="role-editor-dialog"
-        :title="roleForm.id ? '编辑角色' : '新增角色'"
+        :title="roleForm.id ? t('roleManagement.editRole') : t('roleManagement.addRole')"
         width="520px"
         :close-on-click-modal="false"
         destroy-on-close
     >
         <el-form class="role-editor-form" label-position="top">
-            <el-form-item label="角色名称">
+            <el-form-item :label="t('roleManagement.roleName')">
                 <el-input v-model="roleForm.name" maxlength="80" />
             </el-form-item>
-            <el-form-item label="角色编码">
+            <el-form-item :label="t('roleManagement.roleCode')">
                 <el-input v-model="roleForm.code" maxlength="80" />
             </el-form-item>
-            <el-form-item label="备注">
+            <el-form-item :label="t('table.remark')">
                 <el-input v-model="roleForm.remark" maxlength="500" type="textarea" :rows="3" />
             </el-form-item>
         </el-form>
         <template #footer>
             <div class="role-editor-footer">
-                <el-button @click="roleEditorVisible = false">取消</el-button>
-                <el-button type="primary" :loading="roleSaving" @click="saveRoleBase">保存</el-button>
+                <el-button @click="roleEditorVisible = false">{{ t('common.cancel') }}</el-button>
+                <el-button type="primary" :loading="roleSaving" @click="saveRoleBase">
+                    {{ t('common.save') }}
+                </el-button>
             </div>
         </template>
     </el-dialog>
@@ -216,18 +227,18 @@
     <el-dialog
         v-model="memberAdderVisible"
         class="role-editor-dialog"
-        title="添加成员"
+        :title="t('roleManagement.addMember')"
         width="520px"
         :close-on-click-modal="false"
         destroy-on-close
     >
         <el-form class="role-editor-form" label-position="top">
-            <el-form-item label="选择成员">
+            <el-form-item :label="t('roleManagement.selectMember')">
                 <el-select
                     v-model="memberAdderUserIds"
                     multiple
                     filterable
-                    placeholder="请选择要加入当前角色的成员"
+                    :placeholder="t('roleManagement.selectMembersToJoin')"
                     :loading="memberAdderLoading"
                 >
                     <el-option
@@ -241,8 +252,10 @@
         </el-form>
         <template #footer>
             <div class="role-editor-footer">
-                <el-button @click="memberAdderVisible = false">取消</el-button>
-                <el-button type="primary" :loading="memberAdding" @click="addSelectedMembers">保存</el-button>
+                <el-button @click="memberAdderVisible = false">{{ t('common.cancel') }}</el-button>
+                <el-button type="primary" :loading="memberAdding" @click="addSelectedMembers">
+                    {{ t('common.save') }}
+                </el-button>
             </div>
         </template>
     </el-dialog>
@@ -252,9 +265,11 @@
 import { computed, defineComponent, h, onMounted, reactive, ref, type PropType } from 'vue'
 import { Delete, Edit, Search } from '@element-plus/icons-vue'
 import { ElCheckbox, ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import { useAuthStore } from '@/app/store/useAuth'
+import { workspaceMenuListData, type Menu } from '@/app/views/layout/menu.config'
 import {
     DeleteRole,
     GetPermissionCatalog,
@@ -336,22 +351,30 @@ interface RoleInstancePermissionItem {
     resourceIds?: string[]
 }
 
-const buttonLabels: Record<string, string> = {
-    view: '查看',
-    create: '新增',
-    edit: '编辑',
-    delete: '删除',
-    execute: '执行'
-}
 const MENU_ALL = 'MENU_ALL'
 const API_ALL = 'API_ALL'
 const RESOURCE_ALL = 'ALL'
 
-const instanceResourceTypes: Array<{ code: InstanceResourceType; name: string }> = [
-    { code: 'CLUSTER', name: '计算集群' },
-    { code: 'DATASOURCE', name: '数据源' },
-    { code: 'RESOURCE_FILE', name: '资源文件' }
+const instanceResourceTypes: Array<{ code: InstanceResourceType; nameKey: string }> = [
+    { code: 'CLUSTER', nameKey: 'menu.computer-group' },
+    { code: 'DATASOURCE', nameKey: 'menu.datasource' },
+    { code: 'RESOURCE_FILE', nameKey: 'menu.file-center' }
 ]
+
+function flattenMenus(menus: Menu[]): Menu[] {
+    return menus.flatMap((menu) => [menu, ...flattenMenus(menu.children || [])])
+}
+
+const workspaceMenus = flattenMenus(workspaceMenuListData)
+const workspaceMenuByCode = new Map(workspaceMenus.map((menu) => [menu.code, menu]))
+const workspaceMenuCodeByName = new Map(workspaceMenus.map((menu) => [menu.name, menu.code]))
+
+function resolveWorkspaceMenu(module: PermissionModule) {
+    const menuCode = workspaceMenuByCode.has(module.code)
+        ? module.code
+        : workspaceMenuCodeByName.get(module.name)
+    return menuCode ? workspaceMenuByCode.get(menuCode) : undefined
+}
 
 function createInstancePermissionState(): InstancePermissionState {
     return {
@@ -384,6 +407,10 @@ const PermissionMatrix = defineComponent({
             required: true
         },
         labels: {
+            type: Object as PropType<Record<string, string>>,
+            required: true
+        },
+        moduleLabels: {
             type: Object as PropType<Record<string, string>>,
             required: true
         },
@@ -420,7 +447,7 @@ const PermissionMatrix = defineComponent({
                                     disabled: props.disabled,
                                     onChange: (checked: unknown) => setModulePermissions(module, checked)
                                 },
-                                () => module.name
+                                () => props.moduleLabels[module.code] || module.name
                             )
                         ]),
                         h(
@@ -451,6 +478,7 @@ const loading = ref(false)
 const roles = ref<RoleItem[]>([])
 const selectedRole = ref<RoleItem | null>(null)
 const authStore = useAuthStore()
+const { t } = useI18n({ useScope: 'global' })
 const activeTab = ref<'members' | 'buttons' | InstanceResourceType>('members')
 const roleEditorVisible = ref(false)
 const roleSaving = ref(false)
@@ -480,6 +508,29 @@ const visibleFrontendPermissionCodes = computed(() =>
     permissionAllChecked.value ? [] : frontendPermissionCodes.value
 )
 const visibleBackendPermissionCodes = computed(() => (permissionAllChecked.value ? [] : backendPermissionCodes.value))
+const moduleLabels = computed<Record<string, string>>(() =>
+    Object.fromEntries(catalog.modules.map((module) => [module.code, getPermissionModuleName(module)]))
+)
+const breadCrumbList = computed(() => [
+    {
+        name: t('menu.role-management'),
+        code: 'role-management'
+    }
+])
+const buttonLabels = computed<Record<string, string>>(() => ({
+    view: t('roleManagement.view'),
+    create: t('roleManagement.create'),
+    edit: t('common.edit'),
+    delete: t('common.delete'),
+    execute: t('roleManagement.execute')
+}))
+
+function getPermissionModuleName(module: PermissionModule) {
+    const menu = resolveWorkspaceMenu(module)
+    const menuKey = menu?.nameKey || (menu ? `menu.${menu.code}` : `menu.${module.code}`)
+    const translatedName = t(menuKey)
+    return translatedName === menuKey ? menu?.name || module.name : translatedName
+}
 
 const roleForm = reactive({
     id: '',
@@ -501,30 +552,30 @@ const memberTableConfig = computed(() => ({
     colConfigs: [
         {
             prop: 'account',
-            title: '账号',
+            title: t('table.account'),
             minWidth: 120,
             showOverflowTooltip: true
         },
         {
             prop: 'username',
-            title: '名称',
+            title: t('table.name'),
             minWidth: 120,
             showOverflowTooltip: true
         },
         {
             prop: 'phone',
-            title: '手机号',
+            title: t('table.phone'),
             minWidth: 120,
             showOverflowTooltip: true
         },
         {
             prop: 'email',
-            title: '邮箱',
+            title: t('table.email'),
             minWidth: 160,
             showOverflowTooltip: true
         },
         {
-            title: '操作',
+            title: t('table.actions'),
             width: 120,
             align: 'center',
             customSlot: 'options'
@@ -547,19 +598,19 @@ function getInstanceTableConfig(resourceType: InstanceResourceType) {
         colConfigs: [
             {
                 prop: 'name',
-                title: '名称',
+                title: t('table.name'),
                 minWidth: 160,
                 showOverflowTooltip: true
             },
             {
                 prop: 'type',
-                title: '类型',
+                title: t('table.type'),
                 minWidth: 120,
                 showOverflowTooltip: true
             },
             {
                 prop: 'remark',
-                title: '备注',
+                title: t('table.remark'),
                 minWidth: 180,
                 showOverflowTooltip: true
             }
@@ -647,7 +698,7 @@ function openRoleEditor(role?: RoleItem) {
 
 function saveRoleBase() {
     if (!roleForm.name.trim() || !roleForm.code.trim()) {
-        ElMessage.warning('请填写角色名称和编码')
+        ElMessage.warning(t('roleManagement.inputRoleNameAndCode'))
         return
     }
     roleSaving.value = true
@@ -669,8 +720,10 @@ function saveRoleBase() {
 }
 
 function removeRole(role: RoleItem) {
-    ElMessageBox.confirm(`确定删除角色“${role.name}”吗？`, '提示', {
-        type: 'warning'
+    ElMessageBox.confirm(t('roleManagement.deleteRoleConfirm', { name: role.name }), t('common.warning'), {
+        type: 'warning',
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel')
     }).then(() => {
         DeleteRole({
             roleId: role.id
@@ -1012,7 +1065,7 @@ function openMemberAdder() {
         return
     }
     if (!authStore.tenantId) {
-        ElMessage.warning('请先选择租户')
+        ElMessage.warning(t('roleManagement.selectTenantFirst'))
         return
     }
     memberAdderVisible.value = true
@@ -1034,7 +1087,7 @@ function openMemberAdder() {
 
 function addSelectedMembers() {
     if (!selectedRole.value || !memberAdderUserIds.value.length) {
-        ElMessage.warning('请选择成员')
+        ElMessage.warning(t('roleManagement.selectMemberWarning'))
         return
     }
     const membersToAdd = memberAdderOptions.value.filter((member) => memberAdderUserIds.value.includes(member.userId))
@@ -1049,9 +1102,9 @@ function addSelectedMembers() {
                 tenantId: authStore.tenantId
             })
         })
-    )
+        )
         .then(() => {
-            ElMessage.success('添加成功')
+            ElMessage.success(t('roleManagement.addSuccess'))
             memberAdderVisible.value = false
             loadMembers()
         })
@@ -1066,7 +1119,7 @@ function removeMember(member: MemberItem) {
 
 function removeSelectedMembers() {
     if (!selectedMembers.value.length) {
-        ElMessage.warning('请选择成员')
+        ElMessage.warning(t('roleManagement.selectMemberWarning'))
         return
     }
     removeMembers(selectedMembers.value)
@@ -1076,9 +1129,14 @@ function removeMembers(targetMembers: MemberItem[]) {
     if (!selectedRole.value || !authStore.tenantId || !targetMembers.length) {
         return
     }
-    ElMessageBox.confirm(`确定从当前角色中删除选中的 ${targetMembers.length} 个成员吗？`, '提示', {
-        type: 'warning'
-    }).then(() => {
+    const confirmMessage = t('roleManagement.removeMembersConfirm', { count: targetMembers.length })
+    const confirmTitle = t('common.warning')
+    const confirmOptions = {
+        type: 'warning' as const,
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel')
+    }
+    ElMessageBox.confirm(confirmMessage, confirmTitle, confirmOptions).then(() => {
         memberRemoving.value = true
         Promise.all(
             targetMembers.map((member) =>
@@ -1090,7 +1148,7 @@ function removeMembers(targetMembers: MemberItem[]) {
             )
         )
             .then(() => {
-                ElMessage.success('删除成功')
+                ElMessage.success(t('roleManagement.deleteSuccess'))
                 loadMembers()
             })
             .finally(() => {

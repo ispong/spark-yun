@@ -18,7 +18,7 @@ public class AdviceAutoConfiguration {
     @Bean
     GlobalExceptionAdvice initGlobalExceptionAdvice() {
 
-        return new GlobalExceptionAdvice();
+        return new GlobalExceptionAdvice(messageSource);
     }
 
     @Bean

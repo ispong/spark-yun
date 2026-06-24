@@ -2,11 +2,11 @@
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
     <div class="zqy-seach-table tenant-list-page">
         <div class="zqy-table-top">
-            <el-button type="primary" @click="addData">新建租户</el-button>
+            <el-button type="primary" @click="addData">{{ t('tenantList.addTenant') }}</el-button>
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
-                    placeholder="请输入租户名 回车进行搜索"
+                    :placeholder="t('tenantList.searchPlaceholder')"
                     :maxlength="200"
                     clearable
                     @input="inputEvent"
@@ -17,19 +17,19 @@
                 <div v-if="selectedRows.length" class="tenant-batch-mask">
                     <div class="tenant-batch-actions">
                         <el-button class="tenant-batch-action" :loading="batchLoading" @click="batchEnableTenants">
-                            启用
+                            {{ t('tenantList.enable') }}
                         </el-button>
                         <el-button class="tenant-batch-action" :loading="batchLoading" @click="batchDisableTenants">
-                            禁用
+                            {{ t('tenantList.disable') }}
                         </el-button>
                         <el-button class="tenant-batch-action" :loading="batchLoading" @click="batchCheckTenants">
-                            检测
+                            {{ t('tenantList.check') }}
                         </el-button>
                         <el-button class="tenant-batch-action" :loading="batchLoading" @click="batchDeleteTenants">
-                            删除
+                            {{ t('tenantList.delete') }}
                         </el-button>
                         <el-button class="tenant-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
-                            取消选择
+                            {{ t('tenantList.cancelSelection') }}
                         </el-button>
                     </div>
                 </div>
@@ -77,14 +77,20 @@
                         </div>
                     </template>
                     <template #statusTag="scopeSlot">
-                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
-                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">
+                            {{ t('tenantList.enable') }}
+                        </el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">
+                            {{ t('tenantList.disable') }}
+                        </el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group tenant-action-group">
-                            <span class="tenant-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <span class="tenant-action-button" @click="editData(scopeSlot.row)">
+                                {{ t('tenantList.edit') }}
+                            </span>
                             <el-dropdown trigger="click" popper-class="tenant-action-dropdown">
-                                <span class="click-show-more tenant-action-button">更多</span>
+                                <span class="click-show-more tenant-action-button">{{ t('common.more') }}</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item
@@ -95,7 +101,11 @@
                                             "
                                         >
                                             <span v-if="!scopeSlot.row.statusLoading">
-                                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                                                {{
+                                                    scopeSlot.row.status === 'ENABLE'
+                                                        ? t('tenantList.disable')
+                                                        : t('tenantList.enable')
+                                                }}
                                             </span>
                                             <el-icon v-else class="is-loading">
                                                 <Loading />
@@ -105,9 +115,11 @@
                                             v-if="!scopeSlot.row.checkLoding"
                                             @click="checkTenant(scopeSlot.row)"
                                         >
-                                            检测
+                                            {{ t('tenantList.check') }}
                                         </el-dropdown-item>
-                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">
+                                            {{ t('tenantList.delete') }}
+                                        </el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -121,13 +133,13 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, watch } from 'vue'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
-import { BreadCrumbList, TableConfig } from './tenant-list.config'
+import { createBreadCrumbList, createColConfigs, createTableConfig } from './tenant-list.config'
 import {
     GetTenantList,
     AddTenantData,
@@ -142,6 +154,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 import eventBus from '@/app/utils/eventBus'
 import { useAuthStore } from '@/app/store/useAuth'
+import { useI18n } from 'vue-i18n'
 
 interface FormTenant {
     adminUserId?: string
@@ -154,6 +167,7 @@ interface FormTenant {
 }
 
 const authStore = useAuthStore()
+const { t, locale } = useI18n()
 
 // const state = useState(['tenantId'], 'authStoreModule')
 // const mutations = useMutations(['setTenantId'], 'authStoreModule')
@@ -164,8 +178,14 @@ const networkError = ref(false)
 const selectedRows = ref<any[]>([])
 const batchLoading = ref(false)
 const addModalRef = ref(null)
-const breadCrumbList = reactive(BreadCrumbList)
-const tableConfig: any = reactive(TableConfig)
+const breadCrumbList = reactive(createBreadCrumbList(t))
+const tableConfig: any = reactive(createTableConfig(t))
+
+watch(locale, () => {
+    const nextBreadCrumbList = createBreadCrumbList(t)
+    breadCrumbList.splice(0, breadCrumbList.length, ...nextBreadCrumbList)
+    tableConfig.colConfigs = createColConfigs(t)
+})
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -284,14 +304,14 @@ function cancelSelection() {
 function batchEnableTenants() {
     const disableRows = selectedRows.value.filter((row: any) => row.status === 'DISABLE')
     if (!disableRows.length) {
-        ElMessage.warning('请选择禁用状态的租户')
+        ElMessage.warning(t('tenantList.selectDisabledTenants'))
         return
     }
 
     batchLoading.value = true
     Promise.all(disableRows.map((row: any) => EnableTenantData({ tenantId: row.id })))
         .then(() => {
-            ElMessage.success('批量启用成功')
+            ElMessage.success(t('tenantList.batchEnableSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -303,14 +323,14 @@ function batchEnableTenants() {
 function batchDisableTenants() {
     const enableRows = selectedRows.value.filter((row: any) => row.status === 'ENABLE')
     if (!enableRows.length) {
-        ElMessage.warning('请选择启用状态的租户')
+        ElMessage.warning(t('tenantList.selectEnabledTenants'))
         return
     }
 
     batchLoading.value = true
     Promise.all(enableRows.map((row: any) => DisableTenantData({ tenantId: row.id })))
         .then(() => {
-            ElMessage.success('批量禁用成功')
+            ElMessage.success(t('tenantList.batchDisableSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -327,7 +347,7 @@ function batchCheckTenants() {
     batchLoading.value = true
     Promise.all(selectedRows.value.map((row: any) => CheckTenantData({ tenantId: row.id })))
         .then(() => {
-            ElMessage.success('批量检测成功')
+            ElMessage.success(t('tenantList.batchCheckSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -341,9 +361,9 @@ function batchDeleteTenants() {
         return
     }
 
-    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个租户吗？`, '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('tenantList.deleteSelectedConfirm', { count: selectedRows.value.length }), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         batchLoading.value = true
@@ -356,7 +376,7 @@ function batchDeleteTenants() {
             )
         )
             .then(() => {
-                ElMessage.success('批量删除成功')
+                ElMessage.success(t('tenantList.batchDeleteSuccess'))
                 initData()
             })
             .catch(() => {})
@@ -366,7 +386,6 @@ function batchDeleteTenants() {
     })
 }
 
-// 启用 or 禁用
 function changeStatus(data: any, status: boolean) {
     data.statusLoading = true
     if (status) {
@@ -396,13 +415,12 @@ function changeStatus(data: any, status: boolean) {
     }
 }
 
-// 删除
 function deleteData(data: any) {
-    ElMessageBox.prompt(`请输入租户名称“${data.name}”确认删除`, '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.prompt(t('tenantList.deleteTenantPrompt', { name: data.name }), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         inputPattern: new RegExp(`^${data.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`),
-        inputErrorMessage: '租户名称不一致',
+        inputErrorMessage: t('tenantList.tenantNameMismatch'),
         type: 'warning'
     }).then(({ value }) => {
         DeleteTenantData({

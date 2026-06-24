@@ -38,52 +38,52 @@ export interface TableConfig {
     loading?: boolean // 表格loading
 }
 
-export const BreadCrumbList: Array<BreadCrumb> = [
+export const createBreadCrumbList = (t: (key: string) => string): Array<BreadCrumb> => [
     {
-        name: '租户成员',
+        name: t('tenantUser.title'),
         code: 'tenant-user'
     }
 ]
 
-export const colConfigs: colConfig[] = [
+export const createColConfigs = (t: (key: string) => string): colConfig[] => [
     {
         prop: 'account',
-        title: '账号',
+        title: t('tenantUser.account'),
         minWidth: 100,
         showOverflowTooltip: true
     },
     {
         prop: 'username',
-        title: '名称',
+        title: t('tenantUser.name'),
         minWidth: 100,
         showOverflowTooltip: true
     },
     {
         prop: 'phone',
-        title: '手机号',
+        title: t('tenantUser.phone'),
         minWidth: 100,
         showOverflowTooltip: true
     },
     {
         prop: 'email',
-        title: '邮箱',
+        title: t('tenantUser.email'),
         minWidth: 160,
         showOverflowTooltip: true
     },
     {
         prop: 'roleCode',
-        title: '角色',
+        title: t('tenantUser.role'),
         minWidth: 100,
         customSlot: 'roleCode'
     },
     {
         prop: 'status',
-        title: '状态',
+        title: t('tenantUser.status'),
         minWidth: 90,
         customSlot: 'status'
     },
     {
-        title: '操作',
+        title: t('tenantUser.options'),
         align: 'center',
         customSlot: 'options',
         width: 120,
@@ -91,9 +91,9 @@ export const colConfigs: colConfig[] = [
     }
 ]
 
-export const TableConfig: TableConfig = {
+export const createTableConfig = (t: (key: string) => string): TableConfig => ({
     tableData: [],
-    colConfigs: colConfigs,
+    colConfigs: createColConfigs(t),
     pagination: {
         currentPage: 1,
         pageSize: 10,
@@ -102,4 +102,8 @@ export const TableConfig: TableConfig = {
     seqType: 'seq',
     checkbox: true,
     loading: false
-}
+})
+
+export const BreadCrumbList: Array<BreadCrumb> = createBreadCrumbList((key) => key)
+export const colConfigs: colConfig[] = createColConfigs((key) => key)
+export const TableConfig: TableConfig = createTableConfig((key) => key)

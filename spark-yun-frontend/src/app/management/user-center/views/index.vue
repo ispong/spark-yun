@@ -2,11 +2,11 @@
     <Breadcrumb :bread-crumb-list="breadCrumbList" />
     <div class="zqy-seach-table user-center-page">
         <div class="zqy-table-top">
-            <el-button type="primary" @click="addData">新建用户</el-button>
+            <el-button type="primary" @click="addData">{{ t('userCenter.addUser') }}</el-button>
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
-                    placeholder="请输入名称/手机号/邮箱 回车进行搜索"
+                    :placeholder="t('userCenter.searchPlaceholder')"
                     :maxlength="200"
                     clearable
                     @input="inputEvent"
@@ -17,10 +17,10 @@
                 <div v-if="selectedRows.length" class="user-batch-mask">
                     <div class="user-batch-actions">
                         <el-button class="user-batch-action" :loading="batchLoading" @click="batchEnableUsers">
-                            启用
+                            {{ t('userCenter.enable') }}
                         </el-button>
                         <el-button class="user-batch-action" :loading="batchLoading" @click="batchDisableUsers">
-                            禁用
+                            {{ t('userCenter.disable') }}
                         </el-button>
                         <el-button
                             v-if="canManagePlatformAdmin"
@@ -28,7 +28,7 @@
                             :loading="batchLoading"
                             @click="batchSetPlatformAdmin"
                         >
-                            设为管理员
+                            {{ t('userCenter.setAdmin') }}
                         </el-button>
                         <el-button
                             v-if="canManagePlatformAdmin"
@@ -36,13 +36,13 @@
                             :loading="batchLoading"
                             @click="batchCancelPlatformAdmin"
                         >
-                            取消管理员
+                            {{ t('userCenter.cancelAdmin') }}
                         </el-button>
                         <el-button class="user-batch-action" :loading="batchLoading" @click="batchDeleteUsers">
-                            删除
+                            {{ t('userCenter.delete') }}
                         </el-button>
                         <el-button class="user-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
-                            取消选择
+                            {{ t('userCenter.cancelSelection') }}
                         </el-button>
                     </div>
                 </div>
@@ -60,19 +60,29 @@
                         <span class="name-click" @click="editData(scopeSlot.row)">{{ scopeSlot.row.account }}</span>
                     </template>
                     <template #statusTag="scopeSlot">
-                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
-                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">
+                            {{ t('userCenter.enable') }}
+                        </el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">
+                            {{ t('userCenter.disable') }}
+                        </el-tag>
                     </template>
                     <template #platformAdmin="scopeSlot">
-                        <el-tag v-if="scopeSlot.row.platformSuperAdmin" type="danger">平台超级管理员</el-tag>
-                        <el-tag v-else-if="scopeSlot.row.platformAdmin" type="warning">平台管理员</el-tag>
-                        <el-tag v-else class="platform-user-tag">平台用户</el-tag>
+                        <el-tag v-if="scopeSlot.row.platformSuperAdmin" type="danger">
+                            {{ t('userCenter.platformSuperAdmin') }}
+                        </el-tag>
+                        <el-tag v-else-if="scopeSlot.row.platformAdmin" type="warning">
+                            {{ t('userCenter.platformAdmin') }}
+                        </el-tag>
+                        <el-tag v-else class="platform-user-tag">{{ t('userCenter.platformUser') }}</el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group user-action-group">
-                            <span class="user-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <span class="user-action-button" @click="editData(scopeSlot.row)">
+                                {{ t('userCenter.edit') }}
+                            </span>
                             <el-dropdown trigger="click" popper-class="user-action-dropdown">
-                                <span class="click-show-more user-action-button">更多</span>
+                                <span class="click-show-more user-action-button">{{ t('common.more') }}</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item
@@ -83,28 +93,34 @@
                                             "
                                         >
                                             <span v-if="!scopeSlot.row.statusLoading">
-                                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                                                {{
+                                                    scopeSlot.row.status === 'ENABLE'
+                                                        ? t('userCenter.disable')
+                                                        : t('userCenter.enable')
+                                                }}
                                             </span>
                                             <el-icon v-else class="is-loading">
                                                 <Loading />
                                             </el-icon>
                                         </el-dropdown-item>
                                         <el-dropdown-item @click="changePassword(scopeSlot.row)">
-                                            修改密码
+                                            {{ t('userCenter.changePassword') }}
                                         </el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="canSetPlatformAdmin(scopeSlot.row)"
                                             @click="changePlatformAdmin(scopeSlot.row, true)"
                                         >
-                                            设为管理员
+                                            {{ t('userCenter.setAdmin') }}
                                         </el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="canCancelPlatformAdmin(scopeSlot.row)"
                                             @click="changePlatformAdmin(scopeSlot.row, false)"
                                         >
-                                            取消管理员
+                                            {{ t('userCenter.cancelAdmin') }}
                                         </el-dropdown-item>
-                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">删除</el-dropdown-item>
+                                        <el-dropdown-item @click="deleteData(scopeSlot.row)">
+                                            {{ t('userCenter.delete') }}
+                                        </el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -119,14 +135,14 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, onMounted, computed } from 'vue'
+import { reactive, ref, onMounted, computed, watch } from 'vue'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 import PasswordModal from './password-modal/index.vue'
 
-import { BreadCrumbList, TableConfig } from './user-center.config'
+import { createBreadCrumbList, createTableConfig } from './user-center.config'
 import {
     GetUserCenterList,
     DisableUser,
@@ -139,6 +155,7 @@ import {
 } from '@/app/management/user-center/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/app/store/useAuth'
+import { useI18n } from 'vue-i18n'
 
 interface FormUser {
     account: string
@@ -150,8 +167,9 @@ interface FormUser {
     id?: string
 }
 
-const breadCrumbList = reactive(BreadCrumbList)
-const tableConfig: any = reactive(TableConfig)
+const { t, locale } = useI18n()
+const breadCrumbList = computed(() => createBreadCrumbList(t))
+const tableConfig: any = reactive(createTableConfig(t))
 const keyword = ref('')
 const loading = ref(false)
 const networkError = ref(false)
@@ -264,7 +282,7 @@ function cancelSelection() {
 function batchEnableUsers() {
     const disableRows = selectedRows.value.filter((row: any) => row.status === 'DISABLE')
     if (!disableRows.length) {
-        ElMessage.warning('请选择禁用状态的用户')
+        ElMessage.warning(t('userCenter.selectDisabledUsers'))
         return
     }
 
@@ -277,7 +295,7 @@ function batchEnableUsers() {
         )
     )
         .then(() => {
-            ElMessage.success('批量启用成功')
+            ElMessage.success(t('userCenter.batchEnableSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -289,7 +307,7 @@ function batchEnableUsers() {
 function batchDisableUsers() {
     const enableRows = selectedRows.value.filter((row: any) => row.status === 'ENABLE')
     if (!enableRows.length) {
-        ElMessage.warning('请选择启用状态的用户')
+        ElMessage.warning(t('userCenter.selectEnabledUsers'))
         return
     }
 
@@ -302,7 +320,7 @@ function batchDisableUsers() {
         )
     )
         .then(() => {
-            ElMessage.success('批量禁用成功')
+            ElMessage.success(t('userCenter.batchDisableSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -314,7 +332,7 @@ function batchDisableUsers() {
 function batchSetPlatformAdmin() {
     const normalRows = selectedRows.value.filter((row: any) => !row.platformSuperAdmin && !row.platformAdmin)
     if (!normalRows.length) {
-        ElMessage.warning('请选择可设为管理员的用户')
+        ElMessage.warning(t('userCenter.selectAdminCandidates'))
         return
     }
 
@@ -328,7 +346,7 @@ function batchSetPlatformAdmin() {
         )
     )
         .then(() => {
-            ElMessage.success('批量设为管理员成功')
+            ElMessage.success(t('userCenter.batchSetAdminSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -340,7 +358,7 @@ function batchSetPlatformAdmin() {
 function batchCancelPlatformAdmin() {
     const platformAdminRows = selectedRows.value.filter((row: any) => !row.platformSuperAdmin && row.platformAdmin)
     if (!platformAdminRows.length) {
-        ElMessage.warning('请选择可取消管理员的用户')
+        ElMessage.warning(t('userCenter.selectCancelAdminCandidates'))
         return
     }
 
@@ -354,7 +372,7 @@ function batchCancelPlatformAdmin() {
         )
     )
         .then(() => {
-            ElMessage.success('批量取消管理员成功')
+            ElMessage.success(t('userCenter.batchCancelAdminSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -368,9 +386,9 @@ function batchDeleteUsers() {
         return
     }
 
-    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个用户吗？`, '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('userCenter.deleteSelectedConfirm', { count: selectedRows.value.length }), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         batchLoading.value = true
@@ -382,7 +400,7 @@ function batchDeleteUsers() {
             )
         )
             .then(() => {
-                ElMessage.success('批量删除成功')
+                ElMessage.success(t('userCenter.batchDeleteSuccess'))
                 initData()
             })
             .catch(() => {})
@@ -424,9 +442,9 @@ function changeStatus(data: any, status: boolean) {
 
 // 删除
 function deleteData(data: any) {
-    ElMessageBox.confirm('确定删除该成员吗？', '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('userCenter.deleteUserConfirm'), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         DeleteUser({
@@ -462,6 +480,13 @@ onMounted(() => {
     tableConfig.pagination.pageSize = 10
     initData()
 })
+
+watch(
+    () => locale.value,
+    () => {
+        tableConfig.colConfigs = createTableConfig(t).colConfigs
+    }
+)
 </script>
 
 <style lang="scss">

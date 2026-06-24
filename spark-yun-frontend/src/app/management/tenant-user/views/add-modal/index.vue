@@ -1,12 +1,12 @@
 <template>
     <BlockModal :model-config="modelConfig">
         <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
-            <el-form-item label="成员" prop="userId">
-                <el-select v-model="formData.userId" placeholder="请选择" popper-class="tenant-user-select-popper">
+            <el-form-item :label="t('tenantUser.member')" prop="userId">
+                <el-select v-model="formData.userId" :placeholder="t('common.pleaseSelect')" popper-class="tenant-user-select-popper">
                     <el-option v-for="item in userList" :key="item.id" :label="item.username" :value="item.id" />
                 </el-select>
             </el-form-item>
-            <el-form-item label="租户管理员">
+            <el-form-item :label="t('tenantUser.tenantAdmin')">
                 <el-switch v-model="formData.isTenantAdmin" />
             </el-form-item>
         </el-form>
@@ -14,26 +14,29 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, defineExpose, ref, nextTick } from 'vue'
+import { reactive, defineExpose, ref, nextTick, computed, watch } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { GetUserInfoList } from '@/app/management/tenant-user/api'
+import { useI18n } from 'vue-i18n'
 
+const { t, locale } = useI18n()
 const form = ref<FormInstance>()
 const callback = ref<any>()
 const userList = ref([])
+const renderSence = ref('new')
 const modelConfig = reactive({
-    title: '添加成员',
+    title: t('tenantUser.addMember'),
     visible: false,
     width: '520px',
     okConfig: {
-        title: '确定',
+        title: t('common.confirm'),
         ok: okEvent,
         disabled: false,
         loading: false
     },
     cancelConfig: {
-        title: '取消',
+        title: t('common.cancel'),
         cancel: closeEvent,
         disabled: false
     },
@@ -47,14 +50,25 @@ const formData = reactive({
     userId: '',
     id: ''
 })
-const rules = reactive<FormRules>({
+const rules = computed<FormRules>(() => ({
     userId: [
         {
             required: true,
-            message: '请选择成员',
+            message: t('tenantUser.selectMember'),
             trigger: ['change']
         }
     ]
+}))
+
+function syncModalText() {
+    modelConfig.title = renderSence.value === 'edit' ? t('tenantUser.editMember') : t('tenantUser.addMember')
+    modelConfig.okConfig.title = t('common.confirm')
+    modelConfig.cancelConfig.title = t('common.cancel')
+}
+
+watch(locale, () => {
+    syncModalText()
+    form.value?.clearValidate()
 })
 
 function showModal(cb: () => void, data: any): void {
@@ -65,13 +79,14 @@ function showModal(cb: () => void, data: any): void {
         formData.userId = data.userId
         formData.isTenantAdmin = data.normalAdmin || false
         formData.id = data.id
-        modelConfig.title = '编辑成员'
+        renderSence.value = 'edit'
     } else {
         formData.userId = ''
         formData.isTenantAdmin = false
         formData.id = ''
-        modelConfig.title = '添加成员'
+        renderSence.value = 'new'
     }
+    syncModalText()
     nextTick(() => {
         form.value?.resetFields()
     })
@@ -112,7 +127,7 @@ function okEvent() {
                     modelConfig.okConfig.loading = false
                 })
         } else {
-            ElMessage.warning('请将表单输入完整')
+            ElMessage.warning(t('validation.completeForm'))
         }
     })
 }

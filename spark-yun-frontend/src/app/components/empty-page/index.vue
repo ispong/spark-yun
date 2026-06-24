@@ -8,25 +8,29 @@
 -->
 <template>
     <div class="empty-page">
-        <img class="empty-icon" src="./empty-page.png" alt="暂无数据" />
+        <img class="empty-icon" src="./empty-page.png" :alt="displayLabel" />
         <template v-if="$slots.default">
             <slot />
         </template>
-        <span v-else class="empty-text">{{ label }}</span>
+        <span v-else class="empty-text">{{ displayLabel }}</span>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, defineProps, withDefaults } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-withDefaults(
+const props = withDefaults(
     defineProps<{
         label?: string
     }>(),
     {
-        label: '暂无数据'
+        label: ''
     }
 )
+
+const { t } = useI18n()
+const displayLabel = computed(() => props.label || t('common.noData'))
 </script>
 
 <style lang="scss">

@@ -13,32 +13,34 @@
                 <upload-filled />
             </el-icon>
             <div class="el-upload__text">
-                上传企业许可证
-                <em>点击上传</em>
+                {{ t('license.uploadEnterpriseLicense') }}
+                <em>{{ t('license.clickUpload') }}</em>
             </div>
         </el-upload>
     </BlockModal>
 </template>
 
 <script lang="ts" setup>
-import { reactive, defineExpose, ref } from 'vue'
+import { reactive, defineExpose, ref, watch } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
+const { t, locale } = useI18n()
 const callback = ref<any>()
 const fileData = ref(null)
 const modelConfig = reactive({
-    title: '上传证书',
+    title: t('license.uploadCertificate'),
     visible: false,
     width: '520px',
     okConfig: {
-        title: '确定',
+        title: t('common.confirm'),
         ok: okEvent,
         disabled: false,
         loading: false
     },
     cancelConfig: {
-        title: '取消',
+        title: t('common.cancel'),
         cancel: closeEvent,
         disabled: false
     },
@@ -47,8 +49,17 @@ const modelConfig = reactive({
     closeOnClickModal: false
 })
 
+function syncModalLocale() {
+    modelConfig.title = t('license.uploadCertificate')
+    modelConfig.okConfig.title = t('common.confirm')
+    modelConfig.cancelConfig.title = t('common.cancel')
+}
+
+watch(locale, syncModalLocale)
+
 function showModal(cb: () => void): void {
     callback.value = cb
+    syncModalLocale()
     modelConfig.visible = true
 }
 

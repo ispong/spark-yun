@@ -6,9 +6,13 @@ import com.isxcode.spark.backend.api.base.exceptions.SuccessResponseException;
 import com.isxcode.spark.backend.api.base.pojos.BaseResponse;
 import java.nio.file.AccessDeniedException;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,7 +32,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 @ResponseBody
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@RequiredArgsConstructor
 public class GlobalExceptionAdvice extends ResponseEntityExceptionHandler {
+
+    private final MessageSource messageSource;
 
     private HttpHeaders jsonHeaders() {
         HttpHeaders headers = new HttpHeaders();
@@ -40,7 +47,10 @@ public class GlobalExceptionAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<BaseResponse<?>> customException(AbstractIsxAppException abstractSparkYunException) {
 
         BaseResponse<?> errorResponse = new BaseResponse<>();
-        errorResponse.setMsg(abstractSparkYunException.getMsg());
+        errorResponse.setMessageKey(abstractSparkYunException.getMessageKey());
+        errorResponse.setArgs(abstractSparkYunException.getArgs());
+        errorResponse.setMsg(resolveMessage(abstractSparkYunException.getMessageKey(),
+            abstractSparkYunException.getArgs(), abstractSparkYunException.getMsg()));
         errorResponse.setCode(
             abstractSparkYunException.getCode() == null ? String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 : abstractSparkYunException.getCode());
@@ -61,7 +71,10 @@ public class GlobalExceptionAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<BaseResponse<?>> customException(IsxErrorException isxErrorException) {
 
         BaseResponse<?> errorResponse = new BaseResponse<>();
-        errorResponse.setMsg(isxErrorException.getMsg());
+        errorResponse.setMessageKey(isxErrorException.getMessageKey());
+        errorResponse.setArgs(isxErrorException.getArgs());
+        errorResponse.setMsg(
+            resolveMessage(isxErrorException.getMessageKey(), isxErrorException.getArgs(), isxErrorException.getMsg()));
         errorResponse.setCode("500");
         return new ResponseEntity<>(errorResponse, jsonHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -77,7 +90,8 @@ public class GlobalExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseResponse<Object> baseResponse = new BaseResponse<>();
         baseResponse.setCode("401");
-        baseResponse.setMsg("当前用户没有权限");
+        baseResponse.setMessageKey("error.forbidden");
+        baseResponse.setMsg(resolveMessage("error.forbidden", null, "当前用户没有权限"));
         baseResponse.setErr(accessDeniedException.getMessage());
 
         return new ResponseEntity<>(baseResponse, jsonHeaders(), HttpStatus.OK);
@@ -89,7 +103,8 @@ public class GlobalExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseResponse<Object> baseResponse = new BaseResponse<>();
         baseResponse.setCode("401");
-        baseResponse.setMsg("当前用户没有权限");
+        baseResponse.setMessageKey("error.forbidden");
+        baseResponse.setMsg(resolveMessage("error.forbidden", null, "当前用户没有权限"));
         baseResponse.setErr(accessDeniedException.getMessage());
 
         return new ResponseEntity<>(baseResponse, jsonHeaders(), HttpStatus.OK);
@@ -101,7 +116,8 @@ public class GlobalExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseResponse<Object> baseResponse = new BaseResponse<>();
         baseResponse.setCode("55500");
-        baseResponse.setMsg("请稍后再试");
+        baseResponse.setMessageKey("error.retry_later");
+        baseResponse.setMsg(resolveMessage("error.retry_later", null, "请稍后再试"));
         baseResponse.setErr(emptyResultDataAccessException.getMessage());
 
         return new ResponseEntity<>(baseResponse, jsonHeaders(), HttpStatus.OK);
@@ -113,7 +129,8 @@ public class GlobalExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseResponse<Object> baseResponse = new BaseResponse<>();
         baseResponse.setCode("55500");
-        baseResponse.setMsg("请稍后再试");
+        baseResponse.setMessageKey("error.retry_later");
+        baseResponse.setMsg(resolveMessage("error.retry_later", null, "请稍后再试"));
         baseResponse.setErr(objectOptimisticLockingFailureException.getMessage());
 
         return new ResponseEntity<>(baseResponse, jsonHeaders(), HttpStatus.OK);
@@ -134,7 +151,24 @@ public class GlobalExceptionAdvice extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
         @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
         ObjectError objectError = ex.getBindingResult().getAllErrors().get(0);
-        return new ResponseEntity<>(new BaseResponse<>(String.valueOf(HttpStatus.BAD_REQUEST.value()),
-            objectError.getDefaultMessage(), "请求参数不合法"), HttpStatus.OK);
+        BaseResponse<Object> baseResponse = new BaseResponse<>();
+        baseResponse.setCode(String.valueOf(HttpStatus.BAD_REQUEST.value()));
+        baseResponse.setMessageKey(objectError.getDefaultMessage());
+        baseResponse.setMsg(resolveMessage(objectError.getDefaultMessage(), null, objectError.getDefaultMessage()));
+        baseResponse.setErr(resolveMessage("validation.request.invalid", null, "请求参数不合法"));
+        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
+    }
+
+    private String resolveMessage(String messageKey, Object[] args, String fallback) {
+
+        if (messageKey == null || messageKey.isBlank()) {
+            return fallback;
+        }
+
+        try {
+            return messageSource.getMessage(messageKey, args, fallback, LocaleContextHolder.getLocale());
+        } catch (NoSuchMessageException e) {
+            return fallback;
+        }
     }
 }

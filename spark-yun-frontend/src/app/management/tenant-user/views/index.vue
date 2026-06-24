@@ -4,14 +4,14 @@
         <div class="zqy-table-top">
             <div class="tenant-user-toolbar-left">
                 <el-button type="primary" @click="handlePrimaryAction">
-                    {{ isPlatformTenantMemberPage ? '添加成员' : '邀请码' }}
+                    {{ isPlatformTenantMemberPage ? t('tenantUser.addMember') : t('tenantUser.inviteCode') }}
                 </el-button>
                 <el-select
                     v-if="isPlatformTenantMemberPage"
                     v-model="selectedTenantId"
                     class="tenant-user-tenant-select"
                     filterable
-                    placeholder="请选择租户"
+                    :placeholder="t('tenantUser.selectTenant')"
                     @change="handlePlatformTenantChange"
                 >
                     <el-option
@@ -25,7 +25,7 @@
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
-                    placeholder="请输入用户名/手机号/邮箱 回车进行搜索"
+                    :placeholder="t('tenantUser.searchPlaceholder')"
                     :maxlength="200"
                     clearable
                     @input="inputEvent"
@@ -36,22 +36,22 @@
                 <div v-if="selectedRows.length" class="tenant-user-batch-mask">
                     <div class="tenant-user-batch-actions">
                         <el-button class="tenant-user-batch-action" :loading="batchLoading" @click="batchEnableMembers">
-                            启用
+                            {{ t('tenantUser.enable') }}
                         </el-button>
                         <el-button class="tenant-user-batch-action" :loading="batchLoading" @click="batchDisableMembers">
-                            禁用
+                            {{ t('tenantUser.disable') }}
                         </el-button>
                         <el-button class="tenant-user-batch-action" :loading="batchLoading" @click="batchGiveAuth">
-                            设为管理员
+                            {{ t('tenantUser.setAdmin') }}
                         </el-button>
                         <el-button class="tenant-user-batch-action" :loading="batchLoading" @click="batchRemoveAuth">
-                            取消管理员
+                            {{ t('tenantUser.cancelAdmin') }}
                         </el-button>
                         <el-button class="tenant-user-batch-action" :loading="batchLoading" @click="batchDeleteMembers">
-                            移除
+                            {{ t('tenantUser.remove') }}
                         </el-button>
                         <el-button class="tenant-user-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
-                            取消选择
+                            {{ t('tenantUser.cancelSelection') }}
                         </el-button>
                     </div>
                 </div>
@@ -64,30 +64,42 @@
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
                     @checkbox-change="handleSelectionChange"
-                >
+                    >
                     <template #roleCode="scopeSlot">
-                        <el-tag v-if="isTenantSuperAdmin(scopeSlot.row)" type="danger">超级管理员</el-tag>
-                        <el-tag v-else-if="isTenantAdmin(scopeSlot.row)" type="warning">管理员</el-tag>
-                        <el-tag v-else class="tenant-member-tag">成员</el-tag>
+                        <el-tag v-if="isTenantSuperAdmin(scopeSlot.row)" type="danger">
+                            {{ t('tenantUser.tenantSuperAdmin') }}
+                        </el-tag>
+                        <el-tag v-else-if="isTenantAdmin(scopeSlot.row)" type="warning">
+                            {{ t('tenantUser.admin') }}
+                        </el-tag>
+                        <el-tag v-else class="tenant-member-tag">{{ t('tenantUser.member') }}</el-tag>
                     </template>
                     <template #status="scopeSlot">
-                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
-                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
-                        <el-tag v-if="scopeSlot.row.status === 'APPLYING'" type="warning">申请中</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">
+                            {{ t('tenantUser.enable') }}
+                        </el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">
+                            {{ t('tenantUser.disable') }}
+                        </el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'APPLYING'" type="warning">
+                            {{ t('tenantUser.applying') }}
+                        </el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group tenant-user-action-group">
-                            <span class="tenant-user-action-button" @click="editData(scopeSlot.row)">编辑</span>
+                            <span class="tenant-user-action-button" @click="editData(scopeSlot.row)">
+                                {{ t('tenantUser.edit') }}
+                            </span>
                             <el-dropdown trigger="click" popper-class="tenant-user-action-dropdown">
-                                <span class="click-show-more tenant-user-action-button">更多</span>
+                                <span class="click-show-more tenant-user-action-button">{{ t('common.more') }}</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <template v-if="isApplying(scopeSlot.row)">
                                             <el-dropdown-item @click="approveApply(scopeSlot.row)">
-                                                通过申请
+                                                {{ t('tenantUser.approveApply') }}
                                             </el-dropdown-item>
                                             <el-dropdown-item @click="rejectApply(scopeSlot.row)">
-                                                拒绝申请
+                                                {{ t('tenantUser.rejectApply') }}
                                             </el-dropdown-item>
                                         </template>
                                         <template v-else>
@@ -102,7 +114,9 @@
                                             >
                                                 <span v-if="!scopeSlot.row.authLoading">
                                                     {{
-                                                        scopeSlot.row.normalAdmin ? '取消管理员' : '设为管理员'
+                                                        scopeSlot.row.normalAdmin
+                                                            ? t('tenantUser.cancelAdmin')
+                                                            : t('tenantUser.setAdmin')
                                                     }}
                                                 </span>
                                                 <el-icon v-else class="is-loading">
@@ -110,9 +124,15 @@
                                                 </el-icon>
                                             </el-dropdown-item>
                                             <el-dropdown-item @click="changeMemberStatus(scopeSlot.row)">
-                                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                                                {{
+                                                    scopeSlot.row.status === 'ENABLE'
+                                                        ? t('tenantUser.disable')
+                                                        : t('tenantUser.enable')
+                                                }}
                                             </el-dropdown-item>
-                                            <el-dropdown-item @click="deleteData(scopeSlot.row)">移除</el-dropdown-item>
+                                            <el-dropdown-item @click="deleteData(scopeSlot.row)">
+                                                {{ t('tenantUser.remove') }}
+                                            </el-dropdown-item>
                                         </template>
                                     </el-dropdown-menu>
                                 </template>
@@ -126,27 +146,27 @@
         <el-dialog
             v-model="inviteDialogVisible"
             class="tenant-user-invite-dialog"
-            title="租户邀请码"
+            :title="t('tenantUser.tenantInviteCode')"
             width="520px"
         >
             <el-form class="tenant-user-invite-form" label-position="top">
-                <el-form-item label="邀请码">
+                <el-form-item :label="t('tenantUser.inviteCode')">
                     <el-input v-model="inviteForm.inviteCode" readonly>
                         <template #append>
-                            <el-button @click="copyInviteCode">复制</el-button>
+                            <el-button @click="copyInviteCode">{{ t('tenantUser.copy') }}</el-button>
                         </template>
                     </el-input>
                 </el-form-item>
-                <el-form-item label="有效期">
+                <el-form-item :label="t('tenantUser.validPeriod')">
                     <el-select v-model="inviteForm.validDays">
-                        <el-option label="1 天" :value="1" />
-                        <el-option label="7 天" :value="7" />
-                        <el-option label="30 天" :value="30" />
-                        <el-option label="永久有效" :value="0" />
+                        <el-option :label="t('tenantUser.oneDay')" :value="1" />
+                        <el-option :label="t('tenantUser.sevenDays')" :value="7" />
+                        <el-option :label="t('tenantUser.thirtyDays')" :value="30" />
+                        <el-option :label="t('tenantUser.forever')" :value="0" />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="绑定角色">
-                    <el-select v-model="inviteForm.roleIds" multiple clearable placeholder="可不选择角色">
+                <el-form-item :label="t('tenantUser.bindRole')">
+                    <el-select v-model="inviteForm.roleIds" multiple clearable :placeholder="t('tenantUser.optionalRole')">
                         <el-option
                             v-for="role in availableRoles"
                             :key="role.id"
@@ -158,10 +178,12 @@
             </el-form>
             <template #footer>
                 <div class="tenant-user-invite-footer">
-                    <el-button @click="inviteDialogVisible = false">取消</el-button>
-                    <el-button :loading="inviteSaving" @click="saveInviteCode(true)">重新生成</el-button>
+                    <el-button @click="inviteDialogVisible = false">{{ t('common.cancel') }}</el-button>
+                    <el-button :loading="inviteSaving" @click="saveInviteCode(true)">
+                        {{ t('tenantUser.regenerate') }}
+                    </el-button>
                     <el-button type="primary" :loading="inviteSaving" @click="saveInviteCode(false)">
-                        保存设置
+                        {{ t('tenantUser.saveSettings') }}
                     </el-button>
                 </div>
             </template>
@@ -170,14 +192,14 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref, onMounted } from 'vue'
+import { computed, reactive, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import AddModal from './add-modal/index.vue'
 
-import { BreadCrumbList, TableConfig } from './tenant-user.config'
+import { createBreadCrumbList, createColConfigs, createTableConfig } from './tenant-user.config'
 import {
     GetUserList,
     AddTenantUserData,
@@ -196,14 +218,16 @@ import { useSwitchTenant } from '@/app/hooks/switch-tenant'
 import { useAuthStore } from '@/app/store/useAuth'
 import { ListRole } from '@/app/management/admin/api'
 import { GetTenantList } from '@/app/management/tenant-list/api'
+import { useI18n } from 'vue-i18n'
 
 interface FormUser {
     isTenantAdmin: boolean
     userId: string
 }
 
-const breadCrumbList = reactive(BreadCrumbList)
-const tableConfig: any = reactive(TableConfig)
+const { t, locale } = useI18n()
+const breadCrumbList = reactive(createBreadCrumbList(t))
+const tableConfig: any = reactive(createTableConfig(t))
 const keyword = ref('')
 const loading = ref(false)
 const networkError = ref(false)
@@ -228,6 +252,12 @@ const isPlatformTenantMemberPage = computed(() => route.path.startsWith('/platfo
 const activeTenantId = computed(() =>
     isPlatformTenantMemberPage.value ? selectedTenantId.value : currentTenant.value.id || authStore.tenantId
 )
+
+watch(locale, () => {
+    const nextBreadCrumbList = createBreadCrumbList(t)
+    breadCrumbList.splice(0, breadCrumbList.length, ...nextBreadCrumbList)
+    tableConfig.colConfigs = createColConfigs(t)
+})
 
 function normalizeRoleCode(roleCode?: string) {
     return roleCode?.replace(/^ROLE_/, '')
@@ -391,7 +421,7 @@ function editData(data: any) {
 
 function openInviteDialog() {
     if (!activeTenantId.value) {
-        ElMessage.warning('请先选择租户')
+        ElMessage.warning(t('tenantUser.selectTenantFirst'))
         return
     }
     inviteDialogVisible.value = true
@@ -415,7 +445,7 @@ function saveInviteCode(regenerate: boolean) {
             inviteForm.inviteCode = res.data.inviteCode || ''
             inviteForm.validDays = res.data.validDays ?? inviteForm.validDays
             inviteForm.roleIds = [...(res.data.roleIds || [])]
-            ElMessage.success(regenerate ? '邀请码已重新生成' : '邀请码设置已保存')
+            ElMessage.success(regenerate ? t('tenantUser.inviteRegenerated') : t('tenantUser.inviteSaved'))
         })
         .finally(() => {
             inviteSaving.value = false
@@ -429,14 +459,13 @@ function copyInviteCode() {
     navigator.clipboard
         ?.writeText(inviteForm.inviteCode)
         .then(() => {
-            ElMessage.success('邀请码已复制')
+            ElMessage.success(t('tenantUser.inviteCopied'))
         })
         .catch(() => {
-            ElMessage.error('复制失败，请手动复制')
+            ElMessage.error(t('tenantUser.copyFailed'))
         })
 }
 
-// 授权
 function giveAuth(data: any) {
     data.authLoading = true
     GiveAuth({
@@ -452,7 +481,6 @@ function giveAuth(data: any) {
         })
 }
 
-// 取消授权
 function removeAuth(data: any) {
     data.authLoading = true
     RemoveAuth({
@@ -488,9 +516,9 @@ function approveApply(data: any) {
 }
 
 function rejectApply(data: any) {
-    ElMessageBox.confirm('确定拒绝该租户申请吗？', '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('tenantUser.rejectApplyConfirm'), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         RejectTenantApply({
@@ -514,7 +542,7 @@ function cancelSelection() {
 function batchEnableMembers() {
     const disableRows = selectedRows.value.filter((row: any) => row.status === 'DISABLE')
     if (!disableRows.length) {
-        ElMessage.warning('请选择禁用状态的成员')
+        ElMessage.warning(t('tenantUser.selectDisabledMembers'))
         return
     }
 
@@ -528,7 +556,7 @@ function batchEnableMembers() {
         )
     )
         .then(() => {
-            ElMessage.success('批量启用成功')
+            ElMessage.success(t('tenantUser.batchEnableSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -540,7 +568,7 @@ function batchEnableMembers() {
 function batchDisableMembers() {
     const enableRows = selectedRows.value.filter((row: any) => row.status === 'ENABLE')
     if (!enableRows.length) {
-        ElMessage.warning('请选择启用状态的成员')
+        ElMessage.warning(t('tenantUser.selectEnabledMembers'))
         return
     }
 
@@ -554,7 +582,7 @@ function batchDisableMembers() {
         )
     )
         .then(() => {
-            ElMessage.success('批量禁用成功')
+            ElMessage.success(t('tenantUser.batchDisableSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -568,14 +596,14 @@ function batchGiveAuth() {
         (row: any) => !isApplying(row) && !isTenantSuperAdmin(row) && !row.normalAdmin
     )
     if (!memberRows.length) {
-        ElMessage.warning('请选择非管理员成员')
+        ElMessage.warning(t('tenantUser.selectNonAdminMembers'))
         return
     }
 
     batchLoading.value = true
     Promise.all(memberRows.map((row: any) => GiveAuth({ tenantUserId: row.id })))
         .then(() => {
-            ElMessage.success('批量设为管理员成功')
+            ElMessage.success(t('tenantUser.batchSetAdminSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -589,14 +617,14 @@ function batchRemoveAuth() {
         (row: any) => !isApplying(row) && !isTenantSuperAdmin(row) && row.normalAdmin
     )
     if (!adminRows.length) {
-        ElMessage.warning('请选择管理员成员')
+        ElMessage.warning(t('tenantUser.selectAdminMembers'))
         return
     }
 
     batchLoading.value = true
     Promise.all(adminRows.map((row: any) => RemoveAuth({ tenantUserId: row.id })))
         .then(() => {
-            ElMessage.success('批量取消管理员成功')
+            ElMessage.success(t('tenantUser.batchCancelAdminSuccess'))
             initData(true)
         })
         .catch(() => {})
@@ -610,15 +638,15 @@ function batchDeleteMembers() {
         return
     }
 
-    ElMessageBox.confirm(`确定移除选中的 ${selectedRows.value.length} 个成员吗？`, '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('tenantUser.removeSelectedConfirm', { count: selectedRows.value.length }), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         batchLoading.value = true
         Promise.all(selectedRows.value.map((row: any) => DeleteTenantUser({ tenantUserId: row.id })))
             .then(() => {
-                ElMessage.success('批量移除成功')
+                ElMessage.success(t('tenantUser.batchRemoveSuccess'))
                 initData()
             })
             .catch(() => {})
@@ -628,11 +656,10 @@ function batchDeleteMembers() {
     })
 }
 
-// 删除
 function deleteData(data: any) {
-    ElMessageBox.confirm('确定移除该成员吗？', '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('tenantUser.removeMemberConfirm'), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         DeleteTenantUser({

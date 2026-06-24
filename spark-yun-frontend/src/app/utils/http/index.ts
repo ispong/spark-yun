@@ -11,6 +11,7 @@ import router from '@/app/router'
 import { merge } from '../checkType'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/app/store/useAuth'
+import { useLocaleStore } from '@/app/store/useLocale'
 
 const message = ElMessage
 
@@ -60,8 +61,10 @@ export const httpOption = {
     transform: {
         requestInterceptors: (config: any) => {
             const authStore = useAuthStore()
+            const localeStore = useLocaleStore()
             config.headers['authorization'] = config.headers['authorization'] || authStore.token
             config.headers['tenant'] = config.headers['tenant'] || authStore.tenantId
+            config.headers['Accept-Language'] = config.headers['Accept-Language'] || localeStore.locale
 
             return config
         },

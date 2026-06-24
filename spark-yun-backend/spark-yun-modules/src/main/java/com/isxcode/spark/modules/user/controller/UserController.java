@@ -148,6 +148,14 @@ public class UserController {
         loginMethodBizService.updateMyEmail(updateMyEmailReq);
     }
 
+    @Operation(summary = "修改个人语言接口")
+    @PostMapping("/updateMyLocale")
+    @SuccessResponse("修改成功")
+    public void updateMyLocale(@Valid @RequestBody UpdateMyLocaleReq updateMyLocaleReq) {
+
+        userBizService.updateMyLocale(updateMyLocaleReq);
+    }
+
     @Secured({RoleType.PLATFORM_SUPER_ADMIN, RoleType.PLATFORM_ADMIN})
     @Operation(summary = "禁用用户接口")
     @PostMapping("/disableUser")

@@ -1,13 +1,13 @@
 <template>
-    <Breadcrumb :bread-crumb-list="[{ name: '智能配置', code: 'ai-config' }]" />
+    <Breadcrumb :bread-crumb-list="breadCrumbList" />
     <div class="zqy-seach-table ai-config-page">
         <div class="zqy-table-top">
-            <el-button type="primary" @click="openEditor()">新增配置</el-button>
+            <el-button type="primary" @click="openEditor()">{{ t('aiConfig.addConfig') }}</el-button>
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
                     clearable
-                    placeholder="请输入配置名称、供应商或模型 回车进行搜索"
+                    :placeholder="t('aiConfig.searchPlaceholder')"
                     @input="inputEvent"
                     @keyup.enter="loadConfigs(false)"
                 />
@@ -16,16 +16,16 @@
                 <div v-if="selectedRows.length" class="ai-config-batch-mask">
                     <div class="ai-config-batch-actions">
                         <el-button class="ai-config-batch-action" :loading="batchLoading" @click="batchEnableConfigs">
-                            启用
+                            {{ t('aiConfig.enable') }}
                         </el-button>
                         <el-button class="ai-config-batch-action" :loading="batchLoading" @click="batchDisableConfigs">
-                            禁用
+                            {{ t('aiConfig.disable') }}
                         </el-button>
                         <el-button class="ai-config-batch-action" :loading="batchLoading" @click="batchDeleteConfigs">
-                            删除
+                            {{ t('common.delete') }}
                         </el-button>
                         <el-button class="ai-config-batch-cancel" :disabled="batchLoading" @click="cancelSelection">
-                            取消选择
+                            {{ t('aiConfig.cancelSelection') }}
                         </el-button>
                     </div>
                 </div>
@@ -49,21 +49,27 @@
                         </el-tag>
                     </template>
                     <template #statusTag="scopeSlot">
-                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">启用</el-tag>
-                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">禁用</el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'ENABLE'" type="success">
+                            {{ t('aiConfig.enable') }}
+                        </el-tag>
+                        <el-tag v-if="scopeSlot.row.status === 'DISABLE'" type="danger">
+                            {{ t('aiConfig.disable') }}
+                        </el-tag>
                     </template>
                     <template #options="scopeSlot">
                         <div class="btn-group ai-config-action-group">
-                            <span class="ai-config-action-button" @click="openEditor(scopeSlot.row)">编辑</span>
+                            <span class="ai-config-action-button" @click="openEditor(scopeSlot.row)">
+                                {{ t('common.edit') }}
+                            </span>
                             <el-dropdown trigger="click" placement="bottom" popper-class="ai-config-action-dropdown">
-                                <span class="click-show-more ai-config-action-button">更多</span>
+                                <span class="click-show-more ai-config-action-button">{{ t('common.more') }}</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item
                                             :disabled="testingId === scopeSlot.row.id"
                                             @click="testingId !== scopeSlot.row.id && testConfig(scopeSlot.row)"
                                         >
-                                            <span v-if="testingId !== scopeSlot.row.id">测试</span>
+                                            <span v-if="testingId !== scopeSlot.row.id">{{ t('aiConfig.test') }}</span>
                                             <el-icon v-else class="is-loading">
                                                 <Loading />
                                             </el-icon>
@@ -76,13 +82,19 @@
                                             "
                                         >
                                             <span v-if="!scopeSlot.row.statusLoading">
-                                                {{ scopeSlot.row.status === 'ENABLE' ? '禁用' : '启用' }}
+                                                {{
+                                                    scopeSlot.row.status === 'ENABLE'
+                                                        ? t('aiConfig.disable')
+                                                        : t('aiConfig.enable')
+                                                }}
                                             </span>
                                             <el-icon v-else class="is-loading">
                                                 <Loading />
                                             </el-icon>
                                         </el-dropdown-item>
-                                        <el-dropdown-item @click="removeConfig(scopeSlot.row)">删除</el-dropdown-item>
+                                        <el-dropdown-item @click="removeConfig(scopeSlot.row)">
+                                            {{ t('common.delete') }}
+                                        </el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -95,7 +107,7 @@
 
     <el-dialog
         v-model="editorVisible"
-        :title="form.id ? '编辑智能配置' : '新增智能配置'"
+        :title="form.id ? t('aiConfig.editConfig') : t('aiConfig.addConfig')"
         width="520px"
         class="ai-config-editor-dialog zqy-block-modal"
         append-to-body
@@ -103,10 +115,10 @@
         :close-on-click-modal="false"
     >
         <el-form class="ai-config-form" label-position="top">
-            <el-form-item label="配置名称">
+            <el-form-item :label="t('aiConfig.configName')">
                 <el-input v-model="form.name" maxlength="80" />
             </el-form-item>
-            <el-form-item label="供应商">
+            <el-form-item :label="t('aiConfig.provider')">
                 <el-select v-model="form.providerType" @change="handleProviderChange">
                     <el-option
                         v-for="provider in providers"
@@ -116,30 +128,36 @@
                     />
                 </el-select>
             </el-form-item>
-            <el-form-item label="接口地址">
-                <el-input v-model="form.baseUrl" placeholder="OpenAI 兼容接口地址" />
+            <el-form-item :label="t('aiConfig.baseUrl')">
+                <el-input v-model="form.baseUrl" :placeholder="t('aiConfig.baseUrlPlaceholder')" />
             </el-form-item>
-            <el-form-item label="模型">
-                <el-input v-model="form.modelName" placeholder="例如 gpt-4o-mini、deepseek-chat" />
+            <el-form-item :label="t('aiConfig.model')">
+                <el-input v-model="form.modelName" :placeholder="t('aiConfig.modelPlaceholder')" />
             </el-form-item>
             <el-form-item label="API Key">
-                <el-input v-model="form.apiKey" show-password placeholder="编辑时留空则保留原值" type="password" />
+                <el-input
+                    v-model="form.apiKey"
+                    show-password
+                    :placeholder="t('aiConfig.apiKeyPlaceholder')"
+                    type="password"
+                />
             </el-form-item>
-            <el-form-item label="备注">
+            <el-form-item :label="t('table.remark')">
                 <el-input v-model="form.remark" maxlength="500" type="textarea" :rows="3" />
             </el-form-item>
         </el-form>
         <template #footer>
-            <el-button @click="editorVisible = false">取消</el-button>
-            <el-button type="primary" :loading="saving" @click="saveConfig">保存</el-button>
+            <el-button @click="editorVisible = false">{{ t('common.cancel') }}</el-button>
+            <el-button type="primary" :loading="saving" @click="saveConfig">{{ t('common.save') }}</el-button>
         </template>
     </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watchEffect } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
@@ -158,27 +176,41 @@ interface AiConfig {
     statusLoading?: boolean
 }
 
-const providerLabels: Record<string, string> = {
-    OPENAI: 'OpenAI',
-    DEEPSEEK: 'DeepSeek',
-    DASHSCOPE: '通义千问',
-    OLLAMA: 'Ollama',
-    OPENAI_COMPATIBLE: 'OpenAI兼容'
-}
+const { t } = useI18n({ useScope: 'global' })
 
-const providers = [
-    { label: 'OpenAI兼容', value: 'OPENAI_COMPATIBLE', baseUrl: '', modelName: '' },
-    { label: 'OpenAI', value: 'OPENAI', baseUrl: 'https://api.openai.com', modelName: 'gpt-4o-mini' },
-    { label: 'DeepSeek', value: 'DEEPSEEK', baseUrl: 'https://api.deepseek.com', modelName: 'deepseek-chat' },
+const providerDefinitions = [
+    { labelKey: 'aiConfig.provider.openaiCompatible', value: 'OPENAI_COMPATIBLE', baseUrl: '', modelName: '' },
+    { labelKey: 'aiConfig.provider.openai', value: 'OPENAI', baseUrl: 'https://api.openai.com', modelName: 'gpt-4o-mini' },
     {
-        label: '通义千问',
+        labelKey: 'aiConfig.provider.deepseek',
+        value: 'DEEPSEEK',
+        baseUrl: 'https://api.deepseek.com',
+        modelName: 'deepseek-chat'
+    },
+    {
+        labelKey: 'aiConfig.provider.dashscope',
         value: 'DASHSCOPE',
         baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode',
         modelName: 'qwen-plus'
     },
-    { label: 'Ollama', value: 'OLLAMA', baseUrl: 'http://localhost:11434', modelName: 'llama3.1' }
+    { labelKey: 'aiConfig.provider.ollama', value: 'OLLAMA', baseUrl: 'http://localhost:11434', modelName: 'llama3.1' }
 ]
-const defaultProvider = providers.find((item) => item.value === 'DEEPSEEK') || providers[0]
+const defaultProvider = providerDefinitions.find((item) => item.value === 'DEEPSEEK') || providerDefinitions[0]
+const providerLabels = computed<Record<string, string>>(() =>
+    Object.fromEntries(providerDefinitions.map((provider) => [provider.value, t(provider.labelKey)]))
+)
+const providers = computed(() =>
+    providerDefinitions.map((provider) => ({
+        ...provider,
+        label: t(provider.labelKey)
+    }))
+)
+const breadCrumbList = computed(() => [
+    {
+        name: t('menu.ai-config'),
+        code: 'ai-config'
+    }
+])
 
 const keyword = ref('')
 const loading = ref(false)
@@ -191,52 +223,7 @@ const selectedRows = ref<AiConfig[]>([])
 
 const tableConfig: any = reactive({
     tableData: [],
-    colConfigs: [
-        {
-            prop: 'name',
-            title: '配置名称',
-            minWidth: 140,
-            customSlot: 'name',
-            showOverflowTooltip: true
-        },
-        {
-            prop: 'providerType',
-            title: '模型类型',
-            minWidth: 110,
-            customSlot: 'providerType'
-        },
-        {
-            prop: 'modelName',
-            title: '模型',
-            minWidth: 140,
-            showOverflowTooltip: true
-        },
-        {
-            prop: 'baseUrl',
-            title: '接口地址',
-            minWidth: 220,
-            showOverflowTooltip: true
-        },
-        {
-            prop: 'status',
-            title: '状态',
-            minWidth: 90,
-            customSlot: 'statusTag'
-        },
-        {
-            prop: 'remark',
-            title: '备注',
-            minWidth: 120,
-            showOverflowTooltip: true
-        },
-        {
-            title: '操作',
-            align: 'center',
-            customSlot: 'options',
-            width: 120,
-            fixed: 'right'
-        }
-    ],
+    colConfigs: [],
     checkbox: true,
     pagination: {
         currentPage: 1,
@@ -245,6 +232,59 @@ const tableConfig: any = reactive({
     },
     seqType: 'seq',
     loading: false
+})
+
+function getAiConfigColumns() {
+    return [
+        {
+            prop: 'name',
+            title: t('aiConfig.configName'),
+            minWidth: 140,
+            customSlot: 'name',
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'providerType',
+            title: t('aiConfig.modelType'),
+            minWidth: 110,
+            customSlot: 'providerType'
+        },
+        {
+            prop: 'modelName',
+            title: t('aiConfig.model'),
+            minWidth: 140,
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'baseUrl',
+            title: t('aiConfig.baseUrl'),
+            minWidth: 220,
+            showOverflowTooltip: true
+        },
+        {
+            prop: 'status',
+            title: t('table.status'),
+            minWidth: 90,
+            customSlot: 'statusTag'
+        },
+        {
+            prop: 'remark',
+            title: t('table.remark'),
+            minWidth: 120,
+            showOverflowTooltip: true
+        },
+        {
+            title: t('table.actions'),
+            align: 'center',
+            customSlot: 'options',
+            width: 120,
+            fixed: 'right'
+        }
+    ]
+}
+
+watchEffect(() => {
+    tableConfig.colConfigs = getAiConfigColumns()
 })
 
 const form = reactive({
@@ -302,7 +342,7 @@ function openEditor(config?: AiConfig) {
 }
 
 function handleProviderChange(providerType: string) {
-    const provider = providers.find((item) => item.value === providerType)
+    const provider = providerDefinitions.find((item) => item.value === providerType)
     if (!provider) {
         return
     }
@@ -316,15 +356,15 @@ function handleProviderChange(providerType: string) {
 
 function saveConfig() {
     if (!form.name.trim() || !form.providerType || !form.modelName.trim()) {
-        ElMessage.warning('请填写配置名称、供应商和模型')
+        ElMessage.warning(t('aiConfig.inputRequiredFields'))
         return
     }
     if (form.providerType === 'OPENAI_COMPATIBLE' && !form.baseUrl.trim()) {
-        ElMessage.warning('请填写接口地址')
+        ElMessage.warning(t('aiConfig.inputBaseUrl'))
         return
     }
     if (!form.id && form.providerType !== 'OLLAMA' && !form.apiKey.trim()) {
-        ElMessage.warning('请填写API Key')
+        ElMessage.warning(t('aiConfig.inputApiKey'))
         return
     }
     saving.value = true
@@ -378,9 +418,9 @@ function changeStatus(config: AiConfig, enabled: boolean) {
 }
 
 function removeConfig(config: AiConfig) {
-    ElMessageBox.confirm(`确定删除智能配置“${config.name}”吗？`, '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('aiConfig.deleteConfirm', { name: config.name }), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         DeleteAiConfig({
@@ -417,13 +457,13 @@ function cancelSelection() {
 function batchEnableConfigs() {
     const disableRows = selectedRows.value.filter((row) => row.status === 'DISABLE')
     if (!disableRows.length) {
-        ElMessage.warning('请选择禁用状态的智能配置')
+        ElMessage.warning(t('aiConfig.selectDisabledConfigs'))
         return
     }
     batchLoading.value = true
     Promise.all(disableRows.map((row) => saveRowStatus(row, true)))
         .then(() => {
-            ElMessage.success('批量启用成功')
+            ElMessage.success(t('aiConfig.batchEnableSuccess'))
             loadConfigs(true)
         })
         .catch(() => {})
@@ -435,13 +475,13 @@ function batchEnableConfigs() {
 function batchDisableConfigs() {
     const enableRows = selectedRows.value.filter((row) => row.status === 'ENABLE')
     if (!enableRows.length) {
-        ElMessage.warning('请选择启用状态的智能配置')
+        ElMessage.warning(t('aiConfig.selectEnabledConfigs'))
         return
     }
     batchLoading.value = true
     Promise.all(enableRows.map((row) => saveRowStatus(row, false)))
         .then(() => {
-            ElMessage.success('批量禁用成功')
+            ElMessage.success(t('aiConfig.batchDisableSuccess'))
             loadConfigs(true)
         })
         .catch(() => {})
@@ -454,15 +494,15 @@ function batchDeleteConfigs() {
     if (!selectedRows.value.length) {
         return
     }
-    ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个智能配置吗？`, '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    ElMessageBox.confirm(t('aiConfig.batchDeleteConfirm', { count: selectedRows.value.length }), t('common.warning'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
     }).then(() => {
         batchLoading.value = true
         Promise.all(selectedRows.value.map((row) => DeleteAiConfig({ id: row.id })))
             .then(() => {
-                ElMessage.success('批量删除成功')
+                ElMessage.success(t('aiConfig.batchDeleteSuccess'))
                 loadConfigs()
             })
             .catch(() => {})

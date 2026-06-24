@@ -38,6 +38,7 @@
         "vue": "3.5.38",
         "vue-codemirror6": "^1.5.2",
         "vue-grid-layout": "3.0.0-beta1",
+        "vue-i18n": "11.1.12",
         "vue-router": "4.6.4",
         "vuedraggable": "^4.1.0",
         "vxe-table": "^4.13.32",

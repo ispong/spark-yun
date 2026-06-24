@@ -1,6 +1,8 @@
-export const BreadCrumbList = [
+export const createBreadCrumbList = (t: (key: string) => string) => [
     {
-        name: '登录方式',
+        name: t('loginMethod.title'),
         code: 'login-method'
     }
 ]
+
+export const BreadCrumbList = createBreadCrumbList((key) => key)

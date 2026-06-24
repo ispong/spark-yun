@@ -1,16 +1,15 @@
 <template>
-    <el-config-provider :locale="locale">
+    <el-config-provider :locale="elementLocale">
         <!-- 进入路由，展示哪个组件 -->
         <router-view />
     </el-config-provider>
 </template>
 
 <script lang="ts" setup>
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
-import { reactive } from 'vue'
+import { computed } from 'vue'
+import { getElementLocale } from '@/app/i18n'
+import { useLocaleStore } from '@/app/store/useLocale'
 
-// 设置elementPlus的语言
-const { locale } = reactive({
-    locale: zhCn
-})
+const localeStore = useLocaleStore()
+const elementLocale = computed(() => getElementLocale(localeStore.locale))
 </script>

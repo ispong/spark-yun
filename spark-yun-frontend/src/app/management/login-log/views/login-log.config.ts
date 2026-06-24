@@ -13,65 +13,68 @@ export interface ColConfig {
     showOverflowTooltip?: boolean
 }
 
-export const BreadCrumbList: BreadCrumb[] = [
+export const createBreadCrumbList = (t: (key: string) => string): BreadCrumb[] => [
     {
-        name: '登录日志',
+        name: t('loginLog.title'),
         code: 'login-log'
     }
 ]
 
-export const TableConfig = {
+export const createColConfigs = (t: (key: string) => string): ColConfig[] => [
+    {
+        prop: 'loginMethod',
+        title: t('loginLog.loginMethod'),
+        minWidth: 130,
+        customSlot: 'loginMethod'
+    },
+    {
+        prop: 'accountIdentifier',
+        title: t('loginLog.accountIdentifier'),
+        minWidth: 140,
+        showOverflowTooltip: true
+    },
+    {
+        prop: 'ipAddress',
+        title: 'IP',
+        minWidth: 130,
+        showOverflowTooltip: true
+    },
+    {
+        prop: 'userAgent',
+        title: t('loginLog.device'),
+        minWidth: 220,
+        showOverflowTooltip: true
+    },
+    {
+        prop: 'loginStatus',
+        title: t('loginLog.result'),
+        minWidth: 90,
+        customSlot: 'loginStatus'
+    },
+    {
+        prop: 'registered',
+        title: t('loginLog.autoRegister'),
+        minWidth: 100,
+        customSlot: 'registered'
+    },
+    {
+        prop: 'createDateTime',
+        title: t('loginLog.loginTime'),
+        minWidth: 160,
+        showOverflowTooltip: true
+    },
+    {
+        prop: 'errorMessage',
+        title: t('loginLog.failureReason'),
+        minWidth: 180,
+        customSlot: 'failureReason',
+        showOverflowTooltip: true
+    }
+]
+
+export const createTableConfig = (t: (key: string) => string) => ({
     tableData: [],
-    colConfigs: [
-        {
-            prop: 'loginMethod',
-            title: '登录方式',
-            minWidth: 130,
-            customSlot: 'loginMethod'
-        },
-        {
-            prop: 'accountIdentifier',
-            title: '账号标识',
-            minWidth: 140,
-            showOverflowTooltip: true
-        },
-        {
-            prop: 'ipAddress',
-            title: 'IP',
-            minWidth: 130,
-            showOverflowTooltip: true
-        },
-        {
-            prop: 'userAgent',
-            title: '设备',
-            minWidth: 220,
-            showOverflowTooltip: true
-        },
-        {
-            prop: 'loginStatus',
-            title: '结果',
-            minWidth: 90,
-            customSlot: 'loginStatus'
-        },
-        {
-            prop: 'registered',
-            title: '自动注册',
-            minWidth: 100,
-            customSlot: 'registered'
-        },
-        {
-            prop: 'createDateTime',
-            title: '登录时间',
-            minWidth: 160,
-            showOverflowTooltip: true
-        },
-        {
-            prop: 'errorMessage',
-            title: '失败原因',
-            minWidth: 180,
-            showOverflowTooltip: true
-        }
-    ] as ColConfig[],
+    colConfigs: createColConfigs(t),
     pagination: {
         currentPage: 1,
         pageSize: 10,
@@ -79,4 +82,7 @@ export const TableConfig = {
     },
     seqType: 'seq',
     loading: false
-}
+})
+
+export const BreadCrumbList: BreadCrumb[] = createBreadCrumbList((key) => key)
+export const TableConfig = createTableConfig((key) => key)

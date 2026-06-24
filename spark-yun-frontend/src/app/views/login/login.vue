@@ -11,12 +11,39 @@
                 <img class="zqy-login__preview" :src="brandSetting.loginMainImageUrl" alt="" />
             </section>
 
-            <section class="zqy-login__panel" aria-label="用户登录">
+            <section class="zqy-login__panel" :aria-label="t('login.userLogin')">
                 <div class="zqy-login__card">
+                    <div class="zqy-login__locale">
+                        <el-dropdown
+                            trigger="click"
+                            popper-class="login-locale-dropdown"
+                            @command="handleLocaleChange"
+                        >
+                            <button
+                                class="zqy-login__locale-trigger"
+                                type="button"
+                                :aria-label="t('login.switchLanguage')"
+                            >
+                                {{ t(`app.locale.${localeStore.locale}`) }}
+                            </button>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item
+                                        v-for="localeOption in supportedLocales"
+                                        :key="localeOption"
+                                        :command="localeOption"
+                                        :disabled="localeOption === localeStore.locale"
+                                    >
+                                        {{ t(`app.locale.${localeOption}`) }}
+                                    </el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </div>
                     <span
                         class="zqy-login__card-logo"
                         role="img"
-                        aria-label="至轻云"
+                        :aria-label="brandSetting.systemName"
                         v-html="loginLogoSvg"
                     />
                     <h1 class="zqy-login__title">{{ loginTitle }}</h1>
@@ -49,7 +76,7 @@
                                 type="password"
                                 show-password
                                 autocomplete="current-password"
-                                placeholder="请输入密码"
+                                :placeholder="t('login.inputPassword')"
                             />
                         </el-form-item>
 
@@ -83,7 +110,7 @@
                                         inputmode="numeric"
                                         autocomplete="one-time-code"
                                         maxlength="1"
-                                        :aria-label="`验证码第${index + 1}位`"
+                                        :aria-label="t('login.codeDigitAria', { index: index + 1 })"
                                         @input="handleCodeDigitInput($event, index)"
                                         @keydown="handleCodeDigitKeydown($event, index)"
                                         @paste="handleCodeDigitPaste($event, index)"
@@ -96,7 +123,7 @@
                                     :loading="sendCodeLoading"
                                     @click="handleSendCode"
                                 >
-                                    {{ sendCodeCountdown ? `${sendCodeCountdown}s` : '获取验证码' }}
+                                    {{ sendCodeCountdown ? `${sendCodeCountdown}s` : t('login.getCode') }}
                                 </el-button>
                             </div>
                         </el-form-item>
@@ -109,7 +136,7 @@
                         :disabled="!activeLoginEnabled"
                         @click="handleActiveLogin"
                     >
-                        确认登录
+                        {{ t('login.confirmLogin') }}
                     </el-button>
 
                     <div v-if="showLoginActions" class="zqy-login__actions">
@@ -119,7 +146,7 @@
                                 trigger="click"
                                 popper-class="login-method-dropdown"
                             >
-                                <span class="zqy-login__action-text">免密登录</span>
+                                <span class="zqy-login__action-text">{{ t('login.passwordlessLogin') }}</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item
@@ -136,26 +163,26 @@
 
                         <div class="zqy-login__action-right">
                             <el-dropdown v-if="showCodeLogin" trigger="click" popper-class="login-method-dropdown">
-                                <span class="zqy-login__action-text">登录方式</span>
+                                <span class="zqy-login__action-text">{{ t('login.loginMethod') }}</span>
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item
                                             v-if="openLoginConfig.accountEnabled && activeLoginMethod !== 'ACCOUNT'"
                                             @click="switchLoginMethod('ACCOUNT')"
                                         >
-                                            账号登录
+                                            {{ t('login.accountLogin') }}
                                         </el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="openLoginConfig.phoneEnabled && activeLoginMethod !== 'PHONE'"
                                             @click="switchLoginMethod('PHONE')"
                                         >
-                                            手机登录
+                                            {{ t('login.phoneLogin') }}
                                         </el-dropdown-item>
                                         <el-dropdown-item
                                             v-if="openLoginConfig.emailEnabled && activeLoginMethod !== 'EMAIL'"
                                             @click="switchLoginMethod('EMAIL')"
                                         >
-                                            邮箱登录
+                                            {{ t('login.emailLogin') }}
                                         </el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
@@ -172,11 +199,13 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 import { OauthUrlList } from '@/app/api'
 import loginLogoSvg from '@/app/assets/imgs/logo1.svg?raw'
+import { SUPPORTED_LOCALES, type AppLocale } from '@/app/i18n/locales'
 import {
     GetOpenLoginMethodConfig,
     SendLoginCode,
@@ -185,11 +214,13 @@ import {
     type LoginMethodType
 } from '@/app/management/login-method/api'
 import { useAuthStore } from '@/app/store/useAuth'
+import { useLocaleStore } from '@/app/store/useLocale'
 import { getVipLicenseEnabled } from '@/app/utils/vip-license'
 import { getUser } from '@/app/type/user/user'
 import type { LoginReq } from '@/app/type/models'
 import { brandSetting, loadBrandSetting } from '@/app/shared/branding'
 import { resolveLoginRoutePath } from './resolve-login-route'
+import { UpdateMyLocale } from '@/app/management/personal-info/api'
 
 interface OauthUrl {
     name: string
@@ -210,6 +241,8 @@ interface OpenLoginMethodConfig {
 
 const router = useRouter()
 const authStore = useAuthStore()
+const localeStore = useLocaleStore()
+const { t } = useI18n()
 const elFormRef = ref<FormInstance>()
 const codeFormRef = ref<FormInstance>()
 const btnLoading = ref(false)
@@ -221,6 +254,7 @@ const loginMethodLoaded = ref(false)
 const oauthUrlList = ref<OauthUrl[]>([])
 let sendCodeTimer: number | undefined
 const activeLoginMethod = ref<LoginMethodType>('ACCOUNT')
+const supportedLocales = SUPPORTED_LOCALES
 
 const loginModel = reactive<LoginReq>({
     account: '',
@@ -249,28 +283,28 @@ const openLoginConfig = reactive<OpenLoginMethodConfig>({
     phoneRegisterEnabled: false
 })
 
-const loginRule: FormRules<LoginReq> = {
+const loginRule = computed<FormRules<LoginReq>>(() => ({
     account: [
         {
             required: true,
-            message: '请输入账号/邮箱/手机号',
+            message: t('login.inputAccountPhoneEmail'),
             trigger: ['blur', 'change']
         }
     ],
     passwd: [
         {
             required: true,
-            message: '请输入密码',
+            message: t('login.inputPassword'),
             trigger: ['blur', 'change']
         }
     ]
-}
+}))
 
-const codeLoginRules: FormRules = {
+const codeLoginRules = computed<FormRules>(() => ({
     receiver: [
         {
             required: true,
-            message: '请输入接收账号',
+            message: t('login.inputReceiver'),
             trigger: ['blur', 'change']
         },
         {
@@ -281,16 +315,16 @@ const codeLoginRules: FormRules = {
     code: [
         {
             required: true,
-            message: '请输入验证码',
+            message: t('login.inputCode'),
             trigger: ['blur', 'change']
         },
         {
             pattern: /^\d{6}$/,
-            message: '请输入6位数字验证码',
+            message: t('login.inputSixDigitCode'),
             trigger: ['blur', 'change']
         }
     ]
-}
+}))
 
 const accountLoginEnabled = computed(() => {
     return (
@@ -310,11 +344,11 @@ function validateCodeReceiver(_: unknown, value: string, callback: (error?: Erro
         return
     }
     if (codeLoginChannel.value === 'PHONE' && !phonePattern.test(receiver)) {
-        callback(new Error('请输入正确的手机号'))
+        callback(new Error(t('login.invalidPhone')))
         return
     }
     if (codeLoginChannel.value === 'EMAIL' && !emailPattern.test(receiver)) {
-        callback(new Error('请输入正确的邮箱'))
+        callback(new Error(t('login.invalidEmail')))
         return
     }
     callback()
@@ -324,28 +358,28 @@ const activeLoginLoading = computed(() => {
     return activeLoginMethod.value === 'ACCOUNT' ? btnLoading.value : codeLoginLoading.value
 })
 const loginTitle = computed(() => {
-    if (activeLoginMethod.value === 'PHONE') return '手机登录'
-    if (activeLoginMethod.value === 'EMAIL') return '邮箱登录'
-    return '用户登录'
+    if (activeLoginMethod.value === 'PHONE') return t('login.phoneLogin')
+    if (activeLoginMethod.value === 'EMAIL') return t('login.emailLogin')
+    return t('login.userLogin')
 })
 const accountLoginPlaceholder = computed(() => {
     const options: string[] = []
     if (openLoginConfig.accountPasswordEnabled) {
-        options.push('账号')
+        options.push(t('login.account'))
     }
     if (openLoginConfig.accountPhonePasswordEnabled) {
-        options.push('手机号')
+        options.push(t('login.phone'))
     }
     if (openLoginConfig.accountEmailPasswordEnabled) {
-        options.push('邮箱')
+        options.push(t('login.email'))
     }
     if (options.length === 3) {
-        return '请输入账号/手机号/邮箱'
+        return t('login.inputAccountPhoneEmail')
     }
     if (options.length) {
-        return `请输入${options.join('/')}`
+        return t('login.inputLoginIdentity', { identity: options.join('/') })
     }
-    return '请输入账号'
+    return t('login.inputAccount')
 })
 const showCodeLogin = computed(() => {
     return loginMethodLoaded.value && enabledLoginMethodCount.value > 1
@@ -361,8 +395,20 @@ const enabledLoginMethodCount = computed(() => {
     )
 })
 const codeReceiverPlaceholder = computed(() => {
-    return codeLoginChannel.value === 'PHONE' ? '请输入手机号' : '请输入邮箱'
+    return codeLoginChannel.value === 'PHONE' ? t('login.inputPhone') : t('login.inputEmail')
 })
+
+function handleLocaleChange(locale: AppLocale) {
+    localeStore.setLocale(locale)
+}
+
+watch(
+    () => localeStore.locale,
+    () => {
+        elFormRef.value?.clearValidate()
+        codeFormRef.value?.clearValidate()
+    }
+)
 
 function handleActiveLogin() {
     if (activeLoginMethod.value === 'ACCOUNT') {
@@ -375,37 +421,42 @@ function handleActiveLogin() {
 async function handleLogin() {
 
     if (!accountLoginEnabled.value) {
-        ElMessage.warning('账号登录已关闭')
+        ElMessage.warning(t('login.accountLoginDisabled'))
         return
     }
 
-    // 判断loading
     if (btnLoading.value) return
 
-    // 校验表单参数
     const isValid = await elFormRef.value?.validate().catch(() => false)
 
-    // 校验不通过，直接返回
     if (!isValid) return
 
-    // 通过后开始登录，卡住loading
     btnLoading.value = true
 
     try {
 
-        // 调用登录接口
         const res = await getUser().login({ ...loginModel })
         await completeLogin(res)
 
     } finally {
 
-        // loading解锁
         btnLoading.value = false
     }
 }
 
 async function completeLogin(res: any) {
     authStore.applyAuthResponse(res.data)
+    const nextLocale = localeStore.applyUserLocale(res.data?.locale)
+    if (!res.data?.locale) {
+        UpdateMyLocale({ locale: nextLocale })
+            .then(() => {
+                authStore.setUserInfo({
+                    ...authStore.userInfo,
+                    locale: nextLocale
+                })
+            })
+            .catch(() => undefined)
+    }
     const routePath = resolveLoginRoutePath(res.data)
 
     if (!res.data.tenantId && (routePath === '/platform' || routePath.startsWith('/personal-info'))) {
@@ -455,7 +506,7 @@ function handleRedirect(item: OauthUrl) {
 
 function switchLoginMethod(loginMethod: LoginMethodType, resetForm = true) {
     if (!isLoginMethodEnabled(loginMethod)) {
-        ElMessage.warning('当前登录方式未开启')
+        ElMessage.warning(t('login.loginMethodDisabled'))
         return
     }
     activeLoginMethod.value = loginMethod
@@ -699,6 +750,7 @@ onBeforeUnmount(() => {
     }
 
     .zqy-login__card {
+        position: relative;
         width: 100%;
         min-width: 0;
         padding: 46px 30px;
@@ -713,6 +765,32 @@ onBeforeUnmount(() => {
 
         &:hover {
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+    }
+
+    .zqy-login__locale {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        z-index: 1;
+    }
+
+    .zqy-login__locale-trigger {
+        height: 28px;
+        padding: 0 8px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        color: getCssVar('color', 'primary');
+        background-color: transparent;
+        font-size: getCssVar('font-size', 'extra-small');
+        line-height: 26px;
+        cursor: pointer;
+
+        &:hover,
+        &:focus-visible {
+            border-color: getCssVar('color', 'primary', 'light-7');
+            background-color: getCssVar('color', 'primary', 'light-9');
+            outline: none;
         }
     }
 
@@ -1012,6 +1090,19 @@ onBeforeUnmount(() => {
 }
 
 .login-method-dropdown {
+    .el-dropdown-menu {
+        padding: 4px 0;
+    }
+
+    .el-dropdown-menu__item {
+        height: 26px;
+        line-height: 26px;
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-size: getCssVar('font-size', 'extra-small');
+    }
+}
+
+.login-locale-dropdown {
     .el-dropdown-menu {
         padding: 4px 0;
     }

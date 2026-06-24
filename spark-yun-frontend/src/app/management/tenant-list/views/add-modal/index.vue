@@ -1,46 +1,46 @@
 <template>
     <BlockModal :model-config="modelConfig">
         <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
-            <el-form-item label="租户名称" prop="name">
-                <el-input v-model="formData.name" maxlength="100" placeholder="请输入" show-word-limit />
+            <el-form-item :label="t('tenantList.tenantName')" prop="name">
+                <el-input v-model="formData.name" maxlength="100" :placeholder="t('common.pleaseInput')" show-word-limit />
             </el-form-item>
-            <el-form-item label="成员数">
+            <el-form-item :label="t('tenantList.memberCount')">
                 <el-input-number
                     v-model="formData.maxMemberNum"
-                    placeholder="请输入"
+                    :placeholder="t('common.pleaseInput')"
                     :min="0"
                     :max="100000"
                     :step="1"
                     controls-position="right"
                 />
             </el-form-item>
-            <el-form-item label="作业流数">
+            <el-form-item :label="t('tenantList.workflowCount')">
                 <el-input-number
                     v-model="formData.maxWorkflowNum"
-                    placeholder="请输入"
+                    :placeholder="t('common.pleaseInput')"
                     :min="0"
                     :max="100000"
                     :step="1"
                     controls-position="right"
                 />
             </el-form-item>
-            <el-form-item label="租户超级管理员" prop="adminUserId">
+            <el-form-item :label="t('tenantList.tenantSuperAdmin')" prop="adminUserId">
                 <el-select
                     v-model="formData.adminUserId"
-                    placeholder="请选择"
+                    :placeholder="t('common.pleaseSelect')"
                     popper-class="tenant-admin-select-popper"
                 >
                     <el-option v-for="item in userList" :key="item.id" :label="item.username" :value="item.id" />
                 </el-select>
             </el-form-item>
-            <el-form-item label="备注">
+            <el-form-item :label="t('tenantList.remark')">
                 <el-input
                     v-model="formData.remark"
                     show-word-limit
                     type="textarea"
                     maxlength="200"
                     :autosize="{ minRows: 4, maxRows: 4 }"
-                    placeholder="请输入"
+                    :placeholder="t('common.pleaseInput')"
                 />
             </el-form-item>
         </el-form>
@@ -53,8 +53,8 @@
                     value-format="YYYY-MM-DD HH:mm:ss"
                     :unlink-panels="true"
                     range-separator="~"
-                    start-placeholder="有效开始时间"
-                    end-placeholder="有效结束时间"
+                    :start-placeholder="t('tenantList.validStartTime')"
+                    :end-placeholder="t('tenantList.validEndTime')"
                     :editable="false"
                 />
             </div>
@@ -63,28 +63,30 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, defineExpose, ref, nextTick } from 'vue'
+import { reactive, defineExpose, ref, nextTick, computed, watch } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { GetUserInfoList } from '@/app/management/tenant-user/api'
+import { useI18n } from 'vue-i18n'
 
+const { t, locale } = useI18n()
 const form = ref<FormInstance>()
 const callback = ref<any>()
 const userList = ref<any[]>([])
 const renderSence = ref('new')
 const currentAdminOption = ref<any>()
 const modelConfig = reactive({
-    title: '新建租户',
+    title: t('tenantList.addTenant'),
     visible: false,
     width: '520px',
     okConfig: {
-        title: '确定',
+        title: t('common.confirm'),
         ok: okEvent,
         disabled: false,
         loading: false
     },
     cancelConfig: {
-        title: '取消',
+        title: t('common.cancel'),
         cancel: closeEvent,
         disabled: false
     },
@@ -103,21 +105,32 @@ const formData = reactive({
     remark: '',
     id: ''
 })
-const rules = reactive<FormRules>({
+const rules = computed<FormRules>(() => ({
     name: [
         {
             required: true,
-            message: '请输入租户名称',
+            message: t('tenantList.inputTenantName'),
             trigger: ['change', 'blur']
         }
     ],
     adminUserId: [
         {
             required: true,
-            message: '请选择租户超级管理员',
+            message: t('tenantList.selectTenantSuperAdmin'),
             trigger: ['change', 'blur']
         }
     ]
+}))
+
+function syncModalText() {
+    modelConfig.title = renderSence.value === 'edit' ? t('tenantList.editTenant') : t('tenantList.addTenant')
+    modelConfig.okConfig.title = t('common.confirm')
+    modelConfig.cancelConfig.title = t('common.cancel')
+}
+
+watch(locale, () => {
+    syncModalText()
+    form.value?.clearValidate()
 })
 
 function showModal(cb: () => void, data: any): void {
@@ -142,7 +155,6 @@ function showModal(cb: () => void, data: any): void {
             formData.validDateTime = []
         }
         formData.id = data.id
-        modelConfig.title = '编辑租户'
         renderSence.value = 'edit'
     } else {
         formData.name = ''
@@ -153,9 +165,9 @@ function showModal(cb: () => void, data: any): void {
         formData.remark = ''
         formData.validDateTime = []
         formData.id = ''
-        modelConfig.title = '新建租户'
         renderSence.value = 'new'
     }
+    syncModalText()
     getUserOfSystem()
     nextTick(() => {
         form.value?.resetFields()
@@ -185,7 +197,7 @@ function okEvent() {
     form.value?.validate((valid) => {
         if (valid) {
             if (renderSence.value === 'new' && !formData.adminUserId) {
-                ElMessage.warning('请选择租户超级管理员')
+                ElMessage.warning(t('tenantList.selectTenantSuperAdmin'))
                 return
             }
             modelConfig.okConfig.loading = true
@@ -208,7 +220,7 @@ function okEvent() {
                     modelConfig.okConfig.loading = false
                 })
         } else {
-            ElMessage.warning('请将表单输入完整')
+            ElMessage.warning(t('validation.completeForm'))
         }
     })
 }

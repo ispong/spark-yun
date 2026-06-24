@@ -26,6 +26,7 @@ public interface UserMapper {
     @Mapping(target = "username", source = "updateUserReq.username")
     @Mapping(target = "phone", source = "updateUserReq.phone")
     @Mapping(target = "email", source = "updateUserReq.email")
+    @Mapping(target = "locale", source = "userEntity.locale")
     UserEntity updateUserReqToUserEntity(UpdateUserReq updateUserReq, UserEntity userEntity);
 
     @Mapping(target = "passwd", source = "userEntity.passwd")
@@ -34,6 +35,7 @@ public interface UserMapper {
     @Mapping(target = "username", source = "updateUserInfoReq.username")
     @Mapping(target = "phone", source = "userEntity.phone")
     @Mapping(target = "email", source = "userEntity.email")
+    @Mapping(target = "locale", source = "userEntity.locale")
     @Mapping(target = "remark", source = "updateUserInfoReq.remark")
     UserEntity updateUserInfoToUserEntity(UpdateUserInfoReq updateUserInfoReq, UserEntity userEntity);
 

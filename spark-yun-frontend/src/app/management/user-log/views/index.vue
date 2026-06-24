@@ -3,11 +3,11 @@
     <div class="zqy-user-log zqy-seach-table user-log-page">
         <div class="zqy-table-top">
             <div class="zqy-user-log__filters">
-                <el-select v-model="logType" clearable placeholder="全部类型" @change="handleLogTypeChange">
-                    <el-option label="平台" value="PLATFORM" />
-                    <el-option label="租户" value="TENANT" />
+                <el-select v-model="logType" clearable :placeholder="t('userLog.allTypes')" @change="handleLogTypeChange">
+                    <el-option :label="t('userLog.platform')" value="PLATFORM" />
+                    <el-option :label="t('userLog.tenant')" value="TENANT" />
                 </el-select>
-                <el-select v-model="moduleCode" clearable placeholder="全部模块" @change="handleModuleChange">
+                <el-select v-model="moduleCode" clearable :placeholder="t('userLog.allModules')" @change="handleModuleChange">
                     <el-option
                         v-for="item in moduleOptions"
                         :key="item.moduleCode"
@@ -25,7 +25,7 @@
                     :remote-show-suffix="true"
                     :remote-method="searchUserOptions"
                     :loading="userOptionsLoading"
-                    placeholder="账号"
+                    :placeholder="t('table.account')"
                     @clear="queryData"
                     @change="queryData"
                     @visible-change="handleUserVisibleChange"
@@ -47,7 +47,7 @@
                     :remote-show-suffix="true"
                     :remote-method="searchTenantOptions"
                     :loading="tenantOptionsLoading"
-                    placeholder="租户"
+                    :placeholder="t('table.tenant')"
                     @clear="queryData"
                     @change="queryData"
                     @visible-change="handleTenantVisibleChange"
@@ -63,8 +63,8 @@
                     v-model="timeRange"
                     type="datetimerange"
                     range-separator="-"
-                    start-placeholder="开始时间"
-                    end-placeholder="结束时间"
+                    :start-placeholder="t('userLog.startTime')"
+                    :end-placeholder="t('userLog.endTime')"
                     value-format="YYYY-MM-DDTHH:mm:ss"
                     @change="queryData"
                 />
@@ -72,7 +72,7 @@
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
-                    placeholder="请输入接口/路径/IP/User-Agent 回车搜索"
+                    :placeholder="t('userLog.searchPlaceholder')"
                     clearable
                     maxlength="200"
                     @clear="queryData"
@@ -89,10 +89,10 @@
                     @current-change="handleCurrentChange"
                 >
                     <template #logType="scopeSlot">
-                        <el-tag>{{ scopeSlot.row.logType === 'PLATFORM' ? '平台' : '租户' }}</el-tag>
+                        <el-tag>{{ getLogTypeText(scopeSlot.row.logType) }}</el-tag>
                     </template>
                     <template #tenantName="scopeSlot">
-                        {{ scopeSlot.row.logType === 'PLATFORM' ? '平台系统' : scopeSlot.row.tenantName || '-' }}
+                        {{ scopeSlot.row.logType === 'PLATFORM' ? t('userLog.platformSystem') : scopeSlot.row.tenantName || '-' }}
                     </template>
                     <template #status="scopeSlot">
                         <ZStatusTag :status="scopeSlot.row.status === 'SUCCESS' ? 'SUCCESS' : 'FAIL'" />
@@ -100,7 +100,7 @@
                     <template #duration="scopeSlot">{{ scopeSlot.row.duration ?? 0 }} ms</template>
                     <template #options="scopeSlot">
                         <div class="zqy-user-log__options">
-                            <el-button link type="primary" @click="openDetail(scopeSlot.row)">详情</el-button>
+                            <el-button link type="primary" @click="openDetail(scopeSlot.row)">{{ t('userLog.detail') }}</el-button>
                         </div>
                     </template>
                 </BlockTable>
@@ -109,18 +109,18 @@
         <el-dialog
             v-model="detailVisible"
             class="zqy-user-log__detail-dialog"
-            title="行为日志详情"
+            :title="t('userLog.detailTitle')"
             width="760px"
         >
             <div v-if="currentRow" class="zqy-user-log__detail">
                 <el-tabs v-model="activeDetailTab">
-                    <el-tab-pane label="请求参数" name="request">
+                    <el-tab-pane :label="t('userLog.requestParams')" name="request">
                         <pre>{{ formatJson(currentRow.reqBody) }}</pre>
                     </el-tab-pane>
-                    <el-tab-pane label="响应结果" name="response">
+                    <el-tab-pane :label="t('userLog.responseResult')" name="response">
                         <pre>{{ formatJson(currentRow.resBody) }}</pre>
                     </el-tab-pane>
-                    <el-tab-pane label="异常信息" name="exception">
+                    <el-tab-pane :label="t('userLog.exceptionInfo')" name="exception">
                         <pre>{{ currentRow.exceptionMessage || '-' }}</pre>
                     </el-tab-pane>
                 </el-tabs>
@@ -130,7 +130,8 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
@@ -139,7 +140,7 @@ import ZStatusTag from '@/app/components/z-status-tag/index.vue'
 import { GetTenantList } from '@/app/management/tenant-list/api'
 import { GetUserCenterList } from '@/app/management/user-center/api'
 import { GetUserLogDefinitions, PageUserLog } from '../api'
-import { BreadCrumbList, TableConfig } from './user-log.config'
+import { createBreadCrumbList, createColConfigs, createTableConfig } from './user-log.config'
 
 interface UserLogDefinition {
     moduleCode: string
@@ -175,9 +176,10 @@ const userOptions = ref<UserOption[]>([])
 const tenantOptions = ref<TenantOption[]>([])
 const userOptionsLoading = ref(false)
 const tenantOptionsLoading = ref(false)
+const { t, locale } = useI18n()
 
-const breadCrumbList = reactive(BreadCrumbList)
-const tableConfig: any = reactive(TableConfig)
+const breadCrumbList = reactive(createBreadCrumbList(t))
+const tableConfig: any = reactive(createTableConfig(t))
 
 const moduleOptions = computed(() => {
     const map = new Map<string, UserLogDefinition>()
@@ -188,6 +190,18 @@ const moduleOptions = computed(() => {
     })
     return Array.from(map.values())
 })
+
+watch(locale, () => {
+    const nextBreadCrumbList = createBreadCrumbList(t)
+    breadCrumbList.splice(0, breadCrumbList.length, ...nextBreadCrumbList)
+    tableConfig.colConfigs = createColConfigs(t)
+})
+
+function getLogTypeText(type: string) {
+    if (type === 'PLATFORM') return t('userLog.platform')
+    if (type === 'TENANT') return t('userLog.tenant')
+    return type || '-'
+}
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true

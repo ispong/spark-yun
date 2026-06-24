@@ -1,45 +1,45 @@
 <template>
     <BlockModal :model-config="modelConfig">
         <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
-            <el-form-item label="账号" prop="account">
-                <el-input v-model="formData.account" maxlength="100" placeholder="请输入" show-word-limit />
+            <el-form-item :label="t('userCenter.account')" prop="account">
+                <el-input v-model="formData.account" maxlength="100" :placeholder="t('common.pleaseInput')" show-word-limit />
             </el-form-item>
-            <el-form-item label="名称" prop="username">
-                <el-input v-model="formData.username" maxlength="100" placeholder="请输入" show-word-limit />
+            <el-form-item :label="t('userCenter.name')" prop="username">
+                <el-input v-model="formData.username" maxlength="100" :placeholder="t('common.pleaseInput')" show-word-limit />
             </el-form-item>
-            <el-form-item v-if="renderSence === 'new'" label="密码" prop="passwd">
+            <el-form-item v-if="renderSence === 'new'" :label="t('userCenter.password')" prop="passwd">
                 <el-input
                     v-model="formData.passwd"
                     maxlength="100"
                     type="password"
                     show-password
-                    placeholder="请输入"
+                    :placeholder="t('common.pleaseInput')"
                 />
             </el-form-item>
-            <el-form-item label="手机号" prop="phone">
+            <el-form-item :label="t('userCenter.phone')" prop="phone">
                 <el-input
                     v-model="formData.phone"
                     maxlength="11"
-                    placeholder="请输入手机号"
+                    :placeholder="t('userCenter.inputPhone')"
                     show-word-limit
                 />
             </el-form-item>
-            <el-form-item label="邮箱" prop="email">
+            <el-form-item :label="t('userCenter.email')" prop="email">
                 <el-input
                     v-model="formData.email"
                     maxlength="100"
-                    placeholder="请输入邮箱"
+                    :placeholder="t('userCenter.inputEmail')"
                     show-word-limit
                 />
             </el-form-item>
-            <el-form-item label="备注">
+            <el-form-item :label="t('userCenter.remark')">
                 <el-input
                     v-model="formData.remark"
                     show-word-limit
                     type="textarea"
                     maxlength="200"
                     :autosize="{ minRows: 4, maxRows: 4 }"
-                    placeholder="请输入"
+                    :placeholder="t('common.pleaseInput')"
                 />
             </el-form-item>
         </el-form>
@@ -52,8 +52,8 @@
                     value-format="YYYY-MM-DD HH:mm:ss"
                     :unlink-panels="true"
                     range-separator="~"
-                    start-placeholder="有效开始时间"
-                    end-placeholder="有效结束时间"
+                    :start-placeholder="t('userCenter.validStartTime')"
+                    :end-placeholder="t('userCenter.validEndTime')"
                     :editable="false"
                 />
             </div>
@@ -62,25 +62,27 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, defineExpose, ref, nextTick } from 'vue'
+import { reactive, defineExpose, ref, nextTick, computed, watch } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
+const { t, locale } = useI18n()
 const form = ref<FormInstance>()
 const callback = ref<any>()
 const renderSence = ref('new')
 const modelConfig = reactive({
-    title: '新建用户',
+    title: t('userCenter.addUser'),
     visible: false,
     width: '520px',
     okConfig: {
-        title: '确定',
+        title: t('common.confirm'),
         ok: okEvent,
         disabled: false,
         loading: false
     },
     cancelConfig: {
-        title: '取消',
+        title: t('common.cancel'),
         cancel: closeEvent,
         disabled: false
     },
@@ -99,55 +101,54 @@ const formData = reactive({
     remark: '',
     id: ''
 })
-// 中国手机号验证函数
+// China mainland phone number validator.
 const validatePhone = (rule: any, value: any, callback: any) => {
     if (!value) {
         callback()
         return
     }
-    // 中国手机号正则：1开头，第二位3-9，总共11位数字
+    // Starts with 1, second digit 3-9, total 11 digits.
     const phoneReg = /^1[3-9]\d{9}$/
     if (!phoneReg.test(value)) {
-        callback(new Error('请输入正确的手机号'))
+        callback(new Error(t('userCenter.invalidPhone')))
     } else {
         callback()
     }
 }
 
-// 邮箱验证函数
+// Email validator.
 const validateEmail = (rule: any, value: any, callback: any) => {
     if (!value) {
         callback()
         return
     }
-    // 更严格的邮箱正则验证
     const emailReg = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
     if (!emailReg.test(value)) {
-        callback(new Error('请输入正确的邮箱格式'))
+        callback(new Error(t('userCenter.invalidEmail')))
     } else {
         callback()
     }
 }
 
-const rules = reactive<FormRules>({
+const rules = computed<FormRules>(() => ({
     username: [
         {
             required: true,
-            message: '请输入名称',
+            message: t('userCenter.inputName'),
             trigger: ['change']
         }
     ],
     account: [
         {
             required: true,
-            message: '请输入账号',
+            message: t('userCenter.inputAccount'),
             trigger: ['change']
         }
     ],
     passwd: [
         {
             required: true,
-            message: '请输入密码',
+            message: t('userCenter.inputPassword'),
             trigger: ['change']
         }
     ],
@@ -163,6 +164,17 @@ const rules = reactive<FormRules>({
             trigger: ['blur', 'change']
         }
     ]
+}))
+
+function syncModalText() {
+    modelConfig.title = renderSence.value === 'edit' ? t('userCenter.editUser') : t('userCenter.addUser')
+    modelConfig.okConfig.title = t('common.confirm')
+    modelConfig.cancelConfig.title = t('common.cancel')
+}
+
+watch(locale, () => {
+    syncModalText()
+    form.value?.clearValidate()
 })
 
 function showModal(cb: () => void, data: any): void {
@@ -180,7 +192,6 @@ function showModal(cb: () => void, data: any): void {
             formData.validDateTime = []
         }
         formData.id = data.id
-        modelConfig.title = '编辑用户'
         renderSence.value = 'edit'
     } else {
         formData.username = ''
@@ -191,9 +202,9 @@ function showModal(cb: () => void, data: any): void {
         formData.email = ''
         formData.remark = ''
         formData.id = ''
-        modelConfig.title = '新建用户'
         renderSence.value = 'new'
     }
+    syncModalText()
     nextTick(() => {
         form.value?.resetFields()
     })
@@ -220,7 +231,7 @@ function okEvent() {
                     modelConfig.okConfig.loading = false
                 })
         } else {
-            ElMessage.warning('请将表单输入完整')
+            ElMessage.warning(t('validation.completeForm'))
         }
     })
 }

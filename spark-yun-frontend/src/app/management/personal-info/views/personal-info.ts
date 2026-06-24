@@ -6,6 +6,10 @@ export interface PersonalModel {
     remark: string
 }
 
+export interface LanguageModel {
+    locale: 'zh-CN' | 'en-US'
+}
+
 export interface PasswordModel {
     oldPassword: string
     verifyType: 'OLD_PASSWORD' | 'PHONE' | 'EMAIL'

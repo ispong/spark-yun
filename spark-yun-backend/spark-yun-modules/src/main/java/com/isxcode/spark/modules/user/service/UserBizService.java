@@ -418,6 +418,14 @@ public class UserBizService {
         userRepository.save(userEntity);
     }
 
+    public void updateMyLocale(UpdateMyLocaleReq updateMyLocaleReq) {
+
+        UserEntity userEntity =
+            userRepository.findById(ContextHolder.getUserId()).orElseThrow(() -> new IsxAppException("用户不存在"));
+        userEntity.setLocale(updateMyLocaleReq.getLocale());
+        userRepository.save(userEntity);
+    }
+
     public void updateMyPassword(UpdateMyPasswordReq updateMyPasswordReq) {
 
         // 获取当前用户
@@ -523,7 +531,8 @@ public class UserBizService {
         AccessSnapshot access = productAccessService.resolve(userEntity.getId(), tenantId);
         return LoginRes.builder().username(userEntity.getUsername()).account(userEntity.getAccount())
             .phone(userEntity.getPhone()).email(userEntity.getEmail()).remark(userEntity.getRemark())
-            .hasPassword(hasPassword(userEntity)).token(generateUserToken(userEntity.getId(), tenantId))
+            .locale(userEntity.getLocale()).hasPassword(hasPassword(userEntity))
+            .token(generateUserToken(userEntity.getId(), tenantId))
             .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId)
             .role(resolveCompatibilityRole(access, role)).platformSuperAdmin(access.systemAdmin())
             .platformAdmin(access.platformAdmin()).platformMember(isPlatformMember(access, role))
@@ -539,7 +548,8 @@ public class UserBizService {
         AccessSnapshot access = productAccessService.resolve(userEntity.getId(), tenantId);
         return GetUserRes.builder().username(userEntity.getUsername()).account(userEntity.getAccount())
             .phone(userEntity.getPhone()).email(userEntity.getEmail()).remark(userEntity.getRemark())
-            .hasPassword(hasPassword(userEntity)).token(generateUserToken(userEntity.getId(), tenantId))
+            .locale(userEntity.getLocale()).hasPassword(hasPassword(userEntity))
+            .token(generateUserToken(userEntity.getId(), tenantId))
             .refreshToken(generateRefreshToken(userEntity.getId(), tenantId)).tenantId(tenantId)
             .role(resolveCompatibilityRole(access, role)).systemAdmin(access.systemAdmin())
             .platformSuperAdmin(access.systemAdmin()).platformAdmin(access.platformAdmin())

@@ -26,63 +26,67 @@ export interface TableConfig {
     colConfigs: Array<colConfig>
     seqType: string
     checkbox?: boolean
-    pagination?: Pagination // 分页数据
-    loading?: boolean // 表格loading
+    pagination?: Pagination
+    loading?: boolean
 }
 
-export const BreadCrumbList: Array<BreadCrumb> = [
+type Translate = (key: string) => string
+
+const fallbackTranslate: Translate = (key: string) => key
+
+export const createBreadCrumbList = (t: Translate = fallbackTranslate): Array<BreadCrumb> => [
     {
-        name: '平台授权',
+        name: t('license.title'),
         code: 'license'
     }
 ]
 
-export const colConfigs: colConfig[] = [
+export const createColConfigs = (t: Translate = fallbackTranslate): colConfig[] => [
     {
         prop: 'code',
-        title: '证书编号',
+        title: t('license.certificateCode'),
         minWidth: 260,
         showOverflowTooltip: true
     },
     {
         prop: 'startDateTime',
-        title: '创建时间',
+        title: t('license.createTime'),
         minWidth: 110
     },
     {
         prop: 'endDateTime',
-        title: '到期时间',
+        title: t('license.expireTime'),
         minWidth: 110
     },
     {
         prop: 'maxMemberNum',
-        title: '最大成员数',
+        title: t('license.maxMemberNum'),
         minWidth: 96
     },
     {
         prop: 'maxTenantNum',
-        title: '最大租户数',
+        title: t('license.maxTenantNum'),
         minWidth: 96
     },
     {
         prop: 'maxWorkflowNum',
-        title: '最大作业流数',
+        title: t('license.maxWorkflowNum'),
         minWidth: 108
     },
     {
         prop: 'status',
-        title: '状态',
+        title: t('license.status'),
         minWidth: 100,
         customSlot: 'statusTag'
     },
     {
         prop: 'remark',
-        title: '备注',
+        title: t('license.remark'),
         minWidth: 100,
         showOverflowTooltip: true
     },
     {
-        title: '操作',
+        title: t('license.options'),
         align: 'center',
         customSlot: 'options',
         width: 120,
@@ -90,9 +94,9 @@ export const colConfigs: colConfig[] = [
     }
 ]
 
-export const TableConfig: TableConfig = {
+export const createTableConfig = (t: Translate = fallbackTranslate): TableConfig => ({
     tableData: [],
-    colConfigs: colConfigs,
+    colConfigs: createColConfigs(t),
     checkbox: true,
     pagination: {
         currentPage: 1,
@@ -101,4 +105,8 @@ export const TableConfig: TableConfig = {
     },
     seqType: 'seq',
     loading: false
-}
+})
+
+export const BreadCrumbList: Array<BreadCrumb> = createBreadCrumbList()
+export const colConfigs: colConfig[] = createColConfigs()
+export const TableConfig: TableConfig = createTableConfig()

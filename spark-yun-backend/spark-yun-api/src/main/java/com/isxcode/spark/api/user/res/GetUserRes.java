@@ -22,6 +22,8 @@ public class GetUserRes {
 
     private String remark;
 
+    private String locale;
+
     private Boolean hasPassword;
 
     private String token;

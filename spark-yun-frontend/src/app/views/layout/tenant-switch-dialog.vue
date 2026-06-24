@@ -10,12 +10,12 @@
         class="zqy-layout__tenant-dialog"
     >
         <div class="zqy-layout__tenant-dialog-header">
-            <div class="zqy-layout__tenant-dialog-title">切换租户</div>
+            <div class="zqy-layout__tenant-dialog-title">{{ t('layout.switchTenant') }}</div>
             <el-input
                 v-model="tenantKeyword"
                 class="zqy-layout__tenant-dialog-search"
                 clearable
-                placeholder="搜索租户"
+                :placeholder="t('layout.searchTenant')"
                 :prefix-icon="Search"
             />
         </div>
@@ -33,20 +33,24 @@
                 <div class="zqy-layout__tenant-name">
                     <EllipsisTooltip class="zqy-layout__tenant-name-text" :label="tenant.name" />
                 </div>
-                <span v-if="authStore.tenantId === tenant.id" class="zqy-layout__tenant-current">当前</span>
+                <span v-if="authStore.tenantId === tenant.id" class="zqy-layout__tenant-current">
+                    {{ t('layout.current') }}
+                </span>
             </div>
-            <div v-if="!filteredTenantList.length" class="zqy-layout__tenant-dialog-empty">暂无匹配租户</div>
+            <div v-if="!filteredTenantList.length" class="zqy-layout__tenant-dialog-empty">
+                {{ t('layout.noMatchedTenant') }}
+            </div>
         </div>
         <template #footer>
             <div class="zqy-layout__tenant-dialog-footer">
-                <el-button @click="closeTenantDialog">取消</el-button>
+                <el-button @click="closeTenantDialog">{{ t('common.cancel') }}</el-button>
                 <el-button
                     type="primary"
                     :loading="switchTenantLoading"
                     :disabled="!selectedTenantId"
                     @click="confirmTenantSwitch"
                 >
-                    确认切换
+                    {{ t('layout.confirmSwitchTenant') }}
                 </el-button>
             </div>
         </template>
@@ -58,6 +62,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 import { ChangeTenantData } from '@/app/api'
 import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
@@ -71,6 +76,7 @@ const emit = defineEmits<{
     (event: 'tenant-name-change', name: string): void
 }>()
 
+const { t } = useI18n({ useScope: 'global' })
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
@@ -84,7 +90,7 @@ const { tenantList, initSwitchTenant, onTenantChange } = useSwitchTenant()
 const canSwitchTenant = computed(() => !!authStore.tenantId && !authStore.userInfo?.platformSuperAdmin)
 const activeTenantName = computed(() => {
     const current = tenantList.value.find((item) => item.id === authStore.tenantId)
-    return current?.name || '切换租户'
+    return current?.name || t('layout.switchTenant')
 })
 const filteredTenantList = computed(() => {
     const keyword = tenantKeyword.value.trim().toLowerCase()
@@ -145,7 +151,7 @@ function confirmTenantSwitch() {
                     })
                 }
 
-                ElMessage.success('租户切换成功')
+                ElMessage.success(t('layout.switchTenantSuccess'))
                 closeTenantDialog()
                 applyTenantContext()
                 if (needBackToWorkflowList) {

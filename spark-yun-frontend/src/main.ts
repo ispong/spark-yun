@@ -6,6 +6,7 @@ import VueGridLayout from 'vue-grid-layout'
 import App from '@/App.vue'
 import router from '@/app/router'
 import pinia from '@/app/store'
+import { i18n } from '@/app/i18n'
 import { loadBrandSetting } from '@/app/shared/branding'
 
 import 'normalize.css'
@@ -28,5 +29,6 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(VXETable) // 使用vxeTable专门做表格
     .use(VueGridLayout) // 卡片拖拽
     .use(pinia) // 共享数据
+    .use(i18n) // 国际化
     .use(router) // 路由
     .mount('#app')

@@ -39,70 +39,70 @@ export interface TableConfig {
     loading?: boolean // 表格loading
 }
 
-export const BreadCrumbList: Array<BreadCrumb> = [
+export const createBreadCrumbList = (t: (key: string) => string): Array<BreadCrumb> => [
     {
-        name: '租户管理',
+        name: t('tenantList.title'),
         code: 'tenant-list'
     }
 ]
 
-export const colConfigs: colConfig[] = [
+export const createColConfigs = (t: (key: string) => string): colConfig[] => [
     {
         prop: 'name',
-        title: '名称',
+        title: t('tenantList.name'),
         minWidth: 100,
         customSlot: 'name',
         showOverflowTooltip: true
     },
     {
         prop: 'maxMemberNum',
-        title: '成员数',
+        title: t('tenantList.memberCount'),
         minWidth: 180,
         customSlot: 'memberProgress'
     },
     {
         prop: 'maxWorkflowNum',
-        title: '作业流数',
+        title: t('tenantList.workflowCount'),
         minWidth: 180,
         customSlot: 'workflowProgress'
     },
     {
         prop: 'adminUserName',
-        title: '租户超级管理员',
+        title: t('tenantList.tenantSuperAdmin'),
         minWidth: 160,
         showOverflowTooltip: true
     },
     {
         prop: 'validStartDateTime',
-        title: '有效开始时间',
+        title: t('tenantList.validStartTime'),
         minWidth: 140,
         showOverflowTooltip: true
     },
     {
         prop: 'validEndDateTime',
-        title: '有效结束时间',
+        title: t('tenantList.validEndTime'),
         minWidth: 140,
         showOverflowTooltip: true
     },
     {
         prop: 'checkDateTime',
-        title: '检测时间',
+        title: t('tenantList.checkTime'),
         minWidth: 140
     },
     {
         prop: 'status',
-        title: '状态',
+        title: t('tenantList.status'),
         minWidth: 100,
         customSlot: 'statusTag'
     },
     {
         prop: 'remark',
-        title: '备注',
+        title: t('tenantList.remark'),
         minWidth: 120,
         showOverflowTooltip: true
     },
     {
-        title: '操作',
+        title: t('tenantList.options'),
         align: 'center',
         customSlot: 'options',
         width: 120,
@@ -110,9 +110,9 @@ export const colConfigs: colConfig[] = [
     }
 ]
 
-export const TableConfig: TableConfig = {
+export const createTableConfig = (t: (key: string) => string): TableConfig => ({
     tableData: [],
-    colConfigs: colConfigs,
+    colConfigs: createColConfigs(t),
     pagination: {
         currentPage: 1,
         pageSize: 10,
@@ -121,4 +121,8 @@ export const TableConfig: TableConfig = {
     seqType: 'seq',
     checkbox: true,
     loading: false
-}
+})
+
+export const BreadCrumbList: Array<BreadCrumb> = createBreadCrumbList((key) => key)
+export const colConfigs: colConfig[] = createColConfigs((key) => key)
+export const TableConfig: TableConfig = createTableConfig((key) => key)

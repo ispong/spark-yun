@@ -45,6 +45,8 @@ public class UserEntity {
 
     private String remark;
 
+    private String locale;
+
     private String roleCode;
 
     private Boolean platformAdmin;

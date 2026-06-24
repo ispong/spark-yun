@@ -3,22 +3,22 @@
     <div class="zqy-login-log zqy-seach-table">
         <div class="zqy-table-top">
             <div class="zqy-login-log__filters">
-                <el-select v-model="loginMethod" clearable placeholder="全部方式" @change="initData(true)">
-                    <el-option label="账号+密码" value="ACCOUNT_PASSWORD" />
-                    <el-option label="手机号+密码" value="PHONE_PASSWORD" />
-                    <el-option label="邮箱+密码" value="EMAIL_PASSWORD" />
-                    <el-option label="短信验证码" value="PHONE_CODE" />
-                    <el-option label="邮箱验证码" value="EMAIL_CODE" />
+                <el-select v-model="loginMethod" clearable :placeholder="t('loginLog.allMethods')" @change="initData(true)">
+                    <el-option :label="t('loginLog.accountPassword')" value="ACCOUNT_PASSWORD" />
+                    <el-option :label="t('loginLog.phonePassword')" value="PHONE_PASSWORD" />
+                    <el-option :label="t('loginLog.emailPassword')" value="EMAIL_PASSWORD" />
+                    <el-option :label="t('loginLog.phoneCode')" value="PHONE_CODE" />
+                    <el-option :label="t('loginLog.emailCode')" value="EMAIL_CODE" />
                 </el-select>
-                <el-select v-model="loginStatus" clearable placeholder="全部结果" @change="initData(true)">
-                    <el-option label="成功" value="SUCCESS" />
-                    <el-option label="失败" value="FAIL" />
+                <el-select v-model="loginStatus" clearable :placeholder="t('loginLog.allResults')" @change="initData(true)">
+                    <el-option :label="t('loginLog.success')" value="SUCCESS" />
+                    <el-option :label="t('loginLog.fail')" value="FAIL" />
                 </el-select>
             </div>
             <div class="zqy-seach">
                 <el-input
                     v-model="keyword"
-                    placeholder="请输入账号/IP/设备/失败原因 回车搜索"
+                    :placeholder="t('loginLog.searchPlaceholder')"
                     clearable
                     @input="inputEvent"
                     @keyup.enter="initData(true)"
@@ -36,12 +36,17 @@
                         <el-tag>{{ getLoginMethodText(scopeSlot.row.loginMethod) }}</el-tag>
                     </template>
                     <template #loginStatus="scopeSlot">
-                        <el-tag v-if="scopeSlot.row.loginStatus === 'SUCCESS'" type="success">成功</el-tag>
-                        <el-tag v-else type="danger">失败</el-tag>
+                        <el-tag v-if="scopeSlot.row.loginStatus === 'SUCCESS'" type="success">
+                            {{ t('loginLog.success') }}
+                        </el-tag>
+                        <el-tag v-else type="danger">{{ t('loginLog.fail') }}</el-tag>
                     </template>
                     <template #registered="scopeSlot">
-                        <el-tag v-if="scopeSlot.row.registered" type="success">是</el-tag>
-                        <el-tag v-else>否</el-tag>
+                        <el-tag v-if="scopeSlot.row.registered" type="success">{{ t('common.yes') }}</el-tag>
+                        <el-tag v-else>{{ t('common.no') }}</el-tag>
+                    </template>
+                    <template #failureReason="scopeSlot">
+                        <span>{{ getFailureReasonText(scopeSlot.row.errorMessage) }}</span>
                     </template>
                 </BlockTable>
             </div>
@@ -50,22 +55,30 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import BlockTable from '@/app/components/block-table/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import { PageLoginLog } from '@/app/management/login-method/api'
-import { BreadCrumbList, TableConfig } from './login-log.config'
+import { createBreadCrumbList, createColConfigs, createTableConfig } from './login-log.config'
 
+const { t, locale } = useI18n()
 const keyword = ref('')
 const loginMethod = ref('')
 const loginStatus = ref('')
 const loading = ref(false)
 const networkError = ref(false)
 
-const breadCrumbList = reactive(BreadCrumbList)
-const tableConfig: any = reactive(TableConfig)
+const breadCrumbList = reactive(createBreadCrumbList(t))
+const tableConfig: any = reactive(createTableConfig(t))
+
+watch(locale, () => {
+    const nextBreadCrumbList = createBreadCrumbList(t)
+    breadCrumbList.splice(0, breadCrumbList.length, ...nextBreadCrumbList)
+    tableConfig.colConfigs = createColConfigs(t)
+})
 
 function initData(tableLoading?: boolean) {
     loading.value = tableLoading ? false : true
@@ -112,13 +125,21 @@ function handleCurrentChange(page: number) {
 
 function getLoginMethodText(method: string) {
     const methodText: Record<string, string> = {
-        ACCOUNT_PASSWORD: '账号+密码',
-        PHONE_PASSWORD: '手机号+密码',
-        EMAIL_PASSWORD: '邮箱+密码',
-        PHONE_CODE: '短信验证码',
-        EMAIL_CODE: '邮箱验证码'
+        ACCOUNT_PASSWORD: t('loginLog.accountPassword'),
+        PHONE_PASSWORD: t('loginLog.phonePassword'),
+        EMAIL_PASSWORD: t('loginLog.emailPassword'),
+        PHONE_CODE: t('loginLog.phoneCode'),
+        EMAIL_CODE: t('loginLog.emailCode')
     }
     return methodText[method] || method
+}
+
+function getFailureReasonText(errorMessage?: string) {
+    if (!errorMessage) return ''
+    const reasonText: Record<string, string> = {
+        账号或者密码不正确: t('loginLog.incorrectAccountOrPassword')
+    }
+    return reasonText[errorMessage] || errorMessage
 }
 
 onMounted(() => {

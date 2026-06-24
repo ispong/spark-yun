@@ -26,7 +26,7 @@
                                 <el-icon class="zqy-layout__icon">
                                     <component :is="resolveIcon(menuData.icon)" />
                                 </el-icon>
-                                <span v-show="!menuDisplayCollapse" class="zqy-layout__text">{{ menuData.name }}</span>
+                                <span v-show="!menuDisplayCollapse" class="zqy-layout__text">{{ translateMenuName(menuData) }}</span>
                             </template>
 
                             <el-menu-item
@@ -37,7 +37,7 @@
                                 <el-icon class="zqy-layout__icon">
                                     <component :is="resolveIcon(menu.icon)" />
                                 </el-icon>
-                                <span class="zqy-layout__text">{{ menu.name }}</span>
+                                <span class="zqy-layout__text">{{ translateMenuName(menu) }}</span>
                             </el-menu-item>
                         </el-sub-menu>
 
@@ -49,7 +49,7 @@
                           <el-icon class="zqy-layout__icon">
                             <component :is="resolveIcon(menuData.icon)" />
                           </el-icon>
-                          <span class="zqy-layout__text">{{ menuData.name }}</span>
+                          <span class="zqy-layout__text">{{ translateMenuName(menuData) }}</span>
                         </el-menu-item>
                     </template>
                 </el-menu>
@@ -83,43 +83,54 @@
                             <el-icon>
                                 <Switch />
                             </el-icon>
-                            选择租户
+                            {{ t('layout.selectTenant') }}
                         </div>
                         <div v-if="showApplyTenant" class="zqy-layout__user-menu-option" @click="openApplyTenantDialog">
                             <el-icon>
                                 <School />
                             </el-icon>
-                            加入租户
+                            {{ t('layout.joinTenant') }}
                         </div>
                         <div v-if="showWorkspaceEntry" class="zqy-layout__user-menu-option" @mousedown.prevent.stop="goArea('workspace')">
                             <el-icon>
                                 <SetUp />
                             </el-icon>
-                            工作空间
+                            {{ t('layout.workspace') }}
                         </div>
                         <div v-if="showAdminEntry" class="zqy-layout__user-menu-option" @mousedown.prevent.stop="goArea('admin')">
                             <el-icon>
                                 <ScaleToOriginal />
                             </el-icon>
-                            后台管理
+                            {{ t('layout.admin') }}
                         </div>
                         <div v-if="showPlatformEntry" class="zqy-layout__user-menu-option" @mousedown.prevent.stop="goArea('platform')">
                             <el-icon>
                                 <Monitor />
                             </el-icon>
-                            平台管理
+                            {{ t('layout.platform') }}
                         </div>
                         <div v-if="showPersonalInfo" class="zqy-layout__user-menu-option" @mousedown.prevent.stop="goPersonalInfo">
                             <el-icon>
                                 <User />
                             </el-icon>
-                            个人中心
+                            {{ t('layout.personalInfo') }}
+                        </div>
+                        <div
+                            class="zqy-layout__user-menu-option zqy-layout__user-menu-option--language"
+                            @click.stop="openLanguageDialog"
+                        >
+                            <el-icon>
+                                <Reading />
+                            </el-icon>
+                            <span class="zqy-layout__user-menu-language-label">
+                                {{ t('layout.switchLanguage') }}
+                            </span>
                         </div>
                         <div class="zqy-layout__user-menu-option" @click="handleCommand('logout')">
                             <el-icon>
                                 <SwitchButton />
                             </el-icon>
-                            退出登录
+                            {{ t('layout.logout') }}
                         </div>
                     </div>
                 </el-popover>
@@ -136,7 +147,7 @@
             <el-empty
                 v-if="showNoWorkspaceAccess"
                 class="zqy-layout__empty"
-                description="暂无可访问菜单，请联系管理员分配权限"
+                :description="t('layout.noWorkspaceAccess')"
             />
             <router-view v-else :key="authStore.tenantId" />
         </div>
@@ -145,14 +156,14 @@
         <el-dialog
             v-model="applyTenantDialogVisible"
             class="zqy-layout__apply-tenant-dialog"
-            title="加入租户"
+            :title="t('layout.joinTenant')"
             width="420px"
         >
             <el-form class="zqy-layout__apply-tenant-form" label-position="top">
-                <el-form-item label="邀请码">
+                <el-form-item :label="t('layout.inviteCode')">
                     <el-input
                         v-model="applyTenantForm.inviteCode"
-                        placeholder="请输入邀请码"
+                        :placeholder="t('layout.inputInviteCode')"
                         clearable
                         :maxlength="64"
                         @keyup.enter="submitApplyTenant"
@@ -161,8 +172,37 @@
             </el-form>
             <template #footer>
                 <div class="zqy-layout__apply-tenant-footer">
-                    <el-button @click="applyTenantDialogVisible = false">取消</el-button>
-                    <el-button type="primary" :loading="applyTenantLoading" @click="submitApplyTenant">提交</el-button>
+                    <el-button @click="applyTenantDialogVisible = false">{{ t('common.cancel') }}</el-button>
+                    <el-button type="primary" :loading="applyTenantLoading" @click="submitApplyTenant">{{ t('common.submit') }}</el-button>
+                </div>
+            </template>
+        </el-dialog>
+        <el-dialog
+            v-model="languageDialogVisible"
+            class="zqy-layout__language-dialog"
+            :title="t('layout.switchLanguage')"
+            width="360px"
+        >
+            <div class="zqy-layout__language-dialog-body">
+                <div class="zqy-layout__language-options">
+                    <button
+                        v-for="localeOption in supportedLocales"
+                        :key="localeOption"
+                        class="zqy-layout__language-option"
+                        :class="{ 'is-active': localeOption === languageForm.locale }"
+                        type="button"
+                        @click="languageForm.locale = localeOption"
+                    >
+                        {{ t(`app.locale.${localeOption}`) }}
+                    </button>
+                </div>
+            </div>
+            <template #footer>
+                <div class="zqy-layout__language-dialog-footer">
+                    <el-button @click="languageDialogVisible = false">{{ t('common.cancel') }}</el-button>
+                    <el-button type="primary" :loading="languageUpdating" @click="handleLocaleChange">
+                        {{ t('common.confirm') }}
+                    </el-button>
                 </div>
             </template>
         </el-dialog>
@@ -172,12 +212,16 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, resolveComponent, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, OfficeBuilding, ScaleToOriginal, School, SetUp, Switch, SwitchButton, User } from '@element-plus/icons-vue'
+import { Monitor, OfficeBuilding, Reading, ScaleToOriginal, School, SetUp, Switch, SwitchButton, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 import EllipsisTooltip from '@/app/components/ellipsis-tooltip/ellipsis-tooltip.vue'
+import { SUPPORTED_LOCALES, type AppLocale } from '@/app/i18n/locales'
 import { CheckLicenseStatus } from '@/app/management/license/api'
+import { UpdateMyLocale } from '@/app/management/personal-info/api'
 import { useAuthStore } from '@/app/store/useAuth'
+import { useLocaleStore } from '@/app/store/useLocale'
 import {
     filterVipMenus,
     getLicenseApiAvailable,
@@ -196,8 +240,10 @@ import { ApplyTenantInviteCode } from '@/app/management/tenant-user/api'
 import { brandSetting, loadBrandSetting } from '@/app/shared/branding'
 
 const authStore = useAuthStore()
+const localeStore = useLocaleStore()
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const vipEnabled = ref(false)
 const licenseApiAvailable = ref(true)
 const vipChecked = ref(false)
@@ -213,6 +259,8 @@ const isResizing = ref(false)
 const resizeWidth = ref(SIDEBAR_EXPANDED_WIDTH)
 let removeSidebarResizeListeners: (() => void) | null = null
 const menuVisible = ref(false)
+const languageDialogVisible = ref(false)
+const languageUpdating = ref(false)
 const tenantSwitchDialogRef = ref<InstanceType<typeof TenantSwitchDialog>>()
 const currentTenantName = ref('')
 const applyTenantDialogVisible = ref(false)
@@ -220,6 +268,10 @@ const applyTenantLoading = ref(false)
 const applyTenantForm = reactive({
     inviteCode: ''
 })
+const languageForm = reactive({
+    locale: localeStore.locale as AppLocale
+})
+const supportedLocales = SUPPORTED_LOCALES
 
 const currentArea = computed(() => {
     if (route.path.startsWith('/platform')) {
@@ -273,7 +325,7 @@ const personalInfoRouteNames: Record<string, string> = {
     workspace: 'workspace-personalInfo'
 }
 
-// 菜单显示哪些
+// Resolve visible menus for the current area.
 const menuViewData = computed(() => {
     if (isPersonalInfoRoute.value) {
         return menuListData.value
@@ -339,7 +391,7 @@ const showAdminEntry = computed(() => {
     return currentArea.value === 'platform' && hasTenant.value && isTenantManager.value
 })
 const showTenantSwitch = computed(() => hasWorkspaceAccess.value)
-const currentTenantMenuName = computed(() => currentTenantName.value || '当前租户')
+const currentTenantMenuName = computed(() => currentTenantName.value || t('layout.currentTenant'))
 const isPersonalInfoRoute = computed(() => !!route.meta.personalInfo || route.name === 'personalInfo')
 const showPersonalInfo = computed(() => !isPlatformSuperAdmin.value && !isPersonalInfoRoute.value)
 const showApplyTenant = computed(() => !isPlatformSuperAdmin.value)
@@ -431,8 +483,14 @@ function getAreaMenuCode(path: string): string | undefined {
     }
 }
 
-function resolvePersonalInfoTab(tab: unknown): 'basic-info' | 'change-password' | 'change-phone' | 'change-email' {
-    return tab === 'change-password' || tab === 'change-phone' || tab === 'change-email' ? tab : 'basic-info'
+function resolvePersonalInfoTab(tab: unknown): 'basic-info' | 'change-password' | 'change-phone' | 'change-email' | 'change-language' {
+    return tab === 'change-password' || tab === 'change-phone' || tab === 'change-email' || tab === 'change-language'
+        ? tab
+        : 'basic-info'
+}
+
+function translateMenuName(menu: Menu) {
+    return t(menu.nameKey || `menu.${menu.code}`)
 }
 
 async function loadVipLicense(forceRefresh = false) {
@@ -468,7 +526,7 @@ function handleSelect(index: Menu['code']) {
 function doLogout() {
     resetVipLicenseCache()
     authStore.$reset()
-    ElMessage.success('退出成功')
+    ElMessage.success(t('common.logoutSuccess'))
     router.push({
         name: 'login'
     })
@@ -476,6 +534,7 @@ function doLogout() {
 
 function goPersonalInfo() {
     menuVisible.value = false
+    languageDialogVisible.value = false
     router.push({
         name: personalInfoRouteNames[currentArea.value] || 'personalInfo'
     })
@@ -483,6 +542,7 @@ function goPersonalInfo() {
 
 function goArea(area: 'workspace' | 'admin' | 'platform') {
     menuVisible.value = false
+    languageDialogVisible.value = false
     const routeNames: Record<typeof area, string> = {
         workspace: 'zhiqing-ai',
         admin: 'admin-tenant-user',
@@ -493,11 +553,42 @@ function goArea(area: 'workspace' | 'admin' | 'platform') {
     })
 }
 
+function openLanguageDialog() {
+    languageForm.locale = localeStore.locale
+    menuVisible.value = false
+    languageDialogVisible.value = true
+}
+
+async function handleLocaleChange() {
+    const locale = languageForm.locale as AppLocale
+    if (languageUpdating.value || locale === localeStore.locale) {
+        languageDialogVisible.value = false
+        return
+    }
+    languageUpdating.value = true
+    try {
+        const res = await UpdateMyLocale({
+            locale
+        })
+        localeStore.setLocale(locale)
+        authStore.setUserInfo({
+            ...authStore.userInfo,
+            locale
+        })
+        ElMessage.success(res.msg || t('personal.languageSaved'))
+        languageDialogVisible.value = false
+        menuVisible.value = false
+    } finally {
+        languageUpdating.value = false
+    }
+}
+
 function handleCommand(command: 'logout') {
     if (command === 'logout') {
+        languageDialogVisible.value = false
         CheckLicenseStatus()
             .catch(() => {
-                // 退出时仅做许可证状态刷新，失败不影响退出流程
+                // Refresh license status before logout; failure should not block logout.
             })
             .finally(() => {
                 doLogout()
@@ -507,11 +598,13 @@ function handleCommand(command: 'logout') {
 
 function openTenantDialog() {
     menuVisible.value = false
+    languageDialogVisible.value = false
     tenantSwitchDialogRef.value?.open()
 }
 
 function openApplyTenantDialog() {
     menuVisible.value = false
+    languageDialogVisible.value = false
     applyTenantForm.inviteCode = ''
     applyTenantDialogVisible.value = true
 }
@@ -519,7 +612,7 @@ function openApplyTenantDialog() {
 function submitApplyTenant() {
     const inviteCode = applyTenantForm.inviteCode.trim()
     if (!inviteCode) {
-        ElMessage.warning('请输入邀请码')
+        ElMessage.warning(t('layout.inputInviteCode'))
         return
     }
     applyTenantLoading.value = true
@@ -527,7 +620,7 @@ function submitApplyTenant() {
         inviteCode
     })
         .then((res: any) => {
-            ElMessage.success(res.msg || '申请提交成功')
+            ElMessage.success(res.msg || t('layout.applyTenantSuccess'))
             applyTenantDialogVisible.value = false
             applyTenantForm.inviteCode = ''
         })
@@ -802,8 +895,8 @@ watch(
 }
 
 .zqy-layout__user-menu-popper.el-popover.el-popper {
-    min-width: 132px !important;
-    width: 132px !important;
+    min-width: 176px !important;
+    width: 176px !important;
     padding: 4px;
 }
 
@@ -934,8 +1027,21 @@ watch(
     .zqy-layout__user-menu-text {
         flex: 1;
         min-width: 0;
-        max-width: 84px;
+        max-width: 128px;
     }
+
+    &.zqy-layout__user-menu-option--language {
+        justify-content: space-between;
+
+        .el-icon {
+            flex-shrink: 0;
+        }
+    }
+}
+
+.zqy-layout__user-menu-language-label {
+    flex: 1;
+    min-width: 0;
 }
 
 .zqy-layout__apply-tenant-dialog {
@@ -1022,6 +1128,111 @@ watch(
     }
 
     .zqy-layout__apply-tenant-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        width: 100%;
+
+        .el-button + .el-button {
+            margin-left: 0;
+        }
+    }
+}
+
+.zqy-layout__language-dialog {
+    --language-dialog-x-padding: 20px;
+    --language-dialog-border-color: #ebeef5;
+
+    border-radius: 2px;
+
+    .el-dialog__header {
+        position: relative;
+        min-height: 46px;
+        padding: 9px var(--language-dialog-x-padding) 8px !important;
+        margin-right: 0;
+        box-sizing: border-box;
+        border-bottom: none;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--language-dialog-border-color);
+        }
+    }
+
+    .el-dialog__title {
+        display: block;
+        font-size: 16px;
+        line-height: 28px;
+        color: getCssVar('text-color', 'primary');
+    }
+
+    .el-dialog__headerbtn {
+        top: 0;
+        width: 42px;
+        height: 46px;
+    }
+
+    .el-dialog__body {
+        padding: 18px var(--language-dialog-x-padding) 20px !important;
+    }
+
+    .el-dialog__footer {
+        position: relative;
+        min-height: 56px;
+        padding: 12px var(--language-dialog-x-padding);
+        box-sizing: border-box;
+        border-top: none;
+
+        &::before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 1px;
+            content: '';
+            background-color: var(--language-dialog-border-color);
+        }
+    }
+
+    .zqy-layout__language-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .zqy-layout__language-option {
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid getCssVar('border-color');
+        border-radius: 4px;
+        box-sizing: border-box;
+        font: inherit;
+        font-size: 13px;
+        line-height: 34px;
+        color: getCssVar('text-color', 'regular');
+        text-align: center;
+        background-color: getCssVar('fill-color', 'blank');
+        cursor: pointer;
+
+        &:hover {
+            border-color: getCssVar('color-primary');
+            color: getCssVar('color-primary');
+        }
+
+        &.is-active {
+            border-color: getCssVar('color-primary');
+            color: getCssVar('color-primary');
+            background-color: getCssVar('color-primary-light-9');
+        }
+    }
+
+    .zqy-layout__language-dialog-footer {
         display: flex;
         align-items: center;
         justify-content: flex-end;

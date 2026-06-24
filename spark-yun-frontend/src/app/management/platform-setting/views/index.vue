@@ -5,9 +5,9 @@
             <div class="zqy-platform-setting__wrap">
                 <el-form class="zqy-platform-setting__form" label-position="top">
                     <div class="zqy-platform-setting__section zqy-platform-setting__section--basic">
-                        <div class="zqy-platform-setting__section-title">基础设置</div>
+                        <div class="zqy-platform-setting__section-title">{{ t('platformSetting.basicSetting') }}</div>
                         <div class="zqy-platform-setting__switch-row zqy-platform-setting__switch-row--plain">
-                            <span class="zqy-platform-setting__label">注册后自动创建租户</span>
+                            <span class="zqy-platform-setting__label">{{ t('platformSetting.autoCreateTenant') }}</span>
                             <el-switch
                                 v-model="form.autoCreateTenant"
                                 :loading="autoCreateTenantSaving"
@@ -15,7 +15,7 @@
                             />
                         </div>
                         <div class="zqy-platform-setting__auto-tenant-grid">
-                            <el-form-item label="默认成员数">
+                            <el-form-item :label="t('platformSetting.defaultMemberNum')">
                                 <div class="zqy-platform-setting__number-row">
                                     <el-input-number
                                         v-model="form.defaultTenantMemberNum"
@@ -25,10 +25,10 @@
                                         step-strictly
                                         controls-position="right"
                                     />
-                                    <span>个</span>
+                                    <span>{{ t('platformSetting.unitCount') }}</span>
                                 </div>
                             </el-form-item>
-                            <el-form-item label="默认作业流数">
+                            <el-form-item :label="t('platformSetting.defaultWorkflowNum')">
                                 <div class="zqy-platform-setting__number-row">
                                     <el-input-number
                                         v-model="form.defaultTenantWorkflowNum"
@@ -38,10 +38,10 @@
                                         step-strictly
                                         controls-position="right"
                                     />
-                                    <span>个</span>
+                                    <span>{{ t('platformSetting.unitCount') }}</span>
                                 </div>
                             </el-form-item>
-                            <el-form-item label="默认有效天数">
+                            <el-form-item :label="t('platformSetting.defaultValidDays')">
                                 <div class="zqy-platform-setting__number-row">
                                     <el-input-number
                                         v-model="form.defaultTenantValidDays"
@@ -51,15 +51,18 @@
                                         step-strictly
                                         controls-position="right"
                                     />
-                                    <span>天</span>
+                                    <span>{{ t('platformSetting.unitDays') }}</span>
                                 </div>
                             </el-form-item>
                         </div>
                         <div class="zqy-platform-setting__switch-row zqy-platform-setting__switch-row--plain">
-                            <span class="zqy-platform-setting__label">开启行为日志</span>
+                            <span class="zqy-platform-setting__label">{{ t('platformSetting.enableUserLog') }}</span>
                             <el-switch v-model="form.userLogEnabled" :loading="saving" @change="saveSetting" />
                         </div>
-                        <el-form-item class="zqy-platform-setting__retention-item" label="行为日志保留周期">
+                        <el-form-item
+                            class="zqy-platform-setting__retention-item"
+                            :label="t('platformSetting.userLogRetentionDays')"
+                        >
                             <div class="zqy-platform-setting__retention-row">
                                 <el-input-number
                                     v-model="form.userLogRetentionDays"
@@ -69,10 +72,10 @@
                                     step-strictly
                                     controls-position="right"
                                 />
-                                <span>天</span>
+                                <span>{{ t('platformSetting.unitDays') }}</span>
                             </div>
                         </el-form-item>
-                        <el-form-item label="平台描述">
+                        <el-form-item :label="t('platformSetting.description')">
                             <el-input
                                 v-model="form.description"
                                 type="textarea"
@@ -82,32 +85,34 @@
                             />
                         </el-form-item>
                         <div class="zqy-platform-setting__actions">
-                            <el-button type="primary" :loading="saving" @click="saveSetting">保存</el-button>
+                            <el-button type="primary" :loading="saving" @click="saveSetting">
+                                {{ t('common.save') }}
+                            </el-button>
                         </div>
                     </div>
                     <div class="zqy-platform-setting__section zqy-platform-setting__section--brand">
-                        <div class="zqy-platform-setting__section-title">品牌设置</div>
-                        <el-form-item label="浏览器标题">
+                        <div class="zqy-platform-setting__section-title">{{ t('platformSetting.brandSetting') }}</div>
+                        <el-form-item :label="t('platformSetting.browserTitle')">
                             <div class="zqy-platform-setting__title-row">
                                 <el-input
                                     v-model="form.browserTitle"
                                     clearable
                                     :maxlength="100"
-                                    placeholder="请输入浏览器标题文字"
+                                    :placeholder="t('platformSetting.inputBrowserTitle')"
                                 />
                                 <el-button @click="form.browserTitle = defaultBrandSetting.browserTitle">
-                                    恢复默认
+                                    {{ t('platformSetting.resetDefault') }}
                                 </el-button>
                             </div>
                         </el-form-item>
-                        <el-form-item label="主题色">
+                        <el-form-item :label="t('platformSetting.themeColor')">
                             <div class="zqy-platform-setting__color-row">
                                 <el-color-picker
                                     v-model="form.themeColor"
                                     :clearable="false"
                                     :predefine="themePredefineColors"
                                 />
-                                <el-button @click="resetThemeColor">恢复默认</el-button>
+                                <el-button @click="resetThemeColor">{{ t('platformSetting.resetDefault') }}</el-button>
                             </div>
                         </el-form-item>
                         <div class="zqy-platform-setting__brand-grid">
@@ -134,16 +139,20 @@
                                                 :loading="brandUploadLoading[item.key]"
                                                 :disabled="brandUploadLoading[item.key]"
                                             >
-                                                上传
+                                                {{ t('platformSetting.upload') }}
                                             </el-button>
                                         </el-upload>
-                                        <el-button @click="resetBrandImage(item.key)">恢复默认</el-button>
+                                        <el-button @click="resetBrandImage(item.key)">
+                                            {{ t('platformSetting.resetDefault') }}
+                                        </el-button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="zqy-platform-setting__brand-save">
-                            <el-button type="primary" :loading="saving" @click="saveSetting">保存</el-button>
+                            <el-button type="primary" :loading="saving" @click="saveSetting">
+                                {{ t('common.save') }}
+                            </el-button>
                         </div>
                     </div>
                 </el-form>
@@ -153,13 +162,14 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, type UploadRawFile } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 import Breadcrumb from '@/app/layout/bread-crumb/index.vue'
 import LoadingPage from '@/app/components/loading/index.vue'
 import { GetPlatformSetting, UpdatePlatformSetting, UploadBrandImage, type PlatformSetting } from '../api'
-import { BreadCrumbList } from './platform-setting.config'
+import { createBreadCrumbList } from './platform-setting.config'
 import { applyBrandSetting, defaultBrandSetting } from '@/app/shared/branding'
 
 type BrandImageKey =
@@ -179,7 +189,8 @@ const IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,image/svg+xml'
 const ICON_ACCEPT = `${IMAGE_ACCEPT},image/x-icon,.ico`
 const MAX_BRAND_FILE_SIZE = 5 * 1024 * 1024
 
-const breadCrumbList = reactive(BreadCrumbList)
+const { t, locale } = useI18n()
+const breadCrumbList = reactive(createBreadCrumbList(t))
 const loading = ref(false)
 const saving = ref(false)
 const autoCreateTenantSaving = ref(false)
@@ -209,32 +220,36 @@ const form = reactive<PlatformSetting>({
 
 const themePredefineColors = ['#f34c00', '#409eff', '#1677ff', '#21ba45', '#722ed1', '#db2828']
 
-const brandImageItems: BrandImageItem[] = [
+const brandImageItems = computed<BrandImageItem[]>(() => [
     {
         key: 'faviconUrl',
-        label: '浏览器标签图标',
-        description: '显示在浏览器标签页，建议使用 ico、svg 或 32x32 png。',
+        label: t('platformSetting.favicon'),
+        description: t('platformSetting.faviconDesc'),
         accept: ICON_ACCEPT
     },
     {
         key: 'topLogoUrl',
-        label: '品牌 Logo',
-        description: '用于系统内页菜单展开态和登录页左上角 Logo，建议尺寸 498x126。',
+        label: t('platformSetting.topLogo'),
+        description: t('platformSetting.topLogoDesc'),
         accept: IMAGE_ACCEPT
     },
     {
         key: 'topLogoSmallUrl',
-        label: '顶部小 Logo',
-        description: '用于系统内页菜单收起态的顶部品牌 Logo，建议尺寸 475x346。',
+        label: t('platformSetting.topLogoSmall'),
+        description: t('platformSetting.topLogoSmallDesc'),
         accept: IMAGE_ACCEPT
     },
     {
         key: 'loginMainImageUrl',
-        label: '登录页主视觉图',
-        description: '用于登录页左侧的大幅视觉图，建议尺寸 1707x1470。',
+        label: t('platformSetting.loginMainImage'),
+        description: t('platformSetting.loginMainImageDesc'),
         accept: IMAGE_ACCEPT
     }
-]
+])
+
+watch(locale, () => {
+    breadCrumbList.splice(0, breadCrumbList.length, ...createBreadCrumbList(t))
+})
 
 function initData() {
     loading.value = true
@@ -329,11 +344,11 @@ function handleBrandFile(file: UploadRawFile | undefined, key: BrandImageKey) {
         return
     }
     if (!file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.ico')) {
-        ElMessage.warning('请上传图片文件')
+        ElMessage.warning(t('platformSetting.uploadImageOnly'))
         return
     }
     if (file.size > MAX_BRAND_FILE_SIZE) {
-        ElMessage.warning('图片大小不能超过5MB')
+        ElMessage.warning(t('platformSetting.imageMaxSize'))
         return
     }
 
@@ -344,7 +359,7 @@ function handleBrandFile(file: UploadRawFile | undefined, key: BrandImageKey) {
         .then((res: any) => {
             const imageUrl = getUploadImageUrl(res)
             if (!imageUrl) {
-                ElMessage.error('上传成功但未返回图片地址')
+                ElMessage.error(t('platformSetting.uploadNoUrl'))
                 return
             }
             form[key] = imageUrl

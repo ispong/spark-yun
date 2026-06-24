@@ -46,74 +46,85 @@ export const BreadCrumbList: Array<BreadCrumb> = [
     }
 ]
 
-export const colConfigs: colConfig[] = [
+export function createBreadCrumbList(t: (key: string) => string): Array<BreadCrumb> {
+    return [
+        {
+            name: t('userCenter.title'),
+            code: 'user-center'
+        }
+    ]
+}
+
+export function createColConfigs(t: (key: string) => string): colConfig[] {
+    return [
     {
         prop: 'account',
-        title: '账号',
+        title: t('userCenter.account'),
         minWidth: 100,
         customSlot: 'account',
         showOverflowTooltip: true
     },
     {
         prop: 'username',
-        title: '名称',
+        title: t('userCenter.name'),
         minWidth: 100,
         showOverflowTooltip: true
     },
     {
         prop: 'phone',
-        title: '手机号',
+        title: t('userCenter.phone'),
         minWidth: 100,
         showOverflowTooltip: true
     },
     {
         prop: 'email',
-        title: '邮箱',
+        title: t('userCenter.email'),
         minWidth: 160,
         showOverflowTooltip: true
     },
     {
         prop: 'validStartDateTime',
-        title: '有效开始时间',
+        title: t('userCenter.validStartTime'),
         minWidth: 140,
         showOverflowTooltip: true
     },
     {
         prop: 'validEndDateTime',
-        title: '有效结束时间',
+        title: t('userCenter.validEndTime'),
         minWidth: 140,
         showOverflowTooltip: true
     },
     {
         prop: 'platformAdmin',
-        title: '平台角色',
+        title: t('userCenter.platformRole'),
         minWidth: 110,
         customSlot: 'platformAdmin'
     },
     {
         prop: 'status',
-        title: '状态',
+        title: t('userCenter.status'),
         minWidth: 100,
         customSlot: 'statusTag'
     },
     {
         prop: 'remark',
-        title: '备注',
+        title: t('userCenter.remark'),
         minWidth: 120,
         showOverflowTooltip: true
     },
     {
-        title: '操作',
+        title: t('userCenter.options'),
         align: 'center',
         customSlot: 'options',
         width: 120,
         fixed: 'right'
     }
-]
+    ]
+}
 
 export const TableConfig: TableConfig = {
     tableData: [],
-    colConfigs: colConfigs,
+    colConfigs: createColConfigs((key) => key),
     pagination: {
         currentPage: 1,
         pageSize: 10,
@@ -123,4 +134,20 @@ export const TableConfig: TableConfig = {
     seqType: 'seq',
     checkbox: true,
     loading: false
+}
+
+export function createTableConfig(t: (key: string) => string): TableConfig {
+    return {
+        tableData: [],
+        colConfigs: createColConfigs(t),
+        pagination: {
+            currentPage: 1,
+            pageSize: 10,
+            pageSizes: [10, 20, 50, 100],
+            total: 0
+        },
+        seqType: 'seq',
+        checkbox: true,
+        loading: false
+    }
 }

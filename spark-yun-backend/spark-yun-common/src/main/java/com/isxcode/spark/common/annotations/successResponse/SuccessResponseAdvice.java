@@ -58,7 +58,8 @@ public class SuccessResponseAdvice {
     public String getMsg(SuccessResponse successResponse) {
 
         if (!successResponse.value().isEmpty()) {
-            return successResponse.value();
+            return messageSource.getMessage(successResponse.value(), null, successResponse.value(),
+                LocaleContextHolder.getLocale());
         }
 
         try {

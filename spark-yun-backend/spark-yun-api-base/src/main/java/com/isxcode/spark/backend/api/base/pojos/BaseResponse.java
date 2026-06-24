@@ -16,6 +16,10 @@ public class BaseResponse<T> {
 
     private String msg;
 
+    private String messageKey;
+
+    private Object[] args;
+
     private String err;
 
     private T data;

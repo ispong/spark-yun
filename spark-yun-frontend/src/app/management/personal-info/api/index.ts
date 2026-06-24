@@ -45,6 +45,14 @@ export function UpdateMyEmail(params: { email: string; code: string }): Promise<
     })
 }
 
+export function UpdateMyLocale(params: { locale: 'zh-CN' | 'en-US' }): Promise<any> {
+    return http.request({
+        method: 'post',
+        url: '/user/updateMyLocale',
+        params
+    })
+}
+
 export interface UpdateMyPasswordParams {
     oldPassword?: string
     verifyType?: 'OLD_PASSWORD' | 'PHONE' | 'EMAIL'

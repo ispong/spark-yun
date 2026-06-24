@@ -1,46 +1,46 @@
 <template>
     <BlockModal :model-config="modelConfig">
         <el-form ref="form" class="add-computer-group" label-position="top" :model="formData" :rules="rules">
-            <el-form-item label="名称" prop="name">
-                <el-input v-model="formData.name" maxlength="200" placeholder="请输入" />
+            <el-form-item :label="t('oauthManagement.name')" prop="name">
+                <el-input v-model="formData.name" maxlength="200" :placeholder="t('common.pleaseInput')" />
             </el-form-item>
-            <el-form-item label="类型" prop="ssoType">
-                <el-select v-model="formData.ssoType" placeholder="请选择">
+            <el-form-item :label="t('oauthManagement.type')" prop="ssoType">
+                <el-select v-model="formData.ssoType" :placeholder="t('common.pleaseSelect')">
                     <el-option v-for="item in typeList" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
             </el-form-item>
             <el-form-item label="clientId" prop="clientId">
-                <el-input v-model="formData.clientId" maxlength="2000" placeholder="请输入" />
+                <el-input v-model="formData.clientId" maxlength="2000" :placeholder="t('common.pleaseInput')" />
             </el-form-item>
             <el-form-item label="clientSecret" prop="clientSecret">
-                <el-input v-model="formData.clientSecret" maxlength="2000" placeholder="请输入" />
+                <el-input v-model="formData.clientSecret" maxlength="2000" :placeholder="t('common.pleaseInput')" />
             </el-form-item>
             <el-form-item label="scope">
-                <el-input v-model="formData.scope" maxlength="2000" placeholder="请输入" />
+                <el-input v-model="formData.scope" maxlength="2000" :placeholder="t('common.pleaseInput')" />
             </el-form-item>
             <el-form-item label="authUrl" prop="authUrl">
-                <el-input v-model="formData.authUrl" maxlength="2000" placeholder="请输入" />
+                <el-input v-model="formData.authUrl" maxlength="2000" :placeholder="t('common.pleaseInput')" />
             </el-form-item>
             <el-form-item label="accessTokenUrl" prop="accessTokenUrl">
-                <el-input v-model="formData.accessTokenUrl" maxlength="2000" placeholder="请输入" />
+                <el-input v-model="formData.accessTokenUrl" maxlength="2000" :placeholder="t('common.pleaseInput')" />
             </el-form-item>
-            <el-form-item label="redirectUrl (回调地址)" prop="redirectUrl">
-                <el-input v-model="formData.redirectUrl" maxlength="2000" placeholder="请输入" />
+            <el-form-item :label="t('oauthManagement.redirectUrl')" prop="redirectUrl">
+                <el-input v-model="formData.redirectUrl" maxlength="2000" :placeholder="t('common.pleaseInput')" />
             </el-form-item>
             <el-form-item label="userUrl" prop="userUrl">
-                <el-input v-model="formData.userUrl" maxlength="2000" placeholder="请输入" />
+                <el-input v-model="formData.userUrl" maxlength="2000" :placeholder="t('common.pleaseInput')" />
             </el-form-item>
             <el-form-item label="authJsonPath" prop="authJsonPath">
-                <el-input v-model="formData.authJsonPath" maxlength="2000" placeholder="请输入" />
+                <el-input v-model="formData.authJsonPath" maxlength="2000" :placeholder="t('common.pleaseInput')" />
             </el-form-item>
-            <el-form-item label="备注">
+            <el-form-item :label="t('oauthManagement.remark')">
                 <el-input
                     v-model="formData.remark"
                     show-word-limit
                     type="textarea"
                     maxlength="200"
                     :autosize="{ minRows: 4, maxRows: 4 }"
-                    placeholder="请输入"
+                    :placeholder="t('common.pleaseInput')"
                 />
             </el-form-item>
         </el-form>
@@ -48,9 +48,10 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, defineExpose, ref, nextTick } from 'vue'
+import { reactive, defineExpose, ref, nextTick, computed, watch } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 interface ConfigParam {
     name: string
@@ -73,6 +74,7 @@ interface Option {
 }
 
 const form = ref<FormInstance>()
+const { t, locale } = useI18n()
 const callback = ref<any>()
 const renderSence = ref('new')
 const typeList = ref<Option[]>([
@@ -86,17 +88,17 @@ const typeList = ref<Option[]>([
     }
 ])
 const modelConfig = reactive({
-    title: '新建免密',
+    title: t('oauthManagement.addOauth'),
     visible: false,
     width: '520px',
     okConfig: {
-        title: '确定',
+        title: t('common.confirm'),
         ok: okEvent,
         disabled: false,
         loading: false
     },
     cancelConfig: {
-        title: '取消',
+        title: t('common.cancel'),
         cancel: closeEvent,
         disabled: false
     },
@@ -119,78 +121,86 @@ const formData = reactive<ConfigParam>({
     redirectUrl: '',
     id: ''
 })
-const rules = reactive<FormRules>({
+const rules = computed<FormRules>(() => ({
     name: [
         {
             required: true,
-            message: '请输入名称',
+            message: t('oauthManagement.inputName'),
             trigger: ['change']
         }
     ],
     ssoType: [
         {
             required: true,
-            message: '请选择类型',
+            message: t('oauthManagement.selectType'),
             trigger: ['change']
         }
     ],
     authJsonPath: [
         {
             required: true,
-            message: '请输入authJsonPath',
+            message: t('oauthManagement.inputAuthJsonPath'),
             trigger: ['change']
         }
     ],
     scope: [
         {
             required: true,
-            message: '请输入scope',
+            message: t('oauthManagement.inputScope'),
             trigger: ['change']
         }
     ],
     clientId: [
         {
             required: true,
-            message: '请输入clientId',
+            message: t('oauthManagement.inputClientId'),
             trigger: ['change']
         }
     ],
     clientSecret: [
         {
             required: true,
-            message: '请输入clientSecret',
+            message: t('oauthManagement.inputClientSecret'),
             trigger: ['change']
         }
     ],
     accessTokenUrl: [
         {
             required: true,
-            message: '请输入accessTokenUrl',
+            message: t('oauthManagement.inputAccessTokenUrl'),
             trigger: ['change']
         }
     ],
     authUrl: [
         {
             required: true,
-            message: '请输入authUrl',
+            message: t('oauthManagement.inputAuthUrl'),
             trigger: ['change']
         }
     ],
     userUrl: [
         {
             required: true,
-            message: '请输入userUrl',
+            message: t('oauthManagement.inputUserUrl'),
             trigger: ['change']
         }
     ],
     redirectUrl: [
         {
             required: true,
-            message: '请输入redirectUrl',
+            message: t('oauthManagement.inputRedirectUrl'),
             trigger: ['change']
         }
     ]
-})
+}))
+
+function syncModalLocale() {
+    modelConfig.title = renderSence.value === 'edit' ? t('oauthManagement.editOauth') : t('oauthManagement.addOauth')
+    modelConfig.okConfig.title = t('common.confirm')
+    modelConfig.cancelConfig.title = t('common.cancel')
+}
+
+watch(locale, syncModalLocale)
 
 function showModal(cb: () => void, data: any): void {
     callback.value = cb
@@ -199,15 +209,14 @@ function showModal(cb: () => void, data: any): void {
         Object.keys(formData).forEach((key: string) => {
             formData[key] = data[key]
         })
-        modelConfig.title = '编辑免密'
         renderSence.value = 'edit'
     } else {
         Object.keys(formData).forEach((key: string) => {
             formData[key] = ''
         })
-        modelConfig.title = '新建免密'
         renderSence.value = 'new'
     }
+    syncModalLocale()
     nextTick(() => {
         form.value?.resetFields()
     })
@@ -234,7 +243,7 @@ function okEvent() {
                     modelConfig.okConfig.loading = false
                 })
         } else {
-            ElMessage.warning('请将表单输入完整')
+            ElMessage.warning(t('validation.completeForm'))
         }
     })
 }

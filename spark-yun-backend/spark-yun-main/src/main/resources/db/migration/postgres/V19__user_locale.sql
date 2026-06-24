@@ -1,0 +1,1 @@
+ALTER TABLE sy_user ADD COLUMN locale VARCHAR(20);

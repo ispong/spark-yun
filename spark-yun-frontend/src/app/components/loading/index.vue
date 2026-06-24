@@ -5,15 +5,17 @@
                 <div class="loader" />
             </div>
             <span class="loading-text">
-                正在加载中
+                {{ t('common.loading') }}
                 <span style="font-size: 18px">{{ points }}</span>
             </span>
         </template>
         <div v-else-if="networkError" class="zqy-loading-network-error">
-            <img src="./error-page.png" class="network-error" alt="服务器不稳定，请稍后重试" />
+            <img src="./error-page.png" class="network-error" :alt="t('common.networkErrorRetry')" />
             <span class="zqy-loading-error-text">
-                服务器不稳定，请稍后
-                <el-button class="zqy-loading-refresh-btn" type="text" @click="handleReflesh">重试</el-button>
+                {{ t('common.networkErrorPrefix') }}
+                <el-button class="zqy-loading-refresh-btn" type="text" @click="handleReflesh">
+                    {{ t('common.retry') }}
+                </el-button>
             </span>
         </div>
         <slot />
@@ -22,6 +24,9 @@
 
 <script lang="ts" setup>
 import { defineProps, withDefaults, ref, watch, defineEmits, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props: any = withDefaults(
     defineProps<{

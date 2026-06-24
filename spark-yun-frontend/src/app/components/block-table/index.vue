@@ -117,6 +117,7 @@
 import { computed, defineProps, defineEmits, reactive, ref, watch } from 'vue'
 import EmptyPage from '@/app/components/empty-page/index.vue'
 import type { VxeTablePropTypes } from 'vxe-table'
+import { useI18n } from 'vue-i18n'
 
 interface Pagination {
     currentPage: number
@@ -128,6 +129,7 @@ interface Pagination {
 interface colConfig {
     prop?: string
     title: string
+    titleKey?: string
     align?: string
     showHeaderOverflow?: boolean
     showOverflowTooltip?: boolean
@@ -162,6 +164,40 @@ const emit = defineEmits(['size-change', 'current-change', 'rowDragendEvent', 'c
 const vxeTableRef = ref<any>(null)
 const selectedRows = ref<any[]>([])
 const columnResizable = computed(() => props.tableConfig.columnResizable !== false)
+const { t } = useI18n()
+
+const tableTitleKeyByText: Record<string, string> = {
+    账号: 'table.account',
+    名称: 'table.name',
+    用户名: 'table.username',
+    手机号: 'table.phone',
+    邮箱: 'table.email',
+    角色: 'table.role',
+    状态: 'table.status',
+    备注: 'table.remark',
+    操作: 'table.actions',
+    类型: 'table.type',
+    租户: 'table.tenant',
+    模块: 'table.module',
+    接口名称: 'table.apiName',
+    请求路径: 'table.requestPath',
+    请求方法: 'table.requestMethod',
+    耗时: 'table.duration',
+    调用时间: 'table.callTime',
+    创建时间: 'table.createTime',
+    更新时间: 'table.updateTime',
+    有效开始时间: 'table.validStartTime',
+    有效结束时间: 'table.validEndTime',
+    成员数: 'table.memberCount',
+    作业流数: 'table.workflowCount',
+    租户超级管理员: 'table.tenantSuperAdmin',
+    检测时间: 'table.checkTime'
+}
+
+function translateColumnTitle(colConfig: colConfig) {
+    const key = colConfig.titleKey || tableTitleKeyByText[colConfig.title]
+    return key ? t(key) : colConfig.title
+}
 
 const normalizedColConfigs = computed(() => {
     const columns = props.tableConfig.colConfigs || []
@@ -183,6 +219,7 @@ const normalizedColConfigs = computed(() => {
 
         const nextColConfig = {
             ...colConfig,
+            title: translateColumnTitle(colConfig),
             headerClassName: headerClassNameList.filter(Boolean).join(' ')
         }
 

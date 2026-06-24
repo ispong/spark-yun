@@ -17,6 +17,16 @@ public abstract class AbstractIsxAppException extends RuntimeException {
     private final String msg;
 
     /**
+     * 国际化消息key.
+     */
+    private final String messageKey;
+
+    /**
+     * 国际化消息参数.
+     */
+    private final Object[] args;
+
+    /**
      * 异常的英文信息.
      */
     private final String err;
@@ -26,6 +36,8 @@ public abstract class AbstractIsxAppException extends RuntimeException {
         super(abstractSparkYunExceptionEnum.getMsg());
         this.code = abstractSparkYunExceptionEnum.getCode();
         this.msg = abstractSparkYunExceptionEnum.getMsg();
+        this.messageKey = null;
+        this.args = null;
         this.err = null;
     }
 
@@ -34,7 +46,29 @@ public abstract class AbstractIsxAppException extends RuntimeException {
         super(msg);
         this.code = code;
         this.msg = msg;
+        this.messageKey = null;
+        this.args = null;
         this.err = err;
+    }
+
+    public AbstractIsxAppException(String code, String messageKey, Object[] args, String fallbackMsg) {
+
+        super(fallbackMsg);
+        this.code = code;
+        this.msg = fallbackMsg;
+        this.messageKey = messageKey;
+        this.args = args;
+        this.err = null;
+    }
+
+    public AbstractIsxAppException(String messageKey, Object[] args, String fallbackMsg) {
+
+        super(fallbackMsg);
+        this.code = null;
+        this.msg = fallbackMsg;
+        this.messageKey = messageKey;
+        this.args = args;
+        this.err = null;
     }
 
     public AbstractIsxAppException(String code, String msg) {
@@ -42,6 +76,8 @@ public abstract class AbstractIsxAppException extends RuntimeException {
         super(msg);
         this.code = code;
         this.msg = msg;
+        this.messageKey = null;
+        this.args = null;
         this.err = null;
     }
 
@@ -50,6 +86,8 @@ public abstract class AbstractIsxAppException extends RuntimeException {
         super(msg);
         this.code = null;
         this.msg = msg;
+        this.messageKey = null;
+        this.args = null;
         this.err = null;
     }
 }

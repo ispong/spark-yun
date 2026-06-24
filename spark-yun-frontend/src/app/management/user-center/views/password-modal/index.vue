@@ -1,22 +1,22 @@
 <template>
     <BlockModal :model-config="modelConfig">
         <el-form ref="formRef" label-position="top" :model="formData" :rules="rules" class="user-password-form">
-            <el-form-item label="新密码" prop="newPassword">
+            <el-form-item :label="t('userCenter.newPassword')" prop="newPassword">
                 <el-input
                     v-model="formData.newPassword"
                     type="password"
                     show-password
                     maxlength="100"
-                    placeholder="请输入新密码"
+                    :placeholder="t('userCenter.inputNewPassword')"
                 />
             </el-form-item>
-            <el-form-item label="确认新密码" prop="confirmPassword">
+            <el-form-item :label="t('userCenter.confirmNewPassword')" prop="confirmPassword">
                 <el-input
                     v-model="formData.confirmPassword"
                     type="password"
                     show-password
                     maxlength="100"
-                    placeholder="请再次输入新密码"
+                    :placeholder="t('userCenter.inputConfirmNewPassword')"
                 />
             </el-form-item>
         </el-form>
@@ -24,25 +24,27 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, defineExpose, nextTick } from 'vue'
+import { reactive, ref, defineExpose, nextTick, computed, watch } from 'vue'
 import BlockModal from '@/app/components/block-modal/index.vue'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
+const { t, locale } = useI18n()
 const formRef = ref<FormInstance>()
 const callback = ref<any>()
 
 const modelConfig = reactive({
-    title: '修改密码',
+    title: t('userCenter.changePassword'),
     visible: false,
     width: '520px',
     okConfig: {
-        title: '确定',
+        title: t('common.confirm'),
         ok: okEvent,
         disabled: false,
         loading: false
     },
     cancelConfig: {
-        title: '取消',
+        title: t('common.cancel'),
         cancel: closeEvent,
         disabled: false
     },
@@ -60,23 +62,23 @@ const formData = reactive({
 
 const validateConfirmPassword = (_: any, value: string, callback: (error?: Error) => void) => {
     if (!value) {
-        callback(new Error('请再次输入新密码'))
+        callback(new Error(t('userCenter.inputConfirmNewPassword')))
         return
     }
 
     if (value !== formData.newPassword) {
-        callback(new Error('两次输入的新密码不一致'))
+        callback(new Error(t('userCenter.passwordMismatch')))
         return
     }
 
     callback()
 }
 
-const rules = reactive<FormRules>({
+const rules = computed<FormRules>(() => ({
     newPassword: [
         {
             required: true,
-            message: '请输入新密码',
+            message: t('userCenter.inputNewPassword'),
             trigger: ['blur', 'change']
         }
     ],
@@ -86,6 +88,17 @@ const rules = reactive<FormRules>({
             trigger: ['blur', 'change']
         }
     ]
+}))
+
+function syncModalText() {
+    modelConfig.title = t('userCenter.changePassword')
+    modelConfig.okConfig.title = t('common.confirm')
+    modelConfig.cancelConfig.title = t('common.cancel')
+}
+
+watch(locale, () => {
+    syncModalText()
+    formRef.value?.clearValidate()
 })
 
 function showModal(cb: () => void, row: any) {
@@ -94,6 +107,7 @@ function showModal(cb: () => void, row: any) {
     formData.userId = row.id
     formData.newPassword = ''
     formData.confirmPassword = ''
+    syncModalText()
     nextTick(() => {
         formRef.value?.clearValidate()
     })
@@ -121,7 +135,7 @@ function okEvent() {
                     modelConfig.okConfig.loading = false
                 })
         } else {
-            ElMessage.warning('请将表单输入完整')
+            ElMessage.warning(t('validation.completeForm'))
         }
     })
 }

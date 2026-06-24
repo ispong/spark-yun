@@ -1,6 +1,7 @@
 export interface Menu {
     icon: string
     name: string
+    nameKey?: string
     code: string
     authType?: Array<string>
     permission?: string
@@ -407,5 +408,10 @@ export const personalInfoMenuListData: Array<Menu> = [
         code: 'change-email',
         name: '修改邮箱',
         icon: 'Message'
+    },
+    {
+        code: 'change-language',
+        name: '修改语言',
+        icon: 'Switch'
     }
 ]

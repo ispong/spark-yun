@@ -25,7 +25,7 @@ export function GetLicenseList(params: SerchParams): Promise<any> {
     })
 }
 
-// 上传license证书
+// Upload license certificate.
 export function UploadLicenseFile(params: any): Promise<any> {
     return http.uploadFile({
         method: 'post',
@@ -34,7 +34,7 @@ export function UploadLicenseFile(params: any): Promise<any> {
     })
 }
 
-// 启用
+// Disable license.
 export function DisableLicense(params: LicenseIdParam): Promise<any> {
     return http.request({
         method: 'get',
@@ -43,7 +43,7 @@ export function DisableLicense(params: LicenseIdParam): Promise<any> {
     })
 }
 
-// 禁用
+// Enable license.
 export function EnableLicense(params: LicenseIdParam): Promise<any> {
     return http.request({
         method: 'get',
@@ -52,7 +52,7 @@ export function EnableLicense(params: LicenseIdParam): Promise<any> {
     })
 }
 
-// 删除
+// Delete license.
 export function DeleteLicense(params: LicenseIdParam): Promise<any> {
     return http.request({
         method: 'get',
@@ -61,7 +61,7 @@ export function DeleteLicense(params: LicenseIdParam): Promise<any> {
     })
 }
 
-// 检查license状态
+// Check license status.
 export function CheckLicenseStatus(): Promise<any> {
     return http.request(
         {
@@ -69,7 +69,7 @@ export function CheckLicenseStatus(): Promise<any> {
             url: '/vip/license/open/checkLicense'
         },
         {
-            // 404 场景由上层按“许可证未生效”处理，不弹全局错误提示
+            // Let the caller handle a 404 as an inactive license without a global toast.
             isShowErrorMessage: false
         }
     )
